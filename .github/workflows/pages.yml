@@ -1,0 +1,35 @@
+name: Publish to GitHub Pages
+# Pushes and pull requests run Quality; publishing is a deliberate release action.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  quality:
+    uses: ./.github/workflows/ci.yml
+  publish:
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: game-build
+          path: dist
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4

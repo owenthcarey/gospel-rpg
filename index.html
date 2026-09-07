@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#252d28" />
+    <meta
+      name="description"
+      content="An unhurried adventure through first-century Galilee. Explore Capernaum, meet its people, and discover the stories of the Gospels."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>The Way · A journey through Galilee</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas
+        id="game-canvas"
+        aria-label="Capernaum game world. Click to walk; use WASD or arrow keys to move."
+        tabindex="0"
+      ></canvas>
+      <div id="ui"></div>
+      <div id="loading" role="status">
+        <div class="loading-mark">✦</div>
+        <p class="eyebrow">A JOURNEY THROUGH GALILEE</p>
+        <h1>The Way</h1>
+        <p id="loading-message">Preparing the shores of Galilee…</p>
+        <div class="loading-line"></div>
+      </div>
+    </div>
+    <noscript>This adventure requires JavaScript and a browser with WebGL 2 support.</noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

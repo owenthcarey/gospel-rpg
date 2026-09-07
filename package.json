@@ -1,0 +1,42 @@
+{
+  "name": "gospel-rpg",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Way — a single-player journey through first-century Galilee",
+  "type": "module",
+  "engines": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "assets:build": "python3 tools/build_assets.py"
+  },
+  "dependencies": {
+    "@babylonjs/core": "9.23.0",
+    "@babylonjs/loaders": "9.23.0",
+    "idb": "8.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.4.0",
+    "eslint": "10.9.1",
+    "fake-indexeddb": "6.2.5",
+    "globals": "17.11.0",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.69.0",
+    "vite": "8.2.2",
+    "vitest": "4.1.11"
+  }
+}

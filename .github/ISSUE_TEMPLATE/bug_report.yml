@@ -1,0 +1,27 @@
+name: Bug report
+description: Report a game or saved-journey problem.
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened?
+      description: Include expected behavior, location, and quest stage.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser, OS, and device
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshot or error message
+      description: Do not include personal files or private information.
