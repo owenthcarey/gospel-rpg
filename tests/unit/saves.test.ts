@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { newGame } from '../../src/game/types';
 import { transition } from '../../src/game/quest';
 import {
@@ -72,7 +72,7 @@ describe('save safety', () => {
       state: oldState,
     });
     expect(migrated.version).toBe(SAVE_VERSION);
-    expect(migrated.state).toEqual({ ...oldState, villageStory: 'not-started' });
+    expect(migrated.state).toEqual({ ...newGame(), ...oldState, villageStory: 'not-started' });
     expect(importSave(JSON.stringify(migrated))).toEqual(migrated);
   });
   it('round-trips each village story stage and rejects inconsistent completion', () => {
@@ -122,5 +122,44 @@ describe('IndexedDB save slots', () => {
     expect(b.getSettings().quality).toBe('low');
     expect(await b.list()).toHaveLength(4);
     b.close();
+  });
+});
+
+describe('storage failures', () => {
+  it('keeps session slots and portable export available when IndexedDB cannot open', async () => {
+    const open = vi.spyOn(indexedDB, 'open').mockImplementationOnce(() => {
+      throw new DOMException('Storage is unavailable', 'SecurityError');
+    });
+    const repository = new SaveRepository();
+    try {
+      await repository.init('blocked-' + crypto.randomUUID());
+      expect(repository.persistent).toBe(false);
+      const state = transition(newGame(), { type: 'accept-quest' });
+      await repository.save('slot-1', state);
+      expect((await repository.load('slot-1'))?.state).toEqual(state);
+      expect(importSave(JSON.stringify(makeSave(state))).state).toEqual(state);
+    } finally {
+      open.mockRestore();
+      repository.close();
+    }
+  });
+  it('rejects a failed write, preserves the earlier slot, and permits a later retry', async () => {
+    const repository = new SaveRepository();
+    await repository.init('quota-' + crypto.randomUUID());
+    await repository.save('auto', newGame());
+    const state = transition(newGame(), { type: 'accept-quest' });
+    const put = vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementationOnce(() => {
+      throw new DOMException('Storage is full', 'QuotaExceededError');
+    });
+    try {
+      await expect(repository.save('auto', state)).rejects.toThrow('Storage is full');
+      expect((await repository.load('auto'))?.state.quest).toBe('not-started');
+      expect(importSave(JSON.stringify(makeSave(state))).state.quest).toBe('gathering');
+    } finally {
+      put.mockRestore();
+    }
+    await repository.save('auto', state);
+    expect((await repository.load('auto'))?.state.quest).toBe('gathering');
+    repository.close();
   });
 });

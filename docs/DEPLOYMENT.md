@@ -29,4 +29,6 @@ Play on current Chrome/Edge, Safari, and Firefox on real hardware, including a t
 
 Check the deployed subpath for missing assets. Saves are origin-specific: localhost, previews, and GitHub Pages do not share progress. Export before changing origins or clearing browser data.
 
-The separately cached Babylon bundle transfers roughly 0.7 MB compressed; the GLB kit is roughly 0.6 MB. Source maps enlarge the disk artifact but are not normally downloaded during play. No CDN is required at runtime. Offline caching is not implemented; reloads require the host. Low quality reduces shadows and resolution. Profile representative GPUs before expanding regions.
+The separately cached Babylon bundle transfers roughly 0.7 MB compressed; the complete 29-model GLB kit is roughly 1.88 MB. Source maps enlarge the disk artifact but are not normally downloaded during play. No CDN is required at runtime. Offline caching is not implemented; reloads require the host. Low quality reduces shadows and resolution. Profile representative GPUs before expanding regions.
+
+For this milestone, verify both legacy and v4 fixtures. Restore a saved lake checkpoint, leave and resume, finish with a summary, then load an earlier manual slot. Failed model downloads must keep the previous region usable. A completed old prelude should offer Simon's continuation without repeating the net-and-bread errands. See [the verification record](VERIFICATION.md) for automated results and remaining device checks.

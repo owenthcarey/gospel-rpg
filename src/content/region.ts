@@ -1,5 +1,6 @@
 import type { Obstacle } from '../game/pathfinding';
-import type { Point } from '../game/types';
+import type { GameState, Point } from '../game/types';
+import { hasReturned } from '../game/episode/progress';
 
 export interface Placement extends Point {
   asset: string;
@@ -91,6 +92,92 @@ export const interactables: Interactable[] = [
   },
   { id: 'olive', name: 'Olive grove', role: 'Rest in the shade', kind: 'place', x: -17, z: 6 },
 ];
+export const episodePlaces: Interactable[] = [
+  {
+    id: 'supply-basket',
+    name: 'Empty basket',
+    role: 'Carry to the landing',
+    kind: 'object',
+    x: -4.5,
+    z: 0.5,
+  },
+  {
+    id: 'landing',
+    name: 'The landing',
+    role: 'A place beside the boats',
+    kind: 'object',
+    x: 6,
+    z: -1,
+  },
+  { id: 'mooring', name: 'Mooring rope', role: 'Make the path clear', kind: 'object', x: 7, z: 3 },
+  {
+    id: 'gathering',
+    name: 'The gathering',
+    role: 'Make room for a neighbor',
+    kind: 'place',
+    x: 3,
+    z: 9,
+  },
+  {
+    id: 'viewpoint',
+    name: 'Shoreline viewpoint',
+    role: 'Follow the account on the lake',
+    kind: 'place',
+    x: 6,
+    z: 5,
+  },
+  {
+    id: 'boat-study',
+    name: 'A boat at rest',
+    role: 'An observation along the way',
+    kind: 'place',
+    x: 6,
+    z: -5,
+  },
+  {
+    id: 'net-study',
+    name: 'Cord and patient hands',
+    role: 'Look closely at the nets',
+    kind: 'place',
+    x: 3,
+    z: -9,
+  },
+  {
+    id: 'james',
+    name: 'James',
+    role: 'One of Simon’s partners',
+    kind: 'person',
+    asset: 'james',
+    x: 5,
+    z: 11,
+  },
+  {
+    id: 'john',
+    name: 'John',
+    role: 'One of Simon’s partners',
+    kind: 'person',
+    asset: 'john',
+    x: 6,
+    z: -9,
+  },
+];
+export const allInteractables = [...interactables, ...episodePlaces];
+export function activeInteractables(state: GameState): Interactable[] {
+  if (state.region !== 'capernaum') return [];
+  const returned = hasReturned(state.episode);
+  const base = interactables.filter((p) => !returned || !['simon', 'jesus'].includes(p.id));
+  if (state.episode.stage === 'not-started') return base;
+  return [
+    ...base,
+    ...episodePlaces.filter((p) => {
+      if (returned && ['supply-basket', 'mooring', 'gathering', 'james', 'john'].includes(p.id))
+        return false;
+      if (p.id === 'supply-basket' && state.episode.preparations.includes('basket')) return false;
+      return true;
+    }),
+  ];
+}
+
 export const obstacles: Obstacle[] = [
   ...buildings.map((p) => ({
     x: p.x,

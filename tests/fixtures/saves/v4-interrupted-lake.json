@@ -1,0 +1,51 @@
+{
+  "version": 4,
+  "savedAt": "2026-09-08T00:00:00Z",
+  "state": {
+    "position": {
+      "x": 6,
+      "z": 5
+    },
+    "quest": "complete",
+    "inventory": [],
+    "journal": [
+      "arrival",
+      "simon",
+      "net",
+      "bread",
+      "delivered",
+      "complete",
+      "shore",
+      "well",
+      "olive",
+      "ezra-invitation",
+      "ezra-memory",
+      "episode-invitation",
+      "action-take-basket",
+      "action-place-basket",
+      "action-secure-mooring",
+      "action-join-gathering",
+      "note-boat",
+      "scene-gathering",
+      "scene-teaching",
+      "scene-invitation",
+      "scene-answer"
+    ],
+    "discoveries": ["shore", "well", "olive"],
+    "playTime": 310,
+    "villageStory": "complete",
+    "region": "lake-gennesaret",
+    "tracking": "main",
+    "villageMemory": null,
+    "episode": {
+      "stage": "witnessing",
+      "preparations": ["basket", "mooring", "gathering"],
+      "carrying": null,
+      "checkpoint": "lowering",
+      "aftermath": [],
+      "reflection": null,
+      "notes": ["boat"]
+    }
+  },
+  "region": "lake-gennesaret"
+}

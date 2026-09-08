@@ -1,11 +1,15 @@
 import './ui/styles.css';
-import { dialogueFor, type Dialogue } from './content/story';
+import './ui/episode.css';
+import { dialogueFor, type Dialogue, type Choice } from './content/story';
 import { transition } from './game/quest';
 import { newGame, type GameEvent, type GameState, type Settings } from './game/types';
 import { importSave, makeSave, MAX_SAVE_BYTES } from './persistence/schema';
 import { SaveRepository, SLOT_IDS, type SlotId } from './persistence/saves';
+import { ActionQueue } from './game/action-queue';
 import { Ambience } from './scene/audio';
-import { World } from './scene/world';
+import { GameRuntime } from './scene/runtime';
+import { SCENE_IDS } from './game/episode/types';
+import { actionFor } from './content/episode/interactions';
 import { Interface } from './ui/interface';
 import { escapeHtml } from './ui/icons';
 
@@ -16,7 +20,10 @@ const saves = new SaveRepository();
 const audio = new Ambience();
 let state: GameState = newGame();
 let settings: Settings;
-let world: World | undefined;
+let world: GameRuntime | undefined;
+let regionLoading = false;
+let scenePaused = false;
+let graphicsLost = false;
 let started = false;
 let conversation: Dialogue | null = null;
 let saveQueue: Promise<unknown> = Promise.resolve();
@@ -27,16 +34,44 @@ let timer: ReturnType<typeof setInterval> | undefined;
 
 const ui = new Interface(document.querySelector('#ui')!, {
   action: (name, value) => {
-    void handleAction(name, value).catch(reportError);
+    const choice = name === 'choice' ? conversation?.choices[Number(value)] : undefined;
+    runAction(() => handleAction(name, value, choice));
   },
   setting: (key, value) => {
-    void updateSetting(key, value).catch(reportError);
+    runAction(() => updateSetting(key, value));
   },
   importFile: (file) => {
-    void loadFile(file).catch(reportError);
+    runAction(() => loadFile(file));
   },
 });
 
+const actions = new ActionQueue((pending) => ui.setActionPending(pending));
+function runAction(action: () => Promise<void>): void {
+  if (disposed) return;
+  void actions
+    .run(async () => {
+      if (!disposed) await action();
+    })
+    .catch(reportError);
+}
+async function changeRegion(next: GameState): Promise<void> {
+  if (!world) return;
+  regionLoading = true;
+  syncPause();
+  loading.hidden = false;
+  loadingMessage.textContent = 'Opening the next part of your journey…';
+  ui.setBusy(true);
+  try {
+    await world.load(next, (message) => {
+      loadingMessage.textContent = message;
+    });
+  } finally {
+    regionLoading = false;
+    loading.hidden = true;
+    ui.setBusy(false);
+    syncPause();
+  }
+}
 function reportError(error: unknown): void {
   console.error(error);
   ui.toast(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
@@ -45,7 +80,14 @@ function pause(): void {
   world?.setPaused(true);
 }
 function syncPause(): void {
-  world?.setPaused(!started || ui.panel !== null || document.hidden);
+  world?.setPaused(
+    !started ||
+      ui.panel !== null ||
+      document.hidden ||
+      regionLoading ||
+      graphicsLost ||
+      (state.region === 'lake-gennesaret' && scenePaused),
+  );
 }
 function snapshot(): GameState {
   return structuredClone({ ...state, position: world?.getPosition() ?? state.position });
@@ -80,13 +122,35 @@ function enqueueSave(slot: SlotId = 'auto', notify = false): Promise<void> {
     if (notify) throw new Error('The save could not be written. Try exporting a file instead.');
   });
 }
-function apply(event: GameEvent): void {
+async function apply(event: GameEvent): Promise<void> {
   const previous = state;
   const current = snapshot();
   const next = transition(current, event);
   if (next === current) return;
+  if (next.region !== state.region) await changeRegion(next);
   state = next;
+  world?.update(state);
   ui.update(state);
+  if (event.type === 'episode-action') {
+    world?.performInteraction();
+    audio.chime();
+    ui.toast(actionFor(event.id).notice);
+  }
+  if (event.type === 'start-episode') ui.toast('Into the Deep · Make room on the shore.');
+  if (event.type === 'episode-note') ui.toast('An observation has been added to your journal.');
+  if (event.type === 'reflect') {
+    audio.chime();
+    ui.toast('Into the Deep complete · Your reflection is in the journal.');
+  }
+  if (event.type === 'leave-scene')
+    ui.toast('Your place on the lake is kept. Resume at the shoreline viewpoint.');
+  if (
+    (event.type === 'advance-scene' || event.type === 'skip-scene') &&
+    state.region === 'capernaum'
+  )
+    ui.toast('Back on shore · Help at the landing, then visit Miriam and Ezra.');
+  if (event.type === 'track-story')
+    ui.toast(event.story === 'main' ? 'Main story tracked.' : 'Ezra’s village story tracked.');
   if (event.type === 'collect' && !previous.inventory.includes(event.item)) {
     audio.chime();
     ui.toast(
@@ -103,7 +167,7 @@ function apply(event: GameEvent): void {
   }
   if (event.type === 'listen' && previous.quest === 'delivered') {
     audio.chime();
-    ui.toast('Chapter complete · An invitation to trust. Your journal has been updated.');
+    ui.toast('Prelude complete · Speak with Simon to continue Into the Deep.');
   }
   if (event.type === 'accept-village-story')
     ui.toast('Village story begun · An ordinary morning. Find your next stop in the journal.');
@@ -111,7 +175,7 @@ function apply(event: GameEvent): void {
     audio.chime();
     ui.toast('Village story complete · A place among neighbors. A new memory is in your journal.');
   }
-  void enqueueSave();
+  await enqueueSave();
 }
 function openDialogue(id: string): void {
   pause();
@@ -133,21 +197,27 @@ async function close(): Promise<void> {
   }
   ui.close();
   syncPause();
-  canvas.focus();
+  if (state.region === 'lake-gennesaret') ui.focusScene();
+  else canvas.focus();
 }
 async function begin(saved?: GameState): Promise<void> {
   await saveQueue.catch(() => {});
-  state = saved ? structuredClone(saved) : newGame();
-  world?.setPosition(state.position, true);
+  const next = saved ? structuredClone(saved) : newGame();
+  await changeRegion(next);
+  state = next;
   state.position = world?.getPosition() ?? state.position;
+  scenePaused = false;
+  ui.setScenePaused(false);
   started = true;
   conversation = null;
   menuRequest++;
   ui.start();
+  world?.update(state);
   ui.update(state);
   syncPause();
   audio.set(settings);
-  canvas.focus();
+  if (state.region === 'lake-gennesaret') ui.focusScene();
+  else canvas.focus();
   await enqueueSave();
   if (!saved) ui.toast('Welcome to Capernaum. Speak with Simon by the boats to begin.');
 }
@@ -167,7 +237,7 @@ async function loadFile(file: File): Promise<void> {
   await begin(save.state);
   ui.toast('Your imported journey is ready.');
 }
-async function handleAction(name: string, value?: string): Promise<void> {
+async function handleAction(name: string, value?: string, chosen?: Choice): Promise<void> {
   if (!world) return;
   switch (name) {
     case 'begin':
@@ -190,6 +260,7 @@ async function handleAction(name: string, value?: string): Promise<void> {
     case 'close':
       await close();
       break;
+    case 'transcript':
     case 'journal':
     case 'inventory':
     case 'map':
@@ -202,6 +273,7 @@ async function handleAction(name: string, value?: string): Promise<void> {
       menuRequest++;
       conversation = null;
       if (name === 'journal') ui.journal(state);
+      if (name === 'transcript') ui.transcript(state);
       if (name === 'inventory') ui.inventory(state);
       if (name === 'map') ui.map(snapshot());
       if (name === 'help') ui.help();
@@ -240,11 +312,49 @@ async function handleAction(name: string, value?: string): Promise<void> {
       world.resetCamera();
       break;
     case 'choice': {
-      const choice = conversation?.choices[Number(value)];
-      if (!choice) break;
-      if (choice.event) apply(choice.event);
-      if (choice.next) openDialogue(choice.next);
-      else if (choice.close) await close();
+      if (!chosen) break;
+      // The clicked choice is captured before asynchronous work, never looked up in a later dialogue.
+      if (chosen.event) await apply(chosen.event);
+      if (chosen.next) openDialogue(chosen.next);
+      else if (chosen.close) await close();
+      break;
+    }
+    case 'track-story':
+      if (value === 'main' || value === 'village') {
+        const wasJournal = ui.panel === 'journal';
+        await apply({ type: 'track-story', story: value });
+        if (wasJournal) ui.journal(state);
+      }
+      break;
+    case 'scene-next':
+    case 'scene-skip':
+      if (SCENE_IDS.some((id) => id === value)) {
+        await apply({
+          type: name === 'scene-next' ? 'advance-scene' : 'skip-scene',
+          checkpoint: value as (typeof SCENE_IDS)[number],
+        });
+        await close();
+      }
+      break;
+    case 'scene-leave':
+      await apply({ type: 'leave-scene' });
+      await close();
+      break;
+    case 'scene-summary':
+      if (state.region === 'lake-gennesaret') {
+        pause();
+        ui.sceneSummary(state);
+      }
+      break;
+    case 'scene-pause':
+      scenePaused = !scenePaused;
+      ui.setScenePaused(scenePaused);
+      syncPause();
+      break;
+    case 'diagnostics': {
+      const snapshot = world.diagnostics();
+      pause();
+      ui.diagnostics(snapshot);
       break;
     }
     case 'save-slot':
@@ -291,19 +401,26 @@ const keydown = (event: KeyboardEvent) => {
   const key = event.key.toLowerCase();
   if (key === 'escape') {
     event.preventDefault();
-    void (ui.panel ? close() : showSettings()).catch(reportError);
+    runAction(() => (ui.panel ? close() : showSettings()));
     return;
   }
   if (ui.panel === 'dialogue' && ['1', '2', '3'].includes(key)) {
     event.preventDefault();
-    void handleAction('choice', String(Number(key) - 1)).catch(reportError);
+    const choice = conversation?.choices[Number(key) - 1];
+    runAction(() => handleAction('choice', String(Number(key) - 1), choice));
     return;
   }
   if (!started || ui.panel === 'welcome' || ui.panel === 'dialogue') return;
-  const shortcuts: Record<string, string> = { j: 'journal', i: 'inventory', m: 'map', '?': 'help' };
+  const shortcuts: Record<string, string> = {
+    j: 'journal',
+    i: 'inventory',
+    m: 'map',
+    '?': 'help',
+    f3: 'diagnostics',
+  };
   if (shortcuts[key]) {
     event.preventDefault();
-    void handleAction(shortcuts[key]).catch(reportError);
+    runAction(() => handleAction(shortcuts[key]!));
   }
 };
 const visibility = () => {
@@ -320,7 +437,7 @@ async function boot(): Promise<void> {
   await saves.init();
   settings = saves.getSettings();
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) settings.reducedMotion = true;
-  world = new World(canvas, {
+  world = new GameRuntime(canvas, {
     interact: openDialogue,
     notice: (message) => ui.toast(message),
     frame: (position, labels, heading, nearest) => {
@@ -329,14 +446,16 @@ async function boot(): Promise<void> {
     },
   });
   world.engine.onContextLostObservable.add(() => {
-    pause();
+    graphicsLost = true;
+    syncPause();
     ui.toast('Graphics paused. Waiting for your browser to restore the view…');
   });
   world.engine.onContextRestoredObservable.add(() => {
+    graphicsLost = false;
     syncPause();
     ui.toast('The view has been restored.');
   });
-  await world.load((message) => {
+  await world.load(state, (message) => {
     loadingMessage.textContent = message;
   });
   world.applySettings(settings);
@@ -350,7 +469,15 @@ async function boot(): Promise<void> {
   loading.hidden = true;
   let ticks = 0;
   timer = setInterval(() => {
-    if (!started || document.hidden || ui.panel) return;
+    if (
+      !started ||
+      document.hidden ||
+      ui.panel ||
+      regionLoading ||
+      graphicsLost ||
+      (state.region === 'lake-gennesaret' && scenePaused)
+    )
+      return;
     state.playTime += 1;
     if (++ticks % 20 === 0) void enqueueSave();
   }, 1000);

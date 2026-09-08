@@ -1,0 +1,29 @@
+{
+  "version": 3,
+  "savedAt": "2026-09-08T00:00:00Z",
+  "state": {
+    "position": {
+      "x": 6,
+      "z": 5
+    },
+    "quest": "complete",
+    "inventory": [],
+    "journal": [
+      "arrival",
+      "simon",
+      "net",
+      "bread",
+      "delivered",
+      "complete",
+      "shore",
+      "well",
+      "olive",
+      "ezra-invitation",
+      "ezra-memory"
+    ],
+    "discoveries": ["shore", "well", "olive"],
+    "playTime": 310,
+    "villageStory": "complete"
+  },
+  "region": "capernaum"
+}

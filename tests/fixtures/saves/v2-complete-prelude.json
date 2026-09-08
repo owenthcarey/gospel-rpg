@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "savedAt": "2026-09-08T00:00:00Z",
+  "state": {
+    "position": {
+      "x": 6,
+      "z": 5
+    },
+    "quest": "complete",
+    "inventory": [],
+    "journal": ["arrival", "simon", "net", "bread", "delivered", "complete"],
+    "discoveries": [],
+    "playTime": 310
+  },
+  "region": "capernaum"
+}

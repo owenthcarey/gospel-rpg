@@ -1,0 +1,17 @@
+{
+  "version": 3,
+  "savedAt": "2026-09-08T00:00:00Z",
+  "state": {
+    "position": {
+      "x": -1,
+      "z": -3
+    },
+    "quest": "gathering",
+    "inventory": ["bread"],
+    "journal": ["arrival", "simon", "bread", "ezra-invitation", "well"],
+    "discoveries": ["well"],
+    "villageStory": "exploring",
+    "playTime": 160
+  },
+  "region": "capernaum"
+}

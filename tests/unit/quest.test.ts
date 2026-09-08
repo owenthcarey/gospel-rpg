@@ -118,8 +118,8 @@ describe('An ordinary morning', () => {
     expect(state.villageStory).toBe('complete');
     expect(new Set(state.journal).size).toBe(state.journal.length);
   });
-  it('guides completed chapters to Ezra and then only to missing discoveries', () => {
-    const state = { ...newGame(), quest: 'complete' as const };
+  it('guides a tracked village story to Ezra and missing discoveries', () => {
+    const state = { ...newGame(), quest: 'complete' as const, tracking: 'village' as const };
     expect(objectiveTarget(state)).toBe('ezra');
     let exploring = transition(state, { type: 'accept-village-story' });
     expect(objectiveTarget(exploring)).toBe('well');

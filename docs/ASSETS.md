@@ -1,10 +1,10 @@
 # Asset production
 
-Checked-in GLBs are ready to use. Blender is only required for rebuilding.
+The 29 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The episode kit was built and inspected through Blender MCP using **Blender 5.2.1 LTS**. No external models, textures or generation services are required.
 
-The original kit was generated through Blender MCP on port 9876 using Blender 5.2.1 LTS. The recipe creates a separate workshop scene, preserves existing scenes, and writes only the workshop and its dependencies to the `.blend`, preserving other open scenes without including them in the shipped source. Assets use meters, applied transforms, flat shading, matte materials, and glTF's Y-up export. Babylon uses left-handed coordinates.
+`tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
-Rebuild with Blender 4.2+:
+## Rebuild
 
 ```sh
 npm run assets:build
@@ -12,17 +12,38 @@ npm run assets:build
 BLENDER_BIN=/path/to/blender npm run assets:build
 ```
 
+The recipe uses Blender 4.2+ APIs; the checked-in exports were verified with 5.2.1. Rebuilding with another version requires the asset tests and visual checks below.
+
 Via Blender MCP's Python execution tool:
 
 ```python
-import os
+import os, sys, importlib
 os.environ['GOSPEL_RPG_ROOT'] = '/absolute/path/to/gospel-rpg'
+sys.path.insert(0, os.path.join(os.environ['GOSPEL_RPG_ROOT'], 'tools/blender'))
+import rigging
+importlib.reload(rigging)  # Pick up edits in an already-running Blender session.
 recipe = os.path.join(os.environ['GOSPEL_RPG_ROOT'], 'tools/blender/generate_kit.py')
-exec(compile(open(recipe).read(), 'generate_kit.py', 'exec'))
+exec(compile(open(recipe).read(), recipe, 'exec'))
 ```
 
-The 18 models include two houses, market canopy, three tree types, fishing boats, nets, crates, amphorae, reeds, rocks, well, and five figures. The traveler has a rigid hierarchy with separate body, arm, and leg meshes and a looping `Walk` clip exported from Blender NLA tracks. Babylon samples this clip during movement and restores the rest pose when paused or reduced motion is enabled. The other figures are static; skeletal animation remains future work.
+## Model contracts
 
-Keep geometry near the origin, export only selected objects, avoid remote textures, and inspect front orientation after coordinate conversion. Update collision footprints with building dimensions. Review both graphics settings. Commit the recipe, source `.blend`, and derived GLBs together. Use Git LFS if later binary sources become large. Record external asset licenses in `CREDITS.md` before inclusion.
+- Seven skinned actors: traveler, Simon, Miriam, Jesus, village neighbor, James and John. Ezra uses the neighbor model.
+- Shared twelve-bone rig, with rigid per-part weights that preserve the chunky silhouettes. Named clips: `Idle`, `Walk`, `Carry`, `Gesture`, `Sit`, `Row`, `Haul`, `Kneel`. Blender NLA tracks export each clip; Babylon samples them independently per actor. This is skeletal animation with deliberately restrained deformation, not cloth simulation.
+- Every actor exports `carry_socket`; the traveler uses it for the basket. The boat exports `seat_front`, `seat_middle`, `seat_back`, `net_socket`, `oar_left`, and `oar_right` attachment transforms.
+- Separate oar, empty/full basket, folded/cast/full net, bread bundle, mooring coil and landing mat models support persistent interactions and staged scenes.
+- The original houses, market, three tree types, boat, net rack, crate, amphora, reeds, rock and well remain in the kit.
 
-For a traveler-only GLB rebuild, set `GOSPEL_RPG_TRAVELER_ONLY=1` before running the recipe. This still refreshes the workshop source. Exports are restricted to the active scene and selected asset so geometry from another open scene cannot enter a shipped model. The asset test checks the traveler hierarchy and four animated limbs.
+`src/content/assets.ts` is the shipped manifest and per-region inventory. An actor's visual wrapper compensates for Blender's forward direction after Babylon's left-handed glTF conversion. Boat and prop orientation must be checked separately; do not apply the actor correction to every model.
+
+## Verify and hand off
+
+```sh
+npm run test -- tests/unit/assets.test.ts
+```
+
+Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all eight clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under 5 MiB, actors under 5,000 triangles each and props under 10,000.
+
+Inspect the Blender viewport and the actual Babylon view. Check front direction, feet, seated/kneeling height, carried basket, readable net silhouettes, both graphics settings and reduced motion. Phone captions must leave the action visible. Screenshot fixtures exercise lowering, abundance, partners, astonishment and calling on desktop and phone layouts.
+
+Keep geometry near the origin and update collision footprints with changed environment dimensions. Commit the recipe, source `.blend`, and derived GLBs together. Workshop object numbering can vary with other open scenes; reproducibility means the same asset contracts and geometry, not byte-identical Blender metadata. Record external licenses in `CREDITS.md` before adding external assets.
