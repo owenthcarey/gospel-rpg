@@ -54,7 +54,7 @@ async function exportCurrent(page: Page): Promise<Buffer> {
 test('a migrated traveler completes preparation, every lake scene and a remembered aftermath', async ({
   page,
 }, info) => {
-  test.setTimeout(240_000);
+  test.slow();
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await importPrelude(page);
@@ -126,7 +126,7 @@ test('a migrated traveler completes preparation, every lake scene and a remember
 test('scene exit, resume, summary and reduced motion keep the same checkpoint', async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  test.slow();
   await importPrelude(page);
   await prepare(page);
   await enterLake(page);
@@ -160,7 +160,7 @@ test('a failed lake asset load leaves the shoreline playable and permits retry',
     info.project.name === 'mobile-chromium',
     'One network fault injection covers the shared loader.',
   );
-  test.setTimeout(180_000);
+  test.slow();
   await importPrelude(page);
   await prepare(page);
   await page.route('**/net_cast.glb', (route) => route.abort('failed'));
@@ -199,7 +199,7 @@ test('story tracking persists and phone objectives remain compact and readable',
 test('v4 import and manual restoration replace regions without accumulating scenes', async ({
   page,
 }, info) => {
-  test.setTimeout(180_000);
+  test.slow();
   await page.goto('/');
   await page.getByRole('button', { name: 'Saves & settings' }).click();
   await page.locator('[data-setting="quality"]').selectOption('low');
