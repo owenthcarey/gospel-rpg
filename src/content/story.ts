@@ -1,4 +1,4 @@
-import { hasSupplies } from '../game/quest';
+import { hasMemories, hasSupplies } from '../game/quest';
 import type { GameEvent, GameState, ItemId } from '../game/types';
 
 export interface Choice {
@@ -66,6 +66,14 @@ export const journalEntries: Record<string, { title: string; text: string; refer
   olive: {
     title: 'Under the olive trees',
     text: 'Silver-green leaves stir above the path. Take a moment to rest. There is no need to hurry through this place.',
+  },
+  'ezra-invitation': {
+    title: 'An ordinary morning',
+    text: 'Ezra invited me to notice three places: the village well, the olive grove, and the shore. When I have remembered each in my journal, he would like to hear what I found. There is no hurry, and places I have already visited are part of the story.',
+  },
+  'ezra-memory': {
+    title: 'A place among neighbors',
+    text: 'I returned to Ezra with memories of water, shade, and the lake. We sat together beneath the olives. A village that was unfamiliar this morning now holds faces I know, and paths I can find again. I came as a traveler; for a little while, I was a neighbor.',
   },
 };
 
@@ -219,14 +227,92 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
         choices: [{ label: 'Carry these words with you', event: { type: 'listen' }, close: true }],
       };
     case 'ezra':
+      if (state.villageStory === 'complete')
+        return {
+          speaker: 'Ezra',
+          subtitle: 'A familiar face',
+          provenance: original,
+          text: 'There you are, friend. I was thinking of our morning. The shade is still here, and there is still room beside me. You know your way around our little village now.',
+          choices: [{ label: 'Remember our morning', next: 'ezra-reflection' }, goodbye],
+        };
+      if (state.villageStory === 'exploring' && hasMemories(state))
+        return {
+          speaker: 'Ezra',
+          subtitle: 'An ordinary morning',
+          provenance: original,
+          text: 'You have walked a little slower, I think. Tell me, what will you carry with you when you leave? The voices at the well, the quiet of the grove, or the open water?',
+          choices: [
+            { label: 'The voices at the well', next: 'ezra-well' },
+            { label: 'The quiet beneath the olives', next: 'ezra-olive' },
+            { label: 'The wide, open water', next: 'ezra-shore' },
+          ],
+        };
+      if (state.villageStory === 'exploring')
+        return {
+          speaker: 'Ezra',
+          subtitle: `${state.discoveries.length} of 3 places remembered`,
+          provenance: original,
+          text: 'There is no hurry. Visit the well, rest beneath the olive trees, and look out over the lake. Write down what you notice. Come back when you have a memory of each, and we will sit a while.',
+          choices: [{ label: 'I’ll keep exploring', close: true }, goodbye],
+        };
       return {
         speaker: 'Ezra',
         subtitle: 'A neighbor along the way',
         provenance: original,
         text: 'A traveler sees what those of us at home can forget to notice. The water, the shade of the olives, a friend at the well. Look around. There are gifts in an ordinary morning.',
         choices: [
-          { label: 'I’ll take a little time to explore', close: true },
+          { label: 'What should I look for?', next: 'ezra-invitation' },
           { label: 'What is this place?', next: 'ezra-place' },
+          { label: 'I’ll return another time', close: true },
+        ],
+      };
+    case 'ezra-invitation':
+      return {
+        speaker: 'Ezra',
+        subtitle: 'An ordinary morning · Optional village story',
+        provenance: original,
+        text: 'Start at the well, where neighbors cross paths. Then rest in the olive grove and look out over the shore. Keep a memory of each in your journal. When you return, I would be glad to hear what stayed with you.',
+        choices: [
+          {
+            label: 'I’ll bring back a few memories',
+            event: { type: 'accept-village-story' },
+            close: true,
+          },
+          { label: 'Perhaps another time', close: true },
+        ],
+      };
+    case 'ezra-well':
+    case 'ezra-olive':
+    case 'ezra-shore': {
+      const reflections = {
+        'ezra-well':
+          'A familiar voice can make a place feel like home. Tomorrow someone will need water again, and someone else will have news to share. I am glad you stopped to listen.',
+        'ezra-olive':
+          'I have rested beneath those branches on many warm mornings. Sometimes the best part of a walk is the place where you stop. I am glad you found a little quiet.',
+        'ezra-shore':
+          'I have lived beside this water for years, and I still stop to look. Boats leave and boats return. Today the lake brought us a new neighbor. I am glad it was you.',
+      };
+      return {
+        speaker: 'Ezra',
+        subtitle: 'A place among neighbors',
+        provenance: original,
+        text: reflections[id],
+        choices: [{ label: 'Sit with Ezra a little longer', next: 'ezra-reflection' }],
+      };
+    }
+    case 'ezra-reflection':
+      return {
+        speaker: 'Beneath the olive trees',
+        subtitle: 'A place among neighbors',
+        provenance: narration,
+        text: 'For a while, the two of you watch the village go about its morning. You know the path to the well, the baker’s name, the sound of water beneath the boats. This small place has become a little less unfamiliar.',
+        choices: [
+          {
+            label:
+              state.villageStory === 'complete' ? 'Return to the path' : 'Remember this morning',
+            event: { type: 'finish-village-story' },
+            close: true,
+          },
         ],
       };
     case 'ezra-place':

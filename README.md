@@ -15,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. Select **Begin your journey**, then speak with **Simon** or select **Follow the path**. The chapter takes roughly 5–10 minutes when exploring and reading.
+Open the URL printed by Vite. Select **Begin your journey**, then speak with **Simon** or select **Follow the path**. The main chapter takes roughly 5–10 minutes. Speak with **Ezra** or open the journal to begin **An ordinary morning**, an optional village story that adds another 3–5 minutes.
 
 | Control                                 | Action                      |
 | --------------------------------------- | --------------------------- |
@@ -33,14 +33,15 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 ## Playable baseline
 
 - A lakeside village with **18 original Blender assets**, matte materials, warm lighting, and optional ambience.
-- **One complete quest**, four interactive characters, dialogue choices, and three optional discoveries.
-- Quest tracking, satchel, journal, and a map that guides your traveler to destinations.
-- Autosave, three manual slots, reload/continue, versioned migration, and JSON export/import.
+- **A complete main quest and an optional village story**, four interactive characters, dialogue choices, and three discoveries that lead to a final conversation with Ezra.
+- A Blender-authored traveler walk cycle, subtle idle motion, and gold route markers along walking paths.
+- Quest tracking, satchel, journal discovery cards, and a map that marks your next destination and remembered places.
+- Autosave, three manual slots, reload/continue, versioned migration (including existing v1/v2 journeys), and JSON export/import.
 - Responsive menus, keyboard focus management, reduced motion, and lower graphics settings.
 
 Progress is stored in this browser. Use **Settings → Export** to change devices or keep a backup before clearing browser data. If storage is unavailable, the game provides export for the current session.
 
-This is a playable vertical slice and a production-oriented repository foundation. Multi-region travel, the miraculous-catch sequence, rigged animation, offline caching, and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md).
+This is a playable vertical slice and a production-oriented repository foundation. Multi-region travel, the miraculous-catch sequence, skeletal/NPC animation, offline caching, and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md).
 
 ## Develop and verify
 

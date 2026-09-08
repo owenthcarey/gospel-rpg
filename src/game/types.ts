@@ -5,11 +5,13 @@ export interface Point {
 export type QuestStage = 'not-started' | 'gathering' | 'delivered' | 'complete';
 export type ItemId = 'net' | 'bread';
 export type DiscoveryId = 'shore' | 'well' | 'olive';
+export type VillageStoryStage = 'not-started' | 'exploring' | 'complete';
 export interface GameState {
   position: Point;
   quest: QuestStage;
   inventory: ItemId[];
   discoveries: DiscoveryId[];
+  villageStory: VillageStoryStage;
   journal: string[];
   playTime: number;
 }
@@ -18,6 +20,8 @@ export type GameEvent =
   | { type: 'collect'; item: ItemId }
   | { type: 'deliver' }
   | { type: 'listen' }
+  | { type: 'accept-village-story' }
+  | { type: 'finish-village-story' }
   | { type: 'discover'; id: DiscoveryId };
 export interface Settings {
   sound: boolean;
@@ -37,6 +41,7 @@ export function newGame(): GameState {
     quest: 'not-started',
     inventory: [],
     discoveries: [],
+    villageStory: 'not-started',
     journal: ['arrival'],
     playTime: 0,
   };

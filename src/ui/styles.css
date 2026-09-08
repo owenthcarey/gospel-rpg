@@ -1,8 +1,123 @@
 @import './responsive.css';
 
+.village-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 15px;
+  padding: 13px 0 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--gold);
+  text-align: left;
+  font-size: 11px;
+}
+.village-shortcut span {
+  flex: 1;
+}
+.village-shortcut small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.village-shortcut .icon {
+  width: 16px;
+}
+.exploration-intro {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 15px 0;
+}
+.memory-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  color: var(--gold);
+  font-size: 10px;
+}
+.village-summary {
+  padding: 22px;
+  margin: 20px 0 28px;
+  border: 1px solid #7f946747;
+  border-radius: 5px;
+  background: #66775314;
+}
+.village-summary-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.village-summary-heading h3 {
+  font-size: 25px;
+  margin-top: 5px;
+}
+.village-summary-heading .status-pill {
+  margin-left: auto;
+}
+.village-summary > p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 15px 0;
+}
+.discovery-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin: 18px 0;
+}
+.discovery-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 10px;
+  border: 1px solid var(--line);
+  background: #1a2c232e;
+  text-align: left;
+  font-size: 11px;
+}
+.discovery-card small {
+  display: block;
+  font-size: 9px;
+  margin-top: 6px;
+  color: var(--muted);
+}
+.discovery-card.remembered {
+  border-color: #a8b38260;
+  color: #cfdbb1;
+}
+.village-summary > .village-complete {
+  color: var(--gold);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  margin-bottom: 0;
+}
+.world-label.remembered .label-name::before {
+  content: '✓ ';
+  color: #d4e0b4;
+}
+.map-svg .map-remembered {
+  fill: #b7d19a;
+  stroke: #385740;
+}
+.map-svg .map-target {
+  fill: #fff0b4;
+  stroke: #fff0b4;
+  stroke-width: 3;
+  paint-order: stroke;
+}
+
 #hud {
   position: absolute;
   inset: 0;
+  z-index: 1;
+}
+#overlay {
+  z-index: 3;
 }
 #hud > .topbar,
 #hud > .quest-card,

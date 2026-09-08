@@ -2,10 +2,10 @@ import { journalEntries } from '../content/story';
 import type { GameState, Settings } from '../game/types';
 import { DEFAULT_SETTINGS } from '../game/types';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 2;
+  version: 3;
   region: 'capernaum';
   savedAt: string;
   state: GameState;
@@ -54,9 +54,17 @@ export function parseSave(raw: unknown): SaveFile {
       },
     };
   }
+  // Existing discoveries count toward Ezra's invitation, including in completed chapters.
+  if (record(raw) && raw.version === 2 && record(raw.state)) {
+    raw = {
+      ...raw,
+      version: 3,
+      state: { ...raw.state, villageStory: 'not-started' },
+    };
+  }
   if (
     !record(raw) ||
-    raw.version !== 2 ||
+    raw.version !== 3 ||
     raw.region !== 'capernaum' ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
@@ -74,6 +82,8 @@ export function parseSave(raw: unknown): SaveFile {
     !['not-started', 'gathering', 'delivered', 'complete'].includes(s.quest) ||
     !stringList(s.inventory, ['net', 'bread']) ||
     !stringList(s.discoveries, ['shore', 'well', 'olive']) ||
+    typeof s.villageStory !== 'string' ||
+    !['not-started', 'exploring', 'complete'].includes(s.villageStory) ||
     !stringList(s.journal, Object.keys(journalEntries)) ||
     !finite(s.playTime) ||
     s.playTime < 0 ||
@@ -92,6 +102,12 @@ export function parseSave(raw: unknown): SaveFile {
   )
     throw new SaveError('This save has an incomplete journey record.');
   const expectedJournal = new Set(['arrival', ...s.discoveries]);
+  if (s.villageStory !== 'not-started') expectedJournal.add('ezra-invitation');
+  if (s.villageStory === 'complete') {
+    if (s.discoveries.length !== 3)
+      throw new SaveError('This save has an incomplete village story.');
+    expectedJournal.add('ezra-memory');
+  }
   if (s.quest !== 'not-started') expectedJournal.add('simon');
   if (s.quest === 'gathering') s.inventory.forEach((id) => expectedJournal.add(id));
   if (s.quest === 'delivered' || s.quest === 'complete') {
@@ -105,7 +121,7 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 2,
+    version: 3,
     region: 'capernaum',
     savedAt: raw.savedAt,
     state: {
@@ -113,6 +129,7 @@ export function parseSave(raw: unknown): SaveFile {
       quest: s.quest as GameState['quest'],
       inventory: [...s.inventory] as GameState['inventory'],
       discoveries: [...s.discoveries] as GameState['discoveries'],
+      villageStory: s.villageStory as GameState['villageStory'],
       journal: [...s.journal],
       playTime: s.playTime,
     },
