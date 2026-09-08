@@ -17,6 +17,7 @@ import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import '@babylonjs/core/Culling/ray';
 import type { AssetContainer } from '@babylonjs/core/assetContainer';
+import type { AnimationGroup } from '@babylonjs/core/Animations/animationGroup';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
 import {
@@ -55,6 +56,9 @@ export class World {
   private player!: TransformNode;
   private playerModel!: TransformNode;
   private marker: Mesh;
+  private routeDots: Mesh[] = [];
+  private walkAnimation?: AnimationGroup;
+  private strideTime = 0;
   private path: Point[] = [];
   private destination?: string;
   private keys = new Set<string>();
@@ -151,6 +155,20 @@ export class World {
     this.marker.position.y = 0.045;
     this.marker.isPickable = false;
     this.marker.setEnabled(false);
+    const routeMaterial = this.material('route-gold', '#e8d19a', 0.65);
+    routeMaterial.emissiveColor = Color3.FromHexString('#8d7950');
+    for (let i = 0; i < 32; i++) {
+      const dot = MeshBuilder.CreateGround(
+        `route-step-${i}`,
+        { width: 0.11, height: 0.11 },
+        this.scene,
+      );
+      dot.material = routeMaterial;
+      dot.isPickable = false;
+      dot.rotation.y = Math.PI / 4;
+      dot.setEnabled(false);
+      this.routeDots.push(dot);
+    }
     this.bindInput();
   }
 
@@ -230,6 +248,11 @@ export class World {
       { doNotInstantiate: true },
     );
     const anchor = new TransformNode(`${p.asset}-anchor`, this.scene);
+    if (p.asset === 'traveler') {
+      this.walkAnimation = instance.animationGroups.find((group) => group.name.endsWith('Walk'));
+      this.walkAnimation?.start(true).pause();
+      this.walkAnimation?.goToFrame(this.walkAnimation.from);
+    }
     instance.rootNodes.forEach((node) => {
       node.parent = anchor;
     });
@@ -487,6 +510,7 @@ export class World {
     this.destination = undefined;
     this.marker.position.set(cell!.x, 0.045, cell!.z);
     this.marker.setEnabled(true);
+    this.showRoute();
     return true;
   }
   navigate(id: string): void {
@@ -531,7 +555,32 @@ export class World {
     this.path = [];
     this.destination = undefined;
     this.marker.setEnabled(false);
+    this.routeDots.forEach((dot) => dot.setEnabled(false));
+    this.poseTraveler(false, 0);
     this.keys.clear();
+  }
+  private showRoute(): void {
+    this.routeDots.forEach((dot, i) => {
+      const point = this.path[i * 2];
+      dot.setEnabled(Boolean(point));
+      if (point) dot.position.set(point.x, 0.04, point.z);
+    });
+  }
+  private poseTraveler(moving: boolean, dt: number): void {
+    if (!this.playerModel) return;
+    if (moving && !this.reducedMotion) this.strideTime += dt;
+    else this.strideTime = 0;
+    if (this.walkAnimation) {
+      const { from, to } = this.walkAnimation;
+      this.walkAnimation.goToFrame(from + ((this.strideTime % 0.8) / 0.8) * (to - from));
+    }
+    this.playerModel.position.y = this.reducedMotion
+      ? 0
+      : moving
+        ? Math.abs(Math.sin((this.strideTime * Math.PI * 2) / 0.8)) * 0.035
+        : Math.sin(this.time * 1.8) * 0.004;
+    this.playerModel.rotation.z =
+      moving && !this.reducedMotion ? Math.sin((this.strideTime * Math.PI * 2) / 0.8) * 0.016 : 0;
   }
   setPaused(value: boolean): void {
     this.paused = value;
@@ -559,6 +608,19 @@ export class World {
   }
   applySettings(settings: Settings): void {
     this.reducedMotion = settings.reducedMotion;
+    if (this.reducedMotion) {
+      this.poseTraveler(false, 0);
+      this.boats.forEach((boat) => {
+        boat.position.y = -0.25;
+        boat.rotation.z = 0;
+      });
+      this.people.forEach((person) => {
+        person.position.y = 0;
+      });
+      this.waterLines.forEach((line) => {
+        line.scaling.x = 1;
+      });
+    }
     this.scene.shadowsEnabled = settings.quality === 'high';
     this.engine.setHardwareScalingLevel(
       settings.quality === 'low'
@@ -578,6 +640,7 @@ export class World {
         Number(this.keys.has('s') || this.keys.has('arrowdown'));
       let moving = false;
       if (dx || dz) {
+        if (this.path.length) this.routeDots.forEach((dot) => dot.setEnabled(false));
         this.path = [];
         this.destination = undefined;
         this.marker.setEnabled(false);
@@ -603,6 +666,8 @@ export class World {
         if (dist < dt * 3.25) {
           this.position = { ...next };
           this.path.shift();
+          moving = dist > 0.001;
+          this.showRoute();
         } else {
           this.face(next);
           const t = (dt * 3.25) / dist;
@@ -625,10 +690,7 @@ export class World {
       }
       if (this.keys.has('q')) this.camera.alpha += dt * 0.8;
       this.player.position.set(this.position.x, 0, this.position.z);
-      this.playerModel.position.y =
-        moving && !this.reducedMotion ? Math.abs(Math.sin(this.time * 11)) * 0.07 : 0;
-      this.playerModel.rotation.z =
-        moving && !this.reducedMotion ? Math.sin(this.time * 11) * 0.025 : 0;
+      this.poseTraveler(moving && !this.paused, dt);
       const target = new Vector3(this.position.x, 0, this.position.z + 2);
       if (this.reducedMotion) this.camera.target.copyFrom(target);
       else Vector3.LerpToRef(this.camera.target, target, 1 - Math.exp(-dt * 3), this.camera.target);

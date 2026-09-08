@@ -55,6 +55,72 @@ M = {
 }
 parts = []
 
+def export_traveler():
+    """Rigid limb pivots retain the chunky silhouette and export a real glTF walk clip."""
+    groups = {name: [] for name in ["body", "arm_left", "arm_right", "leg_left", "leg_right"]}
+    for obj in parts:
+        side = "left" if obj.location.x < 0 else "right"
+        if obj.name.startswith(("sleeve", "forearm")):
+            group = "arm_" + side
+        elif obj.name.startswith(("sandals", "lower_leg")):
+            group = "leg_" + side
+        else:
+            group = "body"
+        groups[group].append(obj)
+    root = bpy.data.objects.new("traveler_rig", None)
+    scene.collection.objects.link(root)
+    nodes = [root]
+    scene.render.fps = 30
+    scene.frame_start, scene.frame_end = 1, 25
+    for name, meshes in groups.items():
+        bpy.ops.object.select_all(action="DESELECT")
+        for obj in meshes:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = meshes[0]
+        bpy.ops.object.join()
+        obj = bpy.context.object
+        obj.name = "traveler_" + name
+        if name.startswith("arm"):
+            pivot = (-.24 if "left" in name else .24, 0, 1.30)
+        elif name.startswith("leg"):
+            pivot = (-.13 if "left" in name else .13, 0, .46)
+        else:
+            pivot = (0, 0, 0)
+        scene.cursor.location = pivot
+        bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        obj.rotation_mode = "XYZ"
+        obj.parent = root
+        nodes.append(obj)
+        if name == "body":
+            continue
+        direction = -1 if name in ["arm_left", "leg_right"] else 1
+        amplitude = .38 if name.startswith("arm") else .48
+        for frame, phase in [(1, 0), (7, 1), (13, 0), (19, -1), (25, 0)]:
+            obj.rotation_euler.x = phase * amplitude * direction
+            obj.keyframe_insert(data_path="rotation_euler", frame=frame)
+        action = obj.animation_data.action
+        action.name = "Walk_" + name
+        slot = getattr(obj.animation_data, "action_slot", None)
+        track = obj.animation_data.nla_tracks.new()
+        track.name = "Walk"
+        strip = track.strips.new("Walk", 1, action)
+        if slot is not None:
+            strip.action_slot = slot
+        obj.animation_data.action = None
+    scene.frame_set(1)
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in nodes:
+        obj.select_set(True)
+    bpy.ops.export_scene.gltf(
+        filepath=os.path.join(OUT, "traveler.glb"), export_format="GLB",
+        use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False,
+        export_yup=True, export_animations=True, export_animation_mode="NLA_TRACKS",
+    )
+    root.location = ((len(exports) % 5) * 7, (len(exports) // 5) * 7, 0)
+    exports.append("traveler")
+    parts.clear()
+
 def finish(obj, name, material):
     obj.name = name
     obj.data.materials.append(M[material])
@@ -92,6 +158,9 @@ def beam(name, a, b, radius, material):
     return o
 
 def export(name):
+    if name == "traveler":
+        export_traveler()
+        return
     bpy.ops.object.select_all(action="DESELECT")
     for o in parts:
         o.select_set(True)
@@ -102,7 +171,8 @@ def export(name):
     scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, name + ".glb"), export_format="GLB", use_selection=True, export_cameras=False, export_lights=False, export_yup=True)
+    if not os.environ.get("GOSPEL_RPG_TRAVELER_ONLY"):
+        bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, name + ".glb"), export_format="GLB", use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False, export_yup=True)
     o.location = ((len(exports) % 5) * 7, (len(exports) // 5) * 7, 0)
     exports.append(name)
     parts.clear()
@@ -282,5 +352,6 @@ export("villager")
 
 scene.render.engine = "BLENDER_EEVEE_NEXT" if bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
 os.makedirs(os.path.join(ROOT,"assets/source"),exist_ok=True)
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT,"assets/source/galilee-kit.blend"), copy=True)
+# Save only the workshop and its dependencies, never unrelated open user scenes.
+bpy.data.libraries.write(os.path.join(ROOT,"assets/source/galilee-kit.blend"), {scene}, fake_user=True, compress=True)
 print("Exported " + str(len(exports)) + " assets: " + ", ".join(exports))

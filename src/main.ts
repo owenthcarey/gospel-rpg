@@ -82,7 +82,10 @@ function enqueueSave(slot: SlotId = 'auto', notify = false): Promise<void> {
 }
 function apply(event: GameEvent): void {
   const previous = state;
-  state = transition(snapshot(), event);
+  const current = snapshot();
+  const next = transition(current, event);
+  if (next === current) return;
+  state = next;
   ui.update(state);
   if (event.type === 'collect' && !previous.inventory.includes(event.item)) {
     audio.chime();
@@ -101,6 +104,12 @@ function apply(event: GameEvent): void {
   if (event.type === 'listen' && previous.quest === 'delivered') {
     audio.chime();
     ui.toast('Chapter complete · An invitation to trust. Your journal has been updated.');
+  }
+  if (event.type === 'accept-village-story')
+    ui.toast('Village story begun · An ordinary morning. Find your next stop in the journal.');
+  if (event.type === 'finish-village-story') {
+    audio.chime();
+    ui.toast('Village story complete · A place among neighbors. A new memory is in your journal.');
   }
   void enqueueSave();
 }
@@ -331,6 +340,7 @@ async function boot(): Promise<void> {
     loadingMessage.textContent = message;
   });
   world.applySettings(settings);
+  document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
   const autosave = await saves.load('auto').catch(() => {
     ui.toast('The autosave could not be read. You can import a backup in Settings.');
     return null;

@@ -197,6 +197,41 @@
   }
 }
 @media (max-width: 640px) {
+  :root .village-shortcut {
+    font-size: 9px;
+    gap: 7px;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  :root .village-shortcut small {
+    font-size: 8px;
+    line-height: 1.4;
+  }
+  :root .village-shortcut > .icon:last-child {
+    display: none;
+  }
+  :root .exploration-intro {
+    font-size: 10px;
+  }
+  :root .village-summary {
+    padding: 15px;
+  }
+  :root .village-summary-heading {
+    gap: 10px;
+  }
+  :root .village-summary-heading .eyebrow {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+  :root .village-summary-heading h3 {
+    font-size: 20px;
+  }
+  :root .discovery-cards {
+    grid-template-columns: 1fr;
+  }
+  :root .discovery-card {
+    padding: 11px;
+  }
   :root .topbar {
     padding: 0 15px;
     height: 76px;
@@ -499,6 +534,9 @@
   }
 }
 @media (max-height: 540px) {
+  :root .village-shortcut {
+    display: none;
+  }
   :root .welcome-card {
     top: 25px;
     transform: none;

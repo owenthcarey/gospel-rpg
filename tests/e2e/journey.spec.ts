@@ -100,6 +100,13 @@ test('menus, touch navigation, settings, and invalid imports stay usable', async
   await choice(page, 'I’ll bring the net');
   await page.locator('.toolbar [data-action="map"]').click();
   await expect(page.getByRole('heading', { name: 'Capernaum', exact: true })).toBeVisible();
+  // A visible edge of the menu must receive hits ahead of the HUD behind it.
+  expect(
+    await page.locator('.panel').evaluate((panel) => {
+      const rect = panel.getBoundingClientRect();
+      return Boolean(document.elementFromPoint(rect.left + 12, rect.top + 100)?.closest('.panel'));
+    }),
+  ).toBe(true);
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
   );
@@ -139,4 +146,52 @@ test('ground clicks, keyboard movement, and menu focus work together', async ({ 
   await expect(page.locator('#game-canvas')).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { name: 'A moment of rest' })).toBeVisible();
+});
+
+test('Ezra remembers earlier discoveries and the village story survives a reload', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await start(page);
+  await travel(page, 'well');
+  await choice(page, 'Remember this');
+  await travel(page, 'ezra');
+  await choice(page, 'What should I look for');
+  await choice(page, 'I’ll bring back a few memories');
+  for (const place of ['Olive grove', 'Sea of Galilee']) {
+    await page.locator('.toolbar [data-action="journal"]').click();
+    await expect(page.locator('.village-summary')).toContainText('An ordinary morning');
+    await page.getByRole('button', { name: /Find the next memory/ }).click();
+    await expect(page.locator('.dialogue-box')).toBeVisible();
+    await choice(page, 'Remember this');
+    await page.locator('.toolbar [data-action="journal"]').click();
+    await expect(page.locator('.discovery-card').filter({ hasText: place })).toContainText(
+      'Remembered',
+    );
+    await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  }
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue your journey' }).click();
+  await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Return to Ezra', exact: true }).click();
+  await expect(page.locator('.dialogue-box')).toBeVisible();
+  await choice(page, 'The quiet beneath the olives');
+  await choice(page, 'Sit with Ezra');
+  await choice(page, 'Remember this morning');
+  await expect(page.locator('#toast')).toContainText('Village story complete');
+  await expect(page.locator('#quest-card')).toContainText('0 / 5');
+  await page.locator('.toolbar [data-action="journal"]').click();
+  await expect(
+    page.getByRole('heading', { name: 'A place among neighbors', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.discovery-card.remembered')).toHaveCount(3);
+  await expect(
+    page.locator('.village-summary [data-action="travel"][data-value="ezra"]'),
+  ).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(
+    false,
+  );
+  expect(errors).toEqual([]);
 });

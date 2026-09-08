@@ -8,6 +8,7 @@ import {
   parseSave,
   parseSettings,
   MAX_SAVE_BYTES,
+  SAVE_VERSION,
 } from '../../src/persistence/schema';
 import { SaveRepository } from '../../src/persistence/saves';
 
@@ -28,7 +29,7 @@ describe('save safety', () => {
       journal: save.state.journal,
     };
     expect(parseSave({ ...save, version: 1, state: oldState }).state).toEqual(save.state);
-    expect(() => parseSave({ ...save, version: 3 })).toThrow(/newer version/);
+    expect(() => parseSave({ ...save, version: SAVE_VERSION + 1 })).toThrow(/newer version/);
   });
   it('rejects malformed JSON, oversized files, impossible items, and non-finite positions', () => {
     expect(() => importSave('not json')).toThrow(/JSON/);
@@ -54,6 +55,51 @@ describe('save safety', () => {
       sound: false,
       reducedMotion: false,
     });
+  });
+  it('migrates a completed v2 journey without losing earlier discoveries', () => {
+    const oldState = {
+      position: { x: 6, z: 5 },
+      quest: 'complete',
+      inventory: [],
+      discoveries: ['well', 'shore'],
+      journal: ['arrival', 'simon', 'bread', 'net', 'delivered', 'complete', 'well', 'shore'],
+      playTime: 240,
+    };
+    const migrated = parseSave({
+      version: 2,
+      region: 'capernaum',
+      savedAt: '2026-09-07T12:00:00Z',
+      state: oldState,
+    });
+    expect(migrated.version).toBe(SAVE_VERSION);
+    expect(migrated.state).toEqual({ ...oldState, villageStory: 'not-started' });
+    expect(importSave(JSON.stringify(migrated))).toEqual(migrated);
+  });
+  it('round-trips each village story stage and rejects inconsistent completion', () => {
+    let state = newGame();
+    for (const event of [
+      { type: 'accept-village-story' },
+      { type: 'discover', id: 'olive' },
+      { type: 'discover', id: 'shore' },
+      { type: 'discover', id: 'well' },
+      { type: 'finish-village-story' },
+    ] as const) {
+      state = transition(state, event);
+      expect(importSave(JSON.stringify(makeSave(state))).state).toEqual(state);
+    }
+    const save = makeSave(state);
+    for (const damaged of [
+      { ...state, villageStory: 'unknown' },
+      { ...state, villageStory: 'not-started' },
+      {
+        ...state,
+        discoveries: ['shore', 'well'],
+        journal: state.journal.filter((id) => id !== 'olive'),
+      },
+      { ...state, journal: state.journal.filter((id) => id !== 'ezra-invitation') },
+      { ...state, journal: state.journal.filter((id) => id !== 'ezra-memory') },
+    ])
+      expect(() => parseSave({ ...save, state: damaged })).toThrow();
   });
 });
 

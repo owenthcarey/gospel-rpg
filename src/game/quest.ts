@@ -1,4 +1,6 @@
-import type { GameEvent, GameState } from './types';
+import type { DiscoveryId, GameEvent, GameState } from './types';
+
+export const discoveryOrder: readonly DiscoveryId[] = ['well', 'olive', 'shore'];
 
 /** The sole authority for story progression. Invalid/repeated actions are harmless. */
 export function transition(state: GameState, event: GameEvent): GameState {
@@ -30,6 +32,16 @@ export function transition(state: GameState, event: GameEvent): GameState {
       next.discoveries.push(event.id);
       next.journal.push(event.id);
       break;
+    case 'accept-village-story':
+      if (state.villageStory !== 'not-started') return state;
+      next.villageStory = 'exploring';
+      next.journal.push('ezra-invitation');
+      break;
+    case 'finish-village-story':
+      if (state.villageStory !== 'exploring' || !hasMemories(state)) return state;
+      next.villageStory = 'complete';
+      next.journal.push('ezra-memory');
+      break;
   }
   return next;
 }
@@ -47,7 +59,7 @@ export function objective(state: GameState): string {
     case 'delivered':
       return 'Listen to Jesus by the water';
     case 'complete':
-      return 'Take your time. There is more to discover.';
+      return villageObjective(state);
   }
 }
 
@@ -56,5 +68,21 @@ export function objectiveTarget(state: GameState): string {
     return 'simon';
   if (state.quest === 'gathering') return state.inventory.includes('net') ? 'miriam' : 'nets';
   if (state.quest === 'delivered') return 'jesus';
-  return 'shore';
+  return villageTarget(state);
+}
+
+export function hasMemories(state: GameState): boolean {
+  return discoveryOrder.every((id) => state.discoveries.includes(id));
+}
+
+export function villageObjective(state: GameState): string {
+  if (state.villageStory === 'complete') return 'A morning remembered. Stay as long as you like.';
+  if (state.villageStory === 'not-started') return 'Speak with Ezra near the olive trees';
+  if (hasMemories(state)) return 'Share your morning with Ezra';
+  return `Remember the well, the grove, and the shore · ${state.discoveries.length} / 3`;
+}
+
+export function villageTarget(state: GameState): string {
+  if (state.villageStory !== 'exploring' || hasMemories(state)) return 'ezra';
+  return discoveryOrder.find((id) => !state.discoveries.includes(id))!;
 }

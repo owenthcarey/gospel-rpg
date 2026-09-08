@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dialogueFor, journalEntries } from '../../src/content/story';
 import { interactables } from '../../src/content/region';
-import { hasSupplies, objectiveTarget, transition } from '../../src/game/quest';
+import { hasSupplies, objectiveTarget, transition, villageTarget } from '../../src/game/quest';
 import { newGame } from '../../src/game/types';
 
 describe('the complete chapter', () => {
@@ -67,5 +67,63 @@ describe('the complete chapter', () => {
       }
       for (const id of state.journal) expect(journalEntries[id]).toBeDefined();
     }
+  });
+});
+
+describe('An ordinary morning', () => {
+  it.each([
+    ['well', 'olive', 'shore'],
+    ['well', 'shore', 'olive'],
+    ['olive', 'well', 'shore'],
+    ['olive', 'shore', 'well'],
+    ['shore', 'well', 'olive'],
+    ['shore', 'olive', 'well'],
+  ] as const)('remembers %s, %s, and %s in any order', (...order) => {
+    let state = transition(newGame(), { type: 'accept-village-story' });
+    expect(transition(state, { type: 'finish-village-story' })).toBe(state);
+    for (const id of order) {
+      state = transition(state, { type: 'discover', id });
+      if (state.discoveries.length < 3)
+        expect(state.discoveries).not.toContain(villageTarget(state));
+    }
+    expect(villageTarget(state)).toBe('ezra');
+    for (const choice of dialogueFor('ezra', state).choices) {
+      const response = dialogueFor(choice.next!, state);
+      expect(response.provenance).toBe('Original dialogue');
+      expect(response.choices[0]?.next).toBe('ezra-reflection');
+    }
+    state = transition(state, { type: 'finish-village-story' });
+    expect(state.villageStory).toBe('complete');
+    expect(state.quest).toBe('not-started');
+    expect(state.inventory).toEqual([]);
+    expect(state.journal).toContain('ezra-memory');
+    expect(transition(state, { type: 'finish-village-story' })).toBe(state);
+    expect(transition(state, { type: 'accept-village-story' })).toBe(state);
+  });
+  it('credits discoveries made before accepting and preserves the main quest', () => {
+    let state = newGame();
+    for (const id of ['shore', 'olive', 'well'] as const)
+      state = transition(state, { type: 'discover', id });
+    expect(transition(state, { type: 'finish-village-story' })).toBe(state);
+    state = transition(state, { type: 'accept-quest' });
+    state = transition(state, { type: 'collect', item: 'bread' });
+    state = transition(state, { type: 'accept-village-story' });
+    state = transition(state, { type: 'finish-village-story' });
+    expect(state.inventory).toEqual(['bread']);
+    expect(objectiveTarget(state)).toBe('nets');
+    state = transition(state, { type: 'collect', item: 'net' });
+    state = transition(state, { type: 'deliver' });
+    state = transition(state, { type: 'listen' });
+    expect(state.quest).toBe('complete');
+    expect(state.villageStory).toBe('complete');
+    expect(new Set(state.journal).size).toBe(state.journal.length);
+  });
+  it('guides completed chapters to Ezra and then only to missing discoveries', () => {
+    const state = { ...newGame(), quest: 'complete' as const };
+    expect(objectiveTarget(state)).toBe('ezra');
+    let exploring = transition(state, { type: 'accept-village-story' });
+    expect(objectiveTarget(exploring)).toBe('well');
+    exploring = transition(exploring, { type: 'discover', id: 'well' });
+    expect(objectiveTarget(exploring)).toBe('olive');
   });
 });

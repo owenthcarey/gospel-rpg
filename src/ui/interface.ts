@@ -1,6 +1,13 @@
 import { interactables, buildings, shoreline } from '../content/region';
 import { items, journalEntries, type Dialogue } from '../content/story';
-import { hasSupplies, objective, objectiveTarget } from '../game/quest';
+import {
+  discoveryOrder,
+  hasSupplies,
+  objective,
+  objectiveTarget,
+  villageObjective,
+  villageTarget,
+} from '../game/quest';
 import type { GameState, Point, Settings } from '../game/types';
 import type { SlotSummary } from '../persistence/saves';
 import type { ScreenLabel } from '../scene/world';
@@ -24,6 +31,7 @@ export class Interface {
   private focusBefore?: HTMLElement;
   private labelNodes = new Map<string, HTMLElement>();
   private active = false;
+  private lastNearest: string | null = null;
   private onClick: (e: MouseEvent) => void;
   private onChange: (e: Event) => void;
   private onKey: (e: KeyboardEvent) => void;
@@ -133,9 +141,32 @@ export class Interface {
       ['Listen by the water', done, state.quest === 'delivered'],
     ];
     this.quest.innerHTML = `<div class="quest-eyebrow"><span class="quest-diamond">✧</span><span>CHAPTER I</span><span class="quest-count">${done ? 'COMPLETE' : `${rows.filter((r) => r[1]).length} / 5`}</span></div><h1>A place by<br>the water</h1><p class="quest-intro">A little kindness on the shores<br>of Galilee.</p><ol class="quest-steps">${rows.map(([label, complete, current]) => `<li class="${complete ? 'done' : ''} ${current ? 'current' : ''}"><span class="step-mark">${complete ? icon('check') : ''}</span>${label}</li>`).join('')}</ol><button class="quest-track" data-action="navigate" data-value="${objectiveTarget(state)}">${icon(done ? 'leaf' : 'compass')}<span>${done ? 'Explore the village' : 'Follow the path'}</span>${icon('arrow')}</button><div class="quest-reference">Inspired by Luke 5:1–11</div>`;
-    this.labelNodes.forEach((node, id) =>
-      node.classList.toggle('quest-target', id === objectiveTarget(state) && !done),
-    );
+    if (done) {
+      const remembered = state.villageStory === 'complete';
+      const exploring = state.villageStory === 'exploring';
+      this.quest.innerHTML = `<div class="quest-eyebrow"><span class="quest-diamond">${icon('check')}</span><span>CHAPTER I</span><span class="quest-count">COMPLETE</span></div><h1>${remembered ? 'A morning<br>remembered' : 'An ordinary<br>morning'}</h1><p class="exploration-intro">${esc(villageObjective(state))}</p>${exploring ? `<ol class="quest-steps">${discoveryOrder.map((id) => `<li class="${state.discoveries.includes(id) ? 'done' : villageTarget(state) === id ? 'current' : ''}"><span class="step-mark">${state.discoveries.includes(id) ? icon('check') : ''}</span>${esc(interactables.find((p) => p.id === id)!.name)}</li>`).join('')}<li class="${state.discoveries.length === 3 ? 'current' : ''}"><span class="step-mark"></span>Return to Ezra</li></ol>` : `<div class="memory-progress">${icon('leaf')} ${state.discoveries.length} / 3 places remembered</div>`}<button class="quest-track" data-action="${remembered ? 'journal' : 'navigate'}" data-value="${villageTarget(state)}">${icon(remembered ? 'journal' : 'compass')}<span>${remembered ? 'Read your memories' : exploring ? 'Follow the path' : 'Meet Ezra'}</span>${icon('arrow')}</button><div class="quest-reference">${remembered ? 'You have a place among neighbors.' : 'An optional story · Explore at your own pace'}</div>`;
+    } else {
+      this.quest.insertAdjacentHTML(
+        'beforeend',
+        `<button class="village-shortcut" data-action="journal">${icon('leaf')}<span>An ordinary morning<small>${state.villageStory === 'complete' ? 'Village story complete' : state.villageStory === 'exploring' ? `${state.discoveries.length} / 3 places remembered` : 'A village story with Ezra'}</small></span>${icon('arrow')}</button>`,
+      );
+    }
+    const finished = done && state.villageStory === 'complete';
+    this.labelNodes.forEach((node, id) => {
+      node.classList.toggle('quest-target', id === objectiveTarget(state) && !finished);
+      node.classList.toggle(
+        'remembered',
+        state.discoveries.some((place) => place === id),
+      );
+    });
+    for (const marker of this.root.querySelectorAll<SVGElement>('[data-map-place]')) {
+      const id = marker.dataset.mapPlace;
+      marker.classList.toggle(
+        'map-remembered',
+        state.discoveries.some((place) => place === id),
+      );
+      marker.classList.toggle('map-target', id === objectiveTarget(state) && !finished);
+    }
     const announcer = this.root.querySelector('#announcer')!;
     announcer.textContent = objective(state);
   }
@@ -152,9 +183,12 @@ export class Interface {
     );
     const button = this.root.querySelector<HTMLButtonElement>('#nearby-action')!;
     const person = interactables.find((p) => p.id === nearest);
-    button.hidden = !person;
-    if (person)
-      button.innerHTML = `<kbd>E</kbd> ${person.kind === 'person' ? 'Speak with' : 'Explore'} ${esc(person.name)} ${icon('arrow')}`;
+    if (nearest !== this.lastNearest) {
+      this.lastNearest = nearest;
+      button.hidden = !person;
+      if (person)
+        button.innerHTML = `<kbd>E</kbd> ${person.kind === 'person' ? 'Speak with' : 'Explore'} ${esc(person.name)} ${icon('arrow')}`;
+    }
   }
   saveStatus(text: string): void {
     this.root.querySelector('#save-indicator')!.textContent = text;
@@ -196,11 +230,16 @@ export class Interface {
   welcome(hasSave: boolean, storage: boolean): void {
     this.show(
       'welcome',
-      `<div class="welcome-shade"></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand"><span>✧</span> THE WAY</div><p class="eyebrow">CHAPTER I &nbsp; / &nbsp; GALILEE</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. The boats are returning, the village is waking, and a story is about to unfold.</p><p class="welcome-copy secondary">Walk the shore. Meet its people.<br>Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · About 5–10 minutes</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">An imagined prelude to Luke 5:1–11.<br>Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
+      `<div class="welcome-shade"></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand"><span>✧</span> THE WAY</div><p class="eyebrow">CHAPTER I &nbsp; / &nbsp; GALILEE</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. The boats are returning, the village is waking, and a story is about to unfold.</p><p class="welcome-copy secondary">Walk the shore. Meet its people.<br>Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · About 10–15 minutes</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">An imagined prelude to Luke 5:1–11.<br>Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
     );
   }
   private panelShell(title: string, eyebrow: string, body: string, wide = false): string {
     return `<div class="panel-backdrop"></div><section class="panel ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="panel-title"><header class="panel-header"><div><p class="eyebrow">${eyebrow}</p><h2 id="panel-title">${title}</h2></div><button class="icon-button" data-action="close" aria-label="Close menu">${icon('close')}</button></header><div class="panel-body">${body}</div><footer class="panel-footer"><span>Your journey waits for you.</span><button class="text-button" data-action="close">Return to the shore <kbd>Esc</kbd></button></footer></section>`;
+  }
+  private villageSummary(state: GameState): string {
+    const complete = state.villageStory === 'complete';
+    const target = villageTarget(state);
+    return `<section class="village-summary" aria-label="Optional village story"><div class="village-summary-heading"><span class="chapter-icon">${icon('leaf')}</span><div><span class="eyebrow">VILLAGE STORY · OPTIONAL</span><h3>An ordinary morning</h3></div><span class="status-pill">${complete ? 'Complete' : `${state.discoveries.length} / 3`}</span></div><p>${esc(villageObjective(state))}</p><div class="discovery-cards">${discoveryOrder.map((id) => `<button class="discovery-card ${state.discoveries.includes(id) ? 'remembered' : ''}" data-action="travel" data-value="${id}">${icon(state.discoveries.includes(id) ? 'check' : id === 'olive' ? 'leaf' : 'pin')}<span>${esc(interactables.find((p) => p.id === id)!.name)}<small>${state.discoveries.includes(id) ? 'Remembered' : 'A memory to find'}</small></span></button>`).join('')}</div>${complete ? '<p class="village-complete">You have a place among neighbors.</p>' : `<button class="secondary-button" data-action="travel" data-value="${target}">${icon('compass')} ${state.villageStory === 'not-started' ? 'Meet Ezra' : target === 'ezra' ? 'Return to Ezra' : 'Find the next memory'} ${icon('arrow')}</button>`}</section>`;
   }
   journal(state: GameState): void {
     this.show(
@@ -208,7 +247,7 @@ export class Interface {
       this.panelShell(
         'A traveler’s journal',
         'PEOPLE, PLACES & SMALL DISCOVERIES',
-        `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(objective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div><div class="journal-entries">${[
+        `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(objective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${this.villageSummary(state)}<div class="journal-entries">${[
           ...state.journal,
         ]
           .reverse()
@@ -239,7 +278,7 @@ export class Interface {
       this.panelShell(
         'Capernaum',
         'THE NORTHERN SHORE OF GALILEE',
-        `<p class="panel-lead">Choose a person or place to walk there. Your traveler will find a clear path.</p><div class="map-layout"><div class="large-map">${this.mapSvg(true, state.position)}<span class="large-map-north">N ↑</span><span class="lake-label">Sea of<br>Galilee</span></div><div class="map-destinations">${interactables.map((p) => `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${p.role}</small></span>${icon('arrow')}</button>`).join('')}</div></div><div class="map-legend"><span><i class="legend-player"></i> You are here</span><span><i class="legend-place"></i> People & places</span><span>${state.discoveries.length} / 3 places remembered</span></div>`,
+        `<p class="panel-lead">Choose a person or place to walk there. Your traveler will find a clear path.</p><div class="map-layout"><div class="large-map">${this.mapSvg(true, state.position, state)}<span class="large-map-north">N ↑</span><span class="lake-label">Sea of<br>Galilee</span></div><div class="map-destinations">${interactables.map((p) => `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${state.discoveries.some((id) => id === p.id) ? 'Remembered in your journal' : p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'Next stop' : p.role}</small></span>${icon('arrow')}</button>`).join('')}</div></div><div class="map-legend"><span><i class="legend-player"></i> You are here</span><span><i class="legend-place"></i> People & places</span><span>${state.discoveries.length} / 3 places remembered</span></div>`,
         true,
       ),
     );
@@ -296,7 +335,7 @@ export class Interface {
       ),
     );
   }
-  private mapSvg(large: boolean, position?: Point): string {
+  private mapSvg(large: boolean, position?: Point, state?: GameState): string {
     const id = large ? 'large-map-player' : 'minimap-player';
     const shorePoints = Array.from({ length: 25 }, (_, i) => {
       const z = 24 - i * 2;
@@ -310,7 +349,7 @@ export class Interface {
       .map((p) => `L${p}`)
       .join(
         ' ',
-      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/><path d="m80 192 4-100 12-92M16 100h110M36 64h60" stroke="#dace9f" fill="none" stroke-width="7"/>${buildings.map((p) => `<rect x="${(p.x + 24) * 4 - 7}" y="${(24 - p.z) * 4 - 6}" width="14" height="12" fill="#81765a" stroke="#e1cf9c" stroke-width="1"/>`).join('')}${interactables.map((p) => `<circle cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
+      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/><path d="m80 192 4-100 12-92M16 100h110M36 64h60" stroke="#dace9f" fill="none" stroke-width="7"/>${buildings.map((p) => `<rect x="${(p.x + 24) * 4 - 7}" y="${(24 - p.z) * 4 - 6}" width="14" height="12" fill="#81765a" stroke="#e1cf9c" stroke-width="1"/>`).join('')}${interactables.map((p) => `<circle data-map-place="${p.id}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
   }
   dispose(): void {
     clearTimeout(this.toastTimer);
