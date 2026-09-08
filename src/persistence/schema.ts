@@ -1,12 +1,15 @@
+import { newEpisode, type RegionId } from '../game/episode/types';
+import { episodeJournalIds } from '../game/episode/progress';
+import { parseEpisode } from './episode';
 import { journalEntries } from '../content/story';
 import type { GameState, Settings } from '../game/types';
 import { DEFAULT_SETTINGS } from '../game/types';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 3;
-  region: 'capernaum';
+  version: 4;
+  region: RegionId;
   savedAt: string;
   state: GameState;
 }
@@ -29,7 +32,7 @@ function stringList(value: unknown, allowed: readonly string[]): value is string
 export function makeSave(state: GameState): SaveFile {
   return parseSave({
     version: SAVE_VERSION,
-    region: 'capernaum',
+    region: state.region,
     savedAt: new Date().toISOString(),
     state: structuredClone(state),
   });
@@ -62,16 +65,42 @@ export function parseSave(raw: unknown): SaveFile {
       state: { ...raw.state, villageStory: 'not-started' },
     };
   }
+  if (record(raw) && raw.version === 3 && raw.region === 'capernaum' && record(raw.state)) {
+    raw = {
+      ...raw,
+      version: 4,
+      state: {
+        ...raw.state,
+        region: 'capernaum',
+        episode: newEpisode(),
+        tracking: 'main',
+        villageMemory: null,
+      },
+    };
+  }
   if (
     !record(raw) ||
-    raw.version !== 3 ||
-    raw.region !== 'capernaum' ||
+    raw.version !== 4 ||
+    !['capernaum', 'lake-gennesaret'].includes(String(raw.region)) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
     !record(raw.state)
   )
     throw new SaveError('The save format is damaged or unsupported.');
   const s = raw.state;
+  if (
+    s.region !== raw.region ||
+    !['main', 'village'].includes(String(s.tracking)) ||
+    typeof s.tracking !== 'string' ||
+    (s.villageMemory !== null && !['well', 'olive', 'shore'].includes(String(s.villageMemory)))
+  )
+    throw new SaveError('This save contains invalid region or story tracking.');
+  let episode;
+  try {
+    episode = parseEpisode(s.episode, s.quest, raw.region as RegionId);
+  } catch {
+    throw new SaveError('This save contains inconsistent episode progress.');
+  }
   if (
     !record(s.position) ||
     !finite(s.position.x) ||
@@ -101,7 +130,14 @@ export function parseSave(raw: unknown): SaveFile {
     s.discoveries.some((id) => !(s.journal as string[]).includes(id))
   )
     throw new SaveError('This save has an incomplete journey record.');
-  const expectedJournal = new Set(['arrival', ...s.discoveries]);
+  if (
+    s.villageMemory !== null &&
+    (typeof s.villageMemory !== 'string' ||
+      s.discoveries.length !== 3 ||
+      s.villageStory === 'not-started')
+  )
+    throw new SaveError('This save contains an invalid village memory.');
+  const expectedJournal = new Set(['arrival', ...s.discoveries, ...episodeJournalIds(episode)]);
   if (s.villageStory !== 'not-started') expectedJournal.add('ezra-invitation');
   if (s.villageStory === 'complete') {
     if (s.discoveries.length !== 3)
@@ -121,10 +157,14 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 3,
-    region: 'capernaum',
+    version: 4,
+    region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
+      region: raw.region as RegionId,
+      episode,
+      tracking: s.tracking as GameState['tracking'],
+      villageMemory: s.villageMemory as GameState['villageMemory'],
       position: { x: s.position.x, z: s.position.z },
       quest: s.quest as GameState['quest'],
       inventory: [...s.inventory] as GameState['inventory'],

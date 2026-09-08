@@ -1,3 +1,5 @@
+import { episodeDialogue } from './episode/dialogue';
+import { episodeJournal } from './episode/journal';
 import { hasMemories, hasSupplies } from '../game/quest';
 import type { GameEvent, GameState, ItemId } from '../game/types';
 
@@ -28,6 +30,7 @@ export const items: Record<ItemId, { name: string; description: string; icon: st
   },
 };
 export const journalEntries: Record<string, { title: string; text: string; reference?: string }> = {
+  ...episodeJournal,
   arrival: {
     title: 'A village waking',
     text: 'I arrived in Capernaum as the fishermen came ashore. There is a quiet sense of expectation in the village.',
@@ -51,7 +54,7 @@ export const journalEntries: Record<string, { title: string; text: string; refer
   },
   complete: {
     title: 'An invitation to trust',
-    text: 'My small errand is finished. The Gospel story continues as Jesus asks Simon to put out into the deep. Read Luke 5:1–11 to follow the catch and the calling of the fishermen.',
+    text: 'My first errand is finished. The Gospel account continues through the catch and calling. Speak with Simon to begin Into the Deep, or remain in the village a little longer.',
     reference: 'Luke 5:1–11',
   },
   shore: {
@@ -79,6 +82,11 @@ export const journalEntries: Record<string, { title: string; text: string; refer
 
 const goodbye: Choice = { label: 'Until we speak again', close: true };
 export function dialogueFor(id: string, state: GameState): Dialogue {
+  if (id === 'ezra-village') id = 'ezra';
+  else {
+    const episode = episodeDialogue(id, state);
+    if (episode) return episode;
+  }
   const original = 'Original dialogue' as const;
   const narration = 'Original narration' as const;
   switch (id) {
@@ -200,7 +208,7 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
           subtitle: 'An invitation to listen',
           provenance: narration,
           reference: 'Luke 5:1–11',
-          text: 'You find a place among those gathered along the shore. Your errand ends here. In Luke’s account, Jesus teaches from Simon’s boat, then turns to Simon with an invitation.',
+          text: 'You find a place among those gathered along the shore. Your first errand is finished. In Luke’s account, Jesus teaches from Simon’s boat, then turns to Simon with an invitation. After these words, speak with Simon to continue the episode.',
           choices: [
             { label: 'Listen', next: 'jesus-scripture' },
             { label: 'Return to the village', close: true },
@@ -213,7 +221,7 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
         reference: 'Luke 5:1–3',
         text:
           state.quest === 'complete'
-            ? 'The water catches the morning light. Your journey through this small part of Galilee is complete, but you may linger, speak with the villagers, and explore. The Gospel story continues in Luke 5:1–11.'
+            ? 'The water catches the morning light. Your first errand is complete. Speak with Simon to continue into the catch and calling, or linger with the villagers.'
             : 'People are gathering near Jesus to hear the word of God. Simon is preparing by the boats. Perhaps you can help him make ready.',
         choices: [{ label: 'Return to the shore', close: true }],
       };
@@ -233,7 +241,16 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
           subtitle: 'A familiar face',
           provenance: original,
           text: 'There you are, friend. I was thinking of our morning. The shade is still here, and there is still room beside me. You know your way around our little village now.',
-          choices: [{ label: 'Remember our morning', next: 'ezra-reflection' }, goodbye],
+          choices: [
+            {
+              label: 'Remember our morning',
+              next: state.villageMemory ? 'ezra-' + state.villageMemory : 'ezra-choose-memory',
+            },
+            ...(state.episode.stage === 'aftermath' || state.episode.stage === 'complete'
+              ? [{ label: 'About the boats and the morning', next: 'ezra-after' }]
+              : []),
+            goodbye,
+          ],
         };
       if (state.villageStory === 'exploring' && hasMemories(state))
         return {
@@ -242,9 +259,21 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
           provenance: original,
           text: 'You have walked a little slower, I think. Tell me, what will you carry with you when you leave? The voices at the well, the quiet of the grove, or the open water?',
           choices: [
-            { label: 'The voices at the well', next: 'ezra-well' },
-            { label: 'The quiet beneath the olives', next: 'ezra-olive' },
-            { label: 'The wide, open water', next: 'ezra-shore' },
+            {
+              label: 'The voices at the well',
+              event: { type: 'remember-village', id: 'well' },
+              next: 'ezra-well',
+            },
+            {
+              label: 'The quiet beneath the olives',
+              event: { type: 'remember-village', id: 'olive' },
+              next: 'ezra-olive',
+            },
+            {
+              label: 'The wide, open water',
+              event: { type: 'remember-village', id: 'shore' },
+              next: 'ezra-shore',
+            },
           ],
         };
       if (state.villageStory === 'exploring')
@@ -264,6 +293,30 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
           { label: 'What should I look for?', next: 'ezra-invitation' },
           { label: 'What is this place?', next: 'ezra-place' },
           { label: 'I’ll return another time', close: true },
+        ],
+      };
+    case 'ezra-choose-memory':
+      return {
+        speaker: 'Ezra',
+        subtitle: 'A memory of our morning',
+        provenance: original,
+        text: 'What stayed with you when you walked the village? Tell me again, if you would like. I am glad to remember it with you.',
+        choices: [
+          {
+            label: 'The voices at the well',
+            event: { type: 'remember-village', id: 'well' },
+            next: 'ezra-well',
+          },
+          {
+            label: 'The quiet beneath the olives',
+            event: { type: 'remember-village', id: 'olive' },
+            next: 'ezra-olive',
+          },
+          {
+            label: 'The wide, open water',
+            event: { type: 'remember-village', id: 'shore' },
+            next: 'ezra-shore',
+          },
         ],
       };
     case 'ezra-invitation':

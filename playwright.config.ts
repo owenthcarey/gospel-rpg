@@ -1,19 +1,26 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const ci = Boolean(process.env.CI);
+
 export default defineConfig({
   testDir: './tests/e2e',
-  timeout: 90_000,
-  expect: { timeout: 20_000 },
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // GitHub's CPU-rendered WebGL needs longer to walk the same real game paths.
+  timeout: ci ? 180_000 : 90_000,
+  expect: { timeout: ci ? 60_000 : 20_000 },
+  // Leave time for report generation and upload before the workflow's job deadline.
+  globalTimeout: ci ? 15 * 60_000 : 0,
+  fullyParallel: true,
+  forbidOnly: ci,
+  retries: ci ? 1 : 0,
   workers: 1,
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  reporter: ci ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     channel: 'chromium',
     baseURL: 'http://127.0.0.1:4173',
     trace: { mode: 'retain-on-failure', screenshots: false, snapshots: true, sources: true },
     screenshot: 'only-on-failure',
+    actionTimeout: ci ? 60_000 : 20_000,
+    navigationTimeout: 60_000,
     launchOptions: { args: ['--enable-unsafe-swiftshader'] },
   },
   projects: [
@@ -27,9 +34,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+    // CI downloads the exact production build that passed the build job.
+    command: (ci ? '' : 'npm run build && ') + 'npm run preview -- --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !ci,
     timeout: 60_000,
   },
 });

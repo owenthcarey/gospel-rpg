@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 jobs:
-  verify:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -21,20 +21,53 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
       - name: Keep production build
         uses: actions/upload-artifact@v4
         with:
           name: game-build
           path: dist/
           retention-days: 7
-      - name: Keep browser failure reports
-        if: failure()
+  browser:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: game-build
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
+      - name: Keep browser reports
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: browser-reports
+          name: browser-reports-${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
           retention-days: 7
+  # Preserve the existing required check as a gate over build AND every browser shard.
+  verify:
+    if: ${{ always() }}
+    needs: [build, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Require every quality check to pass
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: test "$BUILD_RESULT" = success && test "$BROWSER_RESULT" = success

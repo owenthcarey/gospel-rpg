@@ -1,0 +1,62 @@
+{
+  "version": 4,
+  "savedAt": "2026-09-08T00:00:00Z",
+  "state": {
+    "position": {
+      "x": 6,
+      "z": 5
+    },
+    "quest": "complete",
+    "inventory": [],
+    "journal": [
+      "arrival",
+      "simon",
+      "net",
+      "bread",
+      "delivered",
+      "complete",
+      "shore",
+      "well",
+      "olive",
+      "ezra-invitation",
+      "ezra-memory",
+      "episode-invitation",
+      "action-take-basket",
+      "action-place-basket",
+      "action-secure-mooring",
+      "action-join-gathering",
+      "note-boat",
+      "scene-gathering",
+      "scene-teaching",
+      "scene-invitation",
+      "scene-answer",
+      "scene-lowering",
+      "scene-abundance",
+      "scene-partners",
+      "scene-astonishment",
+      "scene-calling",
+      "scene-return",
+      "action-receive-catch",
+      "action-talk-miriam",
+      "action-talk-ezra",
+      "reflection-community",
+      "episode-complete"
+    ],
+    "discoveries": ["shore", "well", "olive"],
+    "playTime": 310,
+    "villageStory": "complete",
+    "region": "capernaum",
+    "tracking": "main",
+    "villageMemory": null,
+    "episode": {
+      "stage": "complete",
+      "preparations": ["basket", "mooring", "gathering"],
+      "carrying": null,
+      "checkpoint": null,
+      "aftermath": ["landing", "miriam", "ezra"],
+      "reflection": "community",
+      "notes": ["boat"]
+    }
+  },
+  "region": "capernaum"
+}

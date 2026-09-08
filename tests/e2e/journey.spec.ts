@@ -21,7 +21,7 @@ async function choice(page: Page, name: string) {
 
 test('a traveler completes the chapter, saves, reloads, and exports', async ({ page }, info) => {
   // Includes real-time walking, two restarts, and save round-trips on software WebGL.
-  test.setTimeout(180_000);
+  test.slow();
   test.skip(
     info.project.name === 'mobile-chromium',
     'The desktop journey covers the full quest; mobile has its own interaction pass.',
@@ -151,7 +151,7 @@ test('ground clicks, keyboard movement, and menu focus work together', async ({ 
 test('Ezra remembers earlier discoveries and the village story survives a reload', async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  test.slow();
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await start(page);

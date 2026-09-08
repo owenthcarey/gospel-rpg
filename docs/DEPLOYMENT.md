@@ -16,7 +16,7 @@ Serve `dist/` over HTTP(S). A relative Vite base supports GitHub project subpath
 1. Select **Settings → Pages → Source → GitHub Actions** once when setting up the repository.
 2. Protect `main` and require Quality before merging.
 3. Push or merge a pull request to `main`. **Publish to GitHub Pages** starts automatically.
-4. The reusable Quality workflow runs formatting, types, lint, unit tests, build, and Chromium integration checks. Failure prevents publishing.
+4. The reusable Quality workflow runs formatting, types, lint, unit tests and build in `build`, then Chromium integration checks in four `browser` shards against that same build artifact. The existing `verify` check gates all of those jobs, so it remains the required branch-protection check. Failure in any shard prevents publishing.
 5. The publish job deploys the tested build to the `github-pages` environment at <https://owenthcarey.github.io/gospel-rpg/> and reports its URL.
 
 Pull requests run Quality without deploying. On `main`, the Pages workflow calls Quality once and publishes its build artifact only after all checks pass. Deployments are serialized so an active release can finish. You can also run **Publish to GitHub Pages** manually from Actions on `main`; runs on other branches are skipped. Local builds do not publish anything.
@@ -29,4 +29,6 @@ Play on current Chrome/Edge, Safari, and Firefox on real hardware, including a t
 
 Check the deployed subpath for missing assets. Saves are origin-specific: localhost, previews, and GitHub Pages do not share progress. Export before changing origins or clearing browser data.
 
-The separately cached Babylon bundle transfers roughly 0.7 MB compressed; the GLB kit is roughly 0.6 MB. Source maps enlarge the disk artifact but are not normally downloaded during play. No CDN is required at runtime. Offline caching is not implemented; reloads require the host. Low quality reduces shadows and resolution. Profile representative GPUs before expanding regions.
+The separately cached Babylon bundle transfers roughly 0.7 MB compressed; the complete 29-model GLB kit is roughly 1.88 MB. Source maps enlarge the disk artifact but are not normally downloaded during play. No CDN is required at runtime. Offline caching is not implemented; reloads require the host. Low quality reduces shadows and resolution. Profile representative GPUs before expanding regions.
+
+For this milestone, verify both legacy and v4 fixtures. Restore a saved lake checkpoint, leave and resume, finish with a summary, then load an earlier manual slot. Failed model downloads must keep the previous region usable. A completed old prelude should offer Simon's continuation without repeating the net-and-bread errands. See [the verification record](VERIFICATION.md) for automated results and remaining device checks.

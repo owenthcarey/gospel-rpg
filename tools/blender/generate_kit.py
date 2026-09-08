@@ -7,6 +7,7 @@ import bpy
 import math
 import os
 import random
+import sys
 from pathlib import Path
 from mathutils import Vector
 
@@ -16,6 +17,9 @@ if not ROOT:
     if os.path.basename(script) != "generate_kit.py":
         raise RuntimeError("Set GOSPEL_RPG_ROOT to the repository path before running via MCP.")
     ROOT = str(Path(script).resolve().parents[2])
+sys.path.insert(0, os.path.join(ROOT, "tools/blender"))
+from rigging import export_character
+
 OUT = os.path.join(ROOT, "public/assets/models")
 os.makedirs(OUT, exist_ok=True)
 random.seed(41)
@@ -55,71 +59,6 @@ M = {
 }
 parts = []
 
-def export_traveler():
-    """Rigid limb pivots retain the chunky silhouette and export a real glTF walk clip."""
-    groups = {name: [] for name in ["body", "arm_left", "arm_right", "leg_left", "leg_right"]}
-    for obj in parts:
-        side = "left" if obj.location.x < 0 else "right"
-        if obj.name.startswith(("sleeve", "forearm")):
-            group = "arm_" + side
-        elif obj.name.startswith(("sandals", "lower_leg")):
-            group = "leg_" + side
-        else:
-            group = "body"
-        groups[group].append(obj)
-    root = bpy.data.objects.new("traveler_rig", None)
-    scene.collection.objects.link(root)
-    nodes = [root]
-    scene.render.fps = 30
-    scene.frame_start, scene.frame_end = 1, 25
-    for name, meshes in groups.items():
-        bpy.ops.object.select_all(action="DESELECT")
-        for obj in meshes:
-            obj.select_set(True)
-        bpy.context.view_layer.objects.active = meshes[0]
-        bpy.ops.object.join()
-        obj = bpy.context.object
-        obj.name = "traveler_" + name
-        if name.startswith("arm"):
-            pivot = (-.24 if "left" in name else .24, 0, 1.30)
-        elif name.startswith("leg"):
-            pivot = (-.13 if "left" in name else .13, 0, .46)
-        else:
-            pivot = (0, 0, 0)
-        scene.cursor.location = pivot
-        bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
-        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-        obj.rotation_mode = "XYZ"
-        obj.parent = root
-        nodes.append(obj)
-        if name == "body":
-            continue
-        direction = -1 if name in ["arm_left", "leg_right"] else 1
-        amplitude = .38 if name.startswith("arm") else .48
-        for frame, phase in [(1, 0), (7, 1), (13, 0), (19, -1), (25, 0)]:
-            obj.rotation_euler.x = phase * amplitude * direction
-            obj.keyframe_insert(data_path="rotation_euler", frame=frame)
-        action = obj.animation_data.action
-        action.name = "Walk_" + name
-        slot = getattr(obj.animation_data, "action_slot", None)
-        track = obj.animation_data.nla_tracks.new()
-        track.name = "Walk"
-        strip = track.strips.new("Walk", 1, action)
-        if slot is not None:
-            strip.action_slot = slot
-        obj.animation_data.action = None
-    scene.frame_set(1)
-    bpy.ops.object.select_all(action="DESELECT")
-    for obj in nodes:
-        obj.select_set(True)
-    bpy.ops.export_scene.gltf(
-        filepath=os.path.join(OUT, "traveler.glb"), export_format="GLB",
-        use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False,
-        export_yup=True, export_animations=True, export_animation_mode="NLA_TRACKS",
-    )
-    root.location = ((len(exports) % 5) * 7, (len(exports) // 5) * 7, 0)
-    exports.append("traveler")
-    parts.clear()
 
 def finish(obj, name, material):
     obj.name = name
@@ -158,21 +97,35 @@ def beam(name, a, b, radius, material):
     return o
 
 def export(name):
-    if name == "traveler":
-        export_traveler()
+    if name in ["traveler", "simon", "miriam", "jesus", "villager", "james", "john"]:
+        export_character(name, parts, scene, OUT, len(exports))
+        exports.append(name)
         return
     bpy.ops.object.select_all(action="DESELECT")
     for o in parts:
         o.select_set(True)
     bpy.context.view_layer.objects.active = parts[0]
-    bpy.ops.object.join()
+    if len(parts) > 1:
+        bpy.ops.object.join()
     o = bpy.context.object
     o.name = name
     scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    if not os.environ.get("GOSPEL_RPG_TRAVELER_ONLY"):
-        bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, name + ".glb"), export_format="GLB", use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False, export_yup=True)
+    socket_nodes = []
+    if name == "boat":
+        for socket_name, position in [
+            ("seat_front", (0, -1.15, .46)), ("seat_middle", (0, 0, .46)),
+            ("seat_back", (0, 1.05, .46)), ("net_socket", (.8, .2, .5)),
+            ("oar_left", (-.72, -.2, .66)), ("oar_right", (.72, -.2, .66)),
+        ]:
+            socket = bpy.data.objects.new(socket_name, None)
+            scene.collection.objects.link(socket)
+            socket.parent = o
+            socket.location = position
+            socket.select_set(True)
+            socket_nodes.append(socket)
+    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, name + ".glb"), export_format="GLB", use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False, export_yup=True)
     o.location = ((len(exports) % 5) * 7, (len(exports) // 5) * 7, 0)
     exports.append(name)
     parts.clear()
@@ -240,7 +193,7 @@ for i in range(7):
     x,y = math.cos(a),math.sin(a)
     vertices = [(.3,0,4.1), (.3+x*.9-y*.32,y*.9+x*.32,4.45), (.3+x*2.1,y*2.1,3.65), (.3+x*.9+y*.32,y*.9-x*.32,4.45)]
     mesh = bpy.data.meshes.new("palm_leaf")
-    mesh.from_pydata(vertices, [], [(0,1,2),(0,2,3),(2,1,0),(3,2,0)])
+    mesh.from_pydata(vertices, [], [(0,1,2),(0,2,3)])
     o = bpy.data.objects.new("palm_frond", mesh)
     scene.collection.objects.link(o)
     finish(o, "palm_frond", "leaf" if i%2 else "leafdark")
@@ -265,8 +218,6 @@ for i,(x,y) in enumerate(outline):
     beam("gunwale", (x,y,.66),(xx,yy,.66),.06,"lightwood")
 for y in [-.8,.45,1.05]:
     box("seat", (0,y,.44), (1.15,.25,.08), "lightwood")
-beam("oar", (-1,-.9,.78),(.7,1.6,.76),.035,"lightwood")
-box("oar_blade", (-1.02,-.92,.78),(.16,.50,.055),"lightwood")
 export("boat")
 
 for x in [-1.05,1.05]:
@@ -349,6 +300,86 @@ box("hair_back",(0,.135,1.58),(.30,.06,.29),"hair",.03)
 export("jesus")
 person("rope","red",True)
 export("villager")
+
+
+person("teal","red",True)
+export("james")
+person("terra","cloth")
+export("john")
+
+# Portable props, kept separate so state and animation can change their placement.
+beam("oar_shaft", (0,-1.3,0),(0,1.1,0),.035,"lightwood")
+box("oar_blade",(0,-1.35,0),(.22,.56,.055),"lightwood",.015)
+export("oar")
+
+def basket(full=False):
+    cone("basket_floor",(0,0,.05),.25,.25,.08,"wood",12)
+    # Open basket with a visible woven rim, no opaque top.
+    for i in range(12):
+        a=i*math.tau/12
+        beam("basket_stave",(math.cos(a)*.25,math.sin(a)*.25,.07),
+             (math.cos(a)*.36,math.sin(a)*.36,.55),.032,"rope")
+    for z, radius in [(.12,.267),(.25,.30),(.40,.33),(.54,.36)]:
+        for i in range(12):
+            a,b=i*math.tau/12,(i+1)*math.tau/12
+            beam("basket_weave",(math.cos(a)*radius,math.sin(a)*radius,z),
+                 (math.cos(b)*radius,math.sin(b)*radius,z),.025,"lightwood")
+    if full:
+        for i in range(9):
+            x,y=math.sin(i*2.4)*.21,math.cos(i*2.4)*.21
+            fish=ico("fish",(x,y,.42+(i%3)*.05),(.18,.07,.055),"leaflight")
+            fish.rotation_euler.z=i*1.7
+            ico("fish_tail",(x+.16,y,.43+(i%3)*.05),(.065,.085,.025),"leafdark")
+basket()
+export("basket_empty")
+basket(True)
+export("basket_fish")
+
+for i in range(8):
+    beam("folded_net",(-.33,-.22+i*.063,.04+(i%2)*.025),(.33,-.22+i*.063,.04+(i%2)*.025),.022,"rope")
+for i in range(5):
+    beam("net_fold",(-.3+i*.15,-.25,.06),(-.3+i*.15,.25,.06),.018,"rope")
+export("net_folded")
+
+# A flexible-looking curved net is staged as separate lowered/full meshes.
+for full in [False, True]:
+    radius=1.05 if not full else .70
+    depth=.95 if not full else 1.15
+    for i in range(16):
+        a=i*math.tau/16
+        beam("net_drop",(math.cos(a)*radius,math.sin(a)*radius,0),
+             (math.cos(a)*radius*.24,math.sin(a)*radius*.24,-depth),.015,"rope")
+    for j in range(5):
+        t=j/4
+        r=radius*(1-t*.76)
+        for i in range(16):
+            a,b=i*math.tau/16,(i+1)*math.tau/16
+            beam("net_ring",(math.cos(a)*r,math.sin(a)*r,-t*depth),
+                 (math.cos(b)*r,math.sin(b)*r,-t*depth),.014,"rope")
+    if full:
+        for i in range(20):
+            a=i*2.4
+            ico("net_fish",(math.cos(a)*.36,math.sin(a)*.36,-.45-(i%4)*.10),(.22,.075,.055),"leaflight")
+    export("net_full" if full else "net_cast")
+
+box("bread_cloth",(0,0,.05),(.60,.45,.10),"cloth",.02)
+for i in range(3):
+    ico("loaf",(-.18+i*.18,0,.17),(.14,.18,.10),"bread")
+export("bread_bundle")
+
+beam("mooring_post",(0,0,0),(0,0,.72),.095,"wood")
+for j in range(3):
+    for i in range(16):
+        a,b=i*math.tau/16,(i+1)*math.tau/16
+        r=.24+j*.045
+        beam("rope_coil",(math.cos(a)*r,math.sin(a)*r,.045),
+             (math.cos(b)*r,math.sin(b)*r,.045),.018,"rope")
+export("mooring")
+
+box("landing_mat",(0,0,.018),(1.45,1.05,.035),"rope")
+for i in range(9):
+    beam("mat_weave",(-.68,-.47+i*.115,.047),(.68,-.47+i*.115,.047),.014,"cloth")
+export("landing_mat")
 
 scene.render.engine = "BLENDER_EEVEE_NEXT" if bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
 os.makedirs(os.path.join(ROOT,"assets/source"),exist_ok=True)

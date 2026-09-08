@@ -1,29 +1,34 @@
 # Narrative and editorial guide
 
-This chapter is an **imagined prelude to Luke 5:1–11**, establishing community relationships and inviting the player to read the Gospel account. It does not simulate the miraculous catch or claim the errands occurred in scripture.
+**Into the Deep** combines an imagined village prelude, a narrated dramatization of **Luke 5:1–11**, and an original village aftermath. The traveler's errands and conversations are connective fiction. They do not cause, earn or change the catch and calling.
 
-Every conversation uses one of three provenance labels:
+Every conversation/caption identifies its provenance:
 
 - **Original dialogue:** invented connective speech for Simon and original villagers Miriam and Ezra.
-- **Original narration:** scene description and observations.
-- **Scripture · WEB:** direct World English Bible quotation with the specific verse.
+- **Original narration:** descriptions, observations and scene transitions.
+- **Scripture · WEB:** direct World English Bible quotations with verse references.
 
-Jesus appears by the lake. His only spoken line is the verified Luke 5:4 quotation. The surrounding scene is narrated instead of inventing speech for him. Verify quotations against [the WEB source](https://ebible.org/engwebp/LUK05.htm). A reference attached to original dialogue is not a source for its invented wording.
+The local source module is `src/content/episode/scripture.ts`. It stores all eleven verses separately from narration and staging, verified against [the public-domain WEB source](https://ebible.org/engwebp/LUK05.htm). Scene captions quote the account as Gospel narration, preserving the speakers within each verse. The prelude's direct Jesus dialogue remains the verified Luke 5:4 quotation. No invented teaching or new speech is attributed to Jesus; Luke does not record the content of the teaching in 5:3.
+
+A reference attached to original dialogue identifies context, not evidence for its invented wording. Boats, clothing, handling of nets, architecture and village placement are artistic interpretations. Human historical/theological review remains distinct from source/provenance checks.
 
 ## Chapter flow
 
-1. Meet Simon; ask about the teacher, accept his request, or return later.
-2. Collect the mended net and Miriam's bread in either order.
-3. Deliver both to Simon; the items leave the satchel together.
-4. Approach Jesus, listen to the narrated transition and Luke 5:4, and complete the chapter.
-5. Continue exploring: the well, grove, and shoreline each add a journal memory.
+1. **A place by the water:** meet Simon, collect a mended net and Miriam's bread in either order, deliver them, and hear the prelude's Luke 5:4 quotation.
+2. **Make room on the shore:** return to Simon. Carry an empty basket to the landing, coil a loose rope and make room for gathering neighbors. These are imagined acts of help.
+3. **A view across the water:** the traveler stays on shore while the presentation takes a narrated closer view of the boats. The introduction explains this viewpoint.
+4. **Ten scenes:** gathering, teaching, invitation, Simon's answer, lowering the net, abundance, partners, astonishment, calling and return. Every verse in Luke 5:1–11 appears in the transcript. Brief original narration connects the verses without inventing historical speech.
+5. **After the boats return:** Luke 5:11 is followed by an explicit return to the imagined traveler. The fishermen have departed; the boats and cargo remain. Help at the landing and talk with Miriam and Ezra.
+6. **What stays with you:** choose wonder, trust or community. Each choice receives its own journal reflection and later original acknowledgement. The village stays available.
+
+Scene advancement is user-paced. Pause/read, leave/resume and finish-with-summary preserve access to the entire account. Summary advances the narrated portion only; the aftermath remains playable. There is no timing challenge, alternate Gospel outcome, moral score, spiritual currency or preferred reflection.
 
 ## Optional village story: An ordinary morning
 
-Ezra invites the traveler to remember the well, grove, and shore, then return to share a memory. The player chooses whether the voices at the well, quiet of the grove, or open lake stayed with them; Ezra gives a distinct original response. A shared pause beneath the olives adds **A place among neighbors** to the journal. All three choices lead to the same completion, without a preferred answer or score.
+Ezra invites the traveler to remember the well, grove and shore, then return to share a memory. Voices at the well, quiet in the grove, and the open lake each receive a distinct original response. A shared pause adds **A place among neighbors** to the journal. The chosen memory persists; migrated old completions leave it unspecified until the player voluntarily remembers it again.
 
-This story can begin or finish before, during, or after Simon’s errand. Discoveries made before accepting count toward it. It adds no scripture quotations or historical claims, and does not change the main Gospel-inspired chapter. After both stories, the village stays open for revisiting people and memories.
+This story can begin or finish before, during or after the main episode. Earlier discoveries count. Tracking the village story changes guidance but never gates the main episode. After the lake return, Ezra's aftermath conversation also provides access to the village story.
 
-There is no combat, timer, failure state, moral score, or spiritual currency. The player helps neighbors rather than controlling Jesus or changing Gospel events. Clothing, building placement, and daily-life details remain artistic interpretations requiring review before being presented as educational reconstruction.
+## Content changes
 
-Keep stable content IDs. Choices must point to an existing node or close. Renaming journal IDs already stored in saves requires migration. Run the content graph and quest tests after changes.
+Keep stable event, checkpoint and journal IDs. Choices must point to an existing node or close. Renaming IDs already stored in saves requires migration. New scripture belongs in the verified source module. Run content-graph, provenance, transition and save tests after edits. Do not use animation completion as narrative authority.

@@ -2,7 +2,7 @@
 
 **A quiet adventure through first-century Galilee.**
 
-A single-player browser RPG inspired by the Gospels. This first chapter takes place in an original low-poly Capernaum: meet Simon by the boats, help prepare the shore, and find a place to listen. The traveler, errands, and connective dialogue are imagined; scripture is clearly identified and referenced.
+A single-player browser RPG inspired by the Gospels. The first chapter, **Into the Deep**, begins in an original low-poly Capernaum: help prepare the shore, witness a narrated dramatization of the catch and calling in Luke 5:1–11, then return to the village and choose a memory for the road. The traveler, errands, and connective dialogue are imagined; scripture is clearly identified and referenced.
 
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
@@ -15,7 +15,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. Select **Begin your journey**, then speak with **Simon** or select **Follow the path**. The main chapter takes roughly 5–10 minutes. Speak with **Ezra** or open the journal to begin **An ordinary morning**, an optional village story that adds another 3–5 minutes.
+Open the URL printed by Vite. Select **Begin your journey**, then speak with **Simon** or select **Follow the path**. After the opening net-and-bread errand, return to Simon to begin **Into the Deep**. Existing completed saves can continue here immediately. Speak with **Ezra** or open the journal for **An ordinary morning**, an independent village story. The episode is unhurried: lake scenes advance when you choose, and can be paused, left and resumed, or finished with a summary.
 
 | Control                                 | Action                      |
 | --------------------------------------- | --------------------------- |
@@ -30,18 +30,20 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 | J / I / M                               | Journal / satchel / map     |
 | Escape                                  | Pause or close a menu       |
 
-## Playable baseline
+## Playable chapter
 
-- A lakeside village with **18 original Blender assets**, matte materials, warm lighting, and optional ambience.
-- **A complete main quest and an optional village story**, four interactive characters, dialogue choices, and three discoveries that lead to a final conversation with Ezra.
-- A Blender-authored traveler walk cycle, subtle idle motion, and gold route markers along walking paths.
-- Quest tracking, satchel, journal discovery cards, and a map that marks your next destination and remembered places.
-- Autosave, three manual slots, reload/continue, versioned migration (including existing v1/v2 journeys), and JSON export/import.
-- Responsive menus, keyboard focus management, reduced motion, and lower graphics settings.
+- **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
+- **29 original Blender assets**, seven skinned character variants and eight named clips, including walking, carrying, sitting, rowing, hauling and kneeling.
+- A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.
+- The original prelude, Ezra's independent village story, three discoveries, additional shoreline observations, selectable story tracking, satchel, journal and navigable map.
+- User-paced captions with scripture provenance, full transcript, pause, checkpoint resume and finish-with-summary controls. Your imagined traveler remains on shore during the narrated lake views.
+- Autosave, three manual slots, JSON export/import and **v4 migration from v1/v2/v3 saves**, including interrupted lake scenes and remembered choices.
+- Compact phone objectives, readable captions, keyboard focus management, reduced motion, lower graphics settings and optional ambience.
+- Transactional region loading with retry and a local F3 rendering snapshot.
 
-Progress is stored in this browser. Use **Settings → Export** to change devices or keep a backup before clearing browser data. If storage is unavailable, the game provides export for the current session.
+Progress is stored in this browser. Use **Settings → Export** to change devices or keep a backup before clearing browser data. If storage is unavailable, the game provides session slots and export for the current session.
 
-This is a playable vertical slice and a production-oriented repository foundation. Multi-region travel, the miraculous-catch sequence, skeletal/NPC animation, offline caching, and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md).
+This completes the opening episode; additional towns, open-water sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [milestone RFC](docs/rfcs/001-into-the-deep.md), and [verification record](docs/VERIFICATION.md).
 
 ## Develop and verify
 
@@ -49,7 +51,7 @@ This is a playable vertical slice and a production-oriented repository foundatio
 npm run check             # Types, ESLint, unit tests, production build
 npm run format:check      # Repository formatting
 npx playwright install chromium
-npm run test:e2e          # Quest, persistence, import/export, focus, responsive UI
+npm run test:e2e          # Full episode, legacy stories, migration, recovery and responsive UI
 npm run preview          # Serve the production build
 ```
 

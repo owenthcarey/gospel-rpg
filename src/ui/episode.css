@@ -1,0 +1,639 @@
+/* Episode views follow the existing palette; this file owns the new responsive layout. */
+.current-objective {
+  color: var(--gold);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 14px 0 0;
+}
+:root .quest-card h1 {
+  font-size: 32px;
+  line-height: 1.1;
+  margin-top: 14px;
+}
+:root .quest-card {
+  max-height: calc(100dvh - 230px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+:root .quest-steps {
+  margin-top: 18px;
+  gap: 12px;
+}
+:root .quest-steps li {
+  font-size: 12px;
+  line-height: 1.35;
+}
+:root .quest-track {
+  min-height: 44px;
+  font-size: 13px;
+}
+.compact-journal {
+  display: none;
+}
+.episode-summary {
+  margin: 24px 0;
+  padding: 24px;
+  border: 1px solid #b2935666;
+  border-radius: 6px;
+  background: #bd9c4e0d;
+}
+.episode-summary-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.episode-summary-heading h3 {
+  margin: 5px 0 0;
+  font-size: 29px;
+}
+.episode-summary-heading .status-pill {
+  margin-left: auto;
+}
+.episode-summary > p {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 18px;
+}
+.episode-objectives {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 22px;
+  list-style: none;
+  padding: 0;
+  margin: 22px 0;
+}
+.episode-objectives li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.episode-objectives .icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+.episode-objectives .done {
+  color: #6c735b;
+}
+.story-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+.story-actions button {
+  min-height: 44px;
+  font-size: 13px;
+}
+.story-track-button {
+  margin-bottom: 16px;
+  min-height: 44px;
+}
+.saved-reflection {
+  margin: 22px 0;
+  border-left: 3px solid #a98c51;
+  padding: 12px 20px;
+  background: #bca86a15;
+}
+.saved-reflection strong {
+  font:
+    24px Georgia,
+    serif;
+}
+.saved-reflection p {
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 12px 0 0;
+}
+.carried-object {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #b49b66;
+  border-radius: 5px;
+}
+.carried-object p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+.scene-mode .quest-card,
+.scene-mode .world-labels,
+.scene-mode .time-of-day,
+.scene-mode .traveler-card,
+.scene-mode .bottom-center,
+.scene-mode .minimap-wrap {
+  display: none;
+}
+.scene-controls {
+  pointer-events: auto;
+  position: absolute;
+  z-index: 12;
+  right: 28px;
+  bottom: 28px;
+  width: min(560px, 43vw);
+  max-height: calc(100dvh - 125px);
+  display: flex;
+  flex-direction: column;
+  background: #f0ecd9f5;
+  color: #343e32;
+  border: 1px solid #fff7dd;
+  border-radius: 7px;
+  box-shadow: 0 14px 60px #14272245;
+}
+.scene-controls[hidden] {
+  display: none;
+}
+.scene-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 14px;
+}
+.scene-heading .eyebrow {
+  color: #626d53;
+  font-size: 10px;
+}
+.scene-heading h1 {
+  font:
+    30px/1.15 Georgia,
+    serif;
+  margin: 7px 0 0;
+  color: #344330;
+}
+.scene-pause {
+  align-self: flex-start;
+  background: #d9ddcaaa;
+  border: 1px solid #b6bda6;
+  color: #394532;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.scene-progress {
+  display: flex;
+  gap: 5px;
+  padding: 0 24px 8px;
+}
+.scene-progress span {
+  height: 3px;
+  background: #c4c9b5;
+  flex: 1;
+}
+.scene-progress span.reached {
+  background: #8b7742;
+}
+.scene-reading {
+  padding: 4px 24px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  min-height: 60px;
+}
+.scene-caption {
+  padding: 8px 0;
+}
+.scene-caption + .scene-caption {
+  border-top: 1px solid #b7bea144;
+  margin-top: 7px;
+}
+.caption-source {
+  font-size: 11px;
+  letter-spacing: 0.025em;
+  color: #687350;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+.scene-caption > p:last-child {
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0;
+}
+.scripture-caption > p:last-child {
+  font:
+    19px/1.55 Georgia,
+    serif;
+  color: #34482e;
+}
+.scene-observation {
+  margin: 14px 0 2px;
+  background: #c3c9ad33;
+  border-radius: 4px;
+}
+.scene-observation summary {
+  padding: 12px;
+  min-height: 44px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.scene-observation p {
+  padding: 0 12px 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.scene-footer {
+  padding: 14px 24px 16px;
+  border-top: 1px solid #b7bea166;
+}
+.scene-continue {
+  width: 100%;
+  min-height: 46px;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.scene-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  margin-top: 6px;
+}
+.scene-secondary button {
+  min-height: 44px;
+  color: #4b5c3d;
+  font-size: 12px;
+}
+.scene-save-note {
+  font-size: 11px;
+  color: #6c755c;
+  line-height: 1.5;
+  margin: 4px 0 0;
+}
+.transcript {
+  display: grid;
+  gap: 24px;
+  margin-top: 28px;
+}
+.transcript-beat {
+  padding: 24px;
+  background: #eee9d733;
+  border: 1px solid #b6bea044;
+  border-radius: 4px;
+  scroll-margin: 20px;
+}
+.transcript-beat.current-beat {
+  border-color: #aa8f4b;
+}
+.transcript-beat h3 {
+  font:
+    28px Georgia,
+    serif;
+  margin: 10px 0 20px;
+}
+.transcript-beat p:not(.caption-source) {
+  font-size: 16px;
+  line-height: 1.75;
+  margin: 0 0 18px;
+}
+.transcript-beat .caption-source {
+  margin-top: 14px;
+  font-size: 12px;
+}
+.transcript-notice {
+  border-left: 2px solid #a9b78b;
+  padding-left: 16px;
+  color: #6d745e;
+}
+.source-link {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  color: #52613a;
+}
+.summary-account {
+  margin: 22px 0;
+  padding: 20px;
+  border: 1px solid #a5b18b66;
+  border-radius: 4px;
+}
+.summary-account p {
+  font-size: 16px;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.diagnostics-table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+.diagnostics-table th,
+.diagnostics-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #acb49d66;
+}
+#loading[hidden] {
+  display: none;
+}
+:root .dialogue-source {
+  font-size: 11px;
+}
+:root .dialogue-choices button {
+  min-height: 44px;
+}
+:root .dialogue-text {
+  font-size: 16px;
+  line-height: 1.7;
+}
+:root .panel-body .panel-lead {
+  font-size: 16px;
+  line-height: 1.7;
+}
+:root .map-destinations button {
+  min-height: 50px;
+}
+:root .map-destinations button small {
+  font-size: 12px;
+  line-height: 1.4;
+}
+:root .map-destinations button span {
+  font-size: 14px;
+}
+:root .map-destinations {
+  max-height: 460px;
+  overflow-y: auto;
+}
+@media (min-width: 1100px) {
+  .scene-controls {
+    width: min(560px, 43vw);
+  }
+}
+@media (max-width: 900px) {
+  .scene-controls {
+    width: min(650px, calc(100vw - 32px));
+    right: 16px;
+    bottom: 16px;
+    max-height: 52dvh;
+  }
+  .scene-heading h1 {
+    font-size: 26px;
+  }
+  .scene-heading {
+    padding: 17px 20px 12px;
+  }
+  .scene-reading {
+    padding: 0 20px 10px;
+  }
+  .scene-footer {
+    padding: 12px 20px;
+  }
+  .scene-progress {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+@media (max-width: 640px) {
+  :root .quest-card {
+    left: 12px;
+    right: 12px;
+    top: 82px;
+    width: auto;
+    padding: 12px 15px;
+    max-height: 210px;
+  }
+  :root .quest-card h1 {
+    font-size: 22px;
+    line-height: 1.1;
+    margin-top: 6px;
+  }
+  :root .quest-card .quest-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+  :root .quest-card .quest-count {
+    font-size: 10px;
+  }
+  :root .quest-details {
+    display: none;
+  }
+  :root .current-objective {
+    font-size: 14px;
+    margin-top: 7px;
+    line-height: 1.4;
+  }
+  :root .quest-track {
+    padding: 7px 0 0;
+    margin: 4px 0 0;
+    min-height: 40px;
+    font-size: 13px;
+  }
+  :root .compact-journal {
+    display: block;
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    padding: 9px 0;
+    font-size: 12px;
+    min-height: 40px;
+  }
+  :root .quest-track {
+    width: 52%;
+  }
+  :root .toolbar .icon-button,
+  :root .toolbar button {
+    min-width: 40px;
+    min-height: 44px;
+    padding: 9px;
+  }
+  :root .camera-controls button {
+    min-width: 30px;
+    min-height: 36px;
+  }
+  :root .minimap-wrap {
+    right: 12px;
+    bottom: 14px;
+  }
+  :root .minimap {
+    width: 98px;
+    height: 98px;
+  }
+  :root .camera-controls {
+    flex-wrap: wrap;
+    width: 108px;
+  }
+  :root .camera-controls span {
+    display: none;
+  }
+  :root .nearby-action {
+    min-height: 44px;
+    font-size: 13px;
+    padding: 10px 14px;
+    max-width: 225px;
+  }
+  :root .control-hints {
+    font-size: 12px;
+    min-height: 40px;
+  }
+  :root .time-of-day {
+    display: none;
+  }
+  :root .world-label .label-name {
+    font-size: 12px;
+    padding: 7px 9px;
+  }
+  :root .dialogue-box {
+    max-height: 66dvh;
+    overflow-y: auto;
+  }
+  :root .dialogue-text {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  :root .dialogue-main h2 {
+    font-size: 27px;
+  }
+  :root .dialogue-main header p {
+    font-size: 12px;
+  }
+  :root .dialogue-choices button {
+    font-size: 14px;
+    line-height: 1.45;
+    min-height: 48px;
+  }
+  :root .dialogue-source {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  :root .panel-body {
+    padding: 20px;
+  }
+  :root .panel-header {
+    padding: 20px;
+  }
+  :root .panel-header h2 {
+    font-size: 27px;
+  }
+  :root .panel-body p {
+    font-size: 15px;
+  }
+  .episode-summary {
+    padding: 18px;
+  }
+  .episode-summary-heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .episode-summary-heading h3 {
+    font-size: 25px;
+  }
+  .episode-summary-heading .status-pill {
+    margin-left: 0;
+  }
+  .episode-objectives {
+    grid-template-columns: 1fr;
+  }
+  .episode-objectives li {
+    font-size: 15px;
+  }
+  .episode-summary .eyebrow {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .story-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .carried-object {
+    flex-direction: column;
+  }
+  .scene-controls {
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: calc(100vw - 20px);
+    max-height: 55dvh;
+  }
+  .scene-heading {
+    padding: 14px 16px 10px;
+    gap: 10px;
+  }
+  .scene-heading h1 {
+    font-size: 23px;
+    line-height: 1.2;
+  }
+  .scene-heading .eyebrow {
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+  }
+  .scene-pause {
+    font-size: 11px;
+    padding: 6px 9px;
+    max-width: 86px;
+    flex-shrink: 0;
+  }
+  .scene-progress {
+    padding: 0 16px 8px;
+  }
+  .scene-reading {
+    padding: 0 16px 8px;
+  }
+  .scene-caption > p:last-child {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .scripture-caption > p:last-child {
+    font-size: 18px;
+  }
+  .scene-footer {
+    padding: 10px 16px;
+  }
+  .scene-continue {
+    font-size: 13px;
+    padding: 10px 12px;
+    min-height: 46px;
+  }
+  .scene-secondary {
+    column-gap: 12px;
+    justify-content: flex-start;
+  }
+  .scene-secondary button {
+    font-size: 12px;
+    min-height: 40px;
+  }
+  .scene-save-note {
+    display: none;
+  }
+  .transcript-beat {
+    padding: 17px;
+  }
+  .transcript-beat h3 {
+    font-size: 25px;
+  }
+}
+@media (max-height: 540px) {
+  :root .quest-card {
+    max-height: calc(100dvh - 145px);
+    width: 260px;
+    right: auto;
+  }
+  :root .quest-details {
+    display: none;
+  }
+  .scene-controls {
+    max-height: calc(100dvh - 95px);
+    width: 50vw;
+    right: 12px;
+    bottom: 10px;
+  }
+  .scene-heading h1 {
+    font-size: 21px;
+  }
+  .scene-heading {
+    padding: 10px 15px;
+  }
+  .scene-footer {
+    padding: 8px 15px;
+  }
+  .scene-save-note {
+    display: none;
+  }
+  .scene-reading {
+    padding: 0 15px;
+  }
+}

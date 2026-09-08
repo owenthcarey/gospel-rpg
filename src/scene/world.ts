@@ -13,16 +13,19 @@ import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
-import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader';
-import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
+import { AssetLibrary } from './assets';
+import { Actor } from './actors/actor';
+import { VillageActivity } from './actors/village';
+import { VILLAGE_ASSETS, isActorAsset, type AssetId } from '../content/assets';
+import { bindExplorationInput } from './input';
+import { approachPath, stepPath } from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
-import type { AssetContainer } from '@babylonjs/core/assetContainer';
-import type { AnimationGroup } from '@babylonjs/core/Animations/animationGroup';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
 import {
   buildings,
-  interactables,
+  allInteractables,
+  activeInteractables,
   isLand,
   obstacles,
   props,
@@ -32,7 +35,7 @@ import {
   type Placement,
 } from '../content/region';
 import { distance, findPath, WalkGrid } from '../game/pathfinding';
-import type { Point, Settings } from '../game/types';
+import { newGame, type GameState, type Point, type Settings } from '../game/types';
 
 export interface WorldCallbacks {
   interact: (id: string) => void;
@@ -52,12 +55,16 @@ export class World {
   readonly scene: Scene;
   readonly camera: ArcRotateCamera;
   private shadow: ShadowGenerator;
-  private containers = new Map<string, AssetContainer>();
+  private library: AssetLibrary;
+  private actorPlayer!: Actor;
+  private actors = new Map<string, Actor>();
+  private activity!: VillageActivity;
+  private state: GameState = newGame();
+  private destinations: Interactable[] = activeInteractables(this.state);
   private player!: TransformNode;
   private playerModel!: TransformNode;
   private marker: Mesh;
   private routeDots: Mesh[] = [];
-  private walkAnimation?: AnimationGroup;
   private strideTime = 0;
   private path: Point[] = [];
   private destination?: string;
@@ -76,21 +83,9 @@ export class World {
   constructor(
     private canvas: HTMLCanvasElement,
     private callbacks: WorldCallbacks,
+    engine: Engine,
   ) {
-    this.engine = new Engine(
-      canvas,
-      true,
-      { stencil: true, preserveDrawingBuffer: false, powerPreference: 'high-performance' },
-      false,
-    );
-    if (this.engine.webGLVersion < 2) {
-      this.engine.dispose();
-      throw new Error(
-        'The Way needs WebGL 2. Please use a current browser with hardware acceleration enabled.',
-      );
-    }
-    this.engine.setHardwareScalingLevel(Math.max(1, window.devicePixelRatio / 1.5));
-    this.engine.renderEvenInBackground = false;
+    this.engine = engine;
     this.scene = new Scene(this.engine);
     this.scene.clearColor = new Color4(0.7, 0.78, 0.73, 1);
     this.scene.fogMode = Scene.FOGMODE_EXP2;
@@ -115,7 +110,7 @@ export class World {
     this.camera.minZ = 0.2;
     this.camera.maxZ = 220;
     this.camera.fov = 0.7;
-    this.camera.attachControl(canvas, true);
+
     this.camera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
     const pointers = this.camera.inputs.attached.pointers;
     if (pointers instanceof ArcRotateCameraPointersInput) {
@@ -141,6 +136,7 @@ export class World {
     this.shadow.darkness = 0.25;
     this.shadow.bias = 0.002;
     this.shadow.normalBias = 0.04;
+    this.library = new AssetLibrary(this.scene, this.shadow);
     this.makeTerrain();
     this.makeWater();
     this.makePaths();
@@ -173,31 +169,11 @@ export class World {
   }
 
   async load(onProgress: (message: string) => void): Promise<void> {
-    const assetNames = [
-      ...new Set(
-        [...buildings, ...trees, ...props, ...interactables.filter((p) => p.asset)]
-          .map((p) => p.asset!)
-          .concat(['traveler', 'rock', 'reeds']),
-      ),
-    ];
-    let loaded = 0;
-    // A small concurrency cap avoids spiking memory on mobile browsers.
-    const queue = [...assetNames];
-    await Promise.all(
-      Array.from({ length: 4 }, async () => {
-        while (queue.length) {
-          const name = queue.shift()!;
-          const container = await LoadAssetContainerAsync(
-            `${import.meta.env.BASE_URL}assets/models/${name}.glb`,
-            this.scene,
-          );
-          this.containers.set(name, container);
-          onProgress(`Preparing Galilee · ${++loaded} of ${assetNames.length}`);
-        }
-      }),
-    );
+    await this.library.load(VILLAGE_ASSETS, (loaded, total) => {
+      onProgress('Preparing Capernaum · ' + loaded + ' of ' + total);
+    });
     for (const p of [...buildings, ...trees, ...props]) this.place(p);
-    for (const person of interactables) {
+    for (const person of allInteractables.filter((p) => !['james', 'john'].includes(p.id))) {
       if (!person.asset) continue;
       const node = this.place({ ...person, asset: person.asset }, person.id);
       if (person.kind === 'person') {
@@ -216,7 +192,9 @@ export class World {
       });
     }
     this.player = new TransformNode('player', this.scene);
-    this.playerModel = this.place({ asset: 'traveler', x: 0, z: 0 });
+    const playerModel = this.library.instantiate('traveler', 'traveler');
+    this.actorPlayer = new Actor(playerModel);
+    this.playerModel = playerModel.root;
     this.playerModel.parent = this.player;
     const ring = MeshBuilder.CreateTorus(
       'player-ring',
@@ -227,9 +205,17 @@ export class World {
     ring.parent = this.player;
     ring.position.y = 0.045;
     ring.isPickable = false;
+    this.activity = new VillageActivity(
+      this.library,
+      this.scene,
+      this.grid,
+      this.actorPlayer,
+      this.people,
+      this.boats,
+    );
+    this.update(this.state);
     this.setPosition(this.position, true);
     await this.scene.whenReadyAsync();
-    this.engine.runRenderLoop(() => this.render());
   }
 
   private material(name: string, hex: string, alpha = 1): StandardMaterial {
@@ -240,31 +226,16 @@ export class World {
     return m;
   }
   private place(p: Placement, interactionId?: string): TransformNode {
-    const container = this.containers.get(p.asset);
-    if (!container) throw new Error(`Missing asset: ${p.asset}`);
-    const instance = container.instantiateModelsToScene(
-      (name) => `${interactionId ?? p.asset}-${name}`,
-      false,
-      { doNotInstantiate: true },
+    const model = this.library.instantiate(
+      p.asset as AssetId,
+      interactionId ?? p.asset,
+      interactionId,
     );
-    const anchor = new TransformNode(`${p.asset}-anchor`, this.scene);
-    if (p.asset === 'traveler') {
-      this.walkAnimation = instance.animationGroups.find((group) => group.name.endsWith('Walk'));
-      this.walkAnimation?.start(true).pause();
-      this.walkAnimation?.goToFrame(this.walkAnimation.from);
-    }
-    instance.rootNodes.forEach((node) => {
-      node.parent = anchor;
-    });
+    const anchor = model.root;
+    if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model));
     anchor.position.set(p.x, p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : 0, p.z);
     anchor.rotation.y = (p.rotation ?? 0) + (p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
-    anchor.getChildMeshes().forEach((mesh) => {
-      mesh.receiveShadows = true;
-      mesh.isPickable = Boolean(interactionId);
-      mesh.metadata = interactionId ? { interactionId } : null;
-      this.shadow.addShadowCaster(mesh);
-    });
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
     return anchor;
   }
@@ -330,7 +301,7 @@ export class World {
     const rippleMaterial = this.material('soft-water-glints', '#e6eee0', 0.33);
     rippleMaterial.disableLighting = true;
     rippleMaterial.emissiveColor = Color3.FromHexString('#d4e6d5');
-    for (let i = 0; i < 115; i++) {
+    for (let i = 0; i < 48; i++) {
       const line = MeshBuilder.CreateGround(
         `ripple-${i}`,
         { width: 0.5 + this.random(i + 2) * 3, height: 0.025 + this.random(i + 9) * 0.035 },
@@ -434,68 +405,21 @@ export class World {
   }
 
   private bindInput(): void {
-    const down = (e: KeyboardEvent) => {
-      if (
-        this.paused ||
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLSelectElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        e.ctrlKey ||
-        e.metaKey ||
-        e.altKey
-      )
-        return;
-      const key = e.key.toLowerCase();
-      if (
-        [
-          'w',
-          'a',
-          's',
-          'd',
-          'arrowup',
-          'arrowdown',
-          'arrowleft',
-          'arrowright',
-          'q',
-          'e',
-          'r',
-        ].includes(key)
-      )
-        e.preventDefault();
-      this.keys.add(key);
-      if (key === 'e' && !e.repeat) {
-        const nearest = this.nearest();
-        if (nearest) this.navigate(nearest.id);
-        else this.callbacks.notice('Move closer to a person or a place to interact.');
-      }
-      if (key === 'r' && !e.repeat) this.resetCamera();
-    };
-    const up = (e: KeyboardEvent) => this.keys.delete(e.key.toLowerCase());
-    const clear = () => this.keys.clear();
-    const context = (e: Event) => e.preventDefault();
-    const resize = () => this.engine.resize();
-    window.addEventListener('keydown', down);
-    window.addEventListener('keyup', up);
-    window.addEventListener('blur', clear);
-    window.addEventListener('resize', resize);
-    this.canvas.addEventListener('contextmenu', context);
-    this.cleanup.push(() => {
-      window.removeEventListener('keydown', down);
-      window.removeEventListener('keyup', up);
-      window.removeEventListener('blur', clear);
-      window.removeEventListener('resize', resize);
-      this.canvas.removeEventListener('contextmenu', context);
-    });
-    this.scene.onPointerObservable.add((info) => {
-      if (this.paused || info.type !== PointerEventTypes.POINTERTAP || info.event.button !== 0)
-        return;
-      const pick = info.pickInfo;
-      if (!pick?.hit) return;
-      const id = pick.pickedMesh?.metadata?.interactionId as string | undefined;
-      if (id) this.navigate(id);
-      else if (pick.pickedPoint && pick.pickedMesh?.metadata?.ground)
-        this.walkTo({ x: pick.pickedPoint.x, z: pick.pickedPoint.z });
-    });
+    this.cleanup.push(
+      bindExplorationInput({
+        scene: this.scene,
+        canvas: this.canvas,
+        keys: this.keys,
+        paused: () => this.paused,
+        navigate: (id) => this.navigate(id),
+        walk: (point) => {
+          this.walkTo(point);
+        },
+        nearest: () => this.nearest()?.id,
+        resetCamera: () => this.resetCamera(),
+        notice: this.callbacks.notice,
+      }),
+    );
   }
 
   walkTo(target: Point): boolean {
@@ -515,7 +439,7 @@ export class World {
   }
   navigate(id: string): void {
     if (this.paused) return;
-    const target = interactables.find((p) => p.id === id);
+    const target = this.destinations.find((p) => p.id === id);
     if (!target) return;
     if (distance(this.position, target) < 2.35) {
       this.stop();
@@ -523,22 +447,19 @@ export class World {
       this.callbacks.interact(id);
       return;
     }
-    // Choose the shortest reachable approach cell, not the center of an obstacle.
-    const candidates: Point[] = [];
-    for (let x = -2; x <= 2; x++)
-      for (let z = -2; z <= 2; z++) {
-        const p = { x: Math.round(target.x) + x, z: Math.round(target.z) + z };
-        if (this.grid.walkable(p) && distance(p, target) < 2.25) candidates.push(p);
-      }
-    candidates.sort((a, b) => distance(a, this.position) - distance(b, this.position));
-    for (const p of candidates) {
-      if (this.walkTo(p)) {
-        this.destination = id;
-        return;
-      }
+    const path = approachPath(this.grid, this.position, target);
+    if (!path.length) {
+      this.callbacks.notice('There is no clear path to that place.');
+      return;
     }
-    this.callbacks.notice('There is no clear path to that place.');
+    this.path = path;
+    this.destination = id;
+    const end = path.at(-1)!;
+    this.marker.position.set(end.x, 0.045, end.z);
+    this.marker.setEnabled(true);
+    this.showRoute();
   }
+
   private face(target: Point): void {
     if (this.playerModel)
       this.playerModel.rotation.y = Math.atan2(
@@ -547,7 +468,7 @@ export class World {
       );
   }
   nearest(): Interactable | undefined {
-    return [...interactables]
+    return [...this.destinations]
       .filter((p) => distance(p, this.position) < 2.6)
       .sort((a, b) => distance(a, this.position) - distance(b, this.position))[0];
   }
@@ -570,10 +491,12 @@ export class World {
     if (!this.playerModel) return;
     if (moving && !this.reducedMotion) this.strideTime += dt;
     else this.strideTime = 0;
-    if (this.walkAnimation) {
-      const { from, to } = this.walkAnimation;
-      this.walkAnimation.goToFrame(from + ((this.strideTime % 0.8) / 0.8) * (to - from));
-    }
+    this.actorPlayer?.sample(
+      this.activity?.playerClip(moving, Boolean(this.state.episode.carrying)) ??
+        (moving ? 'Walk' : 'Idle'),
+      dt,
+      this.reducedMotion || this.paused,
+    );
     this.playerModel.position.y = this.reducedMotion
       ? 0
       : moving
@@ -608,6 +531,7 @@ export class World {
   }
   applySettings(settings: Settings): void {
     this.reducedMotion = settings.reducedMotion;
+    this.activity?.settings(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
       this.boats.forEach((boat) => {
@@ -622,16 +546,12 @@ export class World {
       });
     }
     this.scene.shadowsEnabled = settings.quality === 'high';
-    this.engine.setHardwareScalingLevel(
-      settings.quality === 'low'
-        ? Math.max(1.5, window.devicePixelRatio)
-        : Math.max(1, window.devicePixelRatio / 1.5),
-    );
-    this.engine.resize();
   }
   private simulate(dt: number): void {
     if (!this.paused && !document.hidden) {
       this.time += dt;
+      this.activity.tick(dt, false);
+      for (const actor of this.actors.values()) actor.tick(dt, this.reducedMotion);
       const dx =
         Number(this.keys.has('d') || this.keys.has('arrowright')) -
         Number(this.keys.has('a') || this.keys.has('arrowleft'));
@@ -661,30 +581,20 @@ export class World {
           moving = true;
         }
       } else if (this.path.length) {
-        const next = this.path[0]!,
-          dist = distance(this.position, next);
-        if (dist < dt * 3.25) {
-          this.position = { ...next };
-          this.path.shift();
-          moving = dist > 0.001;
-          this.showRoute();
-        } else {
-          this.face(next);
-          const t = (dt * 3.25) / dist;
-          this.position.x += (next.x - this.position.x) * t;
-          this.position.z += (next.z - this.position.z) * t;
-          moving = true;
-        }
-        if (!this.path.length) {
+        const step = stepPath(this.position, this.path, dt);
+        if (step.facing) this.face(step.facing);
+        this.position = step.position;
+        this.path = step.path;
+        moving = step.moving;
+        this.showRoute();
+        if (step.arrived) {
           this.marker.setEnabled(false);
           const id = this.destination;
           this.destination = undefined;
-          if (id) {
-            const target = interactables.find((p) => p.id === id)!;
-            if (distance(this.position, target) < 2.4) {
-              this.face(target);
-              this.callbacks.interact(id);
-            }
+          const target = this.destinations.find((p) => p.id === id);
+          if (target && distance(this.position, target) < 2.4) {
+            this.face(target);
+            this.callbacks.interact(target.id);
           }
         }
       }
@@ -717,9 +627,6 @@ export class World {
       this.waterLines.forEach((line, i) => {
         line.scaling.x = 0.8 + Math.sin(this.time * 0.65 + i) * 0.22;
       });
-      this.people.forEach((person, id) => {
-        person.position.y = Math.sin(this.time * 1.4 + id.length) * 0.008;
-      });
     }
     this.scene.render();
     if (performance.now() - this.lastFrame > 45) {
@@ -727,7 +634,7 @@ export class World {
       const width = this.engine.getRenderWidth(),
         height = this.engine.getRenderHeight();
       const rect = this.canvas.getBoundingClientRect();
-      const labels = interactables.map((p) => {
+      const labels = this.destinations.map((p) => {
         const v = Vector3.Project(
           new Vector3(p.x, p.kind === 'person' ? 2.18 : 1.9, p.z),
           Matrix.Identity(),
@@ -744,11 +651,32 @@ export class World {
       this.callbacks.frame(this.position, labels, this.camera.alpha, this.nearest()?.id ?? null);
     }
   }
+  activate(): void {
+    this.camera.attachControl(this.canvas, true);
+    this.lastRender = performance.now();
+  }
+  deactivate(): void {
+    this.setPaused(true);
+    this.camera.detachControl();
+  }
+  renderFrame(): void {
+    this.render();
+  }
+  update(state: GameState): void {
+    this.state = structuredClone(state);
+    this.destinations = activeInteractables(state);
+    this.activity?.update(state);
+    // Cancel approaches when an actor departs or a carried object disappears.
+    if (this.destination && !this.destinations.some((p) => p.id === this.destination)) this.stop();
+  }
+  performInteraction(): void {
+    this.activity?.perform();
+  }
   dispose(): void {
+    this.deactivate();
     this.cleanup.forEach((fn) => fn());
-    this.engine.stopRenderLoop();
-    this.containers.forEach((c) => c.dispose());
+    this.activity?.dispose();
+    this.library.dispose();
     this.scene.dispose();
-    this.engine.dispose();
   }
 }

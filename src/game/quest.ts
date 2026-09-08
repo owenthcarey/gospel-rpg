@@ -1,3 +1,5 @@
+import { transitionEpisode } from './episode/progress';
+import { mainObjective, mainTarget } from './episode/objectives';
 import type { DiscoveryId, GameEvent, GameState } from './types';
 
 export const discoveryOrder: readonly DiscoveryId[] = ['well', 'olive', 'shore'];
@@ -6,6 +8,11 @@ export const discoveryOrder: readonly DiscoveryId[] = ['well', 'olive', 'shore']
 export function transition(state: GameState, event: GameEvent): GameState {
   const next = structuredClone(state);
   switch (event.type) {
+    case 'remember-village':
+      if (state.villageStory !== 'exploring' && state.villageStory !== 'complete') return state;
+      if (!hasMemories(state) || state.villageMemory === event.id) return state;
+      next.villageMemory = event.id;
+      break;
     case 'accept-quest':
       if (state.quest !== 'not-started') return state;
       next.quest = 'gathering';
@@ -42,6 +49,8 @@ export function transition(state: GameState, event: GameEvent): GameState {
       next.villageStory = 'complete';
       next.journal.push('ezra-memory');
       break;
+    default:
+      return transitionEpisode(state, event);
   }
   return next;
 }
@@ -51,24 +60,10 @@ export function hasSupplies(state: GameState): boolean {
 }
 
 export function objective(state: GameState): string {
-  switch (state.quest) {
-    case 'not-started':
-      return 'Speak with Simon by the boats';
-    case 'gathering':
-      return hasSupplies(state) ? 'Bring the supplies to Simon' : 'Help prepare the shore';
-    case 'delivered':
-      return 'Listen to Jesus by the water';
-    case 'complete':
-      return villageObjective(state);
-  }
+  return state.tracking === 'village' ? villageObjective(state) : mainObjective(state);
 }
-
 export function objectiveTarget(state: GameState): string {
-  if (state.quest === 'not-started' || (state.quest === 'gathering' && hasSupplies(state)))
-    return 'simon';
-  if (state.quest === 'gathering') return state.inventory.includes('net') ? 'miriam' : 'nets';
-  if (state.quest === 'delivered') return 'jesus';
-  return villageTarget(state);
+  return state.tracking === 'village' ? villageTarget(state) : mainTarget(state);
 }
 
 export function hasMemories(state: GameState): boolean {
