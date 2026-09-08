@@ -1,7 +1,6 @@
 name: Quality
+# Main pushes run these checks through the Pages workflow before publishing.
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_call:
   workflow_dispatch:

@@ -65,7 +65,7 @@ Use `npm run format`, `npm run test:watch`, and `npm run assets:build` as needed
 | `public/assets/models/`            | Shipped GLBs                                      |
 | `assets/source/`, `tools/blender/` | Blender source and reproducible recipe            |
 | `tests/`                           | Unit and browser checks                           |
-| `.github/workflows/`               | Quality and manual Pages publishing               |
+| `.github/workflows/`               | Quality and automatic Pages publishing            |
 
 - [Architecture and save format](docs/ARCHITECTURE.md)
 - [Narrative and scripture guide](docs/NARRATIVE.md)
@@ -74,4 +74,4 @@ Use `npm run format`, `npm run test:watch`, and `npm run assets:build` as needed
 - [Original project vision](docs/VISION.md)
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Credits](CREDITS.md) · [Licensing](LICENSE.md)
 
-To publish, enable GitHub Actions as the Pages source and run **Publish to GitHub Pages** on `main`. Quality checks must pass before deployment. Local setup does not publish automatically.
+Every push or merged pull request to `main` automatically runs **Publish to GitHub Pages**. Quality checks must pass before the tested build is deployed to [the live game](https://owenthcarey.github.io/gospel-rpg/). The workflow can also be run manually on `main`. GitHub Actions must be enabled as the repository's Pages source; see the [release guide](docs/DEPLOYMENT.md).

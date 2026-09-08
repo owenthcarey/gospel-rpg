@@ -13,13 +13,15 @@ Serve `dist/` over HTTP(S). A relative Vite base supports GitHub project subpath
 
 ## GitHub Pages
 
-1. Push the repository and select **Settings → Pages → Source → GitHub Actions**.
+1. Select **Settings → Pages → Source → GitHub Actions** once when setting up the repository.
 2. Protect `main` and require Quality before merging.
-3. Run **Publish to GitHub Pages** on `main` from Actions.
+3. Push or merge a pull request to `main`. **Publish to GitHub Pages** starts automatically.
 4. The reusable Quality workflow runs formatting, types, lint, unit tests, build, and Chromium integration checks. Failure prevents publishing.
-5. The publish job deploys the tested build to the `github-pages` environment and reports its URL.
+5. The publish job deploys the tested build to the `github-pages` environment at <https://owenthcarey.github.io/gospel-rpg/> and reports its URL.
 
-Publishing is manual. Local setup does not change repository settings or publish anything. Add GitHub environment reviewers if required. See [GitHub's custom Pages workflow guide](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+Pull requests run Quality without deploying. On `main`, the Pages workflow calls Quality once and publishes its build artifact only after all checks pass. Deployments are serialized so an active release can finish. You can also run **Publish to GitHub Pages** manually from Actions on `main`; runs on other branches are skipped. Local builds do not publish anything.
+
+The workflow uses GitHub's built-in token; no deployment secret is required. Environment reviewers, if configured, must approve each deployment. See [GitHub's custom Pages workflow guide](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
 ## Release checks
 

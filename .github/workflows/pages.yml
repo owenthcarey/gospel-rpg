@@ -1,6 +1,7 @@
 name: Publish to GitHub Pages
-# Pushes and pull requests run Quality; publishing is a deliberate release action.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -9,6 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   quality:
+    if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/ci.yml
   publish:
     needs: quality
@@ -16,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
