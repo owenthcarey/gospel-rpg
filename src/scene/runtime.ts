@@ -7,6 +7,7 @@ import { World, type WorldCallbacks } from './world';
 import { RoofRegion } from './regions/roof';
 import { LakeRegion } from './regions/lake';
 import { isExplorationView, type RegionView } from './regions/types';
+import { sceneAssets, type AssetVisibility } from './assets';
 
 export interface Diagnostics {
   region: RegionId | null;
@@ -17,6 +18,8 @@ export interface Diagnostics {
   fps: number;
   drawCalls: number;
   scenes: number;
+  assets: Record<string, AssetVisibility>;
+  inventory: string[];
 }
 /** One engine, one render loop, transactional replacement of disposable region scenes. */
 export class GameRuntime {
@@ -157,8 +160,11 @@ export class GameRuntime {
   resetCamera(): void {
     if (isExplorationView(this.view)) this.view.resetCamera();
   }
-  performInteraction(): void {
-    if (isExplorationView(this.view)) this.view.performInteraction();
+  performInteraction(
+    motion?: import('../content/campaign/actions').ActionMotion,
+    target?: string,
+  ): void {
+    if (isExplorationView(this.view)) this.view.performInteraction(motion, target);
   }
   diagnostics(): Diagnostics {
     const scene = this.view?.scene;
@@ -171,6 +177,8 @@ export class GameRuntime {
       fps: Math.round(this.engine.getFps()),
       drawCalls: this.instrumentation?.drawCallsCounter.current ?? 0,
       scenes: this.engine.scenes.length,
+      assets: scene ? sceneAssets(scene) : {},
+      inventory: scene?.metadata?.assetInventory ?? [],
     };
   }
   dispose(): void {

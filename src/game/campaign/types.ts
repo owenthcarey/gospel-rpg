@@ -1,4 +1,5 @@
 import type { Point } from '../types';
+import { LIFE_ITEMS } from '../life/types';
 
 export const EXPLORATION_REGIONS = [
   'capernaum',
@@ -9,7 +10,15 @@ export const EXPLORATION_REGIONS = [
 export type ExplorationRegion = (typeof EXPLORATION_REGIONS)[number];
 export const REGION_IDS = [...EXPLORATION_REGIONS, 'lake-gennesaret', 'roof-account'] as const;
 export type RegionId = (typeof REGION_IDS)[number];
-export const STORY_TRACKS = ['main', 'village', 'roof', 'neighbors', 'table'] as const;
+export const STORY_TRACKS = [
+  'main',
+  'village',
+  'roof',
+  'neighbors',
+  'table',
+  'belonging',
+  'rest',
+] as const;
 export type StoryTrack = (typeof STORY_TRACKS)[number];
 export const ROOF_SCENES = [
   'house',
@@ -34,7 +43,13 @@ export const NEIGHBOR_NOTES = [
   'table',
 ] as const;
 export type NeighborNote = (typeof NEIGHBOR_NOTES)[number];
-export const HELD_ITEMS = ['bread-basket', 'empty-jug', 'water-jug', 'cart-handle'] as const;
+export const HELD_ITEMS = [
+  'bread-basket',
+  'empty-jug',
+  'water-jug',
+  'cart-handle',
+  ...LIFE_ITEMS,
+] as const;
 export type HeldItem = (typeof HELD_ITEMS)[number];
 export interface CampaignState {
   roof: {

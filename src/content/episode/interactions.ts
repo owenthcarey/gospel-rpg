@@ -1,3 +1,6 @@
+import { activeInteractables } from '../region';
+import { distance } from '../../game/pathfinding';
+import type { ActionMotion } from '../campaign/actions';
 import type { GameState } from '../../game/types';
 import type {
   AftermathId,
@@ -20,6 +23,7 @@ export interface InteractionDefinition {
   id: EpisodeActionId;
   verb: 'Carry' | 'Place' | 'Assist' | 'Listen';
   label: string;
+  motion?: ActionMotion;
   destination: string;
   conditions: readonly Condition[];
   effect: ActionEffect;
@@ -42,6 +46,7 @@ export function matches(state: GameState, condition: Condition): boolean {
 export const episodeActions: readonly InteractionDefinition[] = [
   {
     id: 'take-basket',
+    motion: 'PickUp',
     verb: 'Carry',
     label: 'Carry the empty basket',
     destination: 'supply-basket',
@@ -59,6 +64,7 @@ export const episodeActions: readonly InteractionDefinition[] = [
   },
   {
     id: 'place-basket',
+    motion: 'PutDown',
     verb: 'Place',
     label: 'Set the basket at the landing',
     destination: 'landing',
@@ -75,6 +81,7 @@ export const episodeActions: readonly InteractionDefinition[] = [
   },
   {
     id: 'secure-mooring',
+    motion: 'Repair',
     verb: 'Assist',
     label: 'Coil the loose mooring rope',
     destination: 'mooring',
@@ -91,6 +98,7 @@ export const episodeActions: readonly InteractionDefinition[] = [
   },
   {
     id: 'join-gathering',
+    motion: 'Use',
     verb: 'Assist',
     label: 'Make room in the gathering',
     destination: 'gathering',
@@ -107,6 +115,7 @@ export const episodeActions: readonly InteractionDefinition[] = [
   },
   {
     id: 'receive-catch',
+    motion: 'PutDown',
     verb: 'Assist',
     label: 'Set a filled basket beside the landing',
     destination: 'landing',
@@ -164,4 +173,10 @@ export function actionAvailable(state: GameState, id: EpisodeActionId): boolean 
     state.region === 'capernaum' &&
     actionFor(id).conditions.every((condition) => matches(state, condition))
   );
+}
+
+/** Shared by nearby controls and the reducer, including stale dialogue choices. */
+export function episodeActionInReach(state: GameState, id: EpisodeActionId): boolean {
+  const target = activeInteractables(state).find((p) => p.id === actionFor(id).destination);
+  return Boolean(target && distance(state.position, target) < 2.8 && actionAvailable(state, id));
 }

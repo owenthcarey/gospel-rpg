@@ -7,11 +7,14 @@ import { parseEpisode } from './episode';
 import { journalEntries } from '../content/story';
 import type { GameState, Settings } from '../game/types';
 import { DEFAULT_SETTINGS } from '../game/types';
+import { newLife } from '../game/life/types';
+import { lifeJournalIds } from '../game/life/progress';
+import { parseLife } from './life';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 5;
+  version: 6;
   region: RegionId;
   savedAt: string;
   state: GameState;
@@ -91,14 +94,23 @@ export function parseSave(raw: unknown): SaveFile {
   }
   if (
     !record(raw) ||
-    raw.version !== 5 ||
+    (raw.version !== 5 && raw.version !== 6) ||
     !REGION_IDS.some((id) => id === raw.region) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
     !record(raw.state)
   )
     throw new SaveError('The save format is damaged or unsupported.');
-  const s = raw.state;
+  const s = raw.version === 5 ? { ...raw.state, life: newLife() } : raw.state;
+  // Old saves cannot introduce newly earned stories, held items, or tracking.
+  if (raw.version === 5) {
+    if (
+      ['belonging', 'rest'].includes(String(s.tracking)) ||
+      (record(s.campaign) &&
+        ['sewing-pouch', 'lashing-cord', 'wood-brace'].includes(String(s.campaign.carrying)))
+    )
+      throw new SaveError('This older save contains unknown story progress.');
+  }
   if (
     s.region !== raw.region ||
     !STORY_TRACKS.some((id) => id === s.tracking) ||
@@ -112,13 +124,22 @@ export function parseSave(raw: unknown): SaveFile {
   } catch {
     throw new SaveError('This save contains inconsistent episode progress.');
   }
-  if (['roof', 'neighbors', 'table'].includes(String(s.tracking)) && episode.stage !== 'complete')
+  if (
+    ['roof', 'neighbors', 'table', 'belonging', 'rest'].includes(String(s.tracking)) &&
+    episode.stage !== 'complete'
+  )
     throw new SaveError('The tracked chapter is not available in this save.');
   let campaign;
   try {
     campaign = parseCampaign(s.campaign, episode.stage, raw.region as RegionId);
   } catch {
     throw new SaveError('This save contains inconsistent chapter or neighborhood progress.');
+  }
+  let life;
+  try {
+    life = parseLife(s.life, campaign, episode.stage);
+  } catch {
+    throw new SaveError('This save contains inconsistent investigation or bench progress.');
   }
   if (
     !record(s.position) ||
@@ -160,6 +181,7 @@ export function parseSave(raw: unknown): SaveFile {
     ...s.discoveries,
     ...episodeJournalIds(episode),
     ...campaignJournalIds(campaign),
+    ...lifeJournalIds(life),
   ]);
   if (s.villageStory !== 'not-started') expectedJournal.add('ezra-invitation');
   if (s.villageStory === 'complete') {
@@ -180,13 +202,14 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 5,
+    version: 6,
     region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
       region: raw.region as RegionId,
       episode,
       campaign,
+      life,
       tracking: s.tracking as GameState['tracking'],
       villageMemory: s.villageMemory as GameState['villageMemory'],
       position: { x: s.position.x, z: s.position.z },

@@ -70,7 +70,7 @@ export function questView(state: GameState): string {
     '<button class="quest-track" data-action="' +
       (done ? 'journal' : 'navigate') +
       '" data-value="' +
-      esc(target) +
+      esc(done ? 'memories' : target) +
       '">' +
       icon(done ? 'journal' : 'compass') +
       '<span>' +
@@ -78,7 +78,7 @@ export function questView(state: GameState): string {
       '</span>' +
       icon('arrow') +
       '</button>',
-    '<button class="compact-journal text-button" data-action="journal">Open full journal</button>',
+    '<button class="compact-journal text-button" data-action="journal" data-value="stories">Open full journal</button>',
     '<div class="quest-details"><div class="quest-reference">' +
       (village
         ? 'An optional story · Your own pace'

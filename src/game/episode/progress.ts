@@ -1,5 +1,5 @@
 import { chapters } from '../../content/campaign/chapters';
-import { actionAvailable, actionFor } from '../../content/episode/interactions';
+import { episodeActionInReach, actionFor } from '../../content/episode/interactions';
 import type { GameState } from '../types';
 import {
   AFTERMATH,
@@ -74,7 +74,7 @@ export function transitionEpisode(state: GameState, event: EpisodeEvent): GameSt
       addJournal(next, 'episode-invitation');
       return next;
     case 'episode-action': {
-      if (!actionAvailable(state, event.id)) return state;
+      if (!episodeActionInReach(state, event.id)) return state;
       const definition = actionFor(event.id);
       const effect = definition.effect;
       switch (effect.kind) {

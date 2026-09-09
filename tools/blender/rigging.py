@@ -10,6 +10,7 @@ import os
 CLIPS = {
     "Idle": 60, "Walk": 24, "Carry": 24, "Gesture": 60,
     "Sit": 60, "Row": 36, "Haul": 40, "Kneel": 60, "Recline": 60, "Rise": 60, "MatCarry": 24, "Use": 60,
+    "PickUp": 36, "PutDown": 36, "Repair": 60, "SitDown": 72,
 }
 
 def export_character(name, parts, scene, output, grid_index):
@@ -140,6 +141,36 @@ def export_character(name, parts, scene, output, grid_index):
                 p["thigh_" + side].rotation_euler.x = -.15
                 p["leg_" + side].rotation_euler.x = 1.70
                 p["arm_" + side].rotation_euler.x = -.25
+        # Finite practical gestures. All settle at the neutral pose; Carry is
+        # sampled separately after pickup, so a stationary traveler never steps.
+        if clip in ("PickUp", "PutDown", "Repair"):
+            reach = math.sin(math.pi * phase) ** 2
+            p["body"].rotation_euler.x = -.32 * reach
+            p["head"].rotation_euler.x = -.12 * reach
+            p["root"].location.y = -.12 * reach
+            for side in ("left", "right"):
+                p["thigh_" + side].rotation_euler.x = -.15 * reach
+                p["leg_" + side].rotation_euler.x = .26 * reach
+                p["arm_" + side].rotation_euler.x = -.72 * reach
+                p["forearm_" + side].rotation_euler.x = -.55 * reach
+            if clip == "PickUp":
+                p["forearm_right"].rotation_euler.x -= .30 * reach * phase
+            if clip == "PutDown":
+                p["forearm_left"].rotation_euler.x -= .28 * reach * (1-phase)
+            if clip == "Repair":
+                p["forearm_right"].rotation_euler.x += .28 * math.sin(phase*math.tau*2) * reach
+                p["body"].rotation_euler.z = .06 * math.sin(phase*math.tau) * reach
+        if clip == "SitDown":
+            # Ease down, hold a readable seat, then stand. No accumulated root motion.
+            amount = min(phase/.25, 1, (1-phase)/.25)
+            amount = amount*amount*(3-2*amount)
+            p["root"].location.y = -.35 * amount
+            p["robe"].rotation_euler.x = -1.1 * amount
+            p["robe"].scale.y = 1 - .15 * amount
+            for side in ("left", "right"):
+                p["thigh_" + side].rotation_euler.x = -1.25 * amount
+                p["leg_" + side].rotation_euler.x = 1.2 * amount
+                p["forearm_" + side].rotation_euler.x = -.45 * amount
 
     scene.render.fps = 30
     for clip, duration in CLIPS.items():

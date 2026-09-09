@@ -2,14 +2,13 @@ import type { GameState, Point, Settings } from '../../game/types';
 import { WALK_ROUTES } from '../../content/campaign/places';
 import { distance, findPath, type WalkGrid } from '../../game/pathfinding';
 import { stepPath } from '../../game/navigation';
-import type { ActorClip, AssetId } from '../../content/assets';
+import type { ActorClip } from '../../content/assets';
 import type { AssetLibrary, Model } from '../assets';
 import { Actor } from './actor';
 
 /** Narrative progress stays in the reducer; this class owns only visible movement. */
 export class NeighborhoodActivity {
   private state!: GameState;
-  private held = new Map<string, Model>();
   private bread: Model;
   private jug: Model;
   private gate?: Model;
@@ -18,29 +17,15 @@ export class NeighborhoodActivity {
   private shelves = new Map<string, Model>();
   private crowd: { actor: Actor; a: Point; b: Point; period: number }[] = [];
   private time = 0;
-  private performing = 0;
   private still = false;
   private requested = false;
   constructor(
     library: AssetLibrary,
-    player: Actor,
     private actors: Map<string, Actor>,
     private grid: () => WalkGrid,
     private checkpoint: () => void,
     region: string,
   ) {
-    for (const [id, asset] of Object.entries({
-      'bread-basket': 'bread_basket',
-      'empty-jug': 'jug',
-      'water-jug': 'jug',
-      'cart-handle': 'cart_handle',
-    })) {
-      const model = library.instantiate(asset as AssetId, 'held-' + id);
-      player.attach(model);
-      model.root.scaling.setAll(0.8);
-      model.root.setEnabled(false);
-      this.held.set(id, model);
-    }
     if (region === 'bakehouse') {
       for (const [id, asset, x, z] of [
         ['bread', 'bread_basket', -4.7, 0],
@@ -74,7 +59,6 @@ export class NeighborhoodActivity {
   update(state: GameState): void {
     const old = this.state;
     this.state = structuredClone(state);
-    for (const [id, model] of this.held) model.root.setEnabled(state.campaign.carrying === id);
     this.shelves
       .get('bread')
       ?.root.setEnabled(
@@ -117,21 +101,11 @@ export class NeighborhoodActivity {
     const p = this.actors.get('amos')?.root.position;
     return p ? { x: p.x, z: p.z } : undefined;
   }
-  perform(): void {
-    this.performing = 0.9;
-  }
   playerClip(moving: boolean): ActorClip {
-    return this.performing > 0
-      ? 'Use'
-      : this.state.campaign.carrying
-        ? 'Carry'
-        : moving
-          ? 'Walk'
-          : 'Idle';
+    return this.state.campaign.carrying ? 'Carry' : moving ? 'Walk' : 'Idle';
   }
   tick(dt: number, player: Point): void {
     this.time += dt;
-    this.performing = Math.max(0, this.performing - dt);
     for (const c of this.crowd) {
       const phase = (this.time % c.period) / c.period;
       const moving = !this.still && phase < 0.5;

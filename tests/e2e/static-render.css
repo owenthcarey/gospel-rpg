@@ -1,0 +1,5 @@
+/* Compare only the actual canvas, with game layout and camera sizing unchanged. */
+#ui,
+#loading {
+  visibility: hidden !important;
+}

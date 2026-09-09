@@ -5,6 +5,7 @@ import { SCENE_IDS } from '../../src/game/episode/types';
 import { ROOF_SCENES } from '../../src/game/campaign/types';
 import { makeSave } from '../../src/persistence/schema';
 import { action, district } from '../helpers/campaign';
+import { requiredRegionAssets } from '../../src/content/render-contract';
 
 async function ready(page: Page, buffer?: Buffer): Promise<void> {
   await page.goto('/');
@@ -106,7 +107,7 @@ test('a v4 traveler walks into Chapter II, resumes every scene and completes the
   await page.locator('[data-action="roof-reflect"][data-value="welcome"]').click();
   await expect(page.locator('#quest-card')).toContainText('COMPLETE');
   const save = await exported(page);
-  expect(save.version).toBe(5);
+  expect(save.version).toBe(6);
   expect(save.state.campaign.roof.stage).toBe('complete');
   expect(save.state.campaign.roof.reflection).toBe('welcome');
   expect(save.state.episode.stage).toBe('complete');
@@ -225,11 +226,11 @@ test('a failed neighborhood load can be retried and summary preserves the roof a
   test.setTimeout(180_000);
   await ready(page);
   await visit(page, 'to-lanes');
-  await page.route('**/room_wall.glb', (route) => route.abort('failed'));
+  await page.route('**/low_wall.glb', (route) => route.abort('failed'));
   await page.locator('[data-action="journey"]').click();
   await expect(page.locator('#toast')).toContainText('could not load');
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', 'capernaum');
-  await page.unroute('**/room_wall.glb');
+  await page.unroute('**/low_wall.glb');
   await page.locator('[data-action="journey"]').click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', 'capernaum-lanes');
   await door(page, 'to-house', 'gathering-house');
@@ -339,6 +340,24 @@ for (const region of [
           ),
         );
       records[region + '-' + quality] = { ...rows, ...cadence };
+      const assets = await page
+        .locator('.asset-diagnostics tbody tr')
+        .evaluateAll((elements) =>
+          Object.fromEntries(
+            elements.map((row) => [
+              row.getAttribute('data-asset')!,
+              [...row.querySelectorAll('td')].map((cell) => Number(cell.textContent)),
+            ]),
+          ),
+        );
+      for (const id of requiredRegionAssets[region])
+        expect(assets[id]?.[1], `${region}/${quality}: ${id} must remain enabled`).toBeGreaterThan(
+          0,
+        );
+      expect(
+        requiredRegionAssets[region].reduce((sum, id) => sum + (assets[id]?.[2] ?? 0), 0),
+        'Essential static geometry must actually submit a draw',
+      ).toBeGreaterThan(0);
       expect(rows.region).toBe(region);
       expect(Number(rows.scenes)).toBe(1);
       expect(Number(rows.drawCalls)).toBeGreaterThan(0);

@@ -2,6 +2,9 @@ import type { GameState } from '../../game/types';
 import type { NeighborNote } from '../../game/campaign/types';
 import { distance } from '../../game/pathfinding';
 import { localNeighborhoodPlaces } from './places';
+import { lifeActions } from '../life/actions';
+import { heldReturn } from '../../game/life/objectives';
+export type ActionMotion = 'PickUp' | 'PutDown' | 'Repair' | 'SitDown' | 'Use';
 export interface WorldAction {
   id: string;
   target: string;
@@ -10,6 +13,9 @@ export interface WorldAction {
   notice: string;
   available: (s: GameState) => boolean;
   requirement: string;
+  visible?: (s: GameState) => boolean;
+  motion?: ActionMotion;
+  needsFreeHands?: boolean;
 }
 const freeHands = (s: GameState) => s.campaign.carrying === null;
 const preparingTable = (s: GameState) =>
@@ -18,6 +24,7 @@ const tableAt = (s: GameState, location: string) =>
   preparingTable(s) && s.campaign.table.location === location;
 const after = (s: GameState) => s.campaign.roof.stage === 'aftermath';
 export const worldActions: readonly WorldAction[] = [
+  ...lifeActions,
   {
     id: 'roof-enter',
     target: 'house-viewpoint',
@@ -247,5 +254,30 @@ export function worldAction(id: string): WorldAction | undefined {
 export function actionAllowed(s: GameState, id: string): boolean {
   const action = worldAction(id);
   const place = action && localNeighborhoodPlaces(s).find((p) => p.id === action.target);
-  return Boolean(action && place && distance(s.position, place) < 2.8 && action.available(s));
+  return Boolean(
+    s.episode.stage === 'complete' &&
+    action &&
+    place &&
+    distance(s.position, place) < 2.8 &&
+    action.available(s),
+  );
+}
+
+export function actionMotion(action: WorldAction): ActionMotion | undefined {
+  return (
+    action.motion ??
+    ({ Carry: 'PickUp', Place: 'PutDown', Use: 'Use', Open: 'Repair' } as const)[
+      action.verb as 'Carry' | 'Place' | 'Use' | 'Open'
+    ]
+  );
+}
+export function actionBlocker(action: WorldAction, s: GameState): string | undefined {
+  if (action.available(s)) return;
+  const held = heldReturn(s);
+  if (
+    held &&
+    (action.needsFreeHands || action.verb === 'Carry' || action.id === 'life-clear-bench')
+  )
+    return held.text;
+  return action.requirement;
 }

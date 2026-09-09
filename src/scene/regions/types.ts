@@ -20,7 +20,10 @@ export interface ExplorationView extends RegionView {
   rotate(direction: number): void;
   zoom(direction: number): void;
   resetCamera(): void;
-  performInteraction(): void;
+  performInteraction(
+    motion?: import('../../content/campaign/actions').ActionMotion,
+    target?: string,
+  ): void;
   getCompanionPosition(): Point | undefined;
 }
 export function isExplorationView(view: RegionView | undefined): view is ExplorationView {

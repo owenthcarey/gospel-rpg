@@ -3,7 +3,10 @@ import type { GameState, Point } from '../../game/types';
 import { campaignGoal, localTarget } from '../../game/campaign/objectives';
 import { ROOF_SCENES, ROOF_REFLECTIONS } from '../../game/campaign/types';
 import { roofReadyReflection } from '../../game/campaign/progress';
-import { worldActions, noteTargets } from '../../content/campaign/actions';
+import { worldActions, noteTargets, actionBlocker } from '../../content/campaign/actions';
+import { lifeText } from '../../content/life/conversations';
+import { heldReturn, heldItems } from '../../game/life/objectives';
+import type { JournalFilter } from './journal';
 import { allNeighborhoodPlaces, gateways } from '../../content/campaign/places';
 import { neighborhoodText } from '../../content/campaign/conversations';
 import { neighborNotes, roofReflections } from '../../content/campaign/journal';
@@ -18,12 +21,13 @@ const button = (label: string, action: string, value = '', primary = false) =>
 export function campaignQuest(s: GameState): string | undefined {
   const goal = campaignGoal(s);
   if (!goal) return;
-  return `<div class="quest-eyebrow">✧ ${s.tracking === 'table' || s.tracking === 'neighbors' ? 'NEIGHBORHOOD STORY' : 'CHAPTER II'} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : 'Follow the path', goal.done ? 'journal' : 'navigate', goal.target)}<button class="compact-journal text-button" data-action="journal">Choose a story</button><div class="quest-details"><p class="quest-reference">${s.tracking === 'table' || s.tracking === 'neighbors' ? 'Optional · Original neighborhood story' : 'Mark 2:1–12 · World English Bible'}</p></div>`;
+  return `<div class="quest-eyebrow">✧ ${chapters[s.tracking].optional ? 'NEIGHBORHOOD STORY' : 'CHAPTER II'} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : 'Follow the path', goal.done ? 'journal' : 'navigate', goal.done ? 'memories' : goal.target)}<button class="compact-journal text-button" data-action="journal" data-value="stories">Choose a story</button><div class="quest-details"><p class="quest-reference">${chapters[s.tracking].optional ? 'Optional · Original neighborhood story' : 'Mark 2:1–12 · World English Bible'}</p></div>`;
 }
-export function campaignSummary(s: GameState): string {
+export function campaignSummary(s: GameState, filter: JournalFilter = 'all'): string {
   if (s.episode.stage !== 'complete')
     return '<p class="content-note">Chapter II opens after your reflection in Into the Deep.</p>';
   return `<section class="campaign-stories" aria-label="Neighborhood stories">${neighborhoodChapters
+    .filter((id) => filter === 'all' || filter === id)
     .map((id) => {
       const chapter = chapters[id];
       const status = storyStatus(s, id);
@@ -44,13 +48,18 @@ export function contextView(id: string, s: GameState): { title: string; body: st
     };
   const actions = worldActions.filter((a) => a.target === id);
   const available = actions.filter((a) => a.available(s));
+  const blocked = actions.filter((a) => a.visible?.(s) && !a.available(s));
+  const narration = lifeText(id, s);
+  const prose = narration
+    ? narration + (id === 'ruth' ? ' ' + neighborhoodText(id, s) : '')
+    : neighborhoodText(id, s);
   const note = noteTargets[id];
   const reflection =
     id === 'house-viewpoint' && s.campaign.roof.stage === 'aftermath' && roofReadyReflection(s);
   const noteText = note ? neighborNotes[note] : undefined;
   return {
     title: place.name,
-    body: `<p class="eyebrow">ORIGINAL ${place.kind === 'person' ? 'CONVERSATION' : 'NARRATION'}</p><p class="panel-lead">${esc(neighborhoodText(id, s))}</p>${s.campaign.carrying ? `<p class="held-notice">In your hands: ${esc(s.campaign.carrying.replaceAll('-', ' '))}</p>` : ''}<div class="context-actions">${available.map((a) => button(a.label, 'campaign-action', a.id, true)).join('')}${reflection ? ROOF_REFLECTIONS.map((id) => button(roofReflections[id].title, 'roof-reflect', id, true)).join('') : ''}</div>${noteText ? `<article class="context-note"><h3>${esc(noteText.title)}</h3><p>${esc(noteText.text)}</p>${noteText.reference ? `<p class="reference-tag">${esc(noteText.reference)}</p>` : ''}${s.campaign.notes.includes(note!) ? '<p>Remembered in your journal.</p>' : button('Remember this place', 'neighbor-note', note)}</article>` : ''}${!available.length && !reflection && actions.length ? `<p class="content-note">${esc(actions[0]!.requirement)}</p>` : ''}`,
+    body: `<p class="eyebrow">ORIGINAL ${place.kind === 'person' ? 'CONVERSATION' : 'NARRATION'}</p><p class="panel-lead">${esc(prose)}</p>${s.campaign.carrying ? `<p class="held-notice">In your hands: ${esc(s.campaign.carrying.replaceAll('-', ' '))}</p>` : ''}<div class="context-actions">${available.map((a) => button(a.label, 'campaign-action', a.id, true)).join('')}${reflection ? ROOF_REFLECTIONS.map((id) => button(roofReflections[id].title, 'roof-reflect', id, true)).join('') : ''}</div>${blocked.map((a) => `<p class="action-blocker"><strong>${esc(a.label)}</strong><br>${esc(actionBlocker(a, s) ?? a.requirement)}</p>`).join('')}${noteText ? `<article class="context-note"><h3>${esc(noteText.title)}</h3><p>${esc(noteText.text)}</p>${noteText.reference ? `<p class="reference-tag">${esc(noteText.reference)}</p>` : ''}${s.campaign.notes.includes(note!) ? '<p>Remembered in your journal.</p>' : button('Remember this place', 'neighbor-note', note)}</article>` : ''}${!available.length && !reflection && actions.length ? `<p class="content-note">${esc(actions[0]!.requirement)}</p>` : ''}`,
   };
 }
 export function roofControls(s: GameState, paused: boolean): string {
@@ -89,5 +98,5 @@ export function neighborhoodMap(
 }
 export function carriedView(s: GameState): string {
   if (!s.campaign.carrying) return '';
-  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">IN YOUR HANDS</span><h3>${esc(s.campaign.carrying.replaceAll('-', ' '))}</h3><p>Carry one object at a time. You can return this to its bakehouse shelf and continue later.</p>${button('Find the next stop', 'travel', campaignGoal(s)?.target ?? localTarget(s, 'hannah'))}</div></article>`;
+  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">IN YOUR HANDS</span><h3>${esc(heldItems[s.campaign.carrying].name)}</h3><p>${esc(heldReturn(s)!.text)}</p>${button('Find the return point', 'travel', heldReturn(s)!.target)}${button('Find the next stop', 'travel', campaignGoal(s)?.target ?? localTarget(s, 'hannah'))}</div></article>`;
 }

@@ -12,6 +12,7 @@ import {
 } from '../game/campaign/types';
 import { WALK_ROUTES } from '../content/campaign/places';
 import type { Point } from '../game/types';
+import { LIFE_ITEMS } from '../game/life/types';
 const member = (value: unknown, values: readonly string[]): boolean =>
   typeof value === 'string' && values.includes(value);
 function fail(): never {
@@ -73,8 +74,8 @@ export function parseCampaign(raw: unknown, episodeStage: string, region: Region
     (c.walk.stage !== 'not-started' ||
       c.table.stage !== 'not-started' ||
       c.notes.length ||
-      c.carrying ||
-      Object.keys(c.visited).length)
+      (c.carrying && !LIFE_ITEMS.some((id) => id === c.carrying)) ||
+      Object.keys(c.visited).some((id) => id !== 'capernaum' || episodeStage !== 'complete'))
   )
     fail();
   if (
@@ -125,7 +126,7 @@ export function parseCampaign(raw: unknown, episodeStage: string, region: Region
   if (!c.table.location && c.table.delivered.length) fail();
   if (c.table.stage === 'complete' && (!c.table.location || c.table.delivered.length !== 2)) fail();
   if (c.carrying === 'cart-handle' && (c.walk.route !== 'passage' || c.walk.gateOpen)) fail();
-  if (c.carrying && c.carrying !== 'cart-handle') {
+  if (c.carrying && ['bread-basket', 'empty-jug', 'water-jug'].includes(c.carrying)) {
     if (c.table.stage !== 'preparing' || !c.table.location) fail();
     if (c.table.delivered.includes(c.carrying === 'bread-basket' ? 'bread' : 'water')) fail();
   }

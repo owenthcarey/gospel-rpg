@@ -4,6 +4,7 @@ const ci = Boolean(process.env.CI);
 
 export default defineConfig({
   testDir: './tests/e2e',
+  snapshotPathTemplate: '{testDir}/screenshots/{testFilePath}/{arg}{ext}',
   // GitHub's CPU-rendered WebGL needs longer to walk the same real game paths.
   timeout: ci ? 180_000 : 90_000,
   expect: { timeout: ci ? 60_000 : 20_000 },

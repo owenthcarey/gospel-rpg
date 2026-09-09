@@ -2,6 +2,7 @@ import { localNeighborhoodPlaces, allNeighborhoodPlaces } from './campaign/place
 import type { Obstacle } from '../game/pathfinding';
 import type { GameState, Point } from '../game/types';
 import { hasReturned } from '../game/episode/progress';
+import { BENCH_FOOTPRINT } from './life/places';
 
 export interface Placement extends Point {
   asset: string;
@@ -181,6 +182,7 @@ export function activeInteractables(state: GameState): Interactable[] {
 }
 
 export const obstacles: Obstacle[] = [
+  BENCH_FOOTPRINT,
   ...buildings.map((p) => ({
     x: p.x,
     z: p.z,
