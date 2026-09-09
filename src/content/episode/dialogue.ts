@@ -71,17 +71,21 @@ export function episodeDialogue(id: string, s: GameState): Dialogue | null {
       speaker: 'Miriam',
       subtitle: 'After the boats return',
       provenance: original,
-      text: e.reflection
-        ? 'You have the look of someone carrying a memory. ' +
-          {
-            wonder:
-              'Keep a little room for surprise, traveler. There will be ordinary mornings again, and perhaps you will see them differently.',
-            trust:
-              'There are paths we know, and steps we have yet to take. I hope you find good company along yours.',
-            community:
-              'Then remember that there is room beside the stall whenever you return. A neighbor is glad to be remembered.',
-          }[e.reflection]
-        : 'The shore seems quieter now. I have no great speech for such a morning. There is still bread to share, though, and a place beside me if you would like to sit. Sometimes company is enough.',
+      text:
+        (e.reflection
+          ? 'You have the look of someone carrying a memory. ' +
+            {
+              wonder:
+                'Keep a little room for surprise, traveler. There will be ordinary mornings again, and perhaps you will see them differently.',
+              trust:
+                'There are paths we know, and steps we have yet to take. I hope you find good company along yours.',
+              community:
+                'Then remember that there is room beside the stall whenever you return. A neighbor is glad to be remembered.',
+            }[e.reflection]
+          : 'The shore seems quieter now. I have no great speech for such a morning. There is still bread to share, though, and a place beside me if you would like to sit. Sometimes company is enough.') +
+        (s.life.bench.stage === 'complete'
+          ? ' The bench beside the landing is steady again. A neighbor has already stopped there. Thank you for making that little place useful.'
+          : ''),
       choices: [
         ...action(s, 'talk-miriam'),
         { label: 'Tell me about the village', next: 'miriam-village' },

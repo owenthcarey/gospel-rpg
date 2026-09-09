@@ -1,5 +1,6 @@
 import type { GameState } from '../types';
 import { distance } from '../pathfinding';
+import { applyLifeAction } from '../life/progress';
 import { actionAllowed, noteTargets } from '../../content/campaign/actions';
 import { gateways, localNeighborhoodPlaces, WALK_ROUTES } from '../../content/campaign/places';
 import {
@@ -59,12 +60,16 @@ export function transitionCampaign(state: GameState, event: CampaignEvent): Game
       c.visited[gate.to] = { ...next.position };
       if (c.roof.stage === 'not-started') {
         c.roof.stage = 'exploring';
-        next.tracking = 'roof';
+        if (next.tracking === 'main' || next.tracking === 'roof') next.tracking = 'roof';
       }
       break;
     }
     case 'campaign-action': {
       if (!actionAllowed(state, event.id)) return state;
+      if (event.id.startsWith('life-')) {
+        if (!applyLifeAction(next, event.id)) return state;
+        break;
+      }
       switch (event.id) {
         case 'roof-enter':
           c.visited['gathering-house'] = { ...state.position };

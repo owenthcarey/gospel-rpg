@@ -7,6 +7,7 @@ import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGener
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
 import { isActorAsset, type AssetId } from '../content/assets';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
 
 export interface Model {
   root: TransformNode;
@@ -40,8 +41,9 @@ export class AssetLibrary {
             );
             if (this.disposed) container.dispose();
             else {
-              // Instances inherit shadow reception from their shared source mesh.
-              for (const mesh of container.meshes) mesh.receiveShadows = true;
+              for (const mesh of container.meshes) {
+                mesh.receiveShadows = true;
+              }
               this.containers.set(id, container);
               progress(++loaded, total);
             }
@@ -60,12 +62,16 @@ export class AssetLibrary {
       );
     }
     if (this.disposed) throw new Error('Region loading was cancelled.');
+    this.scene.metadata = { ...this.scene.metadata, assetInventory: [...this.containers.keys()] };
   }
   instantiate(id: AssetId, name = id as string, interactionId?: string): Model {
     const container = this.containers.get(id);
     if (!container || this.disposed) throw new Error('Missing region asset: ' + id);
     const instance = container.instantiateModelsToScene((node) => name + ':' + node, false, {
-      doNotInstantiate: isActorAsset(id),
+      // Clones share geometry and materials, but own their render lifecycle.
+      // Hardware instances of off-scene container sources can stop submitting
+      // after a shadow pass. Every placed model must render without shadows.
+      doNotInstantiate: true,
     });
     const root = new TransformNode(name, this.scene);
     const visual = new TransformNode(name + ':visual', this.scene);
@@ -76,7 +82,12 @@ export class AssetLibrary {
     for (const group of instance.animationGroups) group.stop();
     for (const mesh of root.getChildMeshes()) {
       mesh.isPickable = Boolean(interactionId);
-      mesh.metadata = interactionId ? { interactionId } : null;
+      const metadata = { interactionId, assetId: id, placement: name, renderedFrame: -1 };
+      mesh.metadata = metadata;
+      if (mesh instanceof Mesh && mesh.getTotalVertices())
+        mesh.onAfterRenderObservable.add(() => {
+          metadata.renderedFrame = this.scene.getFrameId();
+        });
       this.shadow?.addShadowCaster(mesh);
     }
     return {
@@ -100,4 +111,29 @@ export class AssetLibrary {
     for (const container of this.containers.values()) container.dispose();
     this.containers.clear();
   }
+}
+
+export interface AssetVisibility {
+  placed: number;
+  enabled: number;
+  drawn: number;
+}
+/** Draw callbacks complement presence checks: an enabled source is not proof of pixels. */
+export function sceneAssets(scene: Scene): Record<string, AssetVisibility> {
+  const result: Record<string, AssetVisibility> = {};
+  for (const mesh of scene.meshes) {
+    const id = mesh.metadata?.assetId as string | undefined;
+    if (!id || !mesh.getTotalVertices()) continue;
+    const value = (result[id] ??= { placed: 0, enabled: 0, drawn: 0 });
+    value.placed++;
+    if (
+      mesh.isEnabled() &&
+      mesh.isVisible &&
+      mesh.visibility > 0 &&
+      mesh.scaling.lengthSquared() > 0
+    )
+      value.enabled++;
+    if (mesh.metadata.renderedFrame >= scene.getFrameId() - 1) value.drawn++;
+  }
+  return result;
 }

@@ -22,9 +22,12 @@ import {
   type ExplorationLayout,
 } from '../content/campaign/layouts';
 import { neighborhoodPlaces } from '../content/campaign/places';
-import { NEIGHBORHOOD_ASSETS } from '../content/assets';
+import { explorationAssets } from '../content/inventories';
+import { LifeActivity } from './actors/life';
+import type { ExplorationRegion } from '../game/campaign/types';
+import type { ActionMotion } from '../content/campaign/actions';
 import { VillageActivity } from './actors/village';
-import { VILLAGE_ASSETS, isActorAsset, type AssetId } from '../content/assets';
+import { isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput } from './input';
 import { approachPath, stepPath } from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
@@ -63,6 +66,8 @@ export class World {
   grid: WalkGrid;
   private layout?: ExplorationLayout;
   private neighborhood?: NeighborhoodActivity;
+  private life!: LifeActivity;
+  private seatedAction?: { time: number; x: number; z: number; started: boolean };
   private cutaways: { node: TransformNode; kind: string }[] = [];
   readonly engine: Engine;
   readonly scene: Scene;
@@ -228,9 +233,7 @@ export class World {
 
   async load(onProgress: (message: string) => void): Promise<void> {
     await this.library.load(
-      this.layout
-        ? [...NEIGHBORHOOD_ASSETS, ...this.layout.decor.map((p) => p.asset)]
-        : VILLAGE_ASSETS,
+      explorationAssets(this.state.region as ExplorationRegion),
       (loaded, total) => {
         onProgress('Preparing Capernaum · ' + loaded + ' of ' + total);
       },
@@ -280,7 +283,6 @@ export class World {
     if (this.layout)
       this.neighborhood = new NeighborhoodActivity(
         this.library,
-        this.actorPlayer,
         this.actors,
         () => this.grid,
         this.callbacks.walkCheckpoint,
@@ -295,6 +297,11 @@ export class World {
         this.people,
         this.boats,
       );
+    this.life = new LifeActivity(
+      this.library,
+      this.actorPlayer,
+      this.state.region as ExplorationRegion,
+    );
     this.update(this.state);
     this.setPosition(this.position, true);
     await this.scene.whenReadyAsync();
@@ -572,14 +579,47 @@ export class World {
   }
   private poseTraveler(moving: boolean, dt: number): void {
     if (!this.playerModel) return;
+    if (this.paused && this.actorPlayer.performing && !this.reducedMotion) return;
+    if (this.seatedAction && !this.reducedMotion) {
+      const seat = this.seatedAction;
+      if (!this.paused) seat.time += dt;
+      const arriving = seat.time < 0.8,
+        sitting = seat.time >= 0.8 && seat.time < 3.3;
+      const amount = arriving
+        ? seat.time / 0.8
+        : sitting
+          ? 1
+          : Math.max(0, 1 - (seat.time - 3.3) / 0.8);
+      this.playerModel.position.set(seat.x * amount, 0, seat.z * amount);
+      this.playerModel.rotation.y = sitting
+        ? Math.PI
+        : Math.atan2(seat.x, seat.z) + (arriving ? 0 : Math.PI);
+      if (sitting && !seat.started) {
+        this.actorPlayer.playOnce('SitDown');
+        seat.started = true;
+      }
+      if (!this.paused) this.actorPlayer.sample(sitting ? 'Idle' : 'Walk', dt);
+      if (seat.time < 4.1) return;
+      this.playerModel.position.set(0, 0, 0);
+      this.seatedAction = undefined;
+    }
+    if (this.seatedAction && this.reducedMotion) {
+      this.seatedAction = undefined;
+      this.playerModel.position.set(0, 0, 0);
+    }
     if (moving && !this.reducedMotion) this.strideTime += dt;
     else this.strideTime = 0;
-    this.actorPlayer?.sample(
-      this.neighborhood?.playerClip(moving) ??
+    const clip = this.state.campaign.carrying
+      ? 'Carry'
+      : (this.neighborhood?.playerClip(moving) ??
         this.activity?.playerClip(moving, Boolean(this.state.episode.carrying)) ??
-        (this.state.campaign.carrying ? 'Carry' : moving ? 'Walk' : 'Idle'),
+        (moving ? 'Walk' : 'Idle'));
+    this.actorPlayer?.sample(
+      clip,
       dt,
-      this.reducedMotion || this.paused,
+      this.reducedMotion ||
+        this.paused ||
+        (clip === 'Carry' && !moving && !this.actorPlayer.performing),
     );
     this.playerModel.position.y = this.reducedMotion
       ? 0
@@ -642,6 +682,7 @@ export class World {
     this.reducedMotion = settings.reducedMotion;
     this.activity?.settings(settings);
     this.neighborhood?.settings(settings);
+    this.life?.settings(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
       this.boats.forEach((boat) => {
@@ -662,6 +703,7 @@ export class World {
       this.time += dt;
       this.activity?.tick(dt, false);
       this.neighborhood?.tick(dt, this.position);
+      this.life?.tick(dt);
       for (const [id, actor] of this.actors)
         if (id !== 'amos' || !this.neighborhood) actor.tick(dt, this.reducedMotion);
       const dx =
@@ -671,7 +713,7 @@ export class World {
         Number(this.keys.has('w') || this.keys.has('arrowup')) -
         Number(this.keys.has('s') || this.keys.has('arrowdown'));
       let moving = false;
-      if (dx || dz) {
+      if ((dx || dz) && !this.seatedAction) {
         if (this.path.length) this.routeDots.forEach((dot) => dot.setEnabled(false));
         this.path = [];
         this.destination = undefined;
@@ -692,7 +734,7 @@ export class World {
           this.position = next;
           moving = true;
         }
-      } else if (this.path.length) {
+      } else if (this.path.length && !this.seatedAction) {
         const step = stepPath(
           this.position,
           this.path,
@@ -762,6 +804,10 @@ export class World {
         p.id === 'amos' ? { ...p, ...companion } : p,
       );
     this.scene.render();
+    const playback = this.actorPlayer.playback;
+    this.canvas.dataset.actorPose = playback.clip;
+    this.canvas.dataset.actorFrame = playback.frame.toFixed(2);
+    this.canvas.dataset.actionMotion = this.seatedAction ? 'SitDown' : playback.action;
     if (performance.now() - this.lastFrame > 45) {
       this.lastFrame = performance.now();
       const width = this.engine.getRenderWidth(),
@@ -809,15 +855,31 @@ export class World {
         this.layout.bounds.max,
       );
     this.neighborhood?.update(state);
+    this.life?.update(state);
     // Cancel approaches when an actor departs or a carried object disappears.
     if (this.destination && !this.destinations.some((p) => p.id === this.destination)) this.stop();
   }
   getCompanionPosition(): Point | undefined {
     return this.neighborhood?.position();
   }
-  performInteraction(): void {
-    this.activity?.perform();
-    this.neighborhood?.perform();
+  performInteraction(motion?: ActionMotion, target?: string): void {
+    if (!motion) this.activity?.perform();
+    else {
+      const place = this.destinations.find((p) => p.id === target);
+      if (motion === 'SitDown' && place && !this.reducedMotion) {
+        this.stop();
+        this.seatedAction = {
+          time: 0,
+          x: place.x - 0.45 - this.position.x,
+          z: place.z - this.position.z,
+          started: false,
+        };
+        return;
+      }
+      if (place) this.face(place);
+      this.actorPlayer.playOnce(motion);
+      if (this.reducedMotion) this.poseTraveler(false, 0);
+    }
   }
   dispose(): void {
     this.deactivate();

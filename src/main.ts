@@ -1,10 +1,16 @@
 import { regions } from './content/regions';
 import { localTarget } from './game/campaign/objectives';
 import { STORY_TRACKS, ROOF_SCENES, ROOF_REFLECTIONS, NEIGHBOR_NOTES } from './game/campaign/types';
-import { worldAction } from './content/campaign/actions';
+import {
+  worldAction,
+  actionMotion,
+  actionAllowed,
+  actionBlocker,
+} from './content/campaign/actions';
 import './ui/styles.css';
 import './ui/episode.css';
 import './ui/campaign.css';
+import './ui/life.css';
 import { dialogueFor, type Dialogue, type Choice } from './content/story';
 import { transition } from './game/quest';
 import { newGame, type GameEvent, type GameState, type Settings } from './game/types';
@@ -14,8 +20,9 @@ import { ActionQueue } from './game/action-queue';
 import { Ambience } from './scene/audio';
 import { GameRuntime } from './scene/runtime';
 import { SCENE_IDS } from './game/episode/types';
-import { actionFor } from './content/episode/interactions';
+import { actionFor, episodeActions, episodeActionInReach } from './content/episode/interactions';
 import { Interface } from './ui/interface';
+import { JOURNAL_CATEGORIES, type JournalCategory, type JournalFilter } from './ui/views/journal';
 import { escapeHtml } from './ui/icons';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas')!;
@@ -142,8 +149,9 @@ async function apply(event: GameEvent): Promise<void> {
   ui.update(state);
   audio.region(state.region);
   if (event.type === 'campaign-action') {
-    if (['Use', 'Open', 'Place', 'Carry'].includes(worldAction(event.id)?.verb ?? ''))
-      world?.performInteraction();
+    const action = worldAction(event.id);
+    if (action && actionMotion(action))
+      world?.performInteraction(actionMotion(action), action.target);
     audio.chime();
     ui.toast(worldAction(event.id)?.notice ?? 'Remembered.');
   }
@@ -156,9 +164,10 @@ async function apply(event: GameEvent): Promise<void> {
   if (event.type === 'neighbor-note')
     ui.toast('A neighborhood memory has been added to your journal.');
   if (event.type === 'episode-action') {
-    world?.performInteraction();
+    const action = actionFor(event.id);
+    if (action.motion) world?.performInteraction(action.motion, action.destination);
     audio.chime();
-    ui.toast(actionFor(event.id).notice);
+    ui.toast(action.notice);
   }
   if (event.type === 'start-episode') ui.toast('Into the Deep · Make room on the shore.');
   if (event.type === 'episode-note') ui.toast('An observation has been added to your journal.');
@@ -311,7 +320,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       pause();
       menuRequest++;
       conversation = null;
-      if (name === 'journal') ui.journal(state);
+      if (name === 'journal') {
+        if (value === 'memories' || value === 'stories') ui.journal(state, value, 'all');
+        else ui.journal(state);
+      }
       if (name === 'transcript') ui.transcript(state, value);
       if (name === 'inventory') ui.inventory(state);
       if (name === 'map') ui.map(snapshot());
@@ -326,6 +338,8 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     case 'travel':
       if (value) {
+        if (regions[state.region].mode === 'presentation')
+          await apply({ type: state.region === 'roof-account' ? 'roof-leave' : 'leave-scene' });
         await close();
         world.navigate(localTarget(state, value));
       }
@@ -367,6 +381,28 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
         await close();
       }
       break;
+    case 'quick-action': {
+      if (ui.panel) break;
+      const episode = episodeActions.find((a) => 'episode:' + a.id === value);
+      if (episode?.motion) {
+        if (episodeActionInReach(snapshot(), episode.id))
+          await apply({ type: 'episode-action', id: episode.id });
+        else ui.toast('This task is no longer within reach or has already been done.');
+        break;
+      }
+      const action = value && worldAction(value);
+      if (!action || !actionMotion(action) || ui.panel) break;
+      const current = snapshot();
+      if (!actionAllowed(current, action.id)) {
+        ui.toast(
+          actionBlocker(action, current) ??
+            'Move closer to ' + action.target.replaceAll('-', ' ') + '.',
+        );
+        break;
+      }
+      await apply({ type: 'campaign-action', id: action.id });
+      break;
+    }
     case 'campaign-action':
       if (value) {
         await apply({ type: 'campaign-action', id: value });
@@ -396,6 +432,14 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
         await apply({ type: name, checkpoint: value as (typeof ROOF_SCENES)[number] });
         await close();
       }
+      break;
+    case 'journal-category':
+      if (ui.panel === 'journal' && JOURNAL_CATEGORIES.some((id) => id === value))
+        ui.journal(snapshot(), value as JournalCategory);
+      break;
+    case 'journal-filter':
+      if (ui.panel === 'journal' && (value === 'all' || STORY_TRACKS.some((id) => id === value)))
+        ui.journal(snapshot(), undefined, value as JournalFilter);
       break;
     case 'track-story':
       if (STORY_TRACKS.some((id) => id === value)) {

@@ -44,3 +44,13 @@ Amos, Hannah and Ruth are fictional neighbors. Their conversations explicitly ca
 The aftermath gives the traveler time with Ruth, Hannah and the remembered room. It acknowledges the chosen lake reflection and any saved Ezra memory without inventing missing migrated choices. Welcome, persistence and amazement are equally valid final reflections. Six optional neighborhood observations distinguish imagined everyday life from the Gospel text.
 
 The prelude no longer requires Luke 5:4 before the chronological lake scenes. Its old completion IDs remain valid, and the verse remains an optional journal reading. Both complete transcripts are available through the journal once Chapter II unlocks.
+
+## Living Capernaum: two original adventures
+
+Both stories unlock after Into the Deep and remain independent of Mark’s account, Amos’s walk, Hannah’s table and Ezra’s memories. They add no scripture or speech attributed to Jesus. Every new conversation, clue and memory is labeled as original fiction.
+
+**A familiar thread** follows Ruth’s misplaced sewing pouch. A blue thread at the lane water point and paired stitches on a cloth in the bakehouse can be examined in either order. Comparing both details with the shore pouch establishes its identity. The traveler can put it back and recover it later. Returning it to Ruth leads to two equal endings: recounting the route or sharing a quiet welcome. There is no accusation, randomized evidence, penalty or moral score. The returned pouch remains beside Ruth.
+
+**A place to rest** concerns an unstable landing bench. A rope lashing and a wooden brace are equally useful repairs. Clearing loose pieces and collecting material can happen in either order; fitting requires both. Sitting checks the completed seat, and a fictional neighbor subsequently rests there. Miriam acknowledges the work while retaining her earlier reflection. This bounded repair is ordinary neighborly work, without a crafting economy or spiritual reward.
+
+The journal separates investigation evidence, remembered experiences, known people and known places while preserving provenance and both complete Gospel transcripts. Existing tables gain fictional seated company. Amos keeps his actual saved escort position; ambient arrangements never rewrite his journey.

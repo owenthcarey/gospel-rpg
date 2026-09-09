@@ -19,7 +19,18 @@ import {
 import { regions } from '../content/regions';
 import type { Diagnostics } from '../scene/runtime';
 import { allInteractables, activeInteractables, buildings, shoreline } from '../content/region';
-import { items, journalEntries, type Dialogue } from '../content/story';
+import { items, type Dialogue } from '../content/story';
+import { nearbyActions } from './views/actions';
+import { arrangeLabels } from './labels';
+import {
+  journalToolbar,
+  memoryEntries,
+  journalPeople,
+  journalPlaces,
+  threadEvidence,
+  type JournalCategory,
+  type JournalFilter,
+} from './views/journal';
 import {
   discoveryOrder,
   objective,
@@ -65,6 +76,9 @@ export class Interface {
   private scenePaused = false;
   private sceneControls: HTMLElement;
   private lastNearest: string | null = null;
+  private lastTray = '';
+  private journalCategory: JournalCategory = 'stories';
+  private journalFilter: JournalFilter = 'all';
   private onClick: (e: MouseEvent) => void;
   private onChange: (e: Event) => void;
   private onKey: (e: KeyboardEvent) => void;
@@ -83,7 +97,7 @@ export class Interface {
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
         <div id="world-labels" class="world-labels" aria-label="People and places"></div>
         <div class="traveler-card"><div class="traveler-seal">${icon('person')}</div><div><span class="eyebrow">THE TRAVELER</span><p>A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
-        <div class="bottom-center"><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button data-action="help" aria-label="Show all controls">${icon('help')}</button></div></div>
+        <div class="bottom-center"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button data-action="help" aria-label="Show all controls">${icon('help')}</button></div></div>
         <div class="minimap-wrap"><button class="minimap" data-action="map" aria-label="Open village map">${this.mapSvg(false)}<span class="map-north">N</span><span class="minimap-name">SHORES OF GALILEE</span></button><div class="camera-controls"><button data-action="rotate-left" aria-label="Rotate camera left">↶</button><button data-action="reset-camera" aria-label="Reset camera">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right">↷</button><span></span><button data-action="zoom-in" aria-label="Zoom in">+</button><button data-action="zoom-out" aria-label="Zoom out">−</button></div></div>
       </div>
       <section id="scene-controls" class="scene-controls" aria-labelledby="scene-title" hidden></section><div id="overlay"></div><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
@@ -113,6 +127,10 @@ export class Interface {
     };
     this.onChange = (e) => {
       const input = e.target as HTMLInputElement;
+      if (input.hasAttribute('data-journal-filter')) {
+        this.actions.action('journal-filter', input.value);
+        return;
+      }
       if (input.id === 'import-save' && input.files?.[0]) {
         this.actions.importFile(input.files[0]);
         input.value = '';
@@ -165,7 +183,8 @@ export class Interface {
         ? roofControls(state, this.scenePaused)
         : sceneControls(state, this.scenePaused)
       : '';
-    this.quest.innerHTML = questView(state);
+    const quest = questView(state);
+    if (this.quest.innerHTML !== quest) this.quest.innerHTML = quest;
     this.root.querySelector('.time-of-day span')!.textContent =
       state.region === 'capernaum' ? 'A quiet morning' : 'Some days later';
     const minimap = this.root.querySelector('.minimap')!;
@@ -209,7 +228,42 @@ export class Interface {
     announcer.textContent = objective(state);
   }
   frame(position: Point, labels: ScreenLabel[], heading: number, nearest: string | null): void {
-    for (const label of labels) {
+    if (this.currentState) this.updateTray({ ...this.currentState, position });
+    const controls = this.hud.querySelector<HTMLElement>('.bottom-center')!.getBoundingClientRect();
+    if (controls.height)
+      this.root.style.setProperty(
+        '--notice-bottom',
+        this.root.clientHeight - controls.top + 12 + 'px',
+      );
+    const reserved = [
+      ...this.hud.querySelectorAll<HTMLElement>(
+        '.topbar,.quest-card,.minimap-wrap,.bottom-center,.traveler-card',
+      ),
+    ]
+      .filter((node) => node.offsetHeight > 0)
+      .map((node) => node.getBoundingClientRect());
+    const placed = arrangeLabels(
+      labels.map((label) => {
+        const node = this.labelNodes.get(label.id);
+        return {
+          ...label,
+          width: node?.offsetWidth || Math.min(200, (node?.textContent?.length ?? 10) * 6 + 22),
+          height: node?.offsetHeight || 26,
+          priority:
+            label.id === nearest
+              ? 3
+              : node?.classList.contains('quest-target')
+                ? 2
+                : node?.classList.contains('person')
+                  ? 1
+                  : 0,
+        };
+      }),
+      reserved,
+      this.root.clientWidth,
+      this.root.clientHeight,
+    );
+    for (const label of placed) {
       const node = this.labelNodes.get(label.id);
       if (!node) continue;
       node.style.transform = `translate(${label.x}px,${label.y}px) translate(-50%,-100%)`;
@@ -229,6 +283,23 @@ export class Interface {
       button.hidden = !person;
       if (person)
         button.innerHTML = `<kbd>E</kbd> ${person.kind === 'person' ? 'Speak with' : 'Explore'} ${esc(person.name)} ${icon('arrow')}`;
+    }
+  }
+  private updateTray(s: GameState): void {
+    const body = nearbyActions(s);
+    if (body === this.lastTray) return;
+    const tray = this.root.querySelector<HTMLElement>('#action-tray')!;
+    const focus = tray.contains(document.activeElement);
+    const value = (document.activeElement as HTMLElement | null)?.dataset.value;
+    this.lastTray = body;
+    tray.innerHTML = body;
+    tray.hidden = !body;
+    if (focus) {
+      const replacement =
+        [...tray.querySelectorAll<HTMLButtonElement>('button:not([disabled])')].find(
+          (b) => b.dataset.value === value,
+        ) ?? tray.querySelector<HTMLButtonElement>('button:not([disabled])');
+      (replacement ?? this.root.querySelector<HTMLElement>('#nearby-action'))?.focus();
     }
   }
   saveStatus(text: string): void {
@@ -292,23 +363,24 @@ export class Interface {
     const target = villageTarget(state);
     return `<section class="village-summary" aria-label="Optional village story"><button class="text-button story-track-button" data-action="track-story" data-value="village">Track village story</button><div class="village-summary-heading"><span class="chapter-icon">${icon('leaf')}</span><div><span class="eyebrow">VILLAGE STORY · OPTIONAL</span><h3>An ordinary morning</h3></div><span class="status-pill">${complete ? 'Complete' : `${state.discoveries.length} / 3`}</span></div><p>${esc(villageObjective(state))}</p><div class="discovery-cards">${discoveryOrder.map((id) => `<button class="discovery-card ${state.discoveries.includes(id) ? 'remembered' : ''}" data-action="travel" data-value="${id}">${icon(state.discoveries.includes(id) ? 'check' : id === 'olive' ? 'leaf' : 'pin')}<span>${esc(allInteractables.find((p) => p.id === id)!.name)}<small>${state.discoveries.includes(id) ? 'Remembered' : 'A memory to find'}</small></span></button>`).join('')}</div>${complete ? '<p class="village-complete">You have a place among neighbors.</p>' : `<button class="secondary-button" data-action="travel" data-value="${target}">${icon('compass')} ${state.villageStory === 'not-started' ? 'Meet Ezra' : target === 'ezra' ? 'Return to Ezra' : 'Find the next memory'} ${icon('arrow')}</button>`}</section>`;
   }
-  journal(state: GameState): void {
+  journal(state: GameState, category = this.journalCategory, filter = this.journalFilter): void {
+    this.journalCategory = category;
+    this.journalFilter = filter;
+    const matches = (id: string) => filter === 'all' || filter === id;
+    const content =
+      category === 'people'
+        ? journalPeople(state)
+        : category === 'places'
+          ? journalPlaces(state)
+          : category === 'memories'
+            ? memoryEntries(state, filter)
+            : `${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(objective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
     this.show(
       'journal',
       this.panelShell(
         'A traveler’s journal',
         'PEOPLE, PLACES & SMALL DISCOVERIES',
-        `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(objective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${campaignSummary(state)}${episodeSummary(state)}${this.villageSummary(state)}<div class="journal-entries">${[
-          ...state.journal,
-        ]
-          .reverse()
-          .map((id, i) => {
-            const entry = journalEntries[id]!;
-            return `<article class="journal-entry"><span class="entry-number">${String(state.journal.length - i).padStart(2, '0')}</span><div><h3>${entry.title}</h3><p>${entry.text}</p>${entry.reference ? `<span class="reference-tag">${icon('journal')} ${entry.reference}</span>` : ''}</div></article>`;
-          })
-          .join(
-            '',
-          )}</div><aside class="content-note"><strong>About this chapter</strong><p>The lake scenes follow Luke 5:1–11. The traveler, Miriam, Ezra, shoreline errands, and aftermath conversations are original. Scripture is quoted from the public-domain World English Bible. The scene viewpoints are a dramatization, not a claim that your traveler was aboard.</p><a href="https://ebible.org/engwebp/LUK05.htm" target="_blank" rel="noopener noreferrer">Read Luke 5:1–11 ${icon('arrow')}</a></aside>`,
+        `${journalToolbar(category, filter)}${content}<aside class="content-note"><strong>About these stories</strong><p>Into the Deep follows Luke 5:1–11; Through the Roof follows Mark 2:1–12. Scripture is quoted from the public-domain World English Bible. The traveler, neighbors, investigations, repairs, and connective conversations are original. Each memory preserves its own reference. Both full transcripts remain in Stories.</p></aside>`,
         true,
       ),
     );
@@ -445,6 +517,7 @@ export class Interface {
   }
   diagnostics(data: Diagnostics): void {
     const rows = Object.entries(data)
+      .filter(([key]) => key !== 'assets' && key !== 'inventory')
       .map(
         ([key, value]) =>
           '<tr><th scope="row">' + esc(key) + '</th><td>' + esc(String(value)) + '</td></tr>',
@@ -457,7 +530,18 @@ export class Interface {
         'DIAGNOSTICS · NO TELEMETRY',
         '<p>This snapshot describes this browser and graphics setting. FPS is sampled immediately before opening this panel; it is not a hardware compatibility certification.</p><table class="diagnostics-table">' +
           rows +
-          '</table>',
+          '</table><h3>Authored assets</h3><p>Placed geometry, enabled geometry, and geometry submitted in the most recent frame. Offscreen objects may be enabled without being drawn.</p><table class="asset-diagnostics"><thead><tr><th>Asset</th><th>Placed</th><th>Enabled</th><th>Drawn</th></tr></thead><tbody>' +
+          Object.entries(data.assets)
+            .map(
+              ([id, a]) =>
+                `<tr data-asset="${esc(id)}"><th scope="row">${esc(id)}</th><td>${a.placed}</td><td>${a.enabled}</td><td>${a.drawn}</td></tr>`,
+            )
+            .join('') +
+          '</tbody></table><details><summary>Region download inventory · ' +
+          data.inventory.length +
+          ' assets</summary><p>' +
+          esc(data.inventory.join(', ')) +
+          '</p></details>',
       ),
     );
   }

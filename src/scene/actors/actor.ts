@@ -16,6 +16,8 @@ export class Actor {
   private route: Point[] = [];
   private idle: ActorClip = 'Idle';
   private moving = false;
+  private oneShot?: { name: ActorClip; time: number };
+  private sampledFrame = 0;
   constructor(readonly model: Model) {
     this.root = model.root;
     for (const group of model.animations) {
@@ -32,17 +34,42 @@ export class Actor {
     this.currentName = name;
     this.elapsed = 0;
     this.current.start(true).pause();
-    this.current.goToFrame(this.current.from);
+    this.sampledFrame = this.current.from;
+    this.current.goToFrame(this.sampledFrame);
   }
   sample(name: ActorClip, dt: number, still = false): void {
+    if (this.oneShot && !still) {
+      this.setClip(this.oneShot.name);
+      this.oneShot.time += dt;
+      const fps = this.current!.targetedAnimations[0]?.animation.framePerSecond ?? 60;
+      const frame = this.current!.from + this.oneShot.time * fps;
+      this.sampledFrame = Math.min(frame, this.current!.to);
+      this.current!.goToFrame(this.sampledFrame);
+      if (frame < this.current!.to) return;
+    }
+    this.oneShot = undefined;
     this.setClip(name);
     if (!this.current) return;
     if (!still) this.elapsed += dt;
     const fps = this.current.targetedAnimations[0]?.animation.framePerSecond ?? 60;
     const length = this.current.to - this.current.from;
-    this.current.goToFrame(
-      this.current.from + (still ? 0 : (this.elapsed * fps) % Math.max(length, 1)),
-    );
+    this.sampledFrame =
+      this.current.from + (still ? 0 : (this.elapsed * fps) % Math.max(length, 1));
+    this.current.goToFrame(this.sampledFrame);
+  }
+  playOnce(name: ActorClip): void {
+    this.oneShot = { name, time: 0 };
+    this.setClip(name);
+  }
+  get performing(): boolean {
+    return Boolean(this.oneShot);
+  }
+  get playback() {
+    return {
+      clip: this.currentName ?? 'Idle',
+      frame: this.sampledFrame,
+      action: this.oneShot?.name ?? '',
+    };
   }
   pose(name: ActorClip): void {
     this.idle = name;

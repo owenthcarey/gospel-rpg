@@ -1,5 +1,6 @@
 import type { GameState } from '../types';
 import { nextGateway, placeRegion, WALK_ROUTES } from '../../content/campaign/places';
+import { lifeGoal, withHeldGuidance } from '../life/objectives';
 export interface StoryGoal {
   title: string;
   text: string;
@@ -13,6 +14,11 @@ export function localTarget(s: GameState, target: string): string {
 }
 export function campaignGoal(s: GameState): StoryGoal | undefined {
   if (s.episode.stage !== 'complete' || s.tracking === 'village') return;
+  const life = lifeGoal(s);
+  if (life) {
+    const goal = withHeldGuidance(s, life);
+    return { ...goal, target: localTarget(s, goal.target) };
+  }
   const c = s.campaign;
   let goal: StoryGoal;
   if (s.tracking === 'neighbors') {
@@ -126,5 +132,6 @@ export function campaignGoal(s: GameState): StoryGoal | undefined {
       ],
     };
   }
+  goal = withHeldGuidance(s, goal);
   return { ...goal, target: localTarget(s, goal.target) };
 }

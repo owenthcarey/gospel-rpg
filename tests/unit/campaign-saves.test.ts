@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { makeSave, parseSave, importSave } from '../../src/persistence/schema';
+import { makeSave, parseSave, importSave, SAVE_VERSION } from '../../src/persistence/schema';
 import { district, action, witnessed } from '../helpers/campaign';
 import { transition } from '../../src/game/quest';
 import { newGame } from '../../src/game/types';
@@ -11,7 +11,7 @@ describe('v5 migration and state safety', () => {
     it('preserves ' + file, () => {
       const raw = JSON.parse(readFileSync('tests/fixtures/saves/' + file, 'utf8'));
       const save = parseSave(raw);
-      expect(save.version).toBe(5);
+      expect(save.version).toBe(SAVE_VERSION);
       expect(save.state.journal).toEqual(raw.state.journal);
       expect(save.state.quest).toBe(raw.state.quest);
       if (raw.version === 4) {

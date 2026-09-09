@@ -64,8 +64,28 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     available: afterLake,
     complete: (s) => s.campaign.table.stage === 'complete',
   },
+  belonging: {
+    id: 'belonging',
+    title: 'A familiar thread',
+    label: 'Optional · Find Ruth’s sewing pouch',
+    region: 'capernaum-lanes',
+    optional: true,
+    source: null,
+    available: afterLake,
+    complete: (s) => s.life.thread.stage === 'complete',
+  },
+  rest: {
+    id: 'rest',
+    title: 'A place to rest',
+    label: 'Optional · Mend the landing bench',
+    region: 'capernaum',
+    optional: true,
+    source: null,
+    available: afterLake,
+    complete: (s) => s.life.bench.stage === 'complete',
+  },
 };
-export const neighborhoodChapters = ['roof', 'neighbors', 'table'] as const;
+export const neighborhoodChapters = ['roof', 'neighbors', 'table', 'belonging', 'rest'] as const;
 export function storyStatus(
   s: GameState,
   id: StoryTrack,
@@ -74,14 +94,18 @@ export function storyStatus(
   if (!chapter.available(s)) return 'unavailable';
   if (chapter.complete(s)) return 'complete';
   const started =
-    id === 'main'
-      ? s.quest !== 'not-started'
-      : id === 'village'
-        ? s.villageStory !== 'not-started'
-        : id === 'roof'
-          ? s.campaign.roof.stage !== 'not-started'
-          : id === 'neighbors'
-            ? s.campaign.walk.stage !== 'not-started'
-            : s.campaign.table.stage !== 'not-started';
+    id === 'belonging'
+      ? s.life.thread.stage !== 'not-started'
+      : id === 'rest'
+        ? s.life.bench.stage !== 'not-started'
+        : id === 'main'
+          ? s.quest !== 'not-started'
+          : id === 'village'
+            ? s.villageStory !== 'not-started'
+            : id === 'roof'
+              ? s.campaign.roof.stage !== 'not-started'
+              : id === 'neighbors'
+                ? s.campaign.walk.stage !== 'not-started'
+                : s.campaign.table.stage !== 'not-started';
   return started ? 'in-progress' : 'available';
 }

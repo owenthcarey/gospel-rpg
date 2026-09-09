@@ -1,4 +1,5 @@
 import { newCampaign, type CampaignState, type CampaignEvent } from './campaign/types';
+import { newLife, type LifeState } from './life/types';
 import {
   newEpisode,
   type EpisodeEvent,
@@ -18,6 +19,7 @@ export type VillageStoryStage = 'not-started' | 'exploring' | 'complete';
 export interface GameState {
   region: RegionId;
   campaign: CampaignState;
+  life: LifeState;
   episode: EpisodeProgress;
   tracking: StoryTrack;
   villageMemory: DiscoveryId | null;
@@ -58,6 +60,7 @@ export function newGame(): GameState {
   return {
     region: 'capernaum',
     campaign: newCampaign(),
+    life: newLife(),
     episode: newEpisode(),
     tracking: 'main',
     villageMemory: null,

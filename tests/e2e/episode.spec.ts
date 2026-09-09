@@ -23,6 +23,7 @@ async function prepare(page: Page): Promise<void> {
   await travel(page, 'simon');
   await choose(page, 'I’ll help make room');
   await travel(page, 'supply-basket');
+  await expect(page.locator('#action-tray')).toBeHidden();
   await choose(page, 'Carry the empty basket');
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-carrying', 'empty-basket');
   await page.locator('.toolbar [data-action="inventory"]').click();
@@ -106,7 +107,7 @@ test('a migrated traveler completes preparation, every lake scene and a remember
   await expect(page.locator('#quest-card')).toContainText('Through the Roof');
   const exported = await exportCurrent(page);
   const save = JSON.parse(exported.toString());
-  expect(save.version).toBe(5);
+  expect(save.version).toBe(6);
   expect(save.state.episode.reflection).toBe('community');
   expect(save.state.villageStory).toBe('complete');
   expect(save.state.journal).toContain('scene-return');
@@ -187,10 +188,13 @@ test('story tracking persists and phone objectives remain compact and readable',
   const viewport = page.viewportSize()!;
   if (viewport.width < 640) {
     await expect(page.locator('#quest-card .quest-details').first()).toBeHidden();
-    const font = await page
-      .locator('.current-objective')
-      .evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
-    expect(font).toBeGreaterThanOrEqual(14);
+    await expect
+      .poll(() =>
+        page
+          .locator('.current-objective')
+          .evaluate((element) => parseFloat(getComputedStyle(element).fontSize)),
+      )
+      .toBeGreaterThanOrEqual(14);
     const card = await page.locator('#quest-card').boundingBox();
     expect(card!.height).toBeLessThan(215);
   }
@@ -261,6 +265,36 @@ test('unavailable browser storage stays explicit and still allows portable expor
   await expect(page.locator('.storage-warning')).toContainText('storage is unavailable');
   await page.getByRole('button', { name: 'Begin your journey', exact: true }).click();
   const exported = await exportCurrent(page);
-  expect(JSON.parse(exported.toString()).version).toBe(5);
+  expect(JSON.parse(exported.toString()).version).toBe(6);
   await expect(page.locator('.settings-note')).toContainText('last only this session');
+});
+
+test('the shoreline preparation tray works with keyboard and touch without a reading panel', async ({
+  page,
+}, info) => {
+  await importPrelude(page);
+  await travel(page, 'simon');
+  await choose(page, 'I’ll help make room');
+  for (const [target, action] of [
+    ['supply-basket', 'take-basket'],
+    ['landing', 'place-basket'],
+    ['mooring', 'secure-mooring'],
+    ['gathering', 'join-gathering'],
+  ]) {
+    await travel(page, target!);
+    await page.getByRole('button', { name: 'Leave conversation', exact: true }).click();
+    const button = page.locator('#action-tray [data-value="episode:' + action + '"]');
+    await expect(button).toBeVisible();
+    if (info.project.name === 'chromium') {
+      await button.focus();
+      await page.keyboard.press('Enter');
+    } else await button.tap();
+    await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(button).toHaveCount(0);
+  }
+  await expect(page.locator('#quest-card')).toContainText('viewpoint');
+  const save = JSON.parse((await exportCurrent(page)).toString());
+  expect(save.state.episode.preparations).toEqual(['basket', 'mooring', 'gathering']);
+  expect(save.state.episode.carrying).toBeNull();
 });

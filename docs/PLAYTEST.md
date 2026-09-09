@@ -2,7 +2,7 @@
 
 Run `npm ci` and `npm run dev`, then open the printed local URL. A fresh journey begins on the shore. Complete the net-and-bread prelude, return to Simon, prepare the landing and gathering, witness Into the Deep, and finish its aftermath with a reflection. The next chapter appears in the journal and on the road into Capernaum.
 
-For a focused Chapter II review, choose **Saves & settings → Import** and select `tests/fixtures/saves/v4-complete-episode.json`. Importing replaces the current autosave, so export a journey you want to keep first. The supplied save contains completed Chapter I progress and automatically migrates to v5.
+For a focused Chapter II review, choose **Saves & settings → Import** and select `tests/fixtures/saves/v4-complete-episode.json`. Importing replaces the current autosave, so export a journey you want to keep first. The supplied save contains completed Chapter I progress and automatically migrates to v6.
 
 ## Through the Roof
 
@@ -28,10 +28,40 @@ For a focused Chapter II review, choose **Saves & settings → Import** and sele
 1. Speak with Hannah and choose the courtyard table or the bakehouse table.
 2. Carry the bread basket from its shelf and place it on the chosen table.
 3. Carry the jug from the opposite shelf, fill it at the neighborhood water point, and bring it to the same table. Bread and water can be delivered in either order.
-4. Return to Hannah when both are placed. Re-enter the region and check that the arrangement remains visible and neighbors acknowledge its location.
+4. Return to Hannah when both are placed. Re-enter the region and check that the arrangement and seated company remain visible and neighbors acknowledge its location.
 5. Try returning a held object to its shelf. Your opportunity to help remains available, and you can carry it again later. Only one neighborhood object can be held at a time.
 
 `v5-carrying-water.json` is a portable example with a filled jug and interrupted companion walk. Optional stories can start or finish before or after the Gospel account.
+
+## A familiar thread
+
+1. After Into the Deep, visit Ruth in the neighborhood courtyard and accept her invitation to find her sewing pouch.
+2. Examine the blue thread by the lane water point and the paired stitches on the bakehouse mending cloth. Try both orders. The journal’s Stories view shows which evidence is known; Memories can be filtered to this story.
+3. Return to the shore resting place and compare both details. Trying before both clues are known offers a hint instead of claiming the pouch.
+4. Close the reading panel and carry the pouch with the nearby-action tray. Put it back, reload and recover it. Stand still and then walk: the held pose should be stationary until you move.
+5. Carry it through the lanes to Ruth and return it. Choose to recount the route or share a quiet welcome. Both complete the story and leave the pouch beside her. Reload and check the memory and visible result.
+
+## A place to rest
+
+1. Inspect the landing bench on the shore after Into the Deep. Choose lashing cord or a wooden brace.
+2. Clear the loose pieces and fetch material in either order. Cord is near the landing; the brace is in the bakehouse. Use the nearby tray for practical actions. Return material to its source and recover it later.
+3. Save or reload while holding the material. Return to the bench, fit the repair and sit to check the seat. Open a menu during the motion: it should pause and then finish after closing. Reduced motion shows the completed result immediately.
+4. Compare the two repair appearances. A neighbor uses the completed seat, and Miriam acknowledges it. Revisit from another region and after a reload.
+5. While carrying a pouch, jug or handle, track the bench story. Guidance should identify the held object’s real return point. Use **Satchel → Find the return point**, then follow the offered doorways. No item should be replaced by another pickup.
+
+## Journal and continuity
+
+Visit Stories, People, Places and Memories. Filter both story cards and memories, read evidence and both transcripts, and follow a person/place destination from a lake or roof presentation. The presentation should return to exploration with its current checkpoint preserved. After the fishermen depart, their entries should point to remembered accounts rather than unavailable people.
+
+Check the compact action tray with mouse, keyboard and touch; the original shoreline preparation tasks also use it. Conversations, clue reading and choices retain their reading panels. Repeat on a narrow portrait viewport and 844×390 landscape with large text. Labels should avoid controls and one another; the map retains destinations hidden by crowding.
+
+| Portable fixture             | Starting point                                                     |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `v6-carrying-pouch.json`     | Identified pouch held on the shore; return it or put it back.      |
+| `v6-interrupted-repair.json` | Cleared bench; wooden brace held in the bakehouse.                 |
+| `v6-living-capernaum.json`   | Both stories complete, repaired bench and courtyard table company. |
+
+These are in `tests/fixtures/saves/`. The original v1–v5 fixtures remain valid. `node tools/generate_life_fixtures.mjs` regenerates the v6 examples using real reducers and validation.
 
 ## Review observations to record
 
@@ -40,7 +70,7 @@ For a focused Chapter II review, choose **Saves & settings → Import** and sele
 - Whether the room cutaways and held objects remained readable at the chosen zoom.
 - Whether every scene action remained reachable in portrait and landscape, including large reading size.
 - Whether the text's provenance, the traveler's role and the fictional neighbors were clear.
-- Actual reading and exploration time. The RFC's 35–50 minute target for new content remains a human pacing target; automated tests deliberately advance quickly.
+- Actual reading and exploration time. RFC-002’s 35–50 minute target and RFC-003’s 20–35 minute target for their respective optional content remain human pacing targets; automated tests deliberately advance quickly.
 - Device, browser, graphics setting, and F3 measurements for performance observations. Phone viewport emulation on a laptop is not a physical-device result.
 
 See [verification](VERIFICATION.md) for completed automated checks, captured rendering data, and the remaining hardware/editorial review limits.

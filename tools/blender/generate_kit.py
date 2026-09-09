@@ -402,6 +402,7 @@ for i in range(9):
 export("landing_mat")
 
 exec(compile(Path(ROOT, "tools/blender/neighborhood.py").read_text(), "neighborhood.py", "exec"))
+exec(compile(Path(ROOT, "tools/blender/life.py").read_text(), "life.py", "exec"))
 
 scene.render.engine = "BLENDER_EEVEE_NEXT" if bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
 os.makedirs(os.path.join(ROOT,"assets/source"),exist_ok=True)

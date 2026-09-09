@@ -11,6 +11,10 @@ export const ANIMATION_CLIPS = [
   'Rise',
   'MatCarry',
   'Use',
+  'PickUp',
+  'PutDown',
+  'Repair',
+  'SitDown',
 ] as const;
 export type ActorClip = (typeof ANIMATION_CLIPS)[number];
 export const ACTOR_ASSETS = [
@@ -70,6 +74,15 @@ export const PROP_ASSETS = [
   'mat_flat',
   'mat_rolled',
   'flour_sack',
+  'sewing_pouch',
+  'thread_clue',
+  'mending_cloth',
+  'lashing_cord',
+  'wood_brace',
+  'bench_loose',
+  'bench_lashed',
+  'bench_braced',
+  'bench_pieces',
 ] as const;
 export type AssetId = ActorAsset | (typeof PROP_ASSETS)[number];
 export interface AssetDefinition {
@@ -126,38 +139,6 @@ export const VILLAGE_ASSETS: readonly AssetId[] = [
   'bread_bundle',
   'mooring',
   'landing_mat',
-];
-export const NEIGHBORHOOD_ASSETS: readonly AssetId[] = [
-  'traveler',
-  'hannah',
-  'amos',
-  'ruth',
-  'villager',
-  'house',
-  'house_large',
-  'olive',
-  'well',
-  'amphora',
-  'crate',
-  'room_wall',
-  'low_wall',
-  'doorway',
-  'roof_opening',
-  'roof_panel',
-  'gate',
-  'exterior_steps',
-  'oven',
-  'worktable',
-  'bench',
-  'stool',
-  'shelf',
-  'jug',
-  'bread_basket',
-  'handcart',
-  'cart_handle',
-  'mat_flat',
-  'mat_rolled',
-  'flour_sack',
 ];
 export const ROOF_ASSETS: readonly AssetId[] = [
   'jesus',

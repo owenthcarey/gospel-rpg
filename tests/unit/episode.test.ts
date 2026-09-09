@@ -14,6 +14,7 @@ import { dialogueFor, journalEntries } from '../../src/content/story';
 import { WalkGrid, findPath, distance } from '../../src/game/pathfinding';
 import { makeSave, parseSave } from '../../src/persistence/schema';
 import {
+  episodeAction,
   completedPrelude,
   onLake,
   play,
@@ -36,11 +37,17 @@ describe('Into the Deep progression', () => {
   it('requires carrying the basket before placing it and prevents duplicate items', () => {
     const begun = transition(completedPrelude(), { type: 'start-episode' });
     expect(transition(begun, { type: 'episode-action', id: 'place-basket' })).toBe(begun);
-    const carrying = transition(begun, { type: 'episode-action', id: 'take-basket' });
+    expect(
+      transition(
+        { ...begun, position: { x: 0, z: 15 } },
+        { type: 'episode-action', id: 'take-basket' },
+      ).episode.carrying,
+    ).toBeNull();
+    const carrying = episodeAction(begun, 'take-basket');
     expect(carrying.episode.carrying).toBe('empty-basket');
     expect(mainTarget(carrying)).toBe('landing');
     expect(transition(carrying, { type: 'episode-action', id: 'take-basket' })).toBe(carrying);
-    const placed = transition(carrying, { type: 'episode-action', id: 'place-basket' });
+    const placed = episodeAction(carrying, 'place-basket');
     expect(placed.episode.carrying).toBeNull();
     expect(placed.episode.preparations).toEqual(['basket']);
     expect(transition(placed, { type: 'episode-action', id: 'take-basket' })).toBe(placed);
@@ -54,7 +61,7 @@ describe('Into the Deep progression', () => {
     let state = transition(completedPrelude(), { type: 'start-episode' });
     for (const id of ids) {
       expect(transition(state, { type: 'enter-scene' })).toBe(state);
-      state = transition(state, { type: 'episode-action', id });
+      state = episodeAction(state, id);
       expect(parseSave(makeSave(state)).state).toEqual(state);
     }
     expect(preparationsReady(state.episode)).toBe(true);
@@ -233,7 +240,7 @@ describe('authored destinations and scene content', () => {
       false,
     );
     expect(activeInteractables(onLake())).toEqual([]);
-    const received = transition(returned, { type: 'episode-action', id: 'receive-catch' });
+    const received = episodeAction(returned, 'receive-catch');
     expect(villagePresentation(received).basketReceived).toBe(true);
   });
 });

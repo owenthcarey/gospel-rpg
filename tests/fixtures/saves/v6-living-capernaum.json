@@ -1,0 +1,105 @@
+{
+  "version": 6,
+  "region": "capernaum-lanes",
+  "savedAt": "2026-09-09T00:00:00.000Z",
+  "state": {
+    "region": "capernaum-lanes",
+    "episode": {
+      "stage": "complete",
+      "preparations": ["basket", "mooring", "gathering"],
+      "carrying": null,
+      "checkpoint": null,
+      "aftermath": ["landing", "miriam", "ezra"],
+      "reflection": "community",
+      "notes": []
+    },
+    "campaign": {
+      "roof": {
+        "stage": "exploring",
+        "checkpoint": null,
+        "aftermath": [],
+        "reflection": null
+      },
+      "walk": {
+        "stage": "not-started",
+        "route": null,
+        "gateOpen": false,
+        "step": 0,
+        "position": { "x": -9, "z": -5 }
+      },
+      "table": {
+        "stage": "complete",
+        "location": "courtyard",
+        "delivered": ["bread", "water"]
+      },
+      "carrying": null,
+      "notes": [],
+      "visited": {
+        "capernaum": { "x": 3, "z": 7 },
+        "capernaum-lanes": { "x": 6, "z": 3 },
+        "bakehouse": { "x": 0, "z": -6 }
+      }
+    },
+    "life": {
+      "thread": {
+        "stage": "complete",
+        "clues": ["water", "cloth"],
+        "ending": "route"
+      },
+      "bench": { "stage": "complete", "method": "lashing", "cleared": true }
+    },
+    "tracking": "table",
+    "villageMemory": null,
+    "position": { "x": 6, "z": 3 },
+    "quest": "complete",
+    "inventory": [],
+    "discoveries": [],
+    "villageStory": "not-started",
+    "journal": [
+      "arrival",
+      "simon",
+      "net",
+      "bread",
+      "delivered",
+      "complete",
+      "episode-invitation",
+      "action-take-basket",
+      "action-place-basket",
+      "action-secure-mooring",
+      "action-join-gathering",
+      "scene-gathering",
+      "scene-teaching",
+      "scene-invitation",
+      "scene-answer",
+      "scene-lowering",
+      "scene-abundance",
+      "scene-partners",
+      "scene-astonishment",
+      "scene-calling",
+      "scene-return",
+      "action-receive-catch",
+      "action-talk-miriam",
+      "action-talk-ezra",
+      "reflection-community",
+      "episode-complete",
+      "roof-invitation",
+      "thread-invitation",
+      "thread-clue-water",
+      "thread-clue-cloth",
+      "thread-identified",
+      "thread-returned",
+      "thread-ending-route",
+      "bench-inspected",
+      "bench-method-lashing",
+      "bench-cleared",
+      "bench-fitted",
+      "bench-complete",
+      "table-invitation",
+      "table-courtyard",
+      "table-bread",
+      "table-water",
+      "table-complete"
+    ],
+    "playTime": 0
+  }
+}
