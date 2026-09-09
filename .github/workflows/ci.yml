@@ -22,7 +22,7 @@ jobs:
       - run: npm run format:check
       - run: npm run check
       - name: Keep production build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: game-build
           path: dist/
@@ -53,7 +53,7 @@ jobs:
       - run: npm run test:e2e -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
       - name: Keep browser reports
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browser-reports-${{ matrix.shard }}
           path: |
