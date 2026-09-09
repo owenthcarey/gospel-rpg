@@ -1,3 +1,6 @@
+import { newCampaign, REGION_IDS, STORY_TRACKS } from '../game/campaign/types';
+import { campaignJournalIds } from '../game/campaign/progress';
+import { parseCampaign, regionBounds, validPoint } from './campaign';
 import { newEpisode, type RegionId } from '../game/episode/types';
 import { episodeJournalIds } from '../game/episode/progress';
 import { parseEpisode } from './episode';
@@ -5,10 +8,10 @@ import { journalEntries } from '../content/story';
 import type { GameState, Settings } from '../game/types';
 import { DEFAULT_SETTINGS } from '../game/types';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 4;
+  version: 5;
   region: RegionId;
   savedAt: string;
   state: GameState;
@@ -79,9 +82,17 @@ export function parseSave(raw: unknown): SaveFile {
     };
   }
   if (
+    record(raw) &&
+    raw.version === 4 &&
+    ['capernaum', 'lake-gennesaret'].includes(String(raw.region)) &&
+    record(raw.state)
+  ) {
+    raw = { ...raw, version: 5, state: { ...raw.state, campaign: newCampaign() } };
+  }
+  if (
     !record(raw) ||
-    raw.version !== 4 ||
-    !['capernaum', 'lake-gennesaret'].includes(String(raw.region)) ||
+    raw.version !== 5 ||
+    !REGION_IDS.some((id) => id === raw.region) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
     !record(raw.state)
@@ -90,7 +101,7 @@ export function parseSave(raw: unknown): SaveFile {
   const s = raw.state;
   if (
     s.region !== raw.region ||
-    !['main', 'village'].includes(String(s.tracking)) ||
+    !STORY_TRACKS.some((id) => id === s.tracking) ||
     typeof s.tracking !== 'string' ||
     (s.villageMemory !== null && !['well', 'olive', 'shore'].includes(String(s.villageMemory)))
   )
@@ -101,12 +112,19 @@ export function parseSave(raw: unknown): SaveFile {
   } catch {
     throw new SaveError('This save contains inconsistent episode progress.');
   }
+  if (['roof', 'neighbors', 'table'].includes(String(s.tracking)) && episode.stage !== 'complete')
+    throw new SaveError('The tracked chapter is not available in this save.');
+  let campaign;
+  try {
+    campaign = parseCampaign(s.campaign, episode.stage, raw.region as RegionId);
+  } catch {
+    throw new SaveError('This save contains inconsistent chapter or neighborhood progress.');
+  }
   if (
     !record(s.position) ||
     !finite(s.position.x) ||
     !finite(s.position.z) ||
-    Math.abs(s.position.x) > 24 ||
-    Math.abs(s.position.z) > 24 ||
+    !validPoint(s.position, regionBounds(raw.region as RegionId)) ||
     typeof s.quest !== 'string' ||
     !['not-started', 'gathering', 'delivered', 'complete'].includes(s.quest) ||
     !stringList(s.inventory, ['net', 'bread']) ||
@@ -137,7 +155,12 @@ export function parseSave(raw: unknown): SaveFile {
       s.villageStory === 'not-started')
   )
     throw new SaveError('This save contains an invalid village memory.');
-  const expectedJournal = new Set(['arrival', ...s.discoveries, ...episodeJournalIds(episode)]);
+  const expectedJournal = new Set([
+    'arrival',
+    ...s.discoveries,
+    ...episodeJournalIds(episode),
+    ...campaignJournalIds(campaign),
+  ]);
   if (s.villageStory !== 'not-started') expectedJournal.add('ezra-invitation');
   if (s.villageStory === 'complete') {
     if (s.discoveries.length !== 3)
@@ -157,12 +180,13 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 4,
+    version: 5,
     region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
       region: raw.region as RegionId,
       episode,
+      campaign,
       tracking: s.tracking as GameState['tracking'],
       villageMemory: s.villageMemory as GameState['villageMemory'],
       position: { x: s.position.x, z: s.position.z },
@@ -191,6 +215,7 @@ export function importSave(text: string): SaveFile {
 export function parseSettings(raw: unknown): Settings {
   if (!record(raw)) return { ...DEFAULT_SETTINGS };
   return {
+    textSize: raw.textSize === 'large' ? 'large' : 'standard',
     sound: typeof raw.sound === 'boolean' ? raw.sound : DEFAULT_SETTINGS.sound,
     volume: finite(raw.volume) ? Math.max(0, Math.min(1, raw.volume)) : DEFAULT_SETTINGS.volume,
     quality: raw.quality === 'low' ? 'low' : 'high',

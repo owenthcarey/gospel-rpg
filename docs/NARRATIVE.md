@@ -32,3 +32,15 @@ This story can begin or finish before, during or after the main episode. Earlier
 ## Content changes
 
 Keep stable event, checkpoint and journal IDs. Choices must point to an existing node or close. Renaming IDs already stored in saves requires migration. New scripture belongs in the verified source module. Run content-graph, provenance, transition and save tests after edits. Do not use animation completion as narrative authority.
+
+## Chapter II: Through the Roof
+
+After a clearly marked passage of some days, the traveler can enter Capernaum's residential lanes. The gathering house opens an eight-scene dramatization of **Mark 2:1–12**, quoted from the World English Bible. The account preserves the four bearers, the man's mat, Jesus' words, the scribes' question and the outcome. Luke 5:17–26 is linked as a separately attributed parallel; the wording is never silently combined.
+
+The traveler observes rather than replacing a bearer or causing the healing. No optional task gates the account or earns spiritual favor. The house's ownership, dimensions, roof construction, ropes and furniture are artistic staging. Some scribes' reasoning is presented within the account, without generalizing it to a community or tradition.
+
+Amos, Hannah and Ruth are fictional neighbors. Their conversations explicitly carry original provenance. “A way together” lets the traveler take a cleared passage or a longer lane with Amos; both end in the courtyard and preserve a distinct journal memory. “A table for neighbors” lets the traveler choose a courtyard or indoor table and bring bread and water in either order. These stories can be completed before or after the Gospel presentation. Returning objects to shelves never loses the opportunity to help.
+
+The aftermath gives the traveler time with Ruth, Hannah and the remembered room. It acknowledges the chosen lake reflection and any saved Ezra memory without inventing missing migrated choices. Welcome, persistence and amazement are equally valid final reflections. Six optional neighborhood observations distinguish imagined everyday life from the Gospel text.
+
+The prelude no longer requires Luke 5:4 before the chronological lake scenes. Its old completion IDs remain valid, and the verse remains an optional journal reading. Both complete transcripts are available through the journal once Chapter II unlocks.

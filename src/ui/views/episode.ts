@@ -1,3 +1,4 @@
+import { campaignQuest } from './campaign';
 import { sceneBeats, beatFor } from '../../content/episode/scenes';
 import { SCRIPTURE_SOURCE } from '../../content/episode/scripture';
 import { reflectionEntries } from '../../content/episode/journal';
@@ -14,6 +15,8 @@ import type { GameState } from '../../game/types';
 import { escapeHtml as esc, icon } from '../icons';
 
 export function questView(state: GameState): string {
+  const campaign = campaignQuest(state);
+  if (campaign) return campaign;
   const village = state.tracking === 'village';
   const title = village ? 'An ordinary morning' : mainTitle(state);
   const objective = village ? villageObjective(state) : mainObjective(state);

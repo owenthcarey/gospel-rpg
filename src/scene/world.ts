@@ -15,6 +15,14 @@ import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { AssetLibrary } from './assets';
 import { Actor } from './actors/actor';
+import { NeighborhoodActivity } from './actors/neighborhood';
+import {
+  campaignLayout,
+  layoutObstacles,
+  type ExplorationLayout,
+} from '../content/campaign/layouts';
+import { neighborhoodPlaces } from '../content/campaign/places';
+import { NEIGHBORHOOD_ASSETS } from '../content/assets';
 import { VillageActivity } from './actors/village';
 import { VILLAGE_ASSETS, isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput } from './input';
@@ -24,7 +32,8 @@ import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
 import {
   buildings,
-  allInteractables,
+  interactables,
+  episodePlaces,
   activeInteractables,
   isLand,
   obstacles,
@@ -38,6 +47,7 @@ import { distance, findPath, WalkGrid } from '../game/pathfinding';
 import { newGame, type GameState, type Point, type Settings } from '../game/types';
 
 export interface WorldCallbacks {
+  walkCheckpoint: () => void;
   interact: (id: string) => void;
   notice: (message: string) => void;
   frame: (point: Point, labels: ScreenLabel[], heading: number, nearest: string | null) => void;
@@ -50,7 +60,10 @@ export interface ScreenLabel {
 }
 
 export class World {
-  readonly grid = new WalkGrid(obstacles, isLand);
+  grid: WalkGrid;
+  private layout?: ExplorationLayout;
+  private neighborhood?: NeighborhoodActivity;
+  private cutaways: { node: TransformNode; kind: string }[] = [];
   readonly engine: Engine;
   readonly scene: Scene;
   readonly camera: ArcRotateCamera;
@@ -77,6 +90,7 @@ export class World {
   private time = 0;
   private lastFrame = 0;
   private lastRender = 0;
+  private cameraAspectScale = 1;
   private position: Point = { x: -1, z: -3 };
   private cleanup: (() => void)[] = [];
 
@@ -84,7 +98,18 @@ export class World {
     private canvas: HTMLCanvasElement,
     private callbacks: WorldCallbacks,
     engine: Engine,
+    initial: GameState = newGame(),
   ) {
+    this.state = structuredClone(initial);
+    this.layout = campaignLayout(initial.region);
+    this.grid = this.layout
+      ? new WalkGrid(
+          layoutObstacles(initial),
+          this.layout.terrain,
+          this.layout.bounds.min,
+          this.layout.bounds.max,
+        )
+      : new WalkGrid(obstacles, isLand);
     this.engine = engine;
     this.scene = new Scene(this.engine);
     this.scene.clearColor = new Color4(0.7, 0.78, 0.73, 1);
@@ -137,11 +162,44 @@ export class World {
     this.shadow.bias = 0.002;
     this.shadow.normalBias = 0.04;
     this.library = new AssetLibrary(this.scene, this.shadow);
-    this.makeTerrain();
-    this.makeWater();
-    this.makePaths();
-    this.makeDocks();
-    this.makeDistantLandscape();
+    if (this.layout) {
+      const floor = MeshBuilder.CreateGround(
+        'walkable-terrain',
+        { width: this.layout.inside ? 16 : 100, height: this.layout.inside ? 16 : 100 },
+        this.scene,
+      );
+      floor.material = this.material(
+        'neighborhood-ground',
+        this.layout.inside ? '#ddcfae' : '#b1b780',
+      );
+      floor.receiveShadows = true;
+      floor.metadata = { ground: true };
+      const pathMaterial = this.material('worn-paths', '#d7c194');
+      for (const [a, b, width] of this.layout.paths) {
+        const path = MeshBuilder.CreateGround(
+          'lane-path',
+          { width, height: distance(a, b) },
+          this.scene,
+        );
+        path.position.set((a.x + b.x) / 2, 0.012, (a.z + b.z) / 2);
+        path.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
+        path.material = pathMaterial;
+        path.metadata = { ground: true };
+      }
+      this.camera.lowerRadiusLimit = this.layout.camera.min;
+      this.camera.upperRadiusLimit = this.layout.camera.max;
+      this.resetCamera();
+      if (this.layout.inside) {
+        this.scene.fogDensity = 0;
+        sky.intensity = 0.8;
+      }
+    } else {
+      this.makeTerrain();
+      this.makeWater();
+      this.makePaths();
+      this.makeDocks();
+      this.makeDistantLandscape();
+    }
     this.marker = MeshBuilder.CreateTorus(
       'walk-destination',
       { diameter: 0.7, thickness: 0.035, tessellation: 32 },
@@ -169,11 +227,25 @@ export class World {
   }
 
   async load(onProgress: (message: string) => void): Promise<void> {
-    await this.library.load(VILLAGE_ASSETS, (loaded, total) => {
-      onProgress('Preparing Capernaum · ' + loaded + ' of ' + total);
-    });
-    for (const p of [...buildings, ...trees, ...props]) this.place(p);
-    for (const person of allInteractables.filter((p) => !['james', 'john'].includes(p.id))) {
+    await this.library.load(
+      this.layout
+        ? [...NEIGHBORHOOD_ASSETS, ...this.layout.decor.map((p) => p.asset)]
+        : VILLAGE_ASSETS,
+      (loaded, total) => {
+        onProgress('Preparing Capernaum · ' + loaded + ' of ' + total);
+      },
+    );
+    if (this.layout) {
+      for (const p of this.layout.decor) {
+        const node = this.place(p);
+        node.position.y = p.y ?? 0;
+        node.scaling.x *= p.scaleX ?? 1;
+        if (p.cutaway) this.cutaways.push({ node, kind: p.cutaway });
+      }
+    } else for (const p of [...buildings, ...trees, ...props]) this.place(p);
+    for (const person of this.layout
+      ? (neighborhoodPlaces[this.state.region as keyof typeof neighborhoodPlaces] ?? [])
+      : [...interactables, ...episodePlaces].filter((p) => !['james', 'john'].includes(p.id))) {
       if (!person.asset) continue;
       const node = this.place({ ...person, asset: person.asset }, person.id);
       if (person.kind === 'person') {
@@ -181,7 +253,7 @@ export class World {
         this.people.set(person.id, node);
       }
     }
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < (this.layout ? 0 : 30); i++) {
       const z = -24 + i * 1.7;
       const x = shoreline(z);
       this.place({
@@ -205,14 +277,24 @@ export class World {
     ring.parent = this.player;
     ring.position.y = 0.045;
     ring.isPickable = false;
-    this.activity = new VillageActivity(
-      this.library,
-      this.scene,
-      this.grid,
-      this.actorPlayer,
-      this.people,
-      this.boats,
-    );
+    if (this.layout)
+      this.neighborhood = new NeighborhoodActivity(
+        this.library,
+        this.actorPlayer,
+        this.actors,
+        () => this.grid,
+        this.callbacks.walkCheckpoint,
+        this.state.region,
+      );
+    else
+      this.activity = new VillageActivity(
+        this.library,
+        this.scene,
+        this.grid,
+        this.actorPlayer,
+        this.people,
+        this.boats,
+      );
     this.update(this.state);
     this.setPosition(this.position, true);
     await this.scene.whenReadyAsync();
@@ -234,7 +316,8 @@ export class World {
     const anchor = model.root;
     if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model));
     anchor.position.set(p.x, p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : 0, p.z);
-    anchor.rotation.y = (p.rotation ?? 0) + (p.asset.startsWith('house') ? Math.PI : 0);
+    anchor.rotation.y =
+      (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
     return anchor;
@@ -492,8 +575,9 @@ export class World {
     if (moving && !this.reducedMotion) this.strideTime += dt;
     else this.strideTime = 0;
     this.actorPlayer?.sample(
-      this.activity?.playerClip(moving, Boolean(this.state.episode.carrying)) ??
-        (moving ? 'Walk' : 'Idle'),
+      this.neighborhood?.playerClip(moving) ??
+        this.activity?.playerClip(moving, Boolean(this.state.episode.carrying)) ??
+        (this.state.campaign.carrying ? 'Carry' : moving ? 'Walk' : 'Idle'),
       dt,
       this.reducedMotion || this.paused,
     );
@@ -512,26 +596,52 @@ export class World {
   setPosition(p: Point, snap = false): void {
     this.position = this.grid.walkable(p) ? { ...p } : (this.grid.nearest(p) ?? { x: -1, z: -3 });
     if (this.player) this.player.position.set(this.position.x, 0, this.position.z);
-    if (snap) this.camera.target.set(this.position.x, 0, this.position.z + 2);
+    if (snap) this.camera.target.copyFrom(this.cameraTarget());
     this.stop();
   }
   getPosition(): Point {
     return { ...this.position };
   }
+  private fitCamera(): void {
+    if (!this.layout) return;
+    const scale = Math.max(
+      1,
+      0.9 / (this.canvas.clientWidth / Math.max(1, this.canvas.clientHeight)),
+    );
+    if (Math.abs(scale - this.cameraAspectScale) < 0.001) return;
+    this.camera.radius *= scale / this.cameraAspectScale;
+    this.camera.lowerRadiusLimit = this.layout.camera.min * scale;
+    this.camera.upperRadiusLimit = this.layout.camera.max * scale;
+    this.cameraAspectScale = scale;
+  }
+  private cameraTarget(): Vector3 {
+    if (this.layout?.inside) return new Vector3(0, 0, 0);
+    if (this.layout)
+      return new Vector3(
+        Math.max(-5, Math.min(5, this.position.x)),
+        0,
+        Math.max(-4, Math.min(6, this.position.z + 3)),
+      );
+    return new Vector3(this.position.x, 0, this.position.z + 2);
+  }
   resetCamera(): void {
     this.camera.alpha = -Math.PI / 2 - 0.45;
-    this.camera.beta = 0.78;
-    this.camera.radius = 33;
+    this.camera.beta = this.layout?.camera.beta ?? 0.78;
+    this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
   }
   rotate(direction: number): void {
     this.camera.alpha += direction * 0.2;
   }
   zoom(direction: number): void {
-    this.camera.radius = Math.max(16, Math.min(46, this.camera.radius + direction * 3));
+    this.camera.radius = Math.max(
+      this.camera.lowerRadiusLimit ?? 16,
+      Math.min(this.camera.upperRadiusLimit ?? 46, this.camera.radius + direction * 3),
+    );
   }
   applySettings(settings: Settings): void {
     this.reducedMotion = settings.reducedMotion;
     this.activity?.settings(settings);
+    this.neighborhood?.settings(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
       this.boats.forEach((boat) => {
@@ -550,8 +660,10 @@ export class World {
   private simulate(dt: number): void {
     if (!this.paused && !document.hidden) {
       this.time += dt;
-      this.activity.tick(dt, false);
-      for (const actor of this.actors.values()) actor.tick(dt, this.reducedMotion);
+      this.activity?.tick(dt, false);
+      this.neighborhood?.tick(dt, this.position);
+      for (const [id, actor] of this.actors)
+        if (id !== 'amos' || !this.neighborhood) actor.tick(dt, this.reducedMotion);
       const dx =
         Number(this.keys.has('d') || this.keys.has('arrowright')) -
         Number(this.keys.has('a') || this.keys.has('arrowleft'));
@@ -581,7 +693,11 @@ export class World {
           moving = true;
         }
       } else if (this.path.length) {
-        const step = stepPath(this.position, this.path, dt);
+        const step = stepPath(
+          this.position,
+          this.path,
+          dt * (this.destination === 'amos-waypoint' ? 0.44 : 1),
+        );
         if (step.facing) this.face(step.facing);
         this.position = step.position;
         this.path = step.path;
@@ -601,12 +717,13 @@ export class World {
       if (this.keys.has('q')) this.camera.alpha += dt * 0.8;
       this.player.position.set(this.position.x, 0, this.position.z);
       this.poseTraveler(moving && !this.paused, dt);
-      const target = new Vector3(this.position.x, 0, this.position.z + 2);
+      const target = this.cameraTarget();
       if (this.reducedMotion) this.camera.target.copyFrom(target);
       else Vector3.LerpToRef(this.camera.target, target, 1 - Math.exp(-dt * 3), this.camera.target);
     }
   }
   private render(): void {
+    this.fitCamera();
     const now = performance.now();
     // Menus and the welcome screen do not need a full-rate 3D render loop.
     if (document.hidden || (this.paused && now - this.lastRender < 100)) return;
@@ -628,6 +745,22 @@ export class World {
         line.scaling.x = 0.8 + Math.sin(this.time * 0.65 + i) * 0.22;
       });
     }
+    for (const { node, kind } of this.cutaways) {
+      // Hide roofs completely and lower camera-facing walls, retaining a readable outline.
+      if (kind === 'roof') node.setEnabled(false);
+      else {
+        const towardCamera =
+          node.position.x * Math.cos(this.camera.alpha) +
+            node.position.z * Math.sin(this.camera.alpha) >
+          1;
+        node.scaling.y = towardCamera ? 0.22 : 1;
+      }
+    }
+    const companion = this.neighborhood?.position();
+    if (companion)
+      this.destinations = this.destinations.map((p) =>
+        p.id === 'amos' ? { ...p, ...companion } : p,
+      );
     this.scene.render();
     if (performance.now() - this.lastFrame > 45) {
       this.lastFrame = performance.now();
@@ -643,7 +776,9 @@ export class World {
         );
         return {
           id: p.id,
-          x: (v.x / width) * rect.width,
+          x: this.layout
+            ? Math.max(95, Math.min(rect.width - 95, (v.x / width) * rect.width))
+            : (v.x / width) * rect.width,
           y: (v.y / height) * rect.height,
           visible: v.z > 0 && v.z < 1 && v.x > 0 && v.x < width && v.y > 0 && v.y < height,
         };
@@ -666,16 +801,29 @@ export class World {
     this.state = structuredClone(state);
     this.destinations = activeInteractables(state);
     this.activity?.update(state);
+    if (this.layout)
+      this.grid = new WalkGrid(
+        layoutObstacles(state),
+        this.layout.terrain,
+        this.layout.bounds.min,
+        this.layout.bounds.max,
+      );
+    this.neighborhood?.update(state);
     // Cancel approaches when an actor departs or a carried object disappears.
     if (this.destination && !this.destinations.some((p) => p.id === this.destination)) this.stop();
   }
+  getCompanionPosition(): Point | undefined {
+    return this.neighborhood?.position();
+  }
   performInteraction(): void {
     this.activity?.perform();
+    this.neighborhood?.perform();
   }
   dispose(): void {
     this.deactivate();
     this.cleanup.forEach((fn) => fn());
     this.activity?.dispose();
+    this.neighborhood?.dispose();
     this.library.dispose();
     this.scene.dispose();
   }

@@ -9,7 +9,7 @@ import os
 
 CLIPS = {
     "Idle": 60, "Walk": 24, "Carry": 24, "Gesture": 60,
-    "Sit": 60, "Row": 36, "Haul": 40, "Kneel": 60,
+    "Sit": 60, "Row": 36, "Haul": 40, "Kneel": 60, "Recline": 60, "Rise": 60, "MatCarry": 24, "Use": 60,
 }
 
 def export_character(name, parts, scene, output, grid_index):
@@ -95,12 +95,12 @@ def export_character(name, parts, scene, output, grid_index):
         if clip in ("Idle", "Gesture"):
             p["head"].rotation_euler.y = math.sin(phase*math.tau)*.025
             p["body"].rotation_euler.x = math.sin(phase*math.tau)*.012
-        if clip in ("Walk", "Carry"):
+        if clip in ("Walk", "Carry", "MatCarry"):
             for side, sign in [("left", 1), ("right", -1)]:
                 p["thigh_" + side].rotation_euler.x = sign*wave*.30
                 p["leg_" + side].rotation_euler.x = max(0, -sign*wave)*.16
                 p["arm_" + side].rotation_euler.x = -sign*wave*.28
-        if clip == "Carry":
+        if clip in ("Carry", "MatCarry", "Use"):
             for side in ("left", "right"):
                 p["arm_" + side].rotation_euler.x = -.55
                 p["forearm_" + side].rotation_euler.x = -.72
@@ -125,6 +125,13 @@ def export_character(name, parts, scene, output, grid_index):
             for side, sign in [("left", 1), ("right", -1)]:
                 p["arm_" + side].rotation_euler.x = -.95 + sign*wave*.2
                 p["forearm_" + side].rotation_euler.x = -.8
+        if clip in ("Recline", "Rise"):
+            amount = 1 if clip == "Recline" else 1 - min(phase*1.5, 1)
+            p["root"].rotation_euler.x = -math.pi/2 * amount
+            p["root"].location.y = .12*amount
+        if clip == "Use":
+            p["body"].rotation_euler.x = -.12
+            p["forearm_right"].rotation_euler.x += wave*.2
         if clip == "Kneel":
             p["root"].location.y = -.38
             p["robe"].scale.y = .68

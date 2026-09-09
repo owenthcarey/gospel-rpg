@@ -50,6 +50,7 @@ describe('save safety', () => {
   });
   it('normalizes invalid settings', () => {
     expect(parseSettings({ volume: 100, quality: 'ultra', sound: 'yes' })).toEqual({
+      textSize: 'standard',
       volume: 1,
       quality: 'high',
       sound: false,
@@ -112,7 +113,13 @@ describe('IndexedDB save slots', () => {
     await a.save('auto', newGame());
     const progressed = transition(newGame(), { type: 'accept-quest' });
     await a.save('slot-1', progressed);
-    await a.saveSettings({ sound: true, volume: 0.2, quality: 'low', reducedMotion: true });
+    await a.saveSettings({
+      sound: true,
+      volume: 0.2,
+      quality: 'low',
+      textSize: 'standard',
+      reducedMotion: true,
+    });
     a.close();
     const b = new SaveRepository();
     await b.init(name);

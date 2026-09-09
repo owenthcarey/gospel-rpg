@@ -1,3 +1,4 @@
+import { chapters } from '../../content/campaign/chapters';
 import { actionAvailable, actionFor } from '../../content/episode/interactions';
 import type { GameState } from '../types';
 import {
@@ -61,6 +62,7 @@ export function transitionEpisode(state: GameState, event: EpisodeEvent): GameSt
   const e = next.episode;
   switch (event.type) {
     case 'track-story':
+      if (!chapters[event.story].available(state)) return state;
       if (state.tracking === event.story) return state;
       next.tracking = event.story;
       return next;

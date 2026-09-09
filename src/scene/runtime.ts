@@ -4,8 +4,9 @@ import type { GameState, Point, Settings } from '../game/types';
 import { regions } from '../content/regions';
 import type { RegionId } from '../game/episode/types';
 import { World, type WorldCallbacks } from './world';
+import { RoofRegion } from './regions/roof';
 import { LakeRegion } from './regions/lake';
-import type { RegionView } from './regions/types';
+import { isExplorationView, type RegionView } from './regions/types';
 
 export interface Diagnostics {
   region: RegionId | null;
@@ -61,7 +62,7 @@ export class GameRuntime {
     if (this.switching) throw new Error('A region is already being opened.');
     if (this.region === state.region && this.view) {
       this.update(state);
-      if (this.view instanceof World) this.view.setPosition(state.position, true);
+      if (isExplorationView(this.view)) this.view.setPosition(state.position, true);
       return;
     }
     this.switching = true;
@@ -71,14 +72,20 @@ export class GameRuntime {
     try {
       const definition = regions[state.region];
       progress('Opening ' + definition.title + '…');
-      candidate =
-        definition.mode === 'exploration'
-          ? new World(this.canvas, this.callbacks, this.engine)
-          : new LakeRegion(this.engine, state);
+      const explore = () => new World(this.canvas, this.callbacks, this.engine, state);
+      const factories: Record<RegionId, () => RegionView> = {
+        capernaum: explore,
+        'capernaum-lanes': explore,
+        'gathering-house': explore,
+        bakehouse: explore,
+        'lake-gennesaret': () => new LakeRegion(this.engine, state),
+        'roof-account': () => new RoofRegion(this.engine, state),
+      };
+      candidate = factories[state.region]();
       await candidate.load(progress);
       if (this.disposed) throw new Error('Region loading was cancelled.');
       candidate.update(state);
-      if (candidate instanceof World) candidate.setPosition(state.position, true);
+      if (isExplorationView(candidate)) candidate.setPosition(state.position, true);
       if (this.settings) candidate.applySettings(this.settings);
       this.instrumentation?.dispose();
       this.instrumentation = new SceneInstrumentation(candidate.scene);
@@ -92,8 +99,8 @@ export class GameRuntime {
       this.canvas.setAttribute(
         'aria-label',
         definition.mode === 'exploration'
-          ? 'Capernaum game world. Click to walk; use WASD or arrow keys to move.'
-          : 'A narrated view of the lake. Use the scene controls to read and continue.',
+          ? definition.title + ' game world. Click to walk; use WASD or arrow keys to move.'
+          : 'A narrated Gospel scene. Use the scene controls to read and continue.',
       );
     } catch (error) {
       candidate?.dispose();
@@ -108,8 +115,9 @@ export class GameRuntime {
   update(state: GameState): void {
     this.view?.update(state);
     this.canvas.dataset.worldStage = state.episode.stage;
-    this.canvas.dataset.checkpoint = state.episode.checkpoint ?? '';
-    this.canvas.dataset.carrying = state.episode.carrying ?? '';
+    this.canvas.dataset.checkpoint =
+      state.campaign.roof.checkpoint ?? state.episode.checkpoint ?? '';
+    this.canvas.dataset.carrying = state.campaign.carrying ?? state.episode.carrying ?? '';
   }
   setPaused(value: boolean): void {
     this.paused = value;
@@ -117,6 +125,9 @@ export class GameRuntime {
   }
   getPosition(): Point {
     return this.view?.getPosition() ?? { x: -1, z: -3 };
+  }
+  getCompanionPosition(): Point | undefined {
+    return isExplorationView(this.view) ? this.view.getCompanionPosition() : undefined;
   }
   applySettings(settings: Settings): void {
     this.settings = { ...settings };
@@ -132,22 +143,22 @@ export class GameRuntime {
     this.engine.resize();
   }
   navigate(id: string): void {
-    if (this.view instanceof World) this.view.navigate(id);
+    if (isExplorationView(this.view)) this.view.navigate(id);
   }
   nearest(): ReturnType<World['nearest']> {
-    return this.view instanceof World ? this.view.nearest() : undefined;
+    return isExplorationView(this.view) ? this.view.nearest() : undefined;
   }
   rotate(direction: number): void {
-    if (this.view instanceof World) this.view.rotate(direction);
+    if (isExplorationView(this.view)) this.view.rotate(direction);
   }
   zoom(direction: number): void {
-    if (this.view instanceof World) this.view.zoom(direction);
+    if (isExplorationView(this.view)) this.view.zoom(direction);
   }
   resetCamera(): void {
-    if (this.view instanceof World) this.view.resetCamera();
+    if (isExplorationView(this.view)) this.view.resetCamera();
   }
   performInteraction(): void {
-    if (this.view instanceof World) this.view.performInteraction();
+    if (isExplorationView(this.view)) this.view.performInteraction();
   }
   diagnostics(): Diagnostics {
     const scene = this.view?.scene;

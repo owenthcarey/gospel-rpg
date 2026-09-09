@@ -4,6 +4,8 @@
 
 A single-player browser RPG inspired by the Gospels. The first chapter, **Into the Deep**, begins in an original low-poly Capernaum: help prepare the shore, witness a narrated dramatization of the catch and calling in Luke 5:1–11, then return to the village and choose a memory for the road. The traveler, errands, and connective dialogue are imagined; scripture is clearly identified and referenced.
 
+Chapter II, **Through the Roof**, continues some days later in an explorable Capernaum neighborhood. Enter the gathering house to witness Mark 2:1–12, walk with Amos, and help Hannah prepare a table for neighbors. The optional stories preserve your choices and can be played before or after the account.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -30,20 +32,26 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 | J / I / M                               | Journal / satchel / map     |
 | Escape                                  | Pause or close a menu       |
 
-## Playable chapter
+## Playable chapters
 
+- **Through the Roof:** eight narrated Gospel scenes, three aftermath visits and a chosen reflection; explorable lanes and two enterable buildings.
+- **Two independent neighborhood stories:** choose a walking route with Amos, or a table location with Hannah; carry bread and water, clear a passage, and return to visible results.
 - **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
-- **29 original Blender assets**, seven skinned character variants and eight named clips, including walking, carrying, sitting, rowing, hauling and kneeling.
+- **53 original Blender assets**, twelve skinned character variants and twelve named clips, including walking, carrying, sitting, rowing, hauling and kneeling.
 - A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.
 - The original prelude, Ezra's independent village story, three discoveries, additional shoreline observations, selectable story tracking, satchel, journal and navigable map.
 - User-paced captions with scripture provenance, full transcript, pause, checkpoint resume and finish-with-summary controls. Your imagined traveler remains on shore during the narrated lake views.
-- Autosave, three manual slots, JSON export/import and **v4 migration from v1/v2/v3 saves**, including interrupted lake scenes and remembered choices.
-- Compact phone objectives, readable captions, keyboard focus management, reduced motion, lower graphics settings and optional ambience.
+- Autosave, three manual slots, JSON export/import and **v5 migration from v1/v2/v3/v4 saves**, including interrupted lake scenes and remembered choices.
+- Compact phone objectives, standard/large reading sizes, readable captions, keyboard focus management, reduced motion, lower graphics settings and optional ambience.
 - Transactional region loading with retry and a local F3 rendering snapshot.
 
 Progress is stored in this browser. Use **Settings → Export** to change devices or keep a backup before clearing browser data. If storage is unavailable, the game provides session slots and export for the current session.
 
-This completes the opening episode; additional towns, open-water sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [milestone RFC](docs/rfcs/001-into-the-deep.md), and [verification record](docs/VERIFICATION.md).
+After completing Into the Deep, follow **The road into Capernaum** or track Chapter II in the journal. Use the local map to find entrances. **Walk with Amos** guides a companion walk at a shared pace; if you leave him, the map locates him again. Carry one neighborhood object at a time, and return it to its shelf whenever you wish.
+
+This delivers two bounded Gospel chapters; additional towns, open-water sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/002-through-the-roof.md), and [verification record](docs/VERIFICATION.md).
+
+For a guided review and portable example saves, see the [playtest guide](docs/PLAYTEST.md).
 
 ## Develop and verify
 

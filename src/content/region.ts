@@ -1,3 +1,4 @@
+import { localNeighborhoodPlaces, allNeighborhoodPlaces } from './campaign/places';
 import type { Obstacle } from '../game/pathfinding';
 import type { GameState, Point } from '../game/types';
 import { hasReturned } from '../game/episode/progress';
@@ -161,14 +162,15 @@ export const episodePlaces: Interactable[] = [
     z: -9,
   },
 ];
-export const allInteractables = [...interactables, ...episodePlaces];
+export const allInteractables = [...interactables, ...episodePlaces, ...allNeighborhoodPlaces];
 export function activeInteractables(state: GameState): Interactable[] {
-  if (state.region !== 'capernaum') return [];
+  if (state.region !== 'capernaum') return localNeighborhoodPlaces(state);
   const returned = hasReturned(state.episode);
   const base = interactables.filter((p) => !returned || !['simon', 'jesus'].includes(p.id));
   if (state.episode.stage === 'not-started') return base;
   return [
     ...base,
+    ...localNeighborhoodPlaces(state),
     ...episodePlaces.filter((p) => {
       if (returned && ['supply-basket', 'mooring', 'gathering', 'james', 'john'].includes(p.id))
         return false;

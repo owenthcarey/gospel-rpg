@@ -1,3 +1,4 @@
+import { allNeighborhoodPlaces } from '../../src/content/campaign/places';
 import { describe, expect, it } from 'vitest';
 import { transition } from '../../src/game/quest';
 import { newGame, type GameEvent } from '../../src/game/types';
@@ -179,7 +180,9 @@ describe('authored destinations and scene content', () => {
       readyReflection(),
     ]) {
       const seen = new Set<string>();
-      const queue = allInteractables.map((p) => p.id);
+      const queue = allInteractables
+        .filter((p) => !allNeighborhoodPlaces.some((n) => n.id === p.id))
+        .map((p) => p.id);
       while (queue.length) {
         const id = queue.shift()!;
         if (seen.has(id)) continue;

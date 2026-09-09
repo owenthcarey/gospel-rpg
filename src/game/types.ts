@@ -1,3 +1,4 @@
+import { newCampaign, type CampaignState, type CampaignEvent } from './campaign/types';
 import {
   newEpisode,
   type EpisodeEvent,
@@ -16,6 +17,7 @@ export type DiscoveryId = 'shore' | 'well' | 'olive';
 export type VillageStoryStage = 'not-started' | 'exploring' | 'complete';
 export interface GameState {
   region: RegionId;
+  campaign: CampaignState;
   episode: EpisodeProgress;
   tracking: StoryTrack;
   villageMemory: DiscoveryId | null;
@@ -28,6 +30,7 @@ export interface GameState {
   playTime: number;
 }
 export type GameEvent =
+  | CampaignEvent
   | EpisodeEvent
   | { type: 'remember-village'; id: DiscoveryId }
   | { type: 'accept-quest' }
@@ -38,12 +41,14 @@ export type GameEvent =
   | { type: 'finish-village-story' }
   | { type: 'discover'; id: DiscoveryId };
 export interface Settings {
+  textSize: 'standard' | 'large';
   sound: boolean;
   volume: number;
   quality: 'low' | 'high';
   reducedMotion: boolean;
 }
 export const DEFAULT_SETTINGS: Settings = {
+  textSize: 'standard',
   sound: false,
   volume: 0.35,
   quality: 'high',
@@ -52,6 +57,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export function newGame(): GameState {
   return {
     region: 'capernaum',
+    campaign: newCampaign(),
     episode: newEpisode(),
     tracking: 'main',
     villageMemory: null,

@@ -98,6 +98,8 @@ describe('the complete original asset manifest', () => {
       }
     } else {
       expect(gltf.skins ?? []).toHaveLength(0);
+      expect(primitives).toHaveLength(1);
+      expect(primitives[0]!.attributes.COLOR_0).toBeDefined();
       const root = gltf.nodes[gltf.scenes[gltf.scene]!.nodes[0]!]!;
       expect(root.name.replace(/\.\d+$/, '')).toBe(asset.id);
     }

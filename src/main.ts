@@ -1,5 +1,10 @@
+import { regions } from './content/regions';
+import { localTarget } from './game/campaign/objectives';
+import { STORY_TRACKS, ROOF_SCENES, ROOF_REFLECTIONS, NEIGHBOR_NOTES } from './game/campaign/types';
+import { worldAction } from './content/campaign/actions';
 import './ui/styles.css';
 import './ui/episode.css';
+import './ui/campaign.css';
 import { dialogueFor, type Dialogue, type Choice } from './content/story';
 import { transition } from './game/quest';
 import { newGame, type GameEvent, type GameState, type Settings } from './game/types';
@@ -26,6 +31,7 @@ let scenePaused = false;
 let graphicsLost = false;
 let started = false;
 let conversation: Dialogue | null = null;
+let contextId: string | null = null;
 let saveQueue: Promise<unknown> = Promise.resolve();
 let menuRequest = 0;
 let disposed = false;
@@ -86,11 +92,14 @@ function syncPause(): void {
       document.hidden ||
       regionLoading ||
       graphicsLost ||
-      (state.region === 'lake-gennesaret' && scenePaused),
+      (regions[state.region].mode === 'presentation' && scenePaused),
   );
 }
 function snapshot(): GameState {
-  return structuredClone({ ...state, position: world?.getPosition() ?? state.position });
+  const current = structuredClone({ ...state, position: world?.getPosition() ?? state.position });
+  const companion = world?.getCompanionPosition();
+  if (companion) current.campaign.walk.position = companion;
+  return current;
 }
 function enqueueSave(slot: SlotId = 'auto', notify = false): Promise<void> {
   if (!started) return Promise.resolve();
@@ -131,6 +140,21 @@ async function apply(event: GameEvent): Promise<void> {
   state = next;
   world?.update(state);
   ui.update(state);
+  audio.region(state.region);
+  if (event.type === 'campaign-action') {
+    if (['Use', 'Open', 'Place', 'Carry'].includes(worldAction(event.id)?.verb ?? ''))
+      world?.performInteraction();
+    audio.chime();
+    ui.toast(worldAction(event.id)?.notice ?? 'Remembered.');
+  }
+  if (event.type === 'roof-reflect') {
+    audio.chime();
+    ui.toast('Through the Roof complete · Your reflection is remembered.');
+  }
+  if (event.type === 'walk-step' && state.campaign.walk.stage === 'arrived')
+    ui.toast('You have arrived together. Speak with Amos.');
+  if (event.type === 'neighbor-note')
+    ui.toast('A neighborhood memory has been added to your journal.');
   if (event.type === 'episode-action') {
     world?.performInteraction();
     audio.chime();
@@ -149,8 +173,7 @@ async function apply(event: GameEvent): Promise<void> {
     state.region === 'capernaum'
   )
     ui.toast('Back on shore · Help at the landing, then visit Miriam and Ezra.');
-  if (event.type === 'track-story')
-    ui.toast(event.story === 'main' ? 'Main story tracked.' : 'Ezra’s village story tracked.');
+  if (event.type === 'track-story') ui.toast('Your selected story is now tracked.');
   if (event.type === 'collect' && !previous.inventory.includes(event.item)) {
     audio.chime();
     ui.toast(
@@ -178,8 +201,19 @@ async function apply(event: GameEvent): Promise<void> {
   await enqueueSave();
 }
 function openDialogue(id: string): void {
+  if (id === 'amos-waypoint') {
+    ui.toast('Stay near Amos at this turn. The next meeting point appears when you both arrive.');
+    return;
+  }
   pause();
-  conversation = dialogueFor(id, state);
+  const current = snapshot();
+  if (ui.context(id, current)) {
+    contextId = id;
+    conversation = null;
+    return;
+  }
+  contextId = null;
+  conversation = dialogueFor(id, current);
   ui.dialogue(conversation);
 }
 async function showSettings(): Promise<void> {
@@ -191,13 +225,14 @@ async function showSettings(): Promise<void> {
 async function close(): Promise<void> {
   menuRequest++;
   conversation = null;
+  contextId = null;
   if (!started) {
     ui.welcome(Boolean(await saves.load('auto').catch(() => null)), saves.persistent);
     return;
   }
   ui.close();
   syncPause();
-  if (state.region === 'lake-gennesaret') ui.focusScene();
+  if (regions[state.region].mode === 'presentation') ui.focusScene();
   else canvas.focus();
 }
 async function begin(saved?: GameState): Promise<void> {
@@ -215,8 +250,9 @@ async function begin(saved?: GameState): Promise<void> {
   world?.update(state);
   ui.update(state);
   syncPause();
+  audio.region(state.region);
   audio.set(settings);
-  if (state.region === 'lake-gennesaret') ui.focusScene();
+  if (regions[state.region].mode === 'presentation') ui.focusScene();
   else canvas.focus();
   await enqueueSave();
   if (!saved) ui.toast('Welcome to Capernaum. Speak with Simon by the boats to begin.');
@@ -224,10 +260,13 @@ async function begin(saved?: GameState): Promise<void> {
 async function updateSetting(key: keyof Settings, value: string | boolean): Promise<void> {
   if (key === 'sound' || key === 'reducedMotion') settings = { ...settings, [key]: Boolean(value) };
   if (key === 'volume') settings = { ...settings, volume: Math.max(0, Math.min(1, Number(value))) };
+  if (key === 'textSize')
+    settings = { ...settings, textSize: value === 'large' ? 'large' : 'standard' };
   if (key === 'quality') settings = { ...settings, quality: value === 'low' ? 'low' : 'high' };
   world?.applySettings(settings);
   audio.set(settings);
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
+  document.documentElement.dataset.textSize = settings.textSize;
   await saves.saveSettings(settings);
 }
 async function loadFile(file: File): Promise<void> {
@@ -273,7 +312,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       menuRequest++;
       conversation = null;
       if (name === 'journal') ui.journal(state);
-      if (name === 'transcript') ui.transcript(state);
+      if (name === 'transcript') ui.transcript(state, value);
       if (name === 'inventory') ui.inventory(state);
       if (name === 'map') ui.map(snapshot());
       if (name === 'help') ui.help();
@@ -283,12 +322,12 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       else await showSettings();
       break;
     case 'navigate':
-      if (started && !ui.panel && value) world.navigate(value);
+      if (started && !ui.panel && value) world.navigate(localTarget(state, value));
       break;
     case 'travel':
       if (value) {
         await close();
-        world.navigate(value);
+        world.navigate(localTarget(state, value));
       }
       break;
     case 'nearest': {
@@ -319,10 +358,49 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       else if (chosen.close) await close();
       break;
     }
+    case 'prelude-reading':
+      openDialogue('jesus-scripture');
+      break;
+    case 'journey':
+      if (value) {
+        await apply({ type: 'journey', gateway: value });
+        await close();
+      }
+      break;
+    case 'campaign-action':
+      if (value) {
+        await apply({ type: 'campaign-action', id: value });
+        if (
+          regions[state.region].mode === 'presentation' ||
+          worldAction(value)?.verb === 'Accompany'
+        )
+          await close();
+        else if (contextId) ui.context(contextId, snapshot());
+      }
+      break;
+    case 'neighbor-note':
+      if (NEIGHBOR_NOTES.some((id) => id === value)) {
+        await apply({ type: 'neighbor-note', id: value as (typeof NEIGHBOR_NOTES)[number] });
+        if (contextId) ui.context(contextId, snapshot());
+      }
+      break;
+    case 'roof-reflect':
+      if (ROOF_REFLECTIONS.some((id) => id === value)) {
+        await apply({ type: 'roof-reflect', id: value as (typeof ROOF_REFLECTIONS)[number] });
+        await close();
+      }
+      break;
+    case 'roof-next':
+    case 'roof-summary':
+      if (ROOF_SCENES.some((id) => id === value)) {
+        await apply({ type: name, checkpoint: value as (typeof ROOF_SCENES)[number] });
+        await close();
+      }
+      break;
     case 'track-story':
-      if (value === 'main' || value === 'village') {
+      if (STORY_TRACKS.some((id) => id === value)) {
         const wasJournal = ui.panel === 'journal';
-        await apply({ type: 'track-story', story: value });
+        await apply({ type: 'track-story', story: value as (typeof STORY_TRACKS)[number] });
         if (wasJournal) ui.journal(state);
       }
       break;
@@ -337,11 +415,11 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       }
       break;
     case 'scene-leave':
-      await apply({ type: 'leave-scene' });
+      await apply({ type: state.region === 'roof-account' ? 'roof-leave' : 'leave-scene' });
       await close();
       break;
     case 'scene-summary':
-      if (state.region === 'lake-gennesaret') {
+      if (regions[state.region].mode === 'presentation') {
         pause();
         ui.sceneSummary(state);
       }
@@ -439,6 +517,7 @@ async function boot(): Promise<void> {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) settings.reducedMotion = true;
   world = new GameRuntime(canvas, {
     interact: openDialogue,
+    walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
     notice: (message) => ui.toast(message),
     frame: (position, labels, heading, nearest) => {
       state.position = { ...position };
@@ -460,6 +539,7 @@ async function boot(): Promise<void> {
   });
   world.applySettings(settings);
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
+  document.documentElement.dataset.textSize = settings.textSize;
   const autosave = await saves.load('auto').catch(() => {
     ui.toast('The autosave could not be read. You can import a backup in Settings.');
     return null;
@@ -475,7 +555,7 @@ async function boot(): Promise<void> {
       ui.panel ||
       regionLoading ||
       graphicsLost ||
-      (state.region === 'lake-gennesaret' && scenePaused)
+      (regions[state.region].mode === 'presentation' && scenePaused)
     )
       return;
     state.playTime += 1;

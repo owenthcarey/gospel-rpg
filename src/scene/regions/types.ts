@@ -12,3 +12,17 @@ export interface RegionView {
   getPosition(): Point;
   dispose(): void;
 }
+
+export interface ExplorationView extends RegionView {
+  setPosition(point: Point, snap?: boolean): void;
+  navigate(id: string): void;
+  nearest(): import('../../content/region').Interactable | undefined;
+  rotate(direction: number): void;
+  zoom(direction: number): void;
+  resetCamera(): void;
+  performInteraction(): void;
+  getCompanionPosition(): Point | undefined;
+}
+export function isExplorationView(view: RegionView | undefined): view is ExplorationView {
+  return Boolean(view && 'navigate' in view && 'setPosition' in view);
+}

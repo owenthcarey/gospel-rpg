@@ -97,7 +97,7 @@ def beam(name, a, b, radius, material):
     return o
 
 def export(name):
-    if name in ["traveler", "simon", "miriam", "jesus", "villager", "james", "john"]:
+    if name in ["traveler", "simon", "miriam", "jesus", "villager", "james", "john", "hannah", "amos", "ruth", "bearer", "healed_man"]:
         export_character(name, parts, scene, OUT, len(exports))
         exports.append(name)
         return
@@ -112,6 +112,26 @@ def export(name):
     scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    colors = o.data.color_attributes.new(name="Color", type="FLOAT_COLOR", domain="CORNER")
+    for poly in o.data.polygons:
+        color = o.data.materials[poly.material_index].diffuse_color
+        for loop in poly.loop_indices:
+            colors.data[loop].color = color
+        poly.material_index = 0
+    o.data.materials.clear()
+    if "way_vertex_palette" not in bpy.data.materials:
+        palette = bpy.data.materials.new("way_vertex_palette")
+        palette.diffuse_color = (1, 1, 1, 1)
+        palette.use_nodes = True
+        shader = palette.node_tree.nodes.get("Principled BSDF")
+        shader.inputs["Roughness"].default_value = .95
+    palette = bpy.data.materials["way_vertex_palette"]
+    if not palette.node_tree.nodes.get("Palette colors"):
+        vertex = palette.node_tree.nodes.new("ShaderNodeVertexColor")
+        vertex.name = "Palette colors"
+        vertex.layer_name = "Color"
+        palette.node_tree.links.new(vertex.outputs["Color"], palette.node_tree.nodes.get("Principled BSDF").inputs["Base Color"])
+    o.data.materials.append(palette)
     socket_nodes = []
     if name == "boat":
         for socket_name, position in [
@@ -380,6 +400,8 @@ box("landing_mat",(0,0,.018),(1.45,1.05,.035),"rope")
 for i in range(9):
     beam("mat_weave",(-.68,-.47+i*.115,.047),(.68,-.47+i*.115,.047),.014,"cloth")
 export("landing_mat")
+
+exec(compile(Path(ROOT, "tools/blender/neighborhood.py").read_text(), "neighborhood.py", "exec"))
 
 scene.render.engine = "BLENDER_EEVEE_NEXT" if bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
 os.makedirs(os.path.join(ROOT,"assets/source"),exist_ok=True)
