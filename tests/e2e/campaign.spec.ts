@@ -242,26 +242,26 @@ test('a failed neighborhood load can be retried and summary preserves the roof a
   expect(save.state.journal.filter((id) => id.startsWith('roof-scene-'))).toHaveLength(8);
 });
 
-test('new regions stay within rendering budgets and keep one settled scene', async ({
-  page,
-}, info) => {
-  test.setTimeout(180_000);
-  const records: Record<string, Record<string, string>> = {};
-  const renderingErrors: string[] = [];
-  page.on('pageerror', (error) => renderingErrors.push(error.message));
-  page.on('console', (message) => {
-    if (message.text().includes('Setting receiveShadows on an instanced mesh'))
-      renderingErrors.push(message.text());
-  });
-  await ready(page, Buffer.from(JSON.stringify(makeSave(district()))));
-  for (const region of [
-    'capernaum',
-    'lake-gennesaret',
-    'capernaum-lanes',
-    'gathering-house',
-    'bakehouse',
-    'roof-account',
-  ] as const) {
+for (const region of [
+  'capernaum',
+  'lake-gennesaret',
+  'capernaum-lanes',
+  'gathering-house',
+  'bakehouse',
+  'roof-account',
+] as const)
+  test(`${region} stays within rendering budgets and keeps one settled scene`, async ({
+    page,
+  }, info) => {
+    test.setTimeout(180_000);
+    const records: Record<string, Record<string, string>> = {};
+    const renderingErrors: string[] = [];
+    page.on('pageerror', (error) => renderingErrors.push(error.message));
+    page.on('console', (message) => {
+      if (message.text().includes('Setting receiveShadows on an instanced mesh'))
+        renderingErrors.push(message.text());
+    });
+    await ready(page, Buffer.from(JSON.stringify(makeSave(district()))));
     let s = district();
     if (region === 'roof-account') s = action(s, 'roof-enter');
     else {
@@ -295,20 +295,33 @@ test('new regions stay within rendering budgets and keep one settled scene', asy
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const values: number[] = [];
         let previous = 0;
+        const started = performance.now();
+        // Software WebGL can take over a minute to produce 120 frames. Bound the
+        // observation window, while keeping the same draw-call and scene checks.
         await new Promise<void>((resolve) => {
+          let frame = 0;
+          const finish = () => {
+            cancelAnimationFrame(frame);
+            clearTimeout(deadline);
+            resolve();
+          };
+          const deadline = setTimeout(finish, 5000);
           const sample = (now: number) => {
             if (previous) values.push(now - previous);
             previous = now;
-            if (values.length >= 120) resolve();
-            else requestAnimationFrame(sample);
+            if (values.length >= 120) finish();
+            else frame = requestAnimationFrame(sample);
           };
-          requestAnimationFrame(sample);
+          frame = requestAnimationFrame(sample);
         });
+        if (values.length < 2) throw new Error('The renderer did not produce enough frames.');
         values.sort((a, b) => a - b);
         return {
           renderer,
-          median: values[60]!.toFixed(1),
-          p95: values[114]!.toFixed(1),
+          samples: String(values.length),
+          elapsedMs: (performance.now() - started).toFixed(1),
+          median: values[Math.floor(values.length * 0.5)]!.toFixed(1),
+          p95: values[Math.floor(values.length * 0.95)]!.toFixed(1),
           viewport: innerWidth + '×' + innerHeight,
         };
       });
@@ -326,7 +339,10 @@ test('new regions stay within rendering budgets and keep one settled scene', asy
           ),
         );
       records[region + '-' + quality] = { ...rows, ...cadence };
+      expect(rows.region).toBe(region);
       expect(Number(rows.scenes)).toBe(1);
+      expect(Number(rows.drawCalls)).toBeGreaterThan(0);
+      expect(Number(rows.activeMeshes)).toBeGreaterThan(0);
       if (!['capernaum', 'lake-gennesaret'].includes(region))
         expect(Number(rows.drawCalls)).toBeLessThanOrEqual(quality === 'high' ? 300 : 130);
       await close(page);
@@ -349,14 +365,13 @@ test('new regions stay within rendering budgets and keep one settled scene', asy
       }
       await page.setViewportSize({ width: 390, height: 844 });
     }
-  }
-  expect(renderingErrors).toEqual([]);
-  await writeFile(info.outputPath('render-metrics.json'), JSON.stringify(records, null, 2));
-  await info.attach('render-metrics', {
-    path: info.outputPath('render-metrics.json'),
-    contentType: 'application/json',
+    expect(renderingErrors).toEqual([]);
+    await writeFile(info.outputPath('render-metrics.json'), JSON.stringify(records, null, 2));
+    await info.attach('render-metrics', {
+      path: info.outputPath('render-metrics.json'),
+      contentType: 'application/json',
+    });
   });
-});
 
 test('the borrowed handle opens the passage and an indoor table accepts bread first', async ({
   page,

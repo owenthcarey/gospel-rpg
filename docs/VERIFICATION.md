@@ -39,6 +39,23 @@ The table shows draw calls per frame. Compared with the previous recorded deskto
 
 Raw [desktop measurements](verification/through-the-roof-desktop.json) and [phone-emulation measurements](verification/through-the-roof-phone-emulation.json) retain meshes, active meshes, materials, textures, renderer, viewport, recent FPS and median/p95 frame intervals. Phone landscape at 844×390 keeps Continue, Pause and all secondary scene actions inside the viewport; reading text scrolls independently.
 
+### CI rendering regression · PR #10
+
+The initial CI run passed the build and gameplay checks, but the combined rendering test exhausted its three-minute limit on both layouts. The desktop trace spent about 84 seconds collecting the first 120-frame sample alone on software WebGL.
+
+Rendering coverage now runs as one test per region, so all six regions can be sharded independently. Each quality still receives a two-second warmup, then collects up to 120 frame intervals within a five-second observation window. Metrics include the actual sample count and elapsed time; percentiles use that count. A renderer that fails to produce at least two intervals fails the check. The existing draw-call, viewport, scene-count, landscape and error assertions remain, with additional checks for the correct region and nonzero rendered geometry.
+
+To reproduce software rendering locally against a production build:
+
+```sh
+npm run build
+CI=1 PLAYWRIGHT_SWIFTSHADER=1 npm run test:e2e -- tests/e2e/campaign.spec.ts --grep 'rendering budgets' --retries=0
+```
+
+Validation of this adjustment passed all **12 desktop/phone region checks under forced SwiftShader**, with retries disabled, in five minutes. All 184 unit tests, types, lint, production build, formatting and whitespace checks also passed.
+
+The recorded M3 measurements above predate this test-harness adjustment. Software-renderer timing is diagnostic and does not establish device-performance targets.
+
 ### Remaining review limits
 
 The RFC's 35–50 minute pacing target for the new content still needs a human playtest. Historical/theological review, physical screen-reader and touch testing, Safari/iOS, Android GPU and other-browser compatibility remain separate follow-up checks. The targets remain 30 FPS on a representative midrange phone at low quality and 60 FPS on a representative laptop at high quality. No commit, push, public release or deployment was performed by this local implementation.
