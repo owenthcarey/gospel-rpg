@@ -44,6 +44,14 @@ Samples use the prepared shore (traveler at the gathering, x=3/z=9), lake partne
 
 All samples reported one settled scene, with median frame intervals of 16.7 ms. The neighborhood/presentation regions remain within 300 High / 130 Low draw calls. The original shore has no new draw-call cap; correct visibility and the measured 332/175 desktop and 244/87 phone counts replace the earlier incomplete view. Raw [desktop measurements](verification/living-capernaum-desktop.json) and [phone-emulation measurements](verification/living-capernaum-phone-emulation.json) preserve geometry, renderer, viewport, sample count, elapsed time and cadence.
 
+### CI suite capacity · PR #11
+
+The [initial PR run](https://github.com/owenthcarey/gospel-rpg/actions/runs/34393319645) passed the build and both phone-heavy shards. The two desktop-heavy shards reached Playwright's 900-second global suite timeout after 13 and 10 passing cases respectively, leaving five cases unfinished. Neither shard reported an assertion failure before the deadline.
+
+The Quality workflow now distributes the same 54 cases across eight shards instead of four. Its shard denominator uses the matrix job count to prevent mismatched selection when the matrix changes. The single browser worker, per-test and assertion timeouts, 15-minute suite deadline, 20-minute job deadline, screenshot contract, report uploads and required `verify` gate are unchanged.
+
+Local validation enumerated every revised shard and confirmed that all 54 cases are selected exactly once, with six or seven cases per shard. After a fresh production build, shard 4/8 passed all seven checks under forced SwiftShader with CI settings and retries disabled in 5.8 minutes. This includes all new adventures, the deliberate missing-scenery regression and the full phone Chapter II journey. Formatting and whitespace checks passed; local timing does not establish GitHub runner timing.
+
 ### Review limits
 
 The two new adventures’ **20–35 minute human pacing target** has not been measured; automation advances reading quickly. Physical Safari/iOS/Android, other browsers, sustained mobile GPU/thermal behavior, screen-reader/touch hardware usability, and historical/editorial review remain separate checks. The targets remain 30 FPS on a representative midrange phone at Low and 60 FPS on a representative laptop at High. Local phone emulation does not establish either device compatibility or accessibility certification.

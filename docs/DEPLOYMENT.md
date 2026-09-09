@@ -16,7 +16,7 @@ Serve `dist/` over HTTP(S). A relative Vite base supports GitHub project subpath
 1. Select **Settings → Pages → Source → GitHub Actions** once when setting up the repository.
 2. Protect `main` and require Quality before merging.
 3. Push or merge a pull request to `main`. **Publish to GitHub Pages** starts automatically.
-4. The reusable Quality workflow runs formatting, types, lint, unit tests and build in `build`, then Chromium integration checks in four `browser` shards against that same build artifact. The existing `verify` check gates all of those jobs, so it remains the required branch-protection check. Failure in any shard prevents publishing.
+4. The reusable Quality workflow runs formatting, types, lint, unit tests and build in `build`, then Chromium integration checks in eight `browser` shards against that same build artifact. The shard denominator comes from the matrix job count, keeping test selection aligned with the matrix. The existing `verify` check gates all of those jobs, so it remains the required branch-protection check. Failure in any shard prevents publishing.
 5. The publish job deploys the tested build to the `github-pages` environment at <https://owenthcarey.github.io/gospel-rpg/> and reports its URL.
 
 Pull requests run Quality without deploying. On `main`, the Pages workflow calls Quality once and publishes its build artifact only after all checks pass. Deployments are serialized so an active release can finish. You can also run **Publish to GitHub Pages** manually from Actions on `main`; runs on other branches are skipped. Local builds do not publish anything.
