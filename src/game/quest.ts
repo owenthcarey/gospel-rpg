@@ -1,3 +1,5 @@
+import { campaignGoal, localTarget } from './campaign/objectives';
+import { transitionCampaign } from './campaign/progress';
 import { transitionEpisode } from './episode/progress';
 import { mainObjective, mainTarget } from './episode/objectives';
 import type { DiscoveryId, GameEvent, GameState } from './types';
@@ -6,6 +8,19 @@ export const discoveryOrder: readonly DiscoveryId[] = ['well', 'olive', 'shore']
 
 /** The sole authority for story progression. Invalid/repeated actions are harmless. */
 export function transition(state: GameState, event: GameEvent): GameState {
+  if (
+    [
+      'journey',
+      'campaign-action',
+      'roof-next',
+      'roof-summary',
+      'roof-leave',
+      'roof-reflect',
+      'neighbor-note',
+      'walk-step',
+    ].includes(event.type)
+  )
+    return transitionCampaign(state, event as import('./campaign/types').CampaignEvent);
   const next = structuredClone(state);
   switch (event.type) {
     case 'remember-village':
@@ -50,7 +65,7 @@ export function transition(state: GameState, event: GameEvent): GameState {
       next.journal.push('ezra-memory');
       break;
     default:
-      return transitionEpisode(state, event);
+      return transitionEpisode(state, event as import('./episode/types').EpisodeEvent);
   }
   return next;
 }
@@ -60,10 +75,16 @@ export function hasSupplies(state: GameState): boolean {
 }
 
 export function objective(state: GameState): string {
-  return state.tracking === 'village' ? villageObjective(state) : mainObjective(state);
+  return (
+    campaignGoal(state)?.text ??
+    (state.tracking === 'village' ? villageObjective(state) : mainObjective(state))
+  );
 }
 export function objectiveTarget(state: GameState): string {
-  return state.tracking === 'village' ? villageTarget(state) : mainTarget(state);
+  return (
+    campaignGoal(state)?.target ??
+    localTarget(state, state.tracking === 'village' ? villageTarget(state) : mainTarget(state))
+  );
 }
 
 export function hasMemories(state: GameState): boolean {

@@ -1,3 +1,4 @@
+import { campaignJournal } from './campaign/journal';
 import { episodeDialogue } from './episode/dialogue';
 import { episodeJournal } from './episode/journal';
 import { hasMemories, hasSupplies } from '../game/quest';
@@ -31,6 +32,7 @@ export const items: Record<ItemId, { name: string; description: string; icon: st
 };
 export const journalEntries: Record<string, { title: string; text: string; reference?: string }> = {
   ...episodeJournal,
+  ...campaignJournal,
   arrival: {
     title: 'A village waking',
     text: 'I arrived in Capernaum as the fishermen came ashore. There is a quiet sense of expectation in the village.',
@@ -208,9 +210,9 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
           subtitle: 'An invitation to listen',
           provenance: narration,
           reference: 'Luke 5:1–11',
-          text: 'You find a place among those gathered along the shore. Your first errand is finished. In Luke’s account, Jesus teaches from Simon’s boat, then turns to Simon with an invitation. After these words, speak with Simon to continue the episode.',
+          text: 'You find a place among those gathered along the shore. Your first errand is finished. There is room to listen. Return to Simon to help prepare the shore; the narrated Gospel account follows in its own time. An optional scripture reading is available in your journal.',
           choices: [
-            { label: 'Listen', next: 'jesus-scripture' },
+            { label: 'Stay a moment and listen', event: { type: 'listen' }, close: true },
             { label: 'Return to the village', close: true },
           ],
         };
@@ -232,7 +234,7 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
         provenance: 'Scripture · WEB',
         reference: 'Luke 5:4',
         text: '“Put out into the deep and let down your nets for a catch.”',
-        choices: [{ label: 'Carry these words with you', event: { type: 'listen' }, close: true }],
+        choices: [{ label: 'Return to your journey', close: true }],
       };
     case 'ezra':
       if (state.villageStory === 'complete')

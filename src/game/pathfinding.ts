@@ -8,10 +8,13 @@ export interface Obstacle {
 }
 
 export class WalkGrid {
-  readonly min = -24;
-  readonly max = 24;
   private readonly blocked = new Set<string>();
-  constructor(obstacles: readonly Obstacle[] = [], terrain: (p: Point) => boolean = () => true) {
+  constructor(
+    obstacles: readonly Obstacle[] = [],
+    terrain: (p: Point) => boolean = () => true,
+    readonly min = -24,
+    readonly max = 24,
+  ) {
     for (let x = this.min; x <= this.max; x++) {
       for (let z = this.min; z <= this.max; z++) {
         const overlaps = obstacles.some(

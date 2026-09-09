@@ -1,0 +1,102 @@
+{
+  "version": 5,
+  "savedAt": "2026-09-09T00:00:00Z",
+  "state": {
+    "position": {
+      "x": -7,
+      "z": -6
+    },
+    "quest": "complete",
+    "inventory": [],
+    "journal": [
+      "arrival",
+      "simon",
+      "net",
+      "bread",
+      "delivered",
+      "complete",
+      "shore",
+      "well",
+      "olive",
+      "ezra-invitation",
+      "ezra-memory",
+      "episode-invitation",
+      "action-take-basket",
+      "action-place-basket",
+      "action-secure-mooring",
+      "action-join-gathering",
+      "note-boat",
+      "scene-gathering",
+      "scene-teaching",
+      "scene-invitation",
+      "scene-answer",
+      "scene-lowering",
+      "scene-abundance",
+      "scene-partners",
+      "scene-astonishment",
+      "scene-calling",
+      "scene-return",
+      "action-receive-catch",
+      "action-talk-miriam",
+      "action-talk-ezra",
+      "reflection-community",
+      "episode-complete",
+      "roof-invitation",
+      "walk-invitation",
+      "walk-outer",
+      "table-invitation",
+      "table-courtyard"
+    ],
+    "discoveries": ["shore", "well", "olive"],
+    "playTime": 310,
+    "villageStory": "complete",
+    "region": "capernaum-lanes",
+    "tracking": "table",
+    "villageMemory": null,
+    "episode": {
+      "stage": "complete",
+      "preparations": ["basket", "mooring", "gathering"],
+      "carrying": null,
+      "checkpoint": null,
+      "aftermath": ["landing", "miriam", "ezra"],
+      "reflection": "community",
+      "notes": ["boat"]
+    },
+    "campaign": {
+      "roof": {
+        "stage": "exploring",
+        "checkpoint": null,
+        "aftermath": [],
+        "reflection": null
+      },
+      "walk": {
+        "stage": "walking",
+        "route": "outer",
+        "gateOpen": false,
+        "step": 0,
+        "position": {
+          "x": -7,
+          "z": -6
+        }
+      },
+      "table": {
+        "stage": "preparing",
+        "location": "courtyard",
+        "delivered": []
+      },
+      "carrying": "water-jug",
+      "notes": [],
+      "visited": {
+        "capernaum": {
+          "x": -3,
+          "z": 19
+        },
+        "capernaum-lanes": {
+          "x": -7,
+          "z": -6
+        }
+      }
+    }
+  },
+  "region": "capernaum-lanes"
+}

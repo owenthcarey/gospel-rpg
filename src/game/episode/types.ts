@@ -12,8 +12,8 @@ export const SCENE_IDS = [
   'return',
 ] as const;
 export type SceneId = (typeof SCENE_IDS)[number];
-export type RegionId = 'capernaum' | 'lake-gennesaret';
-export type StoryTrack = 'main' | 'village';
+import type { StoryTrack } from '../campaign/types';
+export type { RegionId, StoryTrack } from '../campaign/types';
 export const PREPARATIONS = ['basket', 'mooring', 'gathering'] as const;
 export type PreparationId = (typeof PREPARATIONS)[number];
 export const AFTERMATH = ['landing', 'miriam', 'ezra'] as const;

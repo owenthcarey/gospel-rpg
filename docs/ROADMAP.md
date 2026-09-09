@@ -17,3 +17,9 @@ The prelude, three discoveries and Ezra's independent story remain playable. See
 5. Add region-aware offline caching and an update policy once device/storage behavior is measured.
 
 Additional towns, open-water sailing, combat, crafting, voice acting, runtime-generated dialogue and a content editor were outside this milestone. The full Galilee/Judea RPG remains a longer-term project. The repository still needs an explicit project license before open-source distribution; no license or public deployment change is implied by this local implementation.
+
+## Implemented: Through the Roof
+
+[RFC-002](rfcs/002-through-the-roof.md) continues the game with Chapter II, Capernaum lanes, an explorable gathering house and bakehouse, eight Mark 2:1–12 scenes, a remembered aftermath, two independent neighborhood stories and six observations. The milestone includes cross-region guidance, contextual verbs, a saved companion walk, one held object, persistent hospitality arrangements, v5 migration, text sizing, regional ambience and a 53-model Blender kit.
+
+The next implementation should follow human playtesting of both chapters and physical-device profiling. Broader Galilee/Judea travel, sailing, offline caching and a content editor remain future work. The historical/editorial, pacing and real-device review items above still apply; browser automation does not settle them.

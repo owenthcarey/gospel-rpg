@@ -21,7 +21,13 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     actionTimeout: ci ? 60_000 : 20_000,
     navigationTimeout: 60_000,
-    launchOptions: { args: ['--enable-unsafe-swiftshader'] },
+    launchOptions: {
+      args: [
+        '--enable-unsafe-swiftshader',
+        // Reproduce GitHub's software WebGL renderer on a GPU-equipped host.
+        ...(process.env.PLAYWRIGHT_SWIFTSHADER === '1' ? ['--use-angle=swiftshader'] : []),
+      ],
+    },
   },
   projects: [
     {

@@ -44,13 +44,11 @@ test('a traveler completes the chapter, saves, reloads, and exports', async ({ p
   await travel(page, 'simon');
   await choice(page, 'Give Simon');
   await travel(page, 'jesus');
-  await choice(page, 'Listen');
-  await expect(page.locator('.dialogue-source')).toContainText('Scripture · WEB');
-  await choice(page, 'Carry these words');
+  await choice(page, 'Stay a moment and listen');
   await expect(page.locator('#quest-card')).toContainText('COMPLETE');
   await page.locator('.toolbar [data-action="journal"]').click();
   await expect(page.getByRole('heading', { name: 'An invitation to trust' })).toBeVisible();
-  await expect(page.locator('.content-note')).toContainText('original');
+  await expect(page.locator('.content-note').last()).toContainText('original');
   await page.getByRole('button', { name: 'Close menu', exact: true }).click();
   await page.getByRole('button', { name: 'Settings and saves' }).click();
   await page.locator('[data-action="save-slot"][data-value="slot-1"]').click();

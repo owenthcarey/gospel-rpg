@@ -40,7 +40,7 @@ Input clears on blur, menus and movement cancellation. Slow exploration frames a
 
 ## Presentation
 
-Seven character variants share a twelve-bone skeleton and eight Blender-authored clips. Each actor samples its own animation groups; movement follows the gameplay grid, not root motion. A named socket holds the traveler's basket. Village props, gathered neighbors, returned boats and departed fishermen derive from progress, including after loading earlier saves.
+Twelve character variants share a twelve-bone skeleton and twelve Blender-authored clips. Each actor samples its own animation groups; movement follows the gameplay grid, not root motion. A named socket holds the traveler's basket. Village props, gathered neighbors, returned boats and departed fishermen derive from progress, including after loading earlier saves.
 
 The lake uses ten durable beats with bounded four-second visual transitions. Continue is always available; animation never advances the account. Restored checkpoints establish a complete composition. Pause/read, modal menus and document visibility suspend motion. Reduced motion uses immediate camera/boat compositions and still actor poses. Low quality removes shadows, lowers render resolution and reduces the crowd.
 
@@ -48,12 +48,28 @@ F3 opens a local rendering snapshot. Development builds also expose a once-per-s
 
 ## Persistence
 
-Database `the-way-journeys` contains `saves` and `preferences`. Database layout version 1 is separate from **save envelope version 4**. One autosave and three manual slots are supported. The envelope stores `version`, `region`, `savedAt`, and `state`; state also carries the validated current region.
+Database `the-way-journeys` contains `saves` and `preferences`. Database layout version 1 is separate from **save envelope version 5**. One autosave and three manual slots are supported. The envelope stores `version`, `region`, `savedAt`, and `state`; state also carries the validated current region.
 
-State contains the legacy position, quest, inventory, discoveries, village story, journal and play time, plus `episode`, `tracking`, `villageMemory`, and `region`. See [versioned fixtures](../tests/fixtures/saves/) for full portable examples, including an interrupted lake scene and completed episode.
+State contains the legacy position, quest, inventory, discoveries, village story, journal and play time, plus `episode`, `campaign`, `tracking`, `villageMemory`, and `region`. See [versioned fixtures](../tests/fixtures/saves/) for full portable examples, including an interrupted lake scene and completed episode.
 
-Migrations proceed v1 → v2 → v3 → v4. Existing journeys retain their earned content. Completing an old prelude unlocks the episode without replaying errands; it does not complete the new episode. Unknown future versions, invalid enums, duplicate IDs, impossible inventories, inconsistent region/checkpoint phases, missing or extra journal records, nonfinite coordinates, and files over 128 KB are rejected. Restored exploration positions are checked for walkability.
+Migrations proceed v1 → v2 → v3 → v4 → v5. Existing journeys retain their earned content. Completing an old prelude unlocks the episode without replaying errands; it does not complete the new episode. Unknown future versions, invalid enums, duplicate IDs, impossible inventories, inconsistent region/checkpoint phases, missing or extra journal records, nonfinite coordinates, and files over 128 KB are rejected. Restored exploration positions are checked for walkability.
 
 Serialized writes prevent old snapshots overtaking newer events. Autosave follows story events, checkpoint/region changes, every 20 seconds of active play and page hiding. Browser shutdown durability remains best effort. Manual saves and export use the current snapshot. When IndexedDB cannot open, session slots and export remain available with a visible warning. Failed writes reject and preserve the earlier durable slot; the interface reports the failure and export remains available.
 
 Additional towns, streamed open worlds and offline caching remain deferred. See [RFC-001](rfcs/001-into-the-deep.md) for the milestone contract.
+
+## Chapter II and the neighborhood (RFC-002)
+
+The `content/campaign/chapters.ts` registry defines all five story tracks, source metadata, availability, and completion. `regions.ts` defines four exploration spaces and two presentation spaces. Runtime factories create each view; exploration capabilities expose movement without coupling runtime dispatch to a particular scene class.
+
+`game/campaign/progress.ts` handles the roof chapter, companion and table stories. Contextual actions have stable IDs, local targets, explicit requirements and a distance guard. Gateways form a small directed graph: guidance chooses the next doorway rather than teleporting the traveler. A successful transition retains the last exploration position in each visited region. Failed loads never commit candidate state.
+
+The roof account has eight durable checkpoints and the same leave/resume/summary contract as the lake. It is independent of the optional neighborhood tasks. Three aftermath observations unlock one of three saved reflections. Original narration and scripture remain separate, including in the full transcript.
+
+The companion state records route, gate, step and position. `NeighborhoodActivity` moves Amos through reachable path cells at simulation speed and asks the reducer to advance only when both travelers are near the next meeting point. The main snapshot captures his actual position before saving. Menus and hidden pages pause movement; reduced motion freezes decorative motion without teleporting the companion. Choosing a meeting point also slows the traveler's automatic approach to a compatible walking pace. Manual movement can leave Amos behind; he waits, and the map always locates him.
+
+One held object is allowed across all neighborhood spaces. Shelf objects, carried objects, cleared cart and prepared tables derive from saved state. Objects can be returned to their shelves; interrupted tasks remain available. Ambient street movement is cosmetic and unsaved. Indoor roof pieces hide, camera-facing walls lower, and a fixed room camera keeps entrances and furniture in view.
+
+The save envelope is now **v5**, extending the migration chain through v4. The new `campaign` object stores roof, walk, table, carrying, notes and visited positions. Validation checks known IDs, finite per-region bounds, exact derived journal sets and cross-field consistency. Existing episode progress, inventory, Ezra memories and interrupted lake checkpoints remain unchanged. Versioned v5 examples cover a walking companion, filled jug and interrupted roof account.
+
+All static GLBs use one vertex-color material per model, enabling shared static instances. Characters retain independent skins and clip sampling. The shared rig now supplies twelve clips; twelve actor variants and forty-one props make up the complete 53-model kit. See [RFC-002](rfcs/002-through-the-roof.md) and the current [verification record](VERIFICATION.md).

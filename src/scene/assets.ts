@@ -40,6 +40,8 @@ export class AssetLibrary {
             );
             if (this.disposed) container.dispose();
             else {
+              // Instances inherit shadow reception from their shared source mesh.
+              for (const mesh of container.meshes) mesh.receiveShadows = true;
               this.containers.set(id, container);
               progress(++loaded, total);
             }
@@ -63,7 +65,7 @@ export class AssetLibrary {
     const container = this.containers.get(id);
     if (!container || this.disposed) throw new Error('Missing region asset: ' + id);
     const instance = container.instantiateModelsToScene((node) => name + ':' + node, false, {
-      doNotInstantiate: true,
+      doNotInstantiate: isActorAsset(id),
     });
     const root = new TransformNode(name, this.scene);
     const visual = new TransformNode(name + ':visual', this.scene);
@@ -73,7 +75,6 @@ export class AssetLibrary {
     for (const node of instance.rootNodes) node.parent = visual;
     for (const group of instance.animationGroups) group.stop();
     for (const mesh of root.getChildMeshes()) {
-      mesh.receiveShadows = true;
       mesh.isPickable = Boolean(interactionId);
       mesh.metadata = interactionId ? { interactionId } : null;
       this.shadow?.addShadowCaster(mesh);

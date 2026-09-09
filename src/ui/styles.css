@@ -512,6 +512,11 @@ kbd {
   color: #e5ce8e;
   width: 17px;
 }
+.world-labels {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+}
 .world-label {
   position: absolute;
   left: 0;

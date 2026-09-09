@@ -1,0 +1,165 @@
+.campaign-stories {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.campaign-stories article {
+  border: 1px solid #b6af91;
+  padding: 18px;
+  border-radius: 8px;
+  background: #eeebdb;
+}
+.campaign-stories h3 {
+  margin: 10px 0;
+}
+.campaign-stories p {
+  line-height: 1.6;
+}
+.context-actions {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0;
+}
+.context-actions button {
+  justify-content: space-between;
+  text-align: left;
+  white-space: normal;
+}
+.context-note {
+  border-top: 1px solid #c4bba0;
+  padding-top: 16px;
+  line-height: 1.7;
+}
+.held-notice {
+  padding: 12px;
+  background: #e1e5d3;
+  border-radius: 6px;
+}
+.scene-scripture cite {
+  display: block;
+  font-size: 0.8em;
+  margin-top: 10px;
+  font-style: normal;
+}
+.scene-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.scene-description {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+.scene-description summary {
+  cursor: pointer;
+  padding: 8px 0;
+}
+.transcript-beat {
+  border-bottom: 1px solid #c7bfa6;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  line-height: 1.7;
+}
+.transcript-beat blockquote {
+  margin: 18px 0;
+  padding-left: 18px;
+  border-left: 2px solid #a4935d;
+  font-family: Georgia, serif;
+}
+[data-text-size='large'] .panel-body,
+[data-text-size='large'] .dialogue-text,
+[data-text-size='large'] .scene-narration {
+  font-size: 19px;
+  line-height: 1.75;
+}
+[data-text-size='large'] .scene-scripture {
+  font-size: 21px;
+  line-height: 1.6;
+}
+[data-text-size='large'] .journal-entry p {
+  font-size: 18px;
+  line-height: 1.75;
+}
+[data-text-size='large'] .scene-controls {
+  max-height: 78dvh;
+  overflow-y: auto;
+}
+@media (max-width: 700px) {
+  .campaign-stories {
+    grid-template-columns: 1fr;
+  }
+  .scene-secondary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .scene-secondary button {
+    padding: 9px;
+    font-size: 12px;
+    white-space: normal;
+  }
+  .context-actions button {
+    min-height: 48px;
+  }
+}
+[data-text-size='large'] .panel-body .panel-lead,
+[data-text-size='large'] .scene-caption > .scene-narration,
+[data-text-size='large'] .dialogue-text {
+  font-size: 19px;
+  line-height: 1.75;
+}
+[data-text-size='large'] .scripture-caption > .scene-scripture {
+  font-size: 21px;
+  line-height: 1.6;
+}
+@media (max-width: 640px) {
+  .quest-card > .secondary-button {
+    min-height: 36px;
+    padding: 6px 10px;
+    margin-top: 6px;
+    font-size: 12px;
+  }
+  [data-text-size='large'] .scene-controls {
+    max-height: 62dvh;
+  }
+}
+.scene-heading,
+.scene-progress,
+.scene-footer {
+  flex-shrink: 0;
+}
+.scene-reading {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.scene-mode .toast {
+  top: 92px;
+  bottom: auto;
+}
+@media (max-width: 640px) {
+  .world-label .label-name {
+    max-width: 185px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .scene-mode .toast {
+    top: 74px;
+  }
+}
+@media (max-height: 540px) {
+  .scene-secondary {
+    flex-wrap: nowrap;
+    gap: 5px;
+    display: flex;
+  }
+  .scene-secondary button {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 5px;
+    white-space: normal;
+    font-size: 11px;
+  }
+}

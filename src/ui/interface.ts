@@ -1,3 +1,14 @@
+import { chapters } from '../content/campaign/chapters';
+import {
+  campaignSummary,
+  contextView,
+  roofControls,
+  roofTranscript,
+  roofSummary,
+  neighborhoodMap,
+  carriedView,
+} from './views/campaign';
+import { campaignLayout } from '../content/campaign/layouts';
 import {
   questView,
   episodeSummary,
@@ -30,6 +41,7 @@ export type Panel =
   | 'welcome'
   | 'dialogue'
   | 'transcript'
+  | 'context'
   | 'scene-summary'
   | 'diagnostics'
   | null;
@@ -145,11 +157,23 @@ export class Interface {
   }
   update(state: GameState): void {
     this.currentState = structuredClone(state);
-    const inScene = state.region === 'lake-gennesaret';
+    const inScene = regions[state.region].mode === 'presentation';
     this.root.classList.toggle('scene-mode', inScene);
     this.sceneControls.hidden = !inScene || !this.active;
-    this.sceneControls.innerHTML = inScene ? sceneControls(state, this.scenePaused) : '';
+    this.sceneControls.innerHTML = inScene
+      ? state.region === 'roof-account'
+        ? roofControls(state, this.scenePaused)
+        : sceneControls(state, this.scenePaused)
+      : '';
     this.quest.innerHTML = questView(state);
+    this.root.querySelector('.time-of-day span')!.textContent =
+      state.region === 'capernaum' ? 'A quiet morning' : 'Some days later';
+    const minimap = this.root.querySelector('.minimap')!;
+    minimap.innerHTML =
+      this.mapSvg(false, state.position, state) +
+      '<span class="map-north">N</span><span class="minimap-name">' +
+      esc(regions[state.region].title.toUpperCase()) +
+      '</span>';
     const region = regions[state.region];
     const regionTitle = this.root.querySelector('.region-title')!;
     regionTitle.innerHTML =
@@ -161,9 +185,9 @@ export class Interface {
       esc(region.subtitle) +
       '</small></span>';
     const finished =
-      state.tracking === 'main'
-        ? state.episode.stage === 'complete'
-        : state.villageStory === 'complete';
+      chapters[
+        state.tracking === 'main' && state.episode.stage === 'complete' ? 'roof' : state.tracking
+      ].complete(state);
     const available = activeInteractables(state);
     this.labelNodes.forEach((node, id) => {
       if (!available.some((p) => p.id === id)) node.hidden = true;
@@ -186,14 +210,17 @@ export class Interface {
   }
   frame(position: Point, labels: ScreenLabel[], heading: number, nearest: string | null): void {
     for (const label of labels) {
-      const node = this.labelNodes.get(label.id)!;
+      const node = this.labelNodes.get(label.id);
+      if (!node) continue;
       node.style.transform = `translate(${label.x}px,${label.y}px) translate(-50%,-100%)`;
       node.hidden = !label.visible;
     }
     const minimapPlayer = this.root.querySelector<SVGElement>('#minimap-player');
+    const extent = campaignLayout(this.currentState?.region ?? '')?.bounds.max ?? 24;
+    const mapScale = 192 / (extent * 2);
     minimapPlayer?.setAttribute(
       'transform',
-      `translate(${(position.x + 24) * 4},${(24 - position.z) * 4}) rotate(${(-heading * 180) / Math.PI - 90})`,
+      `translate(${(position.x + extent) * mapScale},${(extent - position.z) * mapScale}) rotate(${(-heading * 180) / Math.PI - 90})`,
     );
     const button = this.root.querySelector<HTMLButtonElement>('#nearby-action')!;
     const person = allInteractables.find((p) => p.id === nearest);
@@ -240,7 +267,11 @@ export class Interface {
     this.overlay.className = '';
     this.hud.inert = false;
     this.sceneControls.inert = false;
-    if (this.active && this.currentState?.region === 'lake-gennesaret') {
+    if (
+      this.active &&
+      this.currentState &&
+      regions[this.currentState.region].mode === 'presentation'
+    ) {
       this.sceneControls.querySelector<HTMLElement>('.scene-continue')?.focus();
       return;
     }
@@ -250,11 +281,11 @@ export class Interface {
   welcome(hasSave: boolean, storage: boolean): void {
     this.show(
       'welcome',
-      `<div class="welcome-shade"></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand"><span>✧</span> THE WAY</div><p class="eyebrow">CHAPTER I &nbsp; / &nbsp; GALILEE</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore, witness the catch and calling, and find a memory to carry with you.</p><p class="welcome-copy secondary">Walk the shore. Meet its people.<br>Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">A journey through the catch and calling · Luke 5:1–11.<br>Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
+      `<div class="welcome-shade"></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand"><span>✧</span> THE WAY</div><p class="eyebrow">CHAPTER I &nbsp; / &nbsp; GALILEE</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore, witness the catch and calling, then enter Capernaum’s lanes for Through the Roof.</p><p class="welcome-copy secondary">Walk the shore. Meet its people.<br>Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">Two Gospel chapters · Luke 5:1–11 and Mark 2:1–12.<br>Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
     );
   }
   private panelShell(title: string, eyebrow: string, body: string, wide = false): string {
-    return `<div class="panel-backdrop"></div><section class="panel ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="panel-title"><header class="panel-header"><div><p class="eyebrow">${eyebrow}</p><h2 id="panel-title">${title}</h2></div><button class="icon-button" data-action="close" aria-label="Close menu">${icon('close')}</button></header><div class="panel-body">${body}</div><footer class="panel-footer"><span>Your journey waits for you.</span><button class="text-button" data-action="close">Return to the shore <kbd>Esc</kbd></button></footer></section>`;
+    return `<div class="panel-backdrop"></div><section class="panel ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="panel-title"><header class="panel-header"><div><p class="eyebrow">${eyebrow}</p><h2 id="panel-title">${title}</h2></div><button class="icon-button" data-action="close" aria-label="Close menu">${icon('close')}</button></header><div class="panel-body">${body}</div><footer class="panel-footer"><span>Your journey waits for you.</span><button class="text-button" data-action="close">Return to your journey <kbd>Esc</kbd></button></footer></section>`;
   }
   private villageSummary(state: GameState): string {
     const complete = state.villageStory === 'complete';
@@ -267,7 +298,7 @@ export class Interface {
       this.panelShell(
         'A traveler’s journal',
         'PEOPLE, PLACES & SMALL DISCOVERIES',
-        `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(objective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${episodeSummary(state)}${this.villageSummary(state)}<div class="journal-entries">${[
+        `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(objective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${campaignSummary(state)}${episodeSummary(state)}${this.villageSummary(state)}<div class="journal-entries">${[
           ...state.journal,
         ]
           .reverse()
@@ -288,18 +319,18 @@ export class Interface {
       this.panelShell(
         'Your satchel',
         'A FEW THINGS FOR THE ROAD',
-        `<p class="panel-lead">What you carry is often a chance to help someone else.</p>${state.episode.carrying ? '<article class="carried-object"><span class="item-art">' + icon('bag') + '</span><div><span class="eyebrow">IN YOUR HANDS</span><h3>Empty basket</h3><p>Carry it to the landing beside Simon’s boats. It does not use a satchel space.</p><button class="secondary-button" data-action="travel" data-value="landing">Walk to the landing</button></div></article>' : ''}<div class="inventory-grid">${state.inventory.map((id) => `<article class="inventory-item"><div class="item-art">${icon(items[id].icon)}</div><span class="eyebrow">QUEST ITEM</span><h3>${items[id].name}</h3><p>${items[id].description}</p><span class="item-count">1</span></article>`).join('')}${Array.from({ length: 4 - state.inventory.length }, () => '<div class="empty-slot" aria-label="Empty satchel space"><span>＋</span></div>').join('')}</div><p class="inventory-note">${state.inventory.length ? `Bring these supplies to Simon by the boats.` : 'Your satchel is light. The people of Capernaum may have something for you to carry.'}</p><div class="inventory-capacity">${icon('bag')} ${state.inventory.length} / 4 spaces used</div>`,
+        `${carriedView(state)}<p class="panel-lead">What you carry is often a chance to help someone else.</p>${state.episode.carrying ? '<article class="carried-object"><span class="item-art">' + icon('bag') + '</span><div><span class="eyebrow">IN YOUR HANDS</span><h3>Empty basket</h3><p>Carry it to the landing beside Simon’s boats. It does not use a satchel space.</p><button class="secondary-button" data-action="travel" data-value="landing">Walk to the landing</button></div></article>' : ''}<div class="inventory-grid">${state.inventory.map((id) => `<article class="inventory-item"><div class="item-art">${icon(items[id].icon)}</div><span class="eyebrow">QUEST ITEM</span><h3>${items[id].name}</h3><p>${items[id].description}</p><span class="item-count">1</span></article>`).join('')}${Array.from({ length: 4 - state.inventory.length }, () => '<div class="empty-slot" aria-label="Empty satchel space"><span>＋</span></div>').join('')}</div><p class="inventory-note">${state.inventory.length ? `Bring these supplies to Simon by the boats.` : 'Your satchel is light. The people of Capernaum may have something for you to carry.'}</p><div class="inventory-capacity">${icon('bag')} ${state.inventory.length} / 4 spaces used</div>`,
       ),
     );
   }
   map(state: GameState): void {
-    if (state.region === 'lake-gennesaret') {
+    if (regions[state.region].mode === 'presentation') {
       this.show(
         'map',
         this.panelShell(
-          'A view across the water',
-          'LAKE OF GENNESARET',
-          '<p class="panel-lead">Your traveler remains on the shore while these narrated scenes present Luke’s account. Return to the village whenever you wish; your scene checkpoint will be kept.</p><button class="primary-button" data-action="scene-leave">Return to Capernaum</button>',
+          regions[state.region].title,
+          'A NARRATED GOSPEL ACCOUNT',
+          '<p class="panel-lead">Your traveler waits while the narrated scenes present the Gospel account. Return to exploration whenever you wish; your scene checkpoint will be kept.</p><button class="primary-button" data-action="scene-leave">Return to your traveler</button>',
         ),
       );
       return;
@@ -307,9 +338,9 @@ export class Interface {
     this.show(
       'map',
       this.panelShell(
-        'Capernaum',
+        regions[state.region].title,
         'THE NORTHERN SHORE OF GALILEE',
-        `<p class="panel-lead">Choose a person or place to walk there. Your traveler will find a clear path.</p><div class="map-layout"><div class="large-map">${this.mapSvg(true, state.position, state)}<span class="large-map-north">N ↑</span><span class="lake-label">Sea of<br>Galilee</span></div><div class="map-destinations">${activeInteractables(
+        `<p class="panel-lead">Choose a person or place to walk there. Your traveler will find a clear path.</p><div class="map-layout"><div class="large-map">${this.mapSvg(true, state.position, state)}<span class="large-map-north">N ↑</span>${state.region === 'capernaum' ? '<span class="lake-label">Sea of<br>Galilee</span>' : ''}</div><div class="map-destinations">${activeInteractables(
           state,
         )
           .map(
@@ -329,7 +360,7 @@ export class Interface {
       this.panelShell(
         'A moment of rest',
         'SETTINGS & SAVED JOURNEYS',
-        `<div class="settings-grid"><div><h3>Your experience</h3><label class="setting-row"><span>${icon('sound')} Lakeside sound<small>Soft water ambience and gentle chimes</small></span><input type="checkbox" data-setting="sound" ${settings.sound ? 'checked' : ''}></label><label class="setting-row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" value="${settings.volume}" data-setting="volume" aria-label="Sound volume"></label><label class="setting-row"><span>Visual quality<small>Lower quality saves battery</small></span><select data-setting="quality"><option value="high" ${settings.quality === 'high' ? 'selected' : ''}>High</option><option value="low" ${settings.quality === 'low' ? 'selected' : ''}>Low</option></select></label><label class="setting-row"><span>Reduce motion<small>Still water and immediate camera follow</small></span><input type="checkbox" data-setting="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}></label><button class="secondary-button full-width" data-action="help">${icon('help')} Controls &amp; how to play</button></div><div><h3>Saved journeys</h3><p class="settings-note">${persistent ? 'Progress autosaves as you explore. Manual slots keep a moment you can return to.' : 'Browser storage is unavailable. These slots last only this session. Export a file to keep your journey.'}</p><div class="save-slots">${slots.map((slot) => `<div class="save-slot"><span class="slot-icon">${icon('save')}</span><div><strong>${slot.id === 'auto' ? 'Autosave' : `Journey ${slot.id.at(-1)}`}</strong><small>${slot.error ? 'Unreadable save' : slot.save ? `${slot.save.state.episode.stage === 'complete' ? 'Episode complete' : slot.save.state.region === 'lake-gennesaret' ? 'On the lake' : slot.save.state.quest === 'complete' ? 'Into the Deep' : 'Capernaum'} · ${esc(new Date(slot.save.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))}` : 'Empty slot'}</small></div>${slot.id !== 'auto' ? `<button class="small-button" data-action="save-slot" data-value="${slot.id}" ${started ? '' : 'disabled'}>Save</button>` : ''}<button class="small-button" data-action="load-slot" data-value="${slot.id}" ${slot.save ? '' : 'disabled'}>Load</button></div>`).join('')}</div><div class="save-actions"><button class="secondary-button" data-action="export" ${started ? '' : 'disabled'}>${icon('download')} Export</button><label class="secondary-button import-button">${icon('upload')} Import<input type="file" id="import-save" accept=".json,application/json" aria-label="Import a journey save"></label></div></div></div>${started ? '<button class="text-button new-journey" data-action="new-journey">Start a new journey…</button>' : ''}`,
+        `<div class="settings-grid"><div><h3>Your experience</h3><label class="setting-row"><span>${icon('sound')} Ambient sound<small>Soft regional ambience and gentle chimes</small></span><input type="checkbox" data-setting="sound" ${settings.sound ? 'checked' : ''}></label><label class="setting-row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" value="${settings.volume}" data-setting="volume" aria-label="Sound volume"></label><label class="setting-row"><span>Visual quality<small>Lower quality saves battery</small></span><select data-setting="quality"><option value="high" ${settings.quality === 'high' ? 'selected' : ''}>High</option><option value="low" ${settings.quality === 'low' ? 'selected' : ''}>Low</option></select></label><label class="setting-row"><span>Reduce motion<small>Still water and immediate camera follow</small></span><input type="checkbox" data-setting="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}></label><label class="setting-row"><span>Reading size<small>Dialogue, scripture and journal text</small></span><select data-setting="textSize"><option value="standard" ${settings.textSize === 'standard' ? 'selected' : ''}>Standard</option><option value="large" ${settings.textSize === 'large' ? 'selected' : ''}>Large</option></select></label><button class="secondary-button full-width" data-action="help">${icon('help')} Controls &amp; how to play</button></div><div><h3>Saved journeys</h3><p class="settings-note">${persistent ? 'Progress autosaves as you explore. Manual slots keep a moment you can return to.' : 'Browser storage is unavailable. These slots last only this session. Export a file to keep your journey.'}</p><div class="save-slots">${slots.map((slot) => `<div class="save-slot"><span class="slot-icon">${icon('save')}</span><div><strong>${slot.id === 'auto' ? 'Autosave' : `Journey ${slot.id.at(-1)}`}</strong><small>${slot.error ? 'Unreadable save' : slot.save ? `${regions[slot.save.state.region].title + (slot.save.state.campaign.roof.stage === 'complete' ? ' · Chapter II complete' : slot.save.state.campaign.roof.checkpoint ? ' · ' + slot.save.state.campaign.roof.checkpoint : '')} · ${esc(new Date(slot.save.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))}` : 'Empty slot'}</small></div>${slot.id !== 'auto' ? `<button class="small-button" data-action="save-slot" data-value="${slot.id}" ${started ? '' : 'disabled'}>Save</button>` : ''}<button class="small-button" data-action="load-slot" data-value="${slot.id}" ${slot.save ? '' : 'disabled'}>Load</button></div>`).join('')}</div><div class="save-actions"><button class="secondary-button" data-action="export" ${started ? '' : 'disabled'}>${icon('download')} Export</button><label class="secondary-button import-button">${icon('upload')} Import<input type="file" id="import-save" accept=".json,application/json" aria-label="Import a journey save"></label></div></div></div>${started ? '<button class="text-button new-journey" data-action="new-journey">Start a new journey…</button>' : ''}`,
         true,
       ),
     );
@@ -370,7 +401,7 @@ export class Interface {
   }
   setScenePaused(paused: boolean): void {
     this.scenePaused = paused;
-    if (this.currentState?.region === 'lake-gennesaret') {
+    if (this.currentState && regions[this.currentState.region].mode === 'presentation') {
       const button = this.sceneControls.querySelector<HTMLButtonElement>(
         '[data-action="scene-pause"]',
       );
@@ -383,13 +414,21 @@ export class Interface {
   focusScene(): void {
     this.sceneControls.querySelector<HTMLElement>('.scene-continue')?.focus();
   }
-  transcript(state: GameState): void {
+  transcript(state: GameState, chapter?: string): void {
     this.show(
       'transcript',
       this.panelShell(
-        'Words beside the water',
+        chapter === 'roof' ||
+          (chapter !== 'lake' &&
+            (state.region === 'roof-account' || state.campaign.roof.stage !== 'not-started'))
+          ? 'Through the Roof · Transcript'
+          : 'Words beside the water',
         'THE COMPLETE SCENE TRANSCRIPT',
-        transcriptView(state),
+        chapter === 'roof' ||
+          (chapter !== 'lake' &&
+            (state.region === 'roof-account' || state.campaign.roof.stage !== 'not-started'))
+          ? roofTranscript()
+          : transcriptView(state),
         true,
       ),
     );
@@ -400,7 +439,7 @@ export class Interface {
       this.panelShell(
         'Finish with a summary',
         'CONTINUE AT YOUR OWN PACE',
-        sceneSummaryView(state),
+        state.region === 'roof-account' ? roofSummary(state) : sceneSummaryView(state),
       ),
     );
   }
@@ -441,7 +480,17 @@ export class Interface {
       ),
     );
   }
+  context(id: string, state: GameState): boolean {
+    const view = contextView(id, state);
+    if (!view) return false;
+    this.show('context', this.panelShell(esc(view.title), 'PEOPLE & PLACES', view.body));
+    return true;
+  }
   private mapSvg(large: boolean, position?: Point, state?: GameState): string {
+    if (state) {
+      const local = neighborhoodMap(state, large, position);
+      if (local) return local;
+    }
     const id = large ? 'large-map-player' : 'minimap-player';
     const shorePoints = Array.from({ length: 25 }, (_, i) => {
       const z = 24 - i * 2;

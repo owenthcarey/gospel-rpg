@@ -2,6 +2,23 @@ import type { Settings } from '../game/types';
 
 /** Small synthesized lakeside soundscape. No network audio or autoplay. */
 export class Ambience {
+  private filter?: BiquadFilterNode;
+  private place = 'capernaum';
+  region(id: string): void {
+    this.place = id;
+    if (this.filter && this.context)
+      this.filter.frequency.setTargetAtTime(
+        id === 'bakehouse'
+          ? 230
+          : id === 'gathering-house' || id === 'roof-account'
+            ? 160
+            : id === 'capernaum-lanes'
+              ? 430
+              : 650,
+        this.context.currentTime,
+        0.7,
+      );
+  }
   private context?: AudioContext;
   private gain?: GainNode;
   private source?: AudioBufferSourceNode;
@@ -34,7 +51,8 @@ export class Ambience {
         this.source.loop = true;
         const filter = this.context.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.value = 650;
+        this.filter = filter;
+        this.region(this.place);
         this.source.connect(filter);
         filter.connect(this.gain);
         this.source.start();
