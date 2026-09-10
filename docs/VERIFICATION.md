@@ -1,5 +1,34 @@
 # Verification record
 
+## Living Galilee · 2026-09-10
+
+[RFC-005](rfcs/005-living-galilee.md) was written before implementation. It adds two original practical adventures, shared nearby actions, readable spatial plans, saved exploration guidance, walk cancellation, lasting activity and direct saved-region startup. The game now contains three Gospel chapters and nine optional stories. The [playtest guide](PLAYTEST.md#living-galilee) describes both solutions, recovery paths and four portable v8 saves.
+
+### Checks
+
+- **331 unit tests pass** across sixteen files, with types, lint, production build, formatting and whitespace checks passing. This includes all 256 channel configurations, both outlets/reflections/clearing orders, all supply orders at both sites, all screen directions, failed tests/checks, recovery/relocation, incompatible held items, old-save preservation and forged-state rejection.
+- The real Babylon importer measures the exported openings for all sixteen piece/rotation combinations, the receiving inlet's direction, the exact enabled wet route, held-prop reach and restored resting-company visibility. These checks rejected the initial handedness mismatch before correction.
+- Every v1–v7 portable save retains its prior fields and journal while gaining empty Galilee progress. New v8 examples round-trip through the validator after real reducer actions. Historical standing positions under new furniture remain importable; runtime clearance selects nearby walkable ground and keeps an active arrangement within reach.
+- The full production browser run completed **90 cases in 30.7 minutes: 73 passed, eight failed and nine were intentionally skipped**. The failures exposed stale v7 expectations, an arrangement-clearance position outside action reach, an assertion that incorrectly froze a companion after his walk resumed, and an objective-card measurement before asynchronous startup finished. These were corrected without relaxing rendering or layout bounds.
+- The affected desktop/phone selection then passed **21 checks**, with one intentional skip, in **8.6 minutes**. It includes every new adventure check and seven of the initial failures. The remaining phone objective check passed separately in **24.8 seconds**. All **81 runnable browser scenarios** have therefore passed across the full run and targeted reruns; these overlapping selections are not additional unique scenarios or a second clean full-suite run.
+
+New browser journeys cover both complete adventures on desktop and phone, hints, incorrect connections/arrangements, supply recovery, cross-region travel, reload/export, alternate outcomes, large text, restrained guidance, cancellation and portrait/landscape controls. A carried screen survives Gospel reading and a waiting Neri remains unchanged while the traveler is elsewhere; returning near him legitimately resumes his walk. Startup tests observe zero GLB requests before Begin/Continue/Import, fail Leah's download during direct continuation, and verify retry restores the saved farm with its journal intact.
+
+### Rendering and assets
+
+The **79-model kit contains 15 actors and 64 props**, totaling **5,230,036 bytes** against the unchanged **5,242,880-byte cap**. All sixteen shared clips and the three specialized Nain clips retain their contracts. Actor/prop triangle limits remain 5,000/10,000. The production application is about **104.5 KB gzip**, CSS **11.6 KB gzip**, and the separately cached Babylon bundle **691.6 KB gzip**. The existing large-engine-chunk advisory remains.
+
+Blender MCP generated the eight additions and isolated workshop, then independently imported the shipped exports. Review corrected overlapping channel floors, elbow walls, receiving inlets, and runtime orientation. The [kit](verification/living-galilee-kit.png), [connected channel](verification/living-galilee-channel.png), [resting place](verification/living-galilee-rest.png), and [hashed asset inventory](verification/living-galilee-assets.json) accompany the recipes. Existing unchanged exports retain their previous bytes. Unrelated Blender scenes were preserved.
+
+| Completed reference | Desktop High / Low draw calls | Phone High / Low draw calls |
+| ------------------- | ----------------------------- | --------------------------- |
+| Spring channel      | 130 / 83                      | 123 / 76                    |
+| Resting place       | 115 / 65                      | 111 / 61                    |
+
+Both completed scenes retain essential geometry at each quality and settle to one scene. The limits remain 300 High / 130 Low. [Raw rendering snapshots](verification/living-galilee-rendering.json) include asset-level enabled/drawn counts, renderer, viewport and bounded cadence samples. These local measurements include concurrent verification activity and are not a sustained performance benchmark. [Desktop spring](verification/living-galilee-spring-desktop.png), [desktop resting place](verification/living-galilee-shelter-desktop.png), [phone spring](verification/living-galilee-spring-phone.png) and [phone resting place](verification/living-galilee-shelter-phone.png) show the actual Babylon compositions. The original bakehouse and Nain software image contracts and their missing-geometry negative controls remain unchanged.
+
+Human editorial review, the two stories' 25–40 minute pacing target, assistive-technology usability, real touch hardware and sustained mobile/Safari/Firefox performance remain unverified. Browser viewport emulation and geometry tests do not establish those outcomes. No public deployment was part of this implementation.
+
 ## Beyond Capernaum — The Road to Nain · 2026-09-09
 
 [RFC-004](rfcs/004-the-road-to-nain.md) was drafted and accepted before gameplay changes. The milestone adds three exploration regions, a six-scene Luke 7:11–17 chapter, Tamar’s landmark investigation and Neri’s two cross-region walks. The [playtest guide](PLAYTEST.md) includes full journeys and five portable v7 examples.

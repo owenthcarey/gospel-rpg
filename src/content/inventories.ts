@@ -1,3 +1,4 @@
+import { galileePlaces } from './galilee/places';
 import { VILLAGE_ASSETS, type AssetId } from './assets';
 import { campaignLayout } from './campaign/layouts';
 import { neighborhoodPlaces } from './campaign/places';
@@ -15,6 +16,22 @@ export function explorationAssets(region: ExplorationRegion): AssetId[] {
     return [
       ...new Set([
         ...shared,
+        ...(region === 'galilean-road'
+          ? ([
+              'channel_straight',
+              'channel_bend',
+              'water_basin',
+              'supply_rack',
+              'spring_marker',
+              'rock',
+              'villager',
+            ] as AssetId[])
+          : region === 'roadside-farm'
+            ? (['leah', 'supply_rack', 'bench', 'villager'] as AssetId[])
+            : []),
+        ...(galileePlaces[region as keyof typeof galileePlaces] ?? []).flatMap((p) =>
+          'asset' in p ? [p.asset as AssetId] : [],
+        ),
         ...layout.decor.map((p) => p.asset),
         ...roadPlaces[region].flatMap((p) => (p.asset ? [p.asset as AssetId] : [])),
         'amos' as const,

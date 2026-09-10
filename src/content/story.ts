@@ -1,3 +1,5 @@
+import { galileeAcknowledgement } from './galilee/conversations';
+import { galileeJournal } from './galilee/journal';
 import { campaignJournal } from './campaign/journal';
 import { lifeJournal } from './life/journal';
 import { roadJournal } from './road/journal';
@@ -33,6 +35,7 @@ export const items: Record<ItemId, { name: string; description: string; icon: st
   },
 };
 export const journalEntries: Record<string, { title: string; text: string; reference?: string }> = {
+  ...galileeJournal,
   ...lifeJournal,
   ...roadJournal,
   ...episodeJournal,
@@ -174,7 +177,9 @@ export function dialogueFor(id: string, state: GameState): Dialogue {
         speaker: 'Miriam',
         subtitle: 'Village baker',
         provenance: original,
-        text: 'Peace to you. The morning’s bread is cooling, and everyone seems to be going down to the water. If you are looking for Simon, you will find him by the boats.',
+        text:
+          galileeAcknowledgement('miriam', state) ||
+          'Peace to you. The morning’s bread is cooling, and everyone seems to be going down to the water. If you are looking for Simon, you will find him by the boats.',
         choices: [{ label: 'Tell me about the village', next: 'miriam-village' }, goodbye],
       };
     case 'miriam-village':

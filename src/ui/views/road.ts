@@ -1,3 +1,4 @@
+import { galileeAcknowledgement } from '../../content/galilee/conversations';
 import type { GameState } from '../../game/types';
 import {
   NAIN_SCENES,
@@ -102,7 +103,8 @@ export function roadContext(id: string, s: GameState): { title: string; body: st
   let body = `<p class="eyebrow">ORIGINAL ${p.kind === 'person' ? 'CONVERSATION' : 'NARRATION'} · ARTISTIC INTERPRETATION</p>`;
   if (evidence) {
     body += `${markerStudy(evidence)}<p class="panel-lead">${esc(trailEvidence[evidence].detail)}</p>${t.evidence.includes(evidence) ? '<p class="remembered-detail">Recorded in your journal.</p>' : t.stage === 'exploring' ? button('Record this observation', 'road-evidence', evidence, true) : '<p>These details may help someone remember a place along the road. Tamar is nearby.</p>'}`;
-  } else body += `<p class="panel-lead">${esc(roadProse(id, s))}</p>`;
+  } else
+    body += `<p class="panel-lead">${esc(roadProse(id, s))} ${esc(galileeAcknowledgement(id, s))}</p>`;
   body += `<div class="context-actions">${roadActions
     .filter((a) => a.target === id && a.available(s))
     .map((a) =>

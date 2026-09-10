@@ -108,7 +108,7 @@ test('a v4 traveler walks into Chapter II, resumes every scene and completes the
   await page.locator('[data-action="roof-reflect"][data-value="welcome"]').click();
   await expect(page.locator('#quest-card')).toContainText('COMPLETE');
   const save = await exported(page);
-  expect(save.version).toBe(7);
+  expect(save.version).toBe(8);
   expect(save.state.campaign.roof.stage).toBe('complete');
   expect(save.state.campaign.roof.reflection).toBe('welcome');
   expect(save.state.episode.stage).toBe('complete');

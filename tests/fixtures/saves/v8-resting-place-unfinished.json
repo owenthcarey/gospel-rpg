@@ -1,0 +1,145 @@
+{
+  "version": 8,
+  "region": "roadside-farm",
+  "savedAt": "2026-09-10T00:00:00.000Z",
+  "state": {
+    "region": "roadside-farm",
+    "episode": {
+      "stage": "complete",
+      "preparations": ["basket", "mooring", "gathering"],
+      "carrying": null,
+      "checkpoint": null,
+      "aftermath": ["landing", "miriam", "ezra"],
+      "reflection": "community",
+      "notes": []
+    },
+    "campaign": {
+      "roof": {
+        "stage": "complete",
+        "checkpoint": null,
+        "aftermath": ["ruth", "hannah", "house"],
+        "reflection": "welcome"
+      },
+      "walk": {
+        "stage": "not-started",
+        "route": null,
+        "gateOpen": false,
+        "step": 0,
+        "position": { "x": -9, "z": -5 }
+      },
+      "table": { "stage": "not-started", "location": null, "delivered": [] },
+      "carrying": null,
+      "notes": [],
+      "visited": {
+        "capernaum": { "x": -3, "z": 19 },
+        "capernaum-lanes": { "x": 13, "z": 6 },
+        "gathering-house": { "x": 0, "z": 1 },
+        "bakehouse": { "x": -3, "z": 2 }
+      }
+    },
+    "life": {
+      "thread": { "stage": "not-started", "clues": [], "ending": null },
+      "bench": { "stage": "not-started", "method": null, "cleared": false }
+    },
+    "road": {
+      "chapter": {
+        "stage": "exploring",
+        "checkpoint": null,
+        "aftermath": [],
+        "reflection": null
+      },
+      "trail": {
+        "stage": "not-started",
+        "evidence": [],
+        "interpretation": null,
+        "ending": null,
+        "hint": 0
+      },
+      "company": {
+        "stage": "not-started",
+        "route": null,
+        "step": 0,
+        "region": "roadside-farm",
+        "position": { "x": -4, "z": 3 }
+      },
+      "visited": {
+        "galilean-road": { "x": 0, "z": -12 },
+        "roadside-farm": { "x": -3, "z": -7 }
+      }
+    },
+    "galilee": {
+      "spring": {
+        "stage": "not-started",
+        "notes": [],
+        "cleared": [],
+        "turns": { "entry": 0, "turn": 0, "north": 0, "south": 2 },
+        "tested": false,
+        "hint": 0,
+        "ending": null
+      },
+      "shelter": {
+        "stage": "arranging",
+        "inspected": ["shade", "breeze"],
+        "site": "shade",
+        "placed": ["mat"],
+        "screen": 2,
+        "checked": false,
+        "ending": null
+      }
+    },
+    "tracking": "shelter",
+    "villageMemory": null,
+    "position": { "x": -3, "z": -7 },
+    "quest": "complete",
+    "inventory": [],
+    "discoveries": [],
+    "villageStory": "not-started",
+    "journal": [
+      "arrival",
+      "simon",
+      "net",
+      "bread",
+      "delivered",
+      "complete",
+      "episode-invitation",
+      "action-take-basket",
+      "action-place-basket",
+      "action-secure-mooring",
+      "action-join-gathering",
+      "scene-gathering",
+      "scene-teaching",
+      "scene-invitation",
+      "scene-answer",
+      "scene-lowering",
+      "scene-abundance",
+      "scene-partners",
+      "scene-astonishment",
+      "scene-calling",
+      "scene-return",
+      "action-receive-catch",
+      "action-talk-miriam",
+      "action-talk-ezra",
+      "reflection-community",
+      "episode-complete",
+      "roof-invitation",
+      "roof-scene-house",
+      "roof-scene-bearers",
+      "roof-scene-roof",
+      "roof-scene-forgiven",
+      "roof-scene-question",
+      "roof-scene-authority",
+      "roof-scene-rise",
+      "roof-scene-amazement",
+      "roof-after-ruth",
+      "roof-after-hannah",
+      "roof-after-house",
+      "roof-reflection-welcome",
+      "roof-complete",
+      "nain-invitation",
+      "galilee-shelter-start",
+      "galilee-shelter-site-shade",
+      "galilee-shelter-site-breeze"
+    ],
+    "playTime": 0
+  }
+}

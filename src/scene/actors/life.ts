@@ -20,7 +20,14 @@ export class LifeActivity {
     for (const [id, asset] of Object.entries(heldAssets)) {
       const model = library.instantiate(asset, 'held-' + id);
       player.attach(model);
-      model.root.scaling.setAll(id === 'sewing-pouch' ? 1 : 0.8);
+      model.root.scaling.setAll(
+        id === 'sewing-pouch' ? 1 : id === 'rest-screen' || id === 'rest-mat' ? 0.42 : 0.8,
+      );
+      if (id === 'rest-screen') model.root.position.y = -0.25;
+      if (id === 'channel-scoop') {
+        model.root.rotation.x = -0.25;
+        model.root.position.z = 0.12;
+      }
       model.root.setEnabled(false);
       this.held.set(id, model);
     }

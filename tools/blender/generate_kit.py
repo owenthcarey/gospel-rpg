@@ -97,7 +97,7 @@ def beam(name, a, b, radius, material):
     return o
 
 def export(name):
-    if name in ["traveler", "simon", "miriam", "jesus", "villager", "james", "john", "hannah", "amos", "ruth", "bearer", "healed_man", "widow", "young_man"]:
+    if name in ["traveler", "simon", "miriam", "jesus", "villager", "james", "john", "hannah", "amos", "ruth", "bearer", "healed_man", "widow", "young_man", "leah"]:
         export_character(name, parts, scene, OUT, len(exports))
         exports.append(name)
         return
@@ -404,6 +404,8 @@ export("landing_mat")
 exec(compile(Path(ROOT, "tools/blender/neighborhood.py").read_text(), "neighborhood.py", "exec"))
 exec(compile(Path(ROOT, "tools/blender/life.py").read_text(), "life.py", "exec"))
 exec(compile(Path(ROOT, "tools/blender/road.py").read_text(), "road.py", "exec"))
+
+exec(compile(Path(ROOT, "tools/blender/galilee.py").read_text(), "galilee.py", "exec"))
 
 scene.render.engine = "BLENDER_EEVEE_NEXT" if bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
 os.makedirs(os.path.join(ROOT,"assets/source"),exist_ok=True)

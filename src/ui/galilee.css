@@ -1,0 +1,174 @@
+.galilee-work {
+  color: #e6e0c7;
+}
+.galilee-work .panel-lead {
+  max-width: 65ch;
+}
+.channel-plan {
+  margin: 1.1rem 0;
+  padding: 1rem;
+  border-radius: 16px;
+  background: #f0e8d0;
+  color: #32443c;
+}
+.channel-plan svg {
+  display: block;
+  max-height: 310px;
+  width: 100%;
+}
+.channel-plan text {
+  fill: #32443c;
+  font-size: 11px;
+  font-family: inherit;
+}
+.channel-plan figcaption {
+  font-size: 0.8rem;
+  text-align: center;
+}
+.channel-directions {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.channel-directions li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  border: 1px solid #71816c;
+  border-radius: 8px;
+}
+.channel-directions button {
+  margin-left: auto;
+  min-height: 40px;
+  padding: 0.4rem 0.6rem;
+}
+.galilee-work .context-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  align-items: start;
+  gap: 0.7rem;
+}
+.galilee-work .context-actions button {
+  width: 100%;
+  min-height: 44px;
+}
+.galilee-work .context-actions p {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.work-result {
+  padding: 1rem;
+  border: 1px solid #9dbdb3;
+  border-left: 4px solid #adcebd;
+  background: #274c43;
+  color: #f5efd8;
+  border-radius: 8px;
+  line-height: 1.6;
+}
+.work-hints {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #30483b;
+  border: 1px solid #8b9a78;
+  border-radius: 8px;
+}
+.work-hints summary {
+  cursor: pointer;
+  padding: 0.3rem;
+}
+.work-hints p {
+  line-height: 1.6;
+}
+.rest-plan {
+  padding: 1rem;
+  margin: 1rem 0;
+  border: 1px solid #7e8a70;
+  background: #2d4439;
+  border-radius: 12px;
+}
+.rest-sockets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+.rest-socket {
+  display: grid;
+  gap: 0.3rem;
+  text-align: center;
+  border: 2px dashed #899780;
+  border-radius: 10px;
+  padding: 0.8rem 0.3rem;
+}
+.rest-socket > span {
+  font-size: 1.8rem;
+}
+.rest-socket.filled {
+  border-style: solid;
+  background: #496252;
+}
+.rest-socket small {
+  font-size: 0.75rem;
+}
+.travel-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.7rem;
+  background: #243b32ed;
+  color: #f4e7bd;
+  border: 1px solid #bca66b;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  max-width: min(430px, calc(100vw - 24px));
+}
+.travel-status[hidden] {
+  display: none;
+}
+.travel-status button {
+  min-height: 36px;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #c0c4a3;
+  border-radius: 6px;
+  color: inherit;
+}
+.world-label.selected-destination {
+  outline: 2px solid #f1da90;
+  outline-offset: 3px;
+}
+body:has(#overlay .welcome-screen) #game-canvas {
+  background: radial-gradient(ellipse at 70% 30%, #77885a, #273c32 70%);
+}
+@media (max-width: 600px) {
+  .channel-directions {
+    grid-template-columns: 1fr;
+  }
+  .channel-plan {
+    padding: 0.5rem;
+  }
+  .channel-plan svg {
+    max-height: 230px;
+  }
+  .galilee-work .context-actions {
+    grid-template-columns: 1fr;
+  }
+  .rest-sockets {
+    gap: 0.3rem;
+  }
+  .travel-status {
+    font-size: 0.75rem;
+  }
+}
+@media (max-height: 500px) {
+  .channel-plan svg {
+    max-height: 190px;
+  }
+}
+
+#game-canvas:not([data-region]) {
+  background: radial-gradient(ellipse at 65% 30%, #7d9064, #233c34 72%);
+}

@@ -50,6 +50,7 @@ describe('save safety', () => {
   });
   it('normalizes invalid settings', () => {
     expect(parseSettings({ volume: 100, quality: 'ultra', sound: 'yes' })).toEqual({
+      guidance: 'full',
       textSize: 'standard',
       volume: 1,
       quality: 'high',
@@ -117,6 +118,7 @@ describe('IndexedDB save slots', () => {
       sound: true,
       volume: 0.2,
       quality: 'low',
+      guidance: 'full',
       textSize: 'standard',
       reducedMotion: true,
     });

@@ -1,0 +1,332 @@
+{
+  "blender": "5.2.1 LTS",
+  "models": 79,
+  "bytes": 5230036,
+  "capBytes": 5242880,
+  "review": "Shipped GLBs independently imported using Blender MCP; unrelated scenes preserved.",
+  "files": {
+    "amos.glb": {
+      "bytes": 189464,
+      "sha256": "c59cac247bad627e1fa5a7b6c584a2c664d556b0f783b00a483464866321bac2"
+    },
+    "amphora.glb": {
+      "bytes": 22400,
+      "sha256": "9dcdf8084217b07df84c548553979eebf5cd9c068ff7ca2cc1d37d30d0777dfc"
+    },
+    "basket_empty.glb": {
+      "bytes": 107028,
+      "sha256": "b37499ab99c633b28e651851d9c1bdcec4dbc4984f5cfad1bef03d81aa1e1557"
+    },
+    "basket_fish.glb": {
+      "bytes": 156708,
+      "sha256": "231b0294e86353ec905b372c454e9415ac2a0072512b97b601722656aff64a6f"
+    },
+    "bearer.glb": {
+      "bytes": 193976,
+      "sha256": "b6d412d7f805e2e18fa35e71b68fbf5c62fd92d42b0efd07928aad47cacc5945"
+    },
+    "bench.glb": {
+      "bytes": 10312,
+      "sha256": "fae5481ccb5550a635aed59d6e274fb4200030c1edbab9894c8d8887a485cac1"
+    },
+    "bench_braced.glb": {
+      "bytes": 28300,
+      "sha256": "0013a32eee5e6c289f1eb98babcf5062aefe0cdecde85ec1675874c6183b484c"
+    },
+    "bench_lashed.glb": {
+      "bytes": 33988,
+      "sha256": "cfc1985953d6d13dc3246f28f30e058290376597c5e376290a51a58ea8e15aee"
+    },
+    "bench_loose.glb": {
+      "bytes": 26596,
+      "sha256": "69b9b80e662074cc7a5d17f5112faa5137d90935d60c0f79d35418b796c0eb8d"
+    },
+    "bench_pieces.glb": {
+      "bytes": 14804,
+      "sha256": "9c3d2ab226798f20c9052b824340ced01d98c01db6716334632c3df4dfa1c533"
+    },
+    "boat.glb": {
+      "bytes": 24184,
+      "sha256": "777567d1df7d7864765589e7cdd934c110d484184425de0123d5cec7cedfe843"
+    },
+    "bread_basket.glb": {
+      "bytes": 120828,
+      "sha256": "9cbb14f4a0b6610e6a53a3929e6cc22bfd00f5a79c4b179d9f7b5488e18fdbcd"
+    },
+    "bread_bundle.glb": {
+      "bytes": 14096,
+      "sha256": "716d5f19b8ae3a20a7ea6eaf0b46f57b2c90c4514fb7e889b26fec280741d471"
+    },
+    "cart_handle.glb": {
+      "bytes": 6448,
+      "sha256": "9c8da93ce23b8166b95084ee33b7dce6d6a230ef6f6fa6010755c84d1ae3a567"
+    },
+    "channel_bend.glb": {
+      "bytes": 9204,
+      "sha256": "094af1458ab3f63d71ec8c2bd5988d2163d5fc84bd9bbf1e11b92c7b220b442c"
+    },
+    "channel_scoop.glb": {
+      "bytes": 6412,
+      "sha256": "2d72429faee16e27e7eee8d81ac831ce7964d0e092aecde87a522be2bdc98dad"
+    },
+    "channel_straight.glb": {
+      "bytes": 4688,
+      "sha256": "7f8c6df1852753c56ebeda71fc615044a488cd52f422950d4746d46cddf79d3d"
+    },
+    "crate.glb": {
+      "bytes": 12580,
+      "sha256": "128bfb494f0527e376bcb0a2844d98c328c9e96f65f12061682b2dddd992d664"
+    },
+    "cypress.glb": {
+      "bytes": 11564,
+      "sha256": "8b99b0d8a87ca0cf348f9e5ffed079960bc2d561406c9e97882f24db25624331"
+    },
+    "doorway.glb": {
+      "bytes": 14752,
+      "sha256": "e993e15797fa206de3a6d2c1a13ce097af674a61e4d35c56cc6a6079707a5ca6"
+    },
+    "exterior_steps.glb": {
+      "bytes": 12588,
+      "sha256": "b42f894c5777fb0cec139dce0aa6282347e2d9e1ad82c970a11711a19f09a003"
+    },
+    "farm_shelter.glb": {
+      "bytes": 29536,
+      "sha256": "412f99b2d9be32937bd277f21c89682ce887090bf76b4e65323ddadae67f5607"
+    },
+    "flour_sack.glb": {
+      "bytes": 14668,
+      "sha256": "92dd3bceac38eb3284b21bec2a6dfbecfa19a106bae80b0041c8c6f6f2063bd6"
+    },
+    "gate.glb": {
+      "bytes": 8092,
+      "sha256": "f218df56b37aa6e3b028bd24e075e75a96c456e3fbd275f6bd3a47500409069f"
+    },
+    "handcart.glb": {
+      "bytes": 11564,
+      "sha256": "16a0a406f7aaf5fa8eb5c84c40ba6757c1cf613b1fead9da596bad31892e9d1a"
+    },
+    "hannah.glb": {
+      "bytes": 186280,
+      "sha256": "f459366b7b147cf7108e614212bfedda189a5eeac97121eaa50c26854ba0dcfe"
+    },
+    "healed_man.glb": {
+      "bytes": 189540,
+      "sha256": "af94b852b787cb1911c2caeeb4c24656492f166e029698a4dbe931c6fa9dffe6"
+    },
+    "house.glb": {
+      "bytes": 83336,
+      "sha256": "9ab74a4813ce17451e92f8dc4773940534468941343bbfc27b26a7edb046af1f"
+    },
+    "house_large.glb": {
+      "bytes": 92316,
+      "sha256": "cbb5fdd02fb4d9a7495acbfe4c2d4c8e7f1c97d32b5be31db2f7790d1b949db9"
+    },
+    "james.glb": {
+      "bytes": 189524,
+      "sha256": "05771f591d7f665c83cce1a53e9cddd2ad9f5f5ba1bb9d997064ac86b0c68010"
+    },
+    "jesus.glb": {
+      "bytes": 198236,
+      "sha256": "5da73a044b7ed8181d750991a3fd98583fe841111c64aee90819ef451bf41fe0"
+    },
+    "john.glb": {
+      "bytes": 186272,
+      "sha256": "8310aa52e180ab437da3dad5b72e9f75192bd7b443fc112479a8f5a13ef4e78d"
+    },
+    "jug.glb": {
+      "bytes": 13280,
+      "sha256": "0541b4deaec98c467e28ad828845d18887650a8181ebfd125a98f8e2908c9583"
+    },
+    "landing_mat.glb": {
+      "bytes": 17808,
+      "sha256": "ca70652ec749001851598b3b98bfd9aae8b9290e71ec68da9b2235d5d29dddaa"
+    },
+    "lashing_cord.glb": {
+      "bytes": 64404,
+      "sha256": "8bf253a78e98c0730cad5aa78773abecc00a9e91ef0ba5d7c004d16964801cd7"
+    },
+    "leah.glb": {
+      "bytes": 187592,
+      "sha256": "f4333c15955994e5fda0a1dfbdfd762d9bdfae86743a74d0f99cf210f5ae8c3c"
+    },
+    "low_wall.glb": {
+      "bytes": 10296,
+      "sha256": "f5cd5e2f81cc59b095044299bec1a3584968937fe5fa2ff39ac9075085648095"
+    },
+    "market.glb": {
+      "bytes": 52244,
+      "sha256": "85505a8803865649e43eac5799b57844673fe4551e6eba56f40675cc15da3919"
+    },
+    "mat_flat.glb": {
+      "bytes": 29732,
+      "sha256": "0af58c2508c814508e5c0a2c34cf0e26d6c9a53332f24d5b7294bade6eba9b1b"
+    },
+    "mat_rolled.glb": {
+      "bytes": 12692,
+      "sha256": "169cc5914894cef8afedb0eb61daeb8cc8850802673bd05a36cdc231ac59e1cb"
+    },
+    "mending_cloth.glb": {
+      "bytes": 25064,
+      "sha256": "6f929656f148223d2d0559242e59333ca67f263042cc671b84a79b79fc483c79"
+    },
+    "miriam.glb": {
+      "bytes": 194788,
+      "sha256": "65df6a8a117eab652e11fa5e5006c1f4daaec11eec122b1c8e521c749b6ce56f"
+    },
+    "mooring.glb": {
+      "bytes": 84828,
+      "sha256": "08f34abe7f36ecae6ef91e8c3118d1523f43b3017ea0210a2afb478d53ce5d4b"
+    },
+    "net_cast.glb": {
+      "bytes": 164940,
+      "sha256": "b32816bd170032ad7998b3eb50e4a1a23f9e244203eb2cda073b56cd65399742"
+    },
+    "net_folded.glb": {
+      "bytes": 23496,
+      "sha256": "f8b289320a7278a0e0a0dd0c3490077ce83eb738c7f1b954c66a8c5f9a8d4cee"
+    },
+    "net_full.glb": {
+      "bytes": 220140,
+      "sha256": "df446f3b02f7f4520bdd0aac97f425280094bbdae3deb07fdb4ceed06e3feb96"
+    },
+    "nets.glb": {
+      "bytes": 37104,
+      "sha256": "c4acbe55efc3eab66675856b40935d732acb9f810e6da9b928d698c46a1ef07b"
+    },
+    "oar.glb": {
+      "bytes": 7524,
+      "sha256": "76d0a56d4a73c931cc5017e3507fb5b45a5a54e26bc9d24083f6fc3c34628e97"
+    },
+    "olive.glb": {
+      "bytes": 44036,
+      "sha256": "b56dacd430c52b0488abd21f947f07615c01a9f15a8dbf325d1d6f841cafe9f7"
+    },
+    "oven.glb": {
+      "bytes": 20876,
+      "sha256": "be34b61c4d793afe92862c8356ca27845d60584fc65b832e649e8bc5edcc2762"
+    },
+    "palm.glb": {
+      "bytes": 4956,
+      "sha256": "16b59bda4d4bbc8c99aa7c0f43e8bf38c121c7e9eac657b388355d18c0efc30e"
+    },
+    "procession_frame.glb": {
+      "bytes": 35088,
+      "sha256": "12fbc69b3f593d22e856921af5096133e4ea4c18a48e91d23cf9b49634f3daca"
+    },
+    "reed_screen.glb": {
+      "bytes": 29024,
+      "sha256": "cdd41e807d3c248dc98c3e8565eb1eb2c4bf30c688ca2beaf75b7d05561f16f7"
+    },
+    "reeds.glb": {
+      "bytes": 26300,
+      "sha256": "680f9c3578724ce46d4a64d5b88cd8bfcea42db0719eeb89d0c8cfa7b148ba1b"
+    },
+    "resting_mat.glb": {
+      "bytes": 15956,
+      "sha256": "d7e3d57092f3ecd86bbcb323c7a0ba4c0189d2b47624f34494ab68b9f2257d8c"
+    },
+    "rock.glb": {
+      "bytes": 4088,
+      "sha256": "f4c0d46ab3e1689eb5bc304ec1a3d4ebce3965d600c0f5b789be737b288aa21e"
+    },
+    "roof_opening.glb": {
+      "bytes": 9224,
+      "sha256": "49818e26d3111d7d6f9be43a3100776db9e6e777098968f770a97921fc0d6ae5"
+    },
+    "roof_panel.glb": {
+      "bytes": 7544,
+      "sha256": "1a82d2fd49c91f98c58f655771acb7ab4bbf645ccf8e5d179d3258fbe345b9cd"
+    },
+    "room_wall.glb": {
+      "bytes": 6888,
+      "sha256": "66170200758aa32856e21ad5a3e44f4542e2018f311ec8d98a251598c394d07e"
+    },
+    "ruth.glb": {
+      "bytes": 186272,
+      "sha256": "a9b0564af7a8c5d4f24e23532cddafbca3a36443ee2bdae04c617debc0301bb0"
+    },
+    "sewing_pouch.glb": {
+      "bytes": 28488,
+      "sha256": "b8a450bf98822832d8126b2731ce0d7986b80d698b748a8fe7b90520800382cb"
+    },
+    "shelf.glb": {
+      "bytes": 6936,
+      "sha256": "d29be0a07d64808a5c5af6acfe3df5bb53de6a40a428056c9c1e8a94f1e3d69f"
+    },
+    "simon.glb": {
+      "bytes": 189516,
+      "sha256": "fc314ab19083cea97932ac8191d2ac2dfb68448bd8820fc489ff04ca45c79669"
+    },
+    "split_olive.glb": {
+      "bytes": 31916,
+      "sha256": "c39ca245ecacc40e7e93cbfd303f93a2d35ca65e9b3dfec0b34fa2cdb076f79c"
+    },
+    "spring_marker.glb": {
+      "bytes": 22320,
+      "sha256": "ef6076c27d0a686667e7589515f8d0056d41372253c1017acaf66b81410eed68"
+    },
+    "stool.glb": {
+      "bytes": 10312,
+      "sha256": "c072cf325b34910dc632d5c6d1c59d5db64141fbbb92c189b95dd44c218f1146"
+    },
+    "supply_rack.glb": {
+      "bytes": 16036,
+      "sha256": "ee23b0b076212471310cc68d34b6ad9bb7638b4a2286c9e3f4945dfa6c3e8daa"
+    },
+    "terrace_marker.glb": {
+      "bytes": 20504,
+      "sha256": "507f0cbd52bf7bd508e50264a438524e636963a9fa3ffac5e19e88ff2924b4f7"
+    },
+    "terrace_wall.glb": {
+      "bytes": 109060,
+      "sha256": "1b9fd76201f144ddb1b8cf690abab0c0b488e0b901a9f0a346161a861fd80c17"
+    },
+    "thread_clue.glb": {
+      "bytes": 10920,
+      "sha256": "b3c73bfeb70d8141fe29cef99b32b72a1d6801e634555e81fc2bbee959721440"
+    },
+    "town_gate.glb": {
+      "bytes": 180844,
+      "sha256": "47773eb89cae0ce9c42b72b79d6ccedc793fdf47d642a8288e8199f6db4de65a"
+    },
+    "traveler.glb": {
+      "bytes": 192792,
+      "sha256": "d71bc2fd13714c3f7ec56e1903b112530ef246cacef6ee357a576073c7841b74"
+    },
+    "villager.glb": {
+      "bytes": 189528,
+      "sha256": "6e07c85720b24070980c63f478cbf07d933ccb7b5d05f7a4f3281e25f04b3138"
+    },
+    "water_basin.glb": {
+      "bytes": 9216,
+      "sha256": "26d4c563d9a83fc8d5c492f33f89877d16924301139afaaace123e0e230539b4"
+    },
+    "well.glb": {
+      "bytes": 56440,
+      "sha256": "4cadd3f53f3099e59e8d0deb3e09de8c802ed23f943424c75c5d9169704fb9dd"
+    },
+    "widow.glb": {
+      "bytes": 194748,
+      "sha256": "57b72fc87ad2e7095cb5daec065a841483244f7dc9d557f873712361a1a02b5f"
+    },
+    "wood_brace.glb": {
+      "bytes": 10296,
+      "sha256": "817b8d63b82b6159126698cdb62895ff8a2731f9aaac7868bbbd7042a767e299"
+    },
+    "worktable.glb": {
+      "bytes": 10284,
+      "sha256": "6947d17734050390138a49f4f487b34c835e55e13e8d9b51b87ac31bf63e0a5b"
+    },
+    "young_man.glb": {
+      "bytes": 193412,
+      "sha256": "341fe76e72a84d248a89bc5f6d5c99712a2a007012ceb41cd4066251960c25bc"
+    }
+  },
+  "sources": {
+    "assets/source/galilee-kit.blend": "9466033d4d8e3fc8b3d712f17b772e247fdcf11f6a458ebe1cdb1963fe4346a8",
+    "tools/blender/generate_kit.py": "e7392a0fac05d691b5ba425dba407bebf0e5b6ba8d690c4a90eece398614e105",
+    "tools/blender/galilee.py": "3848331a1c5385c22e86b44262edf80940183ac6fb17952d55d23a6302c1ccb6",
+    "tools/blender/rigging.py": "effaaed8a8e38a18499605693412d70a5ad180b124b07c9daae068d880141a22",
+    "tools/blender/inspect_galilee.py": "a1546f72bed0e1f7fff54a952ab1ac20221d61e64d2930fe89d63dad8228e24f"
+  }
+}

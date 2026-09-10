@@ -17,6 +17,8 @@ import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { AssetLibrary } from './assets';
 import { Actor } from './actors/actor';
 import { NeighborhoodActivity } from './actors/neighborhood';
+import { GalileeActivity } from './actors/galilee';
+import { localGalileePlaces } from '../content/galilee/places';
 import { RoadActivity } from './actors/road';
 import { isRoadRegion } from '../game/road/types';
 import { roadPlaces } from '../content/road/places';
@@ -35,7 +37,7 @@ import type { ActionMotion } from '../content/campaign/actions';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput } from './input';
-import { approachPath, stepPath } from '../game/navigation';
+import { approachPath, stepPath, clearancePosition } from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
@@ -60,7 +62,13 @@ export interface WorldCallbacks {
   roadCheckpoint: (step: number) => void;
   interact: (id: string) => void;
   notice: (message: string) => void;
-  frame: (point: Point, labels: ScreenLabel[], heading: number, nearest: string | null) => void;
+  frame: (
+    point: Point,
+    labels: ScreenLabel[],
+    heading: number,
+    nearest: string | null,
+    destination?: string,
+  ) => void;
 }
 export interface ScreenLabel {
   id: string;
@@ -83,6 +91,15 @@ export class World {
   private shadow: ShadowGenerator;
   private library: AssetLibrary;
   private actorPlayer!: Actor;
+  private galilee?: GalileeActivity;
+  private guidance: 'full' | 'explore' = 'full';
+  private occluders: {
+    node: TransformNode;
+    height: number;
+    x: number;
+    z: number;
+    scaleY: number;
+  }[] = [];
   private actors = new Map<string, Actor>();
   private activity!: VillageActivity;
   private state: GameState = newGame();
@@ -286,7 +303,10 @@ export class World {
     } else for (const p of [...buildings, ...trees, ...props]) this.place(p);
     for (const person of this.layout
       ? isRoadRegion(this.state.region)
-        ? roadPlaces[this.state.region].filter((p) => p.id !== 'neri')
+        ? [
+            ...roadPlaces[this.state.region].filter((p) => p.id !== 'neri'),
+            ...localGalileePlaces(this.state),
+          ]
         : (neighborhoodPlaces[this.state.region as keyof typeof neighborhoodPlaces] ?? [])
       : [...interactables, ...episodePlaces].filter((p) => !['james', 'john'].includes(p.id))) {
       if (!person.asset) continue;
@@ -308,7 +328,7 @@ export class World {
     }
     this.player = new TransformNode('player', this.scene);
     const playerModel = this.library.instantiate('traveler', 'traveler');
-    this.actorPlayer = new Actor(playerModel);
+    this.actorPlayer = new Actor(playerModel, true);
     this.playerModel = playerModel.root;
     this.playerModel.parent = this.player;
     const ring = MeshBuilder.CreateTorus(
@@ -349,6 +369,11 @@ export class World {
       this.actorPlayer,
       this.state.region as ExplorationRegion,
     );
+    this.galilee = new GalileeActivity(
+      this.library,
+      this.scene,
+      this.state.region as ExplorationRegion,
+    );
     this.update(this.state);
     this.setPosition(this.position, true);
     await this.scene.whenReadyAsync();
@@ -378,6 +403,14 @@ export class World {
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
+    if (['olive', 'cypress', 'palm'].includes(p.asset))
+      this.occluders.push({
+        node: anchor,
+        height: 3.5 * (p.scale ?? 1),
+        x: p.x,
+        z: p.z,
+        scaleY: anchor.scaling.y,
+      });
     return anchor;
   }
 
@@ -661,7 +694,7 @@ export class World {
   private showRoute(): void {
     this.routeDots.forEach((dot, i) => {
       const point = this.path[i * 2];
-      dot.setEnabled(Boolean(point));
+      dot.setEnabled(Boolean(point) && this.guidance === 'full');
       if (point) dot.position.set(point.x, groundHeight(this.state.region, point) + 0.04, point.z);
     });
   }
@@ -772,6 +805,9 @@ export class World {
     );
   }
   applySettings(settings: Settings): void {
+    this.guidance = settings.guidance ?? 'full';
+    this.showRoute();
+    this.galilee?.settings(settings);
     this.reducedMotion = settings.reducedMotion;
     this.activity?.settings(settings);
     this.neighborhood?.settings(settings);
@@ -802,6 +838,7 @@ export class World {
       this.neighborhood?.tick(dt, this.position);
       this.road?.tick(dt, this.position, this.destination === 'neri');
       this.life?.tick(dt);
+      this.galilee?.tick(dt);
       for (const [id, actor] of this.actors)
         if (id !== 'amos' || !this.neighborhood) actor.tick(dt, this.reducedMotion);
       const dx =
@@ -903,6 +940,23 @@ export class World {
         node.scaling.y = towardCamera ? 0.22 : 1;
       }
     }
+    // Lower only foliage crossing the camera-to-traveler sightline; retain its trunk and collision.
+    const cameraPoint = this.camera.position,
+      focus = this.player.position;
+    const vx = cameraPoint.x - focus.x,
+      vz = cameraPoint.z - focus.z,
+      length = vx * vx + vz * vz;
+    for (const o of this.occluders) {
+      const t = length ? ((o.x - focus.x) * vx + (o.z - focus.z) * vz) / length : -1;
+      const separation = Math.hypot(o.x - focus.x - vx * t, o.z - focus.z - vz * t);
+      const rayHeight = focus.y + 1 + (cameraPoint.y - focus.y - 1) * t;
+      const blocks =
+        t > 0 &&
+        t < 1 &&
+        separation < 1.25 &&
+        groundHeight(this.state.region, o) + o.height > rayHeight;
+      o.node.scaling.y = o.scaleY * (blocks ? 0.38 : 1);
+    }
     const companion = this.neighborhood?.position();
     if (companion)
       this.destinations = this.destinations.map((p) =>
@@ -946,10 +1000,25 @@ export class World {
             ? Math.max(95, Math.min(rect.width - 95, (v.x / width) * rect.width))
             : (v.x / width) * rect.width,
           y: (v.y / height) * rect.height,
-          visible: v.z > 0 && v.z < 1 && v.x > 0 && v.x < width && v.y > 0 && v.y < height,
+          visible:
+            v.z > 0 &&
+            v.z < 1 &&
+            v.x > 0 &&
+            v.x < width &&
+            v.y > 0 &&
+            v.y < height &&
+            (this.guidance === 'full' ||
+              distance(p, this.position) < 5 ||
+              p.id === this.destination),
         };
       });
-      this.callbacks.frame(this.position, labels, this.camera.alpha, this.nearest()?.id ?? null);
+      this.callbacks.frame(
+        this.position,
+        labels,
+        this.camera.alpha,
+        this.nearest()?.id ?? null,
+        this.destination,
+      );
     }
   }
   activate(): void {
@@ -977,6 +1046,12 @@ export class World {
     this.neighborhood?.update(state);
     this.road?.update(state);
     this.life?.update(state);
+    this.galilee?.update(state);
+    // Newly placed furniture may cover an old standing point; keep an escape route.
+    if (this.player && !this.grid.walkable(this.position)) {
+      const site = this.destinations.find((p) => p.id === 'rest-' + state.galilee.shelter.site);
+      this.setPosition(clearancePosition(this.grid, this.position, site), true);
+    }
     // Cancel approaches when an actor departs or a carried object disappears.
     if (this.destination && !this.destinations.some((p) => p.id === this.destination)) this.stop();
   }

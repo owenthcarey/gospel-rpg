@@ -16,6 +16,7 @@ export interface RegionView {
 export interface ExplorationView extends RegionView {
   setPosition(point: Point, snap?: boolean): void;
   navigate(id: string): void;
+  stop(): void;
   nearest(): import('../../content/region').Interactable | undefined;
   rotate(direction: number): void;
   zoom(direction: number): void;

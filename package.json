@@ -2,7 +2,7 @@
   "name": "gospel-rpg",
   "version": "0.2.0",
   "private": true,
-  "description": "The Way — a single-player journey through first-century Galilee",
+  "description": "The Way \u2014 a single-player journey through first-century Galilee",
   "type": "module",
   "engines": {
     "node": "^22.13.0 || >=24.0.0"
@@ -21,7 +21,9 @@
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
     "assets:build": "python3 tools/build_assets.py",
     "assets:inspect:road": "python3 tools/build_assets.py --inspect-road",
-    "fixtures:road": "node tools/generate_road_fixtures.mjs"
+    "fixtures:road": "node tools/generate_road_fixtures.mjs",
+    "fixtures:galilee": "node tools/generate_galilee_fixtures.mjs",
+    "assets:inspect:galilee": "python3 tools/build_assets.py --inspect-galilee"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

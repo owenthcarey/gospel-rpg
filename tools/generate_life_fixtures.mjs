@@ -54,6 +54,7 @@ try {
     // These are historical migration fixtures, not current-version examples.
     save.version = 6;
     delete save.state.road;
+    delete save.state.galilee;
     save.savedAt = '2026-09-09T00:00:00.000Z';
     parseSave(save);
     await writeFile(

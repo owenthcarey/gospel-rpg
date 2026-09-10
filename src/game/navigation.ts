@@ -56,3 +56,23 @@ export function stepPath(
   }
   return { position: p, path, moving, facing, arrived: route.length > 0 && path.length === 0 };
 }
+
+/** Resolve new furniture under a standing point without leaving the nearby interaction. */
+export function clearancePosition(grid: WalkGrid, from: Point, anchor?: Point): Point {
+  if (grid.walkable(from)) return from;
+  if (anchor && distance(from, anchor) < 2.6) {
+    const candidates: Point[] = [];
+    const origin = grid.cell(from);
+    for (let x = -2; x <= 2; x++)
+      for (let z = -2; z <= 2; z++) {
+        const p = { x: origin.x + x, z: origin.z + z };
+        if (grid.walkable(p) && distance(p, anchor) < 2.35 && distance(p, from) <= 2)
+          candidates.push(p);
+      }
+    candidates.sort(
+      (a, b) => distance(a, from) - distance(b, from) || distance(a, anchor) - distance(b, anchor),
+    );
+    if (candidates[0]) return candidates[0];
+  }
+  return grid.nearest(from) ?? from;
+}

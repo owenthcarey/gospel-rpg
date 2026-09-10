@@ -107,7 +107,7 @@ test('a migrated traveler completes preparation, every lake scene and a remember
   await expect(page.locator('#quest-card')).toContainText('Through the Roof');
   const exported = await exportCurrent(page);
   const save = JSON.parse(exported.toString());
-  expect(save.version).toBe(7);
+  expect(save.version).toBe(8);
   expect(save.state.episode.reflection).toBe('community');
   expect(save.state.villageStory).toBe('complete');
   expect(save.state.journal).toContain('scene-return');
@@ -185,6 +185,8 @@ test('story tracking persists and phone objectives remain compact and readable',
   await page.reload();
   await page.getByRole('button', { name: 'Continue your journey' }).click();
   await expect(page.locator('#quest-card')).toContainText('An ordinary morning');
+  await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
+  await expect(page.locator('#quest-card')).toBeVisible();
   const viewport = page.viewportSize()!;
   if (viewport.width < 640) {
     await expect(page.locator('#quest-card .quest-details').first()).toBeHidden();
@@ -265,7 +267,7 @@ test('unavailable browser storage stays explicit and still allows portable expor
   await expect(page.locator('.storage-warning')).toContainText('storage is unavailable');
   await page.getByRole('button', { name: 'Begin your journey', exact: true }).click();
   const exported = await exportCurrent(page);
-  expect(JSON.parse(exported.toString()).version).toBe(7);
+  expect(JSON.parse(exported.toString()).version).toBe(8);
   await expect(page.locator('.settings-note')).toContainText('last only this session');
 });
 

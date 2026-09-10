@@ -1,3 +1,4 @@
+import { newGalilee, type GalileeState, type GalileeEvent } from './galilee/types';
 import { newCampaign, type CampaignState, type CampaignEvent } from './campaign/types';
 import { newLife, type LifeState } from './life/types';
 import { newRoad, type RoadState, type RoadEvent } from './road/types';
@@ -18,6 +19,7 @@ export type ItemId = 'net' | 'bread';
 export type DiscoveryId = 'shore' | 'well' | 'olive';
 export type VillageStoryStage = 'not-started' | 'exploring' | 'complete';
 export interface GameState {
+  galilee: GalileeState;
   region: RegionId;
   campaign: CampaignState;
   life: LifeState;
@@ -34,6 +36,7 @@ export interface GameState {
   playTime: number;
 }
 export type GameEvent =
+  | GalileeEvent
   | CampaignEvent
   | RoadEvent
   | EpisodeEvent
@@ -46,6 +49,7 @@ export type GameEvent =
   | { type: 'finish-village-story' }
   | { type: 'discover'; id: DiscoveryId };
 export interface Settings {
+  guidance?: 'full' | 'explore';
   textSize: 'standard' | 'large';
   sound: boolean;
   volume: number;
@@ -53,6 +57,7 @@ export interface Settings {
   reducedMotion: boolean;
 }
 export const DEFAULT_SETTINGS: Settings = {
+  guidance: 'full',
   textSize: 'standard',
   sound: false,
   volume: 0.35,
@@ -61,6 +66,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 export function newGame(): GameState {
   return {
+    galilee: newGalilee(),
     region: 'capernaum',
     campaign: newCampaign(),
     life: newLife(),
