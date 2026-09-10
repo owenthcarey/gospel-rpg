@@ -29,6 +29,16 @@ Both completed scenes retain essential geometry at each quality and settle to on
 
 Human editorial review, the two stories' 25–40 minute pacing target, assistive-technology usability, real touch hardware and sustained mobile/Safari/Firefox performance remain unverified. Browser viewport emulation and geometry tests do not establish those outcomes. No public deployment was part of this implementation.
 
+### CI suite capacity · PR #13
+
+The [initial PR run](https://github.com/owenthcarey/gospel-rpg/actions/runs/34448501539) passed the build and fifteen browser shards. Shard 6/16 reached Playwright's 900-second suite deadline after five passing journeys, leaving the sixth unfinished. It reported no assertion failures: the three Living Capernaum journeys took 7.8 minutes, then Tamar and Neri's shade route took another 6.4 minutes before the remaining terrace route ran out of suite time.
+
+Quality now distributes the same 90 desktop/phone cases across 32 shards, with two or three cases per job. The matrix job count still supplies the shard denominator. The one-worker limit, test and assertion timeouts, 15-minute suite deadline, 20-minute job deadline, retries, screenshot contracts, report uploads and required `verify` gate remain unchanged.
+
+Local enumeration confirms that all 90 cases are selected exactly once: 26 shards contain three cases and six contain two. The former shard 6 splits into shards 11 and 12; shard 12 contains Tamar and both Neri routes, including the previously unfinished journey.
+
+After a fresh production build, shard 12/32 passed all three journeys under forced SwiftShader with CI settings and retries disabled in 9.4 minutes. Formatting and whitespace checks passed. Local timing does not establish GitHub runner timing.
+
 ## Beyond Capernaum — The Road to Nain · 2026-09-09
 
 [RFC-004](rfcs/004-the-road-to-nain.md) was drafted and accepted before gameplay changes. The milestone adds three exploration regions, a six-scene Luke 7:11–17 chapter, Tamar’s landmark investigation and Neri’s two cross-region walks. The [playtest guide](PLAYTEST.md) includes full journeys and five portable v7 examples.
