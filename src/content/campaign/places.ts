@@ -1,3 +1,4 @@
+import { allGalileePlaces, galileePlaceRegion, localGalileePlaces } from '../galilee/places';
 import type { Interactable } from '../region';
 import type { GameState, Point } from '../../game/types';
 import type { ExplorationRegion, RegionId } from '../../game/campaign/types';
@@ -248,6 +249,7 @@ export const allNeighborhoodPlaces: readonly Interactable[] = [
   ...Object.values(lifePlaces).flat(),
   ...Object.values(roadPlaces).flat(),
   ...roadDynamicPlaces,
+  ...allGalileePlaces,
 ];
 export function localNeighborhoodPlaces(state: GameState): Interactable[] {
   if (state.episode.stage !== 'complete') return [];
@@ -256,7 +258,8 @@ export function localNeighborhoodPlaces(state: GameState): Interactable[] {
       g.from === state.region &&
       (!roadGateways.includes(g) || state.campaign.roof.stage === 'complete'),
   );
-  if (isRoadRegion(state.region)) return [...exits, ...localRoadPlaces(state)];
+  if (isRoadRegion(state.region))
+    return [...exits, ...localRoadPlaces(state), ...localGalileePlaces(state)];
   if (state.region === 'capernaum') return [...exits, ...lifePlaces.capernaum];
   if (!(state.region in neighborhoodPlaces)) return [];
   const walk = state.campaign.walk;
@@ -274,6 +277,8 @@ export function localNeighborhoodPlaces(state: GameState): Interactable[] {
   ];
 }
 export function placeRegion(id: string, state?: GameState): RegionId | undefined {
+  const galilee = galileePlaceRegion(id);
+  if (galilee) return galilee;
   const road = roadPlaceRegion(id, state);
   if (road) return road;
   for (const [region, places] of Object.entries(lifePlaces))

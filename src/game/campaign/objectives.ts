@@ -1,3 +1,4 @@
+import { galileeGoal } from '../galilee/objectives';
 import type { GameState } from '../types';
 import { nextGateway, placeRegion, WALK_ROUTES } from '../../content/campaign/places';
 import { lifeGoal, withHeldGuidance } from '../life/objectives';
@@ -15,6 +16,11 @@ export function localTarget(s: GameState, target: string): string {
 }
 export function campaignGoal(s: GameState): StoryGoal | undefined {
   if (s.episode.stage !== 'complete' || s.tracking === 'village') return;
+  const galilee = galileeGoal(s);
+  if (galilee) {
+    const goal = withHeldGuidance(s, galilee);
+    return { ...goal, target: localTarget(s, goal.target) };
+  }
   const road = roadGoal(s);
   if (road) return { ...road, target: localTarget(s, road.target) };
   const life = lifeGoal(s);

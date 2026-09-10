@@ -1,12 +1,13 @@
+import { galileeActions } from './content/galilee/actions';
+import { practicalActions } from './content/practical';
+import { CHANNEL_IDS, type ChannelId, type Direction } from './game/galilee/types';
+import { traceWater } from './game/galilee/channel';
+import { checkArrangement } from './game/galilee/arrangement';
+import './ui/galilee.css';
 import { regions } from './content/regions';
 import { localTarget } from './game/campaign/objectives';
 import { STORY_TRACKS, ROOF_SCENES, ROOF_REFLECTIONS, NEIGHBOR_NOTES } from './game/campaign/types';
-import {
-  worldAction,
-  actionMotion,
-  actionAllowed,
-  actionBlocker,
-} from './content/campaign/actions';
+import { worldAction, actionMotion } from './content/campaign/actions';
 import './ui/styles.css';
 import './ui/episode.css';
 import './ui/campaign.css';
@@ -33,7 +34,7 @@ import { ActionQueue } from './game/action-queue';
 import { Ambience } from './scene/audio';
 import { GameRuntime } from './scene/runtime';
 import { SCENE_IDS } from './game/episode/types';
-import { actionFor, episodeActions, episodeActionInReach } from './content/episode/interactions';
+import { actionFor } from './content/episode/interactions';
 import { Interface } from './ui/interface';
 import { JOURNAL_CATEGORIES, type JournalCategory, type JournalFilter } from './ui/views/journal';
 import { escapeHtml } from './ui/icons';
@@ -163,6 +164,22 @@ async function apply(event: GameEvent): Promise<void> {
   world?.update(state);
   ui.update(state);
   audio.region(state.region);
+  if (event.type === 'galilee-action') {
+    const action = galileeActions.find((a) => a.id === event.id)!;
+    world?.performInteraction(action.motion, action.target);
+    ui.toast(
+      event.id === 'spring-test'
+        ? traceWater(state.galilee.spring.turns).message
+        : event.id.startsWith('shelter-check-')
+          ? checkArrangement(state.galilee.shelter).message
+          : action.notice,
+    );
+  }
+  if (event.type === 'galilee-turn' || event.type === 'galilee-screen')
+    world?.performInteraction(
+      'Repair',
+      event.type === 'galilee-turn' ? 'channel-' + event.id : 'rest-' + state.galilee.shelter.site,
+    );
   if (event.type === 'road-action') {
     audio.chime();
     ui.toast(roadActions.find((a) => a.id === event.id)?.notice ?? 'Remembered.');
@@ -308,6 +325,8 @@ async function updateSetting(key: keyof Settings, value: string | boolean): Prom
   if (key === 'volume') settings = { ...settings, volume: Math.max(0, Math.min(1, Number(value))) };
   if (key === 'textSize')
     settings = { ...settings, textSize: value === 'large' ? 'large' : 'standard' };
+  if (key === 'guidance')
+    settings = { ...settings, guidance: value === 'explore' ? 'explore' : 'full' };
   if (key === 'quality') settings = { ...settings, quality: value === 'low' ? 'low' : 'high' };
   world?.applySettings(settings);
   audio.set(settings);
@@ -386,6 +405,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       contextId = null;
       ui.journal(snapshot(), 'stories', name === 'road-guide' ? 'trail' : 'company');
       break;
+    case 'cancel-navigation':
+      world.cancelNavigation();
+      canvas.focus();
+      break;
     case 'navigate':
       if (started && !ui.panel && value) world.navigate(localTarget(state, value));
       break;
@@ -436,24 +459,66 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     case 'quick-action': {
       if (ui.panel) break;
-      const episode = episodeActions.find((a) => 'episode:' + a.id === value);
-      if (episode?.motion) {
-        if (episodeActionInReach(snapshot(), episode.id))
-          await apply({ type: 'episode-action', id: episode.id });
-        else ui.toast('This task is no longer within reach or has already been done.');
+      const action = practicalActions(snapshot()).find((a) => a.id === value);
+      if (!action || action.blocker) {
+        ui.toast(action?.blocker ?? 'This action is no longer available.');
         break;
       }
-      const action = value && worldAction(value);
-      if (!action || !actionMotion(action) || ui.panel) break;
-      const current = snapshot();
-      if (!actionAllowed(current, action.id)) {
-        ui.toast(
-          actionBlocker(action, current) ??
-            'Move closer to ' + action.target.replaceAll('-', ' ') + '.',
-        );
-        break;
+      await apply(action.event);
+      break;
+    }
+    case 'galilee-action':
+    case 'galilee-turn':
+    case 'galilee-screen':
+    case 'galilee-hint': {
+      const hintsOpen = Boolean(document.querySelector<HTMLDetailsElement>('.work-hints')?.open);
+      const workScroll = document.querySelector('.panel-body')?.scrollTop ?? 0;
+      const focus =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement.dataset.value
+          : undefined;
+      if (name === 'galilee-action' && value) await apply({ type: name, id: value });
+      if (name === 'galilee-turn' && value) {
+        const [id, expected] = value.split(':');
+        if (CHANNEL_IDS.includes(id as ChannelId) && /^[0-3]$/.test(expected ?? ''))
+          await apply({ type: name, id: id as ChannelId, expected: Number(expected) as Direction });
       }
-      await apply({ type: 'campaign-action', id: action.id });
+      if (name === 'galilee-screen' && /^[0-3]$/.test(value ?? ''))
+        await apply({ type: name, expected: Number(value) as Direction });
+      if (name === 'galilee-hint') await apply({ type: name });
+      const action =
+        name === 'galilee-action' ? galileeActions.find((a) => a.id === value) : undefined;
+      if (
+        action?.motion === 'PickUp' ||
+        action?.motion === 'PutDown' ||
+        action?.motion === 'Repair'
+      )
+        await close();
+      else if (contextId) {
+        ui.context(contextId, snapshot());
+        const hints = document.querySelector<HTMLDetailsElement>('.work-hints');
+        if (hints) hints.open = hintsOpen;
+        const body = document.querySelector('.panel-body');
+        if (body) body.scrollTop = workScroll;
+        requestAnimationFrame(() => {
+          if (name === 'galilee-hint') {
+            (
+              document.querySelector<HTMLElement>('[data-action="galilee-hint"]') ??
+              document.querySelector<HTMLElement>('.work-hints summary')
+            )?.focus({ preventScroll: true });
+            return;
+          }
+          const candidates = [
+            ...document.querySelectorAll<HTMLElement>('#overlay button:not([disabled])'),
+          ];
+          (
+            candidates.find(
+              (b) =>
+                b.dataset.value === focus || (name === 'galilee-turn' && b.dataset.action === name),
+            ) ?? candidates[0]
+          )?.focus();
+        });
+      }
       break;
     }
     case 'campaign-action':
@@ -655,9 +720,9 @@ async function boot(): Promise<void> {
     walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
     roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
-    frame: (position, labels, heading, nearest) => {
+    frame: (position, labels, heading, nearest, destination) => {
       state.position = { ...position };
-      ui.frame(position, labels, heading, nearest);
+      ui.frame(position, labels, heading, nearest, destination);
     },
   });
   world.engine.onContextLostObservable.add(() => {
@@ -669,9 +734,6 @@ async function boot(): Promise<void> {
     graphicsLost = false;
     syncPause();
     ui.toast('The view has been restored.');
-  });
-  await world.load(state, (message) => {
-    loadingMessage.textContent = message;
   });
   world.applySettings(settings);
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);

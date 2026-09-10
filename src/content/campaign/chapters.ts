@@ -17,6 +17,28 @@ export interface ChapterDefinition {
 const afterLake = (s: GameState) => s.episode.stage === 'complete';
 const afterRoof = (s: GameState) => s.campaign.roof.stage === 'complete';
 export const chapters: Record<StoryTrack, ChapterDefinition> = {
+  spring: {
+    id: 'spring',
+    title: 'A spring for travelers',
+    label: 'Optional · Restore a water channel',
+    region: 'galilean-road',
+    optional: true,
+    source: null,
+    available: afterRoof,
+    started: (s) => s.galilee.spring.stage !== 'not-started',
+    complete: (s) => s.galilee.spring.stage === 'complete',
+  },
+  shelter: {
+    id: 'shelter',
+    title: 'Room under the olives',
+    label: 'Optional · Prepare a resting place',
+    region: 'roadside-farm',
+    optional: true,
+    source: null,
+    available: afterRoof,
+    started: (s) => s.galilee.shelter.stage !== 'not-started',
+    complete: (s) => s.galilee.shelter.stage === 'complete',
+  },
   main: {
     id: 'main',
     title: 'Into the Deep',

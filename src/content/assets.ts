@@ -32,6 +32,7 @@ export const ACTOR_ASSETS = [
   'healed_man',
   'widow',
   'young_man',
+  'leah',
 ] as const;
 export type ActorAsset = (typeof ACTOR_ASSETS)[number];
 export const PROP_ASSETS = [
@@ -92,6 +93,13 @@ export const PROP_ASSETS = [
   'farm_shelter',
   'split_olive',
   'procession_frame',
+  'channel_straight',
+  'channel_bend',
+  'water_basin',
+  'channel_scoop',
+  'supply_rack',
+  'resting_mat',
+  'reed_screen',
 ] as const;
 export type AssetId = ActorAsset | (typeof PROP_ASSETS)[number];
 export interface AssetDefinition {

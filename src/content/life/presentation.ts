@@ -2,6 +2,10 @@ import type { AssetId } from '../assets';
 import type { HeldItem, ExplorationRegion } from '../../game/campaign/types';
 import type { GameState } from '../../game/types';
 export const heldAssets: Record<HeldItem, AssetId> = {
+  'channel-scoop': 'channel_scoop',
+  'rest-mat': 'resting_mat',
+  'rest-water': 'jug',
+  'rest-screen': 'reed_screen',
   'bread-basket': 'bread_basket',
   'empty-jug': 'jug',
   'water-jug': 'jug',

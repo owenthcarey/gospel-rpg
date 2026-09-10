@@ -47,7 +47,7 @@ describe('Road unlock and durable investigation', () => {
     expect(after.road.chapter.stage).toBe('exploring');
     expect(after.episode).toEqual(before.episode);
     expect(after.campaign.roof).toEqual(before.campaign.roof);
-    expect(makeSave(after).version).toBe(7);
+    expect(makeSave(after).version).toBe(8);
     expect(gateway(after, 'road-to-lanes').region).toBe('capernaum-lanes');
   });
   for (const order of [

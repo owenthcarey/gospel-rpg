@@ -1,3 +1,5 @@
+import { galileeContext } from './galilee';
+import { galileeAcknowledgement } from '../../content/galilee/conversations';
 import { gospelControls } from './gospel';
 import { roadContext } from './road';
 import { companyTravelsThrough } from '../../game/road/progress';
@@ -47,6 +49,8 @@ export function campaignSummary(s: GameState, filter: JournalFilter = 'all'): st
     )}</section><div class="context-actions">${button('Read Into the Deep transcript', 'transcript', 'lake')}${button('Read Through the Roof transcript', 'transcript', 'roof')}</div><p class="content-note">Some days later, the traveler’s imagined journey continues in Capernaum. Amos, Hannah and Ruth are fictional neighbors. Their stories can be completed before or after witnessing the account.</p>`;
 }
 export function contextView(id: string, s: GameState): { title: string; body: string } | undefined {
+  const galilee = galileeContext(id, s);
+  if (galilee) return galilee;
   const road = roadContext(id, s);
   if (road) return road;
   const place = allNeighborhoodPlaces.find((p) => p.id === id);
@@ -70,7 +74,7 @@ export function contextView(id: string, s: GameState): { title: string; body: st
   const noteText = note ? neighborNotes[note] : undefined;
   return {
     title: place.name,
-    body: `<p class="eyebrow">ORIGINAL ${place.kind === 'person' ? 'CONVERSATION' : 'NARRATION'}</p><p class="panel-lead">${esc(prose)}</p>${s.campaign.carrying ? `<p class="held-notice">In your hands: ${esc(s.campaign.carrying.replaceAll('-', ' '))}</p>` : ''}<div class="context-actions">${available.map((a) => button(a.label, 'campaign-action', a.id, true)).join('')}${reflection ? ROOF_REFLECTIONS.map((id) => button(roofReflections[id].title, 'roof-reflect', id, true)).join('') : ''}</div>${blocked.map((a) => `<p class="action-blocker"><strong>${esc(a.label)}</strong><br>${esc(actionBlocker(a, s) ?? a.requirement)}</p>`).join('')}${noteText ? `<article class="context-note"><h3>${esc(noteText.title)}</h3><p>${esc(noteText.text)}</p>${noteText.reference ? `<p class="reference-tag">${esc(noteText.reference)}</p>` : ''}${s.campaign.notes.includes(note!) ? '<p>Remembered in your journal.</p>' : button('Remember this place', 'neighbor-note', note)}</article>` : ''}${!available.length && !reflection && actions.length ? `<p class="content-note">${esc(actions[0]!.requirement)}</p>` : ''}`,
+    body: `<p class="eyebrow">ORIGINAL ${place.kind === 'person' ? 'CONVERSATION' : 'NARRATION'}</p><p class="panel-lead">${esc(prose)} ${esc(galileeAcknowledgement(id, s))}</p>${s.campaign.carrying ? `<p class="held-notice">In your hands: ${esc(s.campaign.carrying.replaceAll('-', ' '))}</p>` : ''}<div class="context-actions">${available.map((a) => button(a.label, 'campaign-action', a.id, true)).join('')}${reflection ? ROOF_REFLECTIONS.map((id) => button(roofReflections[id].title, 'roof-reflect', id, true)).join('') : ''}</div>${blocked.map((a) => `<p class="action-blocker"><strong>${esc(a.label)}</strong><br>${esc(actionBlocker(a, s) ?? a.requirement)}</p>`).join('')}${noteText ? `<article class="context-note"><h3>${esc(noteText.title)}</h3><p>${esc(noteText.text)}</p>${noteText.reference ? `<p class="reference-tag">${esc(noteText.reference)}</p>` : ''}${s.campaign.notes.includes(note!) ? '<p>Remembered in your journal.</p>' : button('Remember this place', 'neighbor-note', note)}</article>` : ''}${!available.length && !reflection && actions.length ? `<p class="content-note">${esc(actions[0]!.requirement)}</p>` : ''}`,
   };
 }
 export function roofControls(s: GameState, paused: boolean): string {

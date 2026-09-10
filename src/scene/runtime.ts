@@ -157,6 +157,9 @@ export class GameRuntime {
     this.view?.applySettings(settings);
     this.engine.resize();
   }
+  cancelNavigation(): void {
+    if (isExplorationView(this.view)) this.view.stop();
+  }
   navigate(id: string): void {
     if (isExplorationView(this.view)) this.view.navigate(id);
   }

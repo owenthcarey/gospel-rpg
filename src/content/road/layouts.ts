@@ -6,10 +6,15 @@ const ramp = (n: number) => {
   return t * t * (3 - 2 * t);
 };
 const heights: Record<RoadRegion, (p: Point) => number> = {
-  'galilean-road': (p) =>
-    0.9 * ramp((p.z + 10) / 20) +
-    0.6 * ramp((p.x + 8) / 16) -
-    2 * ramp((p.x - 14) / 10) * (1 - ramp((p.z + 3) / 10)),
+  'galilean-road': (p) => {
+    const natural =
+      0.9 * ramp((p.z + 10) / 20) +
+      0.6 * ramp((p.x + 8) / 16) -
+      2 * ramp((p.x - 14) / 10) * (1 - ramp((p.z + 3) / 10));
+    const terrace =
+      ramp((p.x + 6) / 8) * ramp((18 - p.x) / 8) * ramp((p.z + 19) / 8) * ramp((5 - p.z) / 8);
+    return natural * (1 - terrace) + (0.52 - p.x * 0.012) * terrace;
+  },
   'roadside-farm': (p) => 0.25 * ramp((p.z + 8) / 16),
   'nain-gate': (p) => 0.8 * ramp((p.z + 12) / 12),
 };
@@ -54,6 +59,8 @@ export const roadLayouts: Record<RoadRegion, ExplorationLayout> = {
     ],
     paths: [
       [{ x: 0, z: -15 }, { x: 0, z: 14 }, 2.5],
+      [{ x: 0, z: -7 }, { x: 9, z: -7 }, 1.5],
+      [{ x: 4, z: -11 }, { x: 4, z: -7 }, 1.2],
       [{ x: -14, z: 0 }, { x: 0, z: 0 }, 2.1],
       [{ x: -11, z: 0 }, { x: -8, z: 3 }, 1.2],
       [{ x: -8, z: 3 }, { x: -5, z: 9 }, 1.2],
@@ -105,6 +112,8 @@ export const roadLayouts: Record<RoadRegion, ExplorationLayout> = {
     ],
     paths: [
       [{ x: 0, z: -14 }, { x: 0, z: 3 }, 2.4],
+      [{ x: -5, z: -6 }, { x: 0, z: -6 }, 1.4],
+      [{ x: 0, z: -4 }, { x: 8, z: -4 }, 1.4],
       [{ x: -6, z: 3 }, { x: 5, z: 3 }, 2.3],
       [{ x: 5, z: 3 }, { x: 5, z: 7 }, 1.8],
     ],

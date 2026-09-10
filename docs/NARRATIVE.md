@@ -68,3 +68,11 @@ The traveler observes. Tamar’s and Neri’s stories do not gate, cause or earn
 **Company on the road** is an original shared walk with Neri. Shade and open terraces are equal choices with distinct meeting points and memories. He can wait while the player visits elsewhere, reads an account or returns supplies. Reaching the courtyard together leads to a final conversation and visible resting company. Route choices are ordinary travel preferences, without moral scoring or a preferred spiritual outcome.
 
 Historical/editorial review and human pacing remain separate from automated provenance and flow checks. Future writing should acknowledge only choices actually present in a save; migration must not invent an earlier memory.
+
+## Living Galilee: work and welcome
+
+**A spring for travelers** and **Room under the olives** unlock after Through the Roof. Both are original fictional interludes in the existing road/farm regions. They introduce no scripture, Gospel speech or claimed historical incident. Neither unlocks or changes a Gospel event, and neither implies that a miracle is earned through helpful work.
+
+The spring asks the traveler to observe, clear and physically connect a small channel. Either basin is a valid destination, with equal memories of patience or sharing. An unsuccessful test gives specific information and costs nothing. The resting-place story introduces Leah, an original fictional host. Shade and breeze are useful choices with different screen placements. All supply orders work; the player may recover and rearrange supplies before choosing a memory of welcome or care. There is no score, preferred spiritual outcome, timed duty or simulated scarcity.
+
+Completed water and resting company remain visible on later visits. Original neighbors acknowledge the work and recall only earlier memories actually stored in the save. Authoritative companion positions are preserved. The source, basins, screen construction and farm arrangement are artistic simplifications, not archaeological claims. The two stories' combined 25–40 minute target is an unmeasured human-playtesting goal; automated journeys do not establish reading pace.

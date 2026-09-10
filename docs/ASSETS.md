@@ -1,6 +1,6 @@
 # Asset production
 
-The 71 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
+The 79 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -28,7 +28,7 @@ exec(compile(open(recipe).read(), recipe, 'exec'))
 
 ## Model contracts
 
-- Fourteen skinned actors: traveler, Simon, Miriam, Jesus, village neighbor, James, John, Hannah, Amos, Ruth, a bearer, the healed man, a widow and a young man. Ezra uses the neighbor model; Tamar, Neri and Adina reuse Ruth, Amos and Hannah.
+- Fifteen skinned actors: traveler, Simon, Miriam, Jesus, village neighbor, James, John, Hannah, Amos, Ruth, a bearer, the healed man, a widow, a young man and Leah. Ezra uses the neighbor model; Tamar, Neri and Adina reuse Ruth, Amos and Hannah.
 - Shared twelve-bone rig, with rigid per-part weights that preserve the chunky silhouettes. Named clips: `Idle`, `Walk`, `Carry`, `Gesture`, `Sit`, `Row`, `Haul`, `Kneel`, `Recline`, `Rise`, `MatCarry`, `Use`, `PickUp`, `PutDown`, `Repair`, `SitDown`. Blender NLA tracks export each clip; Babylon samples them independently per actor. This is skeletal animation with deliberately restrained deformation, not cloth simulation.
 - Every actor exports `carry_socket`; the traveler uses it for baskets, jugs, tools and the sewing pouch. The boat exports `seat_front`, `seat_middle`, `seat_back`, `net_socket`, `oar_left`, and `oar_right` attachment transforms.
 - Separate oar, empty/full basket, folded/cast/full net, bread bundle, mooring coil and landing mat models support persistent interactions and staged scenes.
@@ -93,3 +93,20 @@ npm run assets:inspect:road
 `inspect_road.py` produces a [kit sheet](verification/road-to-nain-kit.png), [frame-contact view](verification/road-to-nain-contact.png), [three sitting-up poses](verification/road-to-nain-poses.png) and [byte inventory](verification/road-to-nain-assets.json). It accepts the same root/output environment variables as the earlier inspection script and can also be executed through Blender MCP. It imports the exported GLBs rather than inspecting only source geometry. The `.blend`, recipe and GLBs are delivered together.
 
 The initial CLI fallback has been replaced. After Blender was reopened, enabling the installed addon and connecting its server restored native MCP access (addon 1.6, protocol 5). MCP rebuilt the full isolated workshop, exported and independently imported the models, rendered the three review sheets, and installed the nine new assets plus the bearer and Jesus clips. The other sixty prior MCP exports remain unchanged. Live review prompted the gate detailing correction. The [rebuild record](verification/road-to-nain-mcp.json) includes hashes for the installed exports, recipes, source and review images. The original Blender scene was preserved. Asset contracts and acceptance budgets are unchanged.
+
+## Living Galilee kit
+
+`galilee.py` adds Leah and seven functional props: straight and bent channel sections, receiving basin, wooden scoop, supply rack, woven mat and reed screen. The complete kit contains **79 GLBs: 15 actors and 64 props**, totaling **5,230,036 bytes**, below the unchanged **5,242,880-byte** cap. Leah shares all sixteen established clips. The three specialist Nain clips remain confined to their original actors. No external assets or licenses were added.
+
+The models and isolated workshop were generated through Blender MCP. Review corrected overlapping channel beds, blocked elbow corners, basin inlets and Babylon handedness. Unchanged historical exports retain their prior bytes; rebuilt metadata need not be identical. Original procedural recipes and the workshop remain the source of all geometry.
+
+```sh
+npm run assets:inspect:galilee
+npm run test -- tests/unit/assets.test.ts tests/unit/galilee-staging.test.ts
+```
+
+`inspect_galilee.py` independently imports the shipped GLBs, preserves unrelated scenes, and produces a [kit sheet](verification/living-galilee-kit.png), [connected-channel sheet](verification/living-galilee-channel.png), [resting-place sheet](verification/living-galilee-rest.png) and [hashed byte inventory](verification/living-galilee-assets.json). The same script can run through Blender MCP with `GOSPEL_RPG_ROOT` set. `GOSPEL_REVIEW_OUTPUT` selects another output directory.
+
+The functional channel basis is north/east in game coordinates. Babylon reflects the static import's X axis: bent pieces receive a quarter-turn basis correction before applying the saved turn, and receiving basins face west after a half-turn. Every rendered opening is measured against the solver in tests. Water follows only tested ports and connects through the basin's low inlet. The screen uses authored north/east/south/west sockets; its footprint updates navigation. Mat, jar and screen previews disappear as supplies are placed. Completed travelers use the existing seated/kneeling clips, leaving real companions untouched.
+
+Carried mats/screens are reduced to 42% presentation scale, and the screen rests lower in the grip. A scoop tilt and forward offset keep it readable. Imported skin/prop tests measure hand reach for all four new carried items. These restrained silhouettes are illustrative rather than cloth, water or contact physics. The player blends clip transitions over 0.16 seconds; specialist Gospel poses retain exact sampling.

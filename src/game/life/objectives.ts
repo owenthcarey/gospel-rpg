@@ -6,6 +6,30 @@ export const heldItems: Record<
   HeldItem,
   { name: string; target: string; place: string; story: StoryTrack }
 > = {
+  'channel-scoop': {
+    name: 'wooden scoop',
+    target: 'spring-tools',
+    place: 'the scoop rack on the Galilean road',
+    story: 'spring',
+  },
+  'rest-mat': {
+    name: 'woven mat',
+    target: 'rest-supplies',
+    place: 'the farm supplies rack',
+    story: 'shelter',
+  },
+  'rest-water': {
+    name: 'resting water jar',
+    target: 'rest-supplies',
+    place: 'the farm supplies rack',
+    story: 'shelter',
+  },
+  'rest-screen': {
+    name: 'folding reed screen',
+    target: 'rest-supplies',
+    place: 'the farm supplies rack',
+    story: 'shelter',
+  },
   'bread-basket': {
     name: 'bread basket',
     target: 'bread-shelf',
@@ -147,7 +171,9 @@ export function lifeGoal(s: GameState): StoryGoal | undefined {
 /** A tracked practical story must never route a player to another uncarryable object. */
 export function withHeldGuidance(s: GameState, goal: StoryGoal): StoryGoal {
   const item = s.campaign.carrying && heldItems[s.campaign.carrying];
-  const practical = ['neighbors', 'table', 'belonging', 'rest'].includes(s.tracking);
+  const practical = ['neighbors', 'table', 'belonging', 'rest', 'spring', 'shelter'].includes(
+    s.tracking,
+  );
   if (item && practical && item.story !== s.tracking && !goal.done)
     return { ...goal, ...heldReturn(s)! };
   return goal;

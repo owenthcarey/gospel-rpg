@@ -1,4 +1,5 @@
 import type { Point } from '../types';
+import { GALILEE_ITEMS } from '../galilee/types';
 import { LIFE_ITEMS } from '../life/types';
 import { ROAD_REGIONS } from '../road/types';
 
@@ -28,6 +29,8 @@ export const STORY_TRACKS = [
   'nain',
   'trail',
   'company',
+  'spring',
+  'shelter',
 ] as const;
 export type StoryTrack = (typeof STORY_TRACKS)[number];
 export const ROOF_SCENES = [
@@ -59,6 +62,7 @@ export const HELD_ITEMS = [
   'water-jug',
   'cart-handle',
   ...LIFE_ITEMS,
+  ...GALILEE_ITEMS,
 ] as const;
 export type HeldItem = (typeof HELD_ITEMS)[number];
 export interface CampaignState {

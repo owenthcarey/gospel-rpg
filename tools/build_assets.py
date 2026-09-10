@@ -12,7 +12,7 @@ if not blender and sys.platform == "darwin":
 if not blender or not pathlib.Path(blender).exists():
     sys.exit("Set BLENDER_BIN to your Blender 4.2+ executable.")
 env = dict(os.environ, GOSPEL_RPG_ROOT=str(root))
-if sys.argv[1:] not in ([], ['--inspect-road']):
-    sys.exit('Usage: build_assets.py [--inspect-road]')
-script = 'inspect_road.py' if '--inspect-road' in sys.argv else 'generate_kit.py'
+if sys.argv[1:] not in ([], ['--inspect-road'], ['--inspect-galilee']):
+    sys.exit('Usage: build_assets.py [--inspect-road | --inspect-galilee]')
+script = 'inspect_galilee.py' if '--inspect-galilee' in sys.argv else 'inspect_road.py' if '--inspect-road' in sys.argv else 'generate_kit.py'
 subprocess.run([blender, "--background", "--python", str(root / "tools/blender" / script)], env=env, check=True)

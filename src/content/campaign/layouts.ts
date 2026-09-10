@@ -1,3 +1,4 @@
+import { supplyPosition, REST_LAYOUTS } from '../../game/galilee/arrangement';
 import type { Point, GameState } from '../../game/types';
 import type { Obstacle } from '../../game/pathfinding';
 import type { AssetId } from '../assets';
@@ -178,6 +179,22 @@ export function layoutObstacles(s: GameState): Obstacle[] {
   if (!layout) return [];
   return [
     ...layout.obstacles,
+    // New furniture is resolved by the runtime grid; the historical save terrain stays valid.
+    ...(s.region === 'galilean-road'
+      ? [wall(8, -5, 1.6, 1.6), wall(8, -9, 1.6, 1.6), wall(4, -11, 1.5, 0.8)]
+      : []),
+    ...(s.region === 'roadside-farm'
+      ? Object.values(REST_LAYOUTS).map((p) => wall(p.x, p.z + 0.9, 1.7, 0.8))
+      : []),
+    ...(s.region === 'roadside-farm' &&
+    s.galilee.shelter.site &&
+    s.galilee.shelter.placed.includes('screen')
+      ? (() => {
+          const r = s.galilee.shelter,
+            p = supplyPosition(r.site!, 'screen', r.screen);
+          return [wall(p.x, p.z, r.screen % 2 ? 0.6 : 1.7, r.screen % 2 ? 1.7 : 0.6)];
+        })()
+      : []),
     ...(s.region === 'capernaum-lanes' && !s.campaign.walk.gateOpen ? [wall(0, 0, 3.4, 1)] : []),
   ];
 }

@@ -10,7 +10,7 @@ The prelude, three discoveries and Ezra's independent story remain playable. See
 
 ## Next priorities
 
-1. Playtest all three chapters and seven optional stories for pacing, navigation clarity and visual legibility. Review the source, historical framing and original connective narrative with a human editor or specialist.
+1. Playtest all three chapters and nine optional stories for pacing, navigation clarity and visual legibility. Review the source, historical framing and original connective narrative with a human editor or specialist.
 2. Profile real mobile GPUs and test Safari/iOS, Android, Firefox and Edge, including storage limits and eviction. Use the diagnostics and model budgets before increasing crowd or region size.
 3. Broaden accessibility review with screen readers and touch hardware, including destination-list navigation, caption focus and small landscape layouts.
 4. Use playtest findings to select the next bounded Gospel episode or region, reusing the terrain, cross-region companion, source, caption and save contracts.
@@ -39,3 +39,9 @@ The remaining review for this milestone is to measure the two new stories’ 20�
 The kit now has 71 original GLBs, fourteen actors, sixteen shared clips and three specialized procession clips within the unchanged asset budget. V7 preserves v1–v6 journeys and supplies five portable review fixtures. New production journeys cover interruptions, both routes, clue orders/endings, Gospel reading, import/export, rendering and phone layouts. Read [verification](VERIFICATION.md) for actual results and the Blender MCP fallback.
 
 Next, prioritize human pacing/editorial review and physical-device/accessibility profiling of this larger build. Additional regions, free sailing, offline caching and broader world systems remain separate milestones.
+
+## Implemented: Living Galilee
+
+[RFC-005](rfcs/005-living-galilee.md) adds a channel-connection adventure and an arrangement adventure across the existing road and farm. Both offer alternate solutions, recoverable supplies, saveable intermediate work, original memories and persistent visible company. Shared practical actions, quieter guidance, explicit walk cancellation, camera clearance and direct saved-region startup make the existing world easier to explore. The kit grows to 79 original assets within the existing limits; v8 preserves previous saves.
+
+The next decision should follow human playtesting of the now twelve story tracks (three chapters and nine optional stories), especially repeated carrying, channel legibility and phone navigation. Physical-device performance, assistive technology, historical/editorial review and pacing remain the external review priorities above. The complete Galilee/Judea map, free sailing and offline update/storage policy remain separate milestones.

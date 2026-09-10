@@ -1,3 +1,4 @@
+import { transitionGalilee } from './galilee/progress';
 import { campaignGoal, localTarget } from './campaign/objectives';
 import { transitionCampaign } from './campaign/progress';
 import { transitionEpisode } from './episode/progress';
@@ -9,6 +10,8 @@ export const discoveryOrder: readonly DiscoveryId[] = ['well', 'olive', 'shore']
 
 /** The sole authority for story progression. Invalid/repeated actions are harmless. */
 export function transition(state: GameState, event: GameEvent): GameState {
+  if (event.type.startsWith('galilee-'))
+    return transitionGalilee(state, event as import('./galilee/types').GalileeEvent);
   if (event.type.startsWith('road-') || event.type.startsWith('nain-'))
     return transitionRoad(state, event as import('./road/types').RoadEvent);
   if (

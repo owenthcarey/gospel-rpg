@@ -1,3 +1,6 @@
+import { parseGalilee } from './galilee';
+import { newGalilee, GALILEE_ITEMS } from '../game/galilee/types';
+import { galileeJournalIds } from '../game/galilee/progress';
 import { newCampaign, REGION_IDS, STORY_TRACKS } from '../game/campaign/types';
 import { campaignJournalIds } from '../game/campaign/progress';
 import { parseCampaign, regionBounds, validPoint } from './campaign';
@@ -14,10 +17,10 @@ import { newRoad, isRoadRegion } from '../game/road/types';
 import { roadJournalIds } from '../game/road/progress';
 import { parseRoad } from './road';
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 7;
+  version: 8;
   region: RegionId;
   savedAt: string;
   state: GameState;
@@ -97,7 +100,7 @@ export function parseSave(raw: unknown): SaveFile {
   }
   if (
     !record(raw) ||
-    (raw.version !== 5 && raw.version !== 6 && raw.version !== 7) ||
+    (raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8) ||
     !REGION_IDS.some((id) => id === raw.region) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
@@ -107,15 +110,23 @@ export function parseSave(raw: unknown): SaveFile {
   const s: Record<string, unknown> = {
     ...raw.state,
     ...(raw.version === 5 ? { life: newLife() } : {}),
-    ...(raw.version !== 7 ? { road: newRoad() } : {}),
+    ...(Number(raw.version) < 7 ? { road: newRoad() } : {}),
+    ...(Number(raw.version) < 8 ? { galilee: newGalilee() } : {}),
   };
   if (
-    raw.version !== 7 &&
+    Number(raw.version) < 7 &&
     (isRoadRegion(String(raw.region)) ||
       raw.region === 'nain-account' ||
       ['nain', 'trail', 'company'].includes(String(s.tracking)))
   )
     throw new SaveError('This older save contains unknown road progress.');
+  if (
+    Number(raw.version) < 8 &&
+    (['spring', 'shelter'].includes(String(s.tracking)) ||
+      (record(s.campaign) &&
+        GALILEE_ITEMS.includes(s.campaign.carrying as (typeof GALILEE_ITEMS)[number])))
+  )
+    throw new SaveError('This older save contains unknown Galilee progress.');
   // Old saves cannot introduce newly earned stories, held items, or tracking.
   if (raw.version === 5) {
     if (
@@ -166,6 +177,9 @@ export function parseSave(raw: unknown): SaveFile {
     campaign.roof.stage !== 'complete'
   )
     throw new SaveError('The tracked road story is not available in this save.');
+  const galilee = parseGalilee(s.galilee, campaign);
+  if (['spring', 'shelter'].includes(String(s.tracking)) && campaign.roof.stage !== 'complete')
+    throw new SaveError('The tracked Galilee story is not available.');
   if (
     !record(s.position) ||
     !finite(s.position.x) ||
@@ -208,6 +222,7 @@ export function parseSave(raw: unknown): SaveFile {
     ...campaignJournalIds(campaign),
     ...lifeJournalIds(life),
     ...roadJournalIds(road),
+    ...galileeJournalIds(galilee),
   ]);
   if (s.villageStory !== 'not-started') expectedJournal.add('ezra-invitation');
   if (s.villageStory === 'complete') {
@@ -228,7 +243,7 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 7,
+    version: 8,
     region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
@@ -237,6 +252,7 @@ export function parseSave(raw: unknown): SaveFile {
       campaign,
       life,
       road,
+      galilee,
       tracking: s.tracking as GameState['tracking'],
       villageMemory: s.villageMemory as GameState['villageMemory'],
       position: { x: s.position.x, z: s.position.z },
@@ -265,6 +281,7 @@ export function importSave(text: string): SaveFile {
 export function parseSettings(raw: unknown): Settings {
   if (!record(raw)) return { ...DEFAULT_SETTINGS };
   return {
+    guidance: raw.guidance === 'explore' ? 'explore' : 'full',
     textSize: raw.textSize === 'large' ? 'large' : 'standard',
     sound: typeof raw.sound === 'boolean' ? raw.sound : DEFAULT_SETTINGS.sound,
     volume: finite(raw.volume) ? Math.max(0, Math.min(1, raw.volume)) : DEFAULT_SETTINGS.volume,
