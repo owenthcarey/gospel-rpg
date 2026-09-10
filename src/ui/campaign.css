@@ -8,7 +8,7 @@
   border: 1px solid #b6af91;
   padding: 18px;
   border-radius: 8px;
-  background: #eeebdb;
+  background: #2a4034;
 }
 .campaign-stories h3 {
   margin: 10px 0;
@@ -33,7 +33,7 @@
 }
 .held-notice {
   padding: 12px;
-  background: #e1e5d3;
+  background: #2a4034;
   border-radius: 6px;
 }
 .scene-scripture cite {
@@ -134,9 +134,12 @@
   min-height: 0;
   flex: 1 1 auto;
 }
-.scene-mode .toast {
+:root #ui.scene-mode .toast {
   top: 92px;
   bottom: auto;
+  height: max-content;
+  animation: life-notice-in 0.2s ease;
+  pointer-events: none;
 }
 @media (max-width: 640px) {
   .world-label .label-name {
@@ -144,7 +147,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .scene-mode .toast {
+  :root #ui.scene-mode .toast {
     top: 74px;
   }
 }

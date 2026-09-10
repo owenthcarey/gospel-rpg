@@ -25,6 +25,7 @@ export interface ExplorationView extends RegionView {
     target?: string,
   ): void;
   getCompanionPosition(): Point | undefined;
+  getRoadCompanionPosition(): Point | undefined;
 }
 export function isExplorationView(view: RegionView | undefined): view is ExplorationView {
   return Boolean(view && 'navigate' in view && 'setPosition' in view);

@@ -1,0 +1,145 @@
+{
+  "version": 7,
+  "region": "nain-gate",
+  "savedAt": "2026-09-10T00:00:00.000Z",
+  "state": {
+    "region": "nain-gate",
+    "episode": {
+      "stage": "complete",
+      "preparations": ["basket", "mooring", "gathering"],
+      "carrying": null,
+      "checkpoint": null,
+      "aftermath": ["landing", "miriam", "ezra"],
+      "reflection": "community",
+      "notes": []
+    },
+    "campaign": {
+      "roof": {
+        "stage": "complete",
+        "checkpoint": null,
+        "aftermath": ["ruth", "hannah", "house"],
+        "reflection": "welcome"
+      },
+      "walk": {
+        "stage": "not-started",
+        "route": null,
+        "gateOpen": false,
+        "step": 0,
+        "position": { "x": -9, "z": -5 }
+      },
+      "table": { "stage": "not-started", "location": null, "delivered": [] },
+      "carrying": null,
+      "notes": [],
+      "visited": {
+        "capernaum": { "x": -3, "z": 19 },
+        "capernaum-lanes": { "x": 13, "z": 6 },
+        "gathering-house": { "x": 0, "z": 1 },
+        "bakehouse": { "x": -3, "z": 2 }
+      }
+    },
+    "life": {
+      "thread": { "stage": "not-started", "clues": [], "ending": null },
+      "bench": { "stage": "not-started", "method": null, "cleared": false }
+    },
+    "road": {
+      "chapter": {
+        "stage": "complete",
+        "checkpoint": null,
+        "aftermath": ["gate", "courtyard", "neighbor"],
+        "reflection": "compassion"
+      },
+      "trail": {
+        "stage": "complete",
+        "evidence": ["terrace", "spring"],
+        "interpretation": "shelter",
+        "ending": "company",
+        "hint": 0
+      },
+      "company": {
+        "stage": "complete",
+        "route": "terrace",
+        "step": 8,
+        "region": "nain-gate",
+        "position": { "x": 9, "z": 4 }
+      },
+      "visited": {
+        "galilean-road": { "x": 0, "z": 12 },
+        "roadside-farm": { "x": 0, "z": -10 },
+        "nain-gate": { "x": 0, "z": -3 }
+      }
+    },
+    "tracking": "nain",
+    "villageMemory": null,
+    "position": { "x": 0, "z": -3 },
+    "quest": "complete",
+    "inventory": [],
+    "discoveries": [],
+    "villageStory": "not-started",
+    "journal": [
+      "arrival",
+      "simon",
+      "net",
+      "bread",
+      "delivered",
+      "complete",
+      "episode-invitation",
+      "action-take-basket",
+      "action-place-basket",
+      "action-secure-mooring",
+      "action-join-gathering",
+      "scene-gathering",
+      "scene-teaching",
+      "scene-invitation",
+      "scene-answer",
+      "scene-lowering",
+      "scene-abundance",
+      "scene-partners",
+      "scene-astonishment",
+      "scene-calling",
+      "scene-return",
+      "action-receive-catch",
+      "action-talk-miriam",
+      "action-talk-ezra",
+      "reflection-community",
+      "episode-complete",
+      "roof-invitation",
+      "roof-scene-house",
+      "roof-scene-bearers",
+      "roof-scene-roof",
+      "roof-scene-forgiven",
+      "roof-scene-question",
+      "roof-scene-authority",
+      "roof-scene-rise",
+      "roof-scene-amazement",
+      "roof-after-ruth",
+      "roof-after-hannah",
+      "roof-after-house",
+      "roof-reflection-welcome",
+      "roof-complete",
+      "nain-invitation",
+      "trail-invitation",
+      "trail-evidence-terrace",
+      "trail-evidence-spring",
+      "trail-interpreted",
+      "trail-arrived",
+      "trail-ending-company",
+      "trail-complete",
+      "company-invitation",
+      "company-route-terrace",
+      "company-arrived",
+      "company-complete",
+      "nain-scene-approach",
+      "nain-scene-procession",
+      "nain-scene-compassion",
+      "nain-scene-command",
+      "nain-scene-restored",
+      "nain-scene-wonder",
+      "nain-after-gate",
+      "nain-after-courtyard",
+      "nain-after-neighbor",
+      "nain-reflection-compassion",
+      "nain-complete"
+    ],
+    "playTime": 0
+  }
+}

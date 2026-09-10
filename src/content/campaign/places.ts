@@ -2,6 +2,14 @@ import type { Interactable } from '../region';
 import type { GameState, Point } from '../../game/types';
 import type { ExplorationRegion, RegionId } from '../../game/campaign/types';
 import { lifePlaces } from '../life/places';
+import {
+  roadGateways,
+  roadPlaces,
+  roadDynamicPlaces,
+  localRoadPlaces,
+  roadPlaceRegion,
+} from '../road/places';
+import { isRoadRegion } from '../../game/road/types';
 
 export interface Gateway extends Interactable {
   from: ExplorationRegion;
@@ -9,6 +17,7 @@ export interface Gateway extends Interactable {
   arrival: Point;
 }
 export const gateways: readonly Gateway[] = [
+  ...roadGateways,
   {
     id: 'to-lanes',
     name: 'The road into Capernaum',
@@ -237,10 +246,17 @@ export const allNeighborhoodPlaces: readonly Interactable[] = [
   ...gateways,
   ...Object.values(neighborhoodPlaces).flat(),
   ...Object.values(lifePlaces).flat(),
+  ...Object.values(roadPlaces).flat(),
+  ...roadDynamicPlaces,
 ];
 export function localNeighborhoodPlaces(state: GameState): Interactable[] {
   if (state.episode.stage !== 'complete') return [];
-  const exits = gateways.filter((g) => g.from === state.region);
+  const exits = gateways.filter(
+    (g) =>
+      g.from === state.region &&
+      (!roadGateways.includes(g) || state.campaign.roof.stage === 'complete'),
+  );
+  if (isRoadRegion(state.region)) return [...exits, ...localRoadPlaces(state)];
   if (state.region === 'capernaum') return [...exits, ...lifePlaces.capernaum];
   if (!(state.region in neighborhoodPlaces)) return [];
   const walk = state.campaign.walk;
@@ -254,10 +270,12 @@ export function localNeighborhoodPlaces(state: GameState): Interactable[] {
         return { ...p };
       }),
     ...exits,
-    ...lifePlaces[state.region as ExplorationRegion],
+    ...(lifePlaces[state.region as ExplorationRegion] ?? []),
   ];
 }
-export function placeRegion(id: string): RegionId | undefined {
+export function placeRegion(id: string, state?: GameState): RegionId | undefined {
+  const road = roadPlaceRegion(id, state);
+  if (road) return road;
   for (const [region, places] of Object.entries(lifePlaces))
     if (places.some((p) => p.id === id)) return region as RegionId;
   const gateway = gateways.find((g) => g.id === id);

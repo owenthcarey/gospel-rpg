@@ -1,0 +1,157 @@
+.road-stories {
+  margin-top: 1.6rem;
+}
+.road-evidence,
+.company-overview,
+.journey-companion {
+  margin: 1.4rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border, #b8ad8e);
+  border-radius: 12px;
+  background: #2a4034;
+}
+.road-evidence blockquote {
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid #9c7a40;
+  line-height: 1.65;
+}
+.evidence-cards,
+.journey-destinations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.evidence-cards article,
+.journey-destinations article {
+  padding: 1rem;
+  border: 1px solid #b7aa855c;
+  border-radius: 8px;
+  background: #22372d;
+}
+.evidence-cards h4,
+.journey-destinations h3 {
+  margin: 0 0 0.65rem;
+}
+.road-hint {
+  margin-top: 1.2rem;
+  border-top: 1px solid #b7aa8566;
+  padding-top: 1rem;
+}
+.road-hint h4 {
+  margin: 0;
+}
+.road-hint button,
+.company-overview > button,
+.journey-companion button {
+  margin: 0.3rem 0.4rem 0.3rem 0;
+}
+.marker-study {
+  margin: 0.8rem 0 1rem;
+}
+.marker-study svg {
+  display: block;
+  width: 100%;
+  max-height: 235px;
+  border-radius: 12px;
+}
+.marker-study figcaption {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.remembered-detail {
+  color: #d6dca5;
+  font-weight: 600;
+}
+.route-interpretation {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+.route-interpretation h3,
+.route-interpretation p {
+  margin: 0.2rem 0;
+}
+.route-interpretation button {
+  width: 100%;
+  justify-content: space-between;
+  text-align: left;
+  white-space: normal;
+}
+.interpretation-feedback {
+  border-left: 3px solid #967842;
+  padding: 0.8rem 1rem;
+  background: #34483a;
+  line-height: 1.65;
+}
+.company-route {
+  padding-left: 1.4rem;
+}
+.company-route li {
+  margin: 1rem 0;
+  padding-left: 0.4rem;
+}
+.company-route li span {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.company-route .done {
+  color: var(--muted);
+}
+.company-route .current {
+  color: var(--gold);
+  border-left: 3px solid #a6803c;
+  padding-left: 0.65rem;
+}
+.map-tabs {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.map-tabs [aria-pressed='true'] {
+  background: #354f43;
+  color: #fff3cf;
+}
+.journey-map {
+  display: block;
+  width: 100%;
+  margin: 1.3rem 0;
+}
+.journey-guidance {
+  padding: 1rem;
+  border-left: 3px solid #997338;
+  background: #314a3b;
+}
+.journey-guidance p {
+  margin: 0.5rem 0;
+}
+.journey-destinations p {
+  line-height: 1.6;
+}
+.journey-destinations button {
+  white-space: normal;
+}
+@media (max-width: 600px) {
+  .evidence-cards,
+  .journey-destinations {
+    grid-template-columns: 1fr;
+  }
+  .road-evidence,
+  .company-overview,
+  .journey-companion {
+    padding: 0.9rem;
+  }
+  .road-hint button,
+  .company-overview > button,
+  .journey-companion button {
+    width: 100%;
+    margin-right: 0;
+    justify-content: space-between;
+    white-space: normal;
+  }
+}

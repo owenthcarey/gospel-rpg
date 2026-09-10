@@ -1,8 +1,8 @@
-# Playing the two-chapter build
+# Playing the three-chapter build
 
 Run `npm ci` and `npm run dev`, then open the printed local URL. A fresh journey begins on the shore. Complete the net-and-bread prelude, return to Simon, prepare the landing and gathering, witness Into the Deep, and finish its aftermath with a reflection. The next chapter appears in the journal and on the road into Capernaum.
 
-For a focused Chapter II review, choose **Saves & settings → Import** and select `tests/fixtures/saves/v4-complete-episode.json`. Importing replaces the current autosave, so export a journey you want to keep first. The supplied save contains completed Chapter I progress and automatically migrates to v6.
+For a focused Chapter II review, choose **Saves & settings → Import** and select `tests/fixtures/saves/v4-complete-episode.json`. Importing replaces the current autosave, so export a journey you want to keep first. The supplied save contains completed Chapter I progress and automatically migrates to v7.
 
 ## Through the Roof
 
@@ -51,7 +51,7 @@ For a focused Chapter II review, choose **Saves & settings → Import** and sele
 
 ## Journal and continuity
 
-Visit Stories, People, Places and Memories. Filter both story cards and memories, read evidence and both transcripts, and follow a person/place destination from a lake or roof presentation. The presentation should return to exploration with its current checkpoint preserved. After the fishermen depart, their entries should point to remembered accounts rather than unavailable people.
+Visit Stories, People, Places and Memories. Filter the story cards and memories, read evidence and all three transcripts, and follow a person/place destination from a lake or roof presentation. The presentation should return to exploration with its current checkpoint preserved. After the fishermen depart, their entries should point to remembered accounts rather than unavailable people.
 
 Check the compact action tray with mouse, keyboard and touch; the original shoreline preparation tasks also use it. Conversations, clue reading and choices retain their reading panels. Repeat on a narrow portrait viewport and 844×390 landscape with large text. Labels should avoid controls and one another; the map retains destinations hidden by crowding.
 
@@ -74,3 +74,28 @@ These are in `tests/fixtures/saves/`. The original v1–v5 fixtures remain valid
 - Device, browser, graphics setting, and F3 measurements for performance observations. Phone viewport emulation on a laptop is not a physical-device result.
 
 See [verification](VERIFICATION.md) for completed automated checks, captured rendering data, and the remaining hardware/editorial review limits.
+
+## Beyond Capernaum — The Road to Nain
+
+Import `v7-beyond-capernaum.json` for a completed Chapter II journey with both new optional stories unstarted. Leave the gathering house, cross the lanes and take **The road beyond Capernaum**. The route compresses an imagined journey; it does not represent surveyed distances or a precise Gospel chronology.
+
+1. Open **Map → Journey map**. Verify the current place, visited/unvisited distinction, connected paths and next doorway. Use the local map for individual people and landmarks. Travel remains on foot.
+2. Speak with **Tamar** and accept **A way remembered**. Inspect the spring marker and terrace marker in either order. Compare their modeled details and readable inspection studies with her recollection.
+3. Return to Tamar with both clues. Try an unsupported interpretation, read the mismatch, then try again. **Show a more specific hint** advances through three optional levels; the last offers an exact destination.
+4. Visit the roadside farm’s shelter, confirm its split olive and two pale stones, then return to Tamar. Choose careful observation or shared company as your ending. Repeat from a fresh fixture for the other order/ending.
+5. Speak with **Neri** at the farm. Choose the shade or terrace route and begin walking. Select **Walk with Neri** for each meeting point; stay nearby and let him reach each boundary before continuing through its gateway. The doorway text says whether he will come with you.
+6. Open menus, walk away, take a different exit, export/reload/import, or witness the Gospel account during the walk. Neri stays in his actual region. **Journal → Company on the road → Find Neri** and the journey map explain where to regroup. Both routes end with a final conversation and visible seated company at Nain.
+7. At **A place at the gate**, enter **At the gate** without completing either optional story. Read all six scenes; pause, describe, inspect the full Luke 7:11–17 transcript, leave and reload at a checkpoint. Try finish-with-summary on a second journey.
+8. Afterward, visit the gate, courtyard and Adina in any order, then return to the gate and choose compassion, restoration or shared wonder. The road back and all earlier stories stay open.
+9. Carry a legacy jug or pouch through the new regions, including while walking with Neri. Use the satchel’s return-point guidance to return it to its original location. Check feet, labels and route markers on slopes and walk around the gate walls and farm shelter.
+10. Repeat inspection, maps, story guidance and Gospel controls with keyboard, large text, reduced motion, phone portrait and phone landscape. Check that the toast remains a short notice above the scene, without obscuring the figures.
+
+| Portable v7 fixture          | Starting point                                            |
+| ---------------------------- | --------------------------------------------------------- |
+| `v7-beyond-capernaum.json`   | Chapter II complete; leave the house for the road.        |
+| `v7-road-investigation.json` | Tamar’s invitation accepted; terrace evidence recorded.   |
+| `v7-companion-waiting.json`  | Neri waits at the farm while the traveler is on the road. |
+| `v7-nain-checkpoint.json`    | The stopped bearers and command, Luke 7:14.               |
+| `v7-road-complete.json`      | Chapter III and both road adventures complete.            |
+
+All examples are in `tests/fixtures/saves/`. `npm run fixtures:road` regenerates the v7 examples using the real reducers and save validator. The older v1–v6 examples remain importable. Human reading/pacing, editorial review and physical-device observations should be recorded separately from automated results.

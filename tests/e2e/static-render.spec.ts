@@ -3,6 +3,10 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { district } from '../helpers/campaign';
 import { makeSave } from '../../src/persistence/schema';
+import { roadStart, roadAction } from '../helpers/road';
+import { gateway } from '../helpers/campaign';
+import { transition } from '../../src/game/quest';
+import { NAIN_SCENES } from '../../src/game/road/types';
 import { isActorAsset } from '../../src/content/assets';
 
 // A small fixed software-rendered scene gives the same reference on GPU and CI hosts.
@@ -83,6 +87,16 @@ test('static scenery survives quality switches, orbit, reload and region replace
 
   // Deliberately remove the rendered static geometry while keeping valid GLBs,
   // terrain, actors and labels. Aggregate mesh counts alone still look healthy.
+  await removeStaticGeometry(page);
+  await ready(page);
+  await expect(page).not.toHaveScreenshot('bakehouse-static-low.png', options);
+  await page.screenshot({
+    path: info.outputPath('deliberately-missing-static-geometry.png'),
+    style: '#ui{visibility:hidden}',
+  });
+});
+
+async function removeStaticGeometry(page: Page) {
   await page.route('**/assets/models/*.glb', async (route) => {
     const id = new URL(route.request().url()).pathname.split('/').at(-1)!.slice(0, -4);
     if (isActorAsset(id)) {
@@ -106,10 +120,51 @@ test('static scenery survives quality switches, orbit, reload and region replace
       body: Buffer.concat([header, padded, tail]),
     });
   });
-  await ready(page);
-  await expect(page).not.toHaveScreenshot('bakehouse-static-low.png', options);
+}
+
+test('the Nain tableau survives replacement and reload; missing gate geometry fails its image contract', async ({
+  page,
+}, info) => {
+  test.skip(
+    info.project.name === 'mobile-chromium',
+    'Fixed software-rendered reference; all new phone regions have separate checks.',
+  );
+  test.setTimeout(240_000);
+  const nain = roadAction(gateway(roadStart(), 'to-nain'), 'nain-enter');
+  const state = NAIN_SCENES.slice(0, 3).reduce(
+    (s, checkpoint) => transition(s, { type: 'nain-next', checkpoint }),
+    nain,
+  );
+  const load = async () => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Saves & settings/ }).click();
+    await page.locator('[data-setting="quality"]').selectOption('low');
+    await page.locator('[data-setting="reducedMotion"]').check();
+    await page.locator('#import-save').setInputFiles({
+      name: 'nain.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(makeSave(state))),
+    });
+    await expect(page.locator('#game-canvas')).toHaveAttribute('data-checkpoint', 'command');
+    await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
+  };
+  await load();
+  await expect(page).toHaveScreenshot('nain-command-low.png', options);
+  await page.locator('[data-action="scene-leave"]').click();
+  await page.locator('.toolbar [data-action="map"]').click();
+  await page.locator('.map-destinations [data-value="nain-viewpoint"]').click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.locator('[data-action="road-action"][data-value="nain-enter"]').click();
+  await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
+  await expect(page).toHaveScreenshot('nain-command-low.png', options);
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue your journey' }).click();
+  await expect(page).toHaveScreenshot('nain-command-low.png', options);
+  await removeStaticGeometry(page);
+  await load();
+  await expect(page).not.toHaveScreenshot('nain-command-low.png', options);
   await page.screenshot({
-    path: info.outputPath('deliberately-missing-static-geometry.png'),
+    path: info.outputPath('deliberately-missing-nain-geometry.png'),
     style: '#ui{visibility:hidden}',
   });
 });

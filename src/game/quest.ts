@@ -3,11 +3,14 @@ import { transitionCampaign } from './campaign/progress';
 import { transitionEpisode } from './episode/progress';
 import { mainObjective, mainTarget } from './episode/objectives';
 import type { DiscoveryId, GameEvent, GameState } from './types';
+import { transitionRoad } from './road/progress';
 
 export const discoveryOrder: readonly DiscoveryId[] = ['well', 'olive', 'shore'];
 
 /** The sole authority for story progression. Invalid/repeated actions are harmless. */
 export function transition(state: GameState, event: GameEvent): GameState {
+  if (event.type.startsWith('road-') || event.type.startsWith('nain-'))
+    return transitionRoad(state, event as import('./road/types').RoadEvent);
   if (
     [
       'journey',

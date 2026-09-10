@@ -24,6 +24,9 @@ export const lifeRegionAssets: Record<ExplorationRegion, readonly AssetId[]> = {
   'capernaum-lanes': ['sewing_pouch', 'thread_clue', 'villager'],
   bakehouse: ['mending_cloth', 'wood_brace', 'villager'],
   'gathering-house': [],
+  'galilean-road': [],
+  'roadside-farm': [],
+  'nain-gate': [],
 };
 export function lifePresentation(s: GameState) {
   const { thread, bench } = s.life;

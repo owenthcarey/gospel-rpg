@@ -100,6 +100,11 @@ export function mainObjective(s: GameState): string {
     return 'Choose what stays with you, beside the water';
   return episodeRows(s).find((row) => !row.done)!.label;
 }
+export function preludeObjective(s: GameState): string {
+  return s.quest === 'complete'
+    ? 'Supplies delivered and a place found beside the water. The prelude is complete.'
+    : preludeRows(s).find((row) => !row.done)!.label;
+}
 export function mainTarget(s: GameState): string {
   if (s.quest !== 'complete') return preludeRows(s).find((row) => !row.done)!.target;
   if (s.episode.stage === 'witnessing' || s.episode.stage === 'complete') return 'viewpoint';

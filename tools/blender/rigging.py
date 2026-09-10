@@ -11,6 +11,7 @@ CLIPS = {
     "Idle": 60, "Walk": 24, "Carry": 24, "Gesture": 60,
     "Sit": 60, "Row": 36, "Haul": 40, "Kneel": 60, "Recline": 60, "Rise": 60, "MatCarry": 24, "Use": 60,
     "PickUp": 36, "PutDown": 36, "Repair": 60, "SitDown": 72,
+    "SitUp": 60, "FrameCarry": 60, "TouchFrame": 60,
 }
 
 def export_character(name, parts, scene, output, grid_index):
@@ -133,6 +134,21 @@ def export_character(name, parts, scene, output, grid_index):
         if clip == "Use":
             p["body"].rotation_euler.x = -.12
             p["forearm_right"].rotation_euler.x += wave*.2
+        if clip == "SitUp":
+            # From the same supported reclining pose to a seated pose. The scene
+            # offsets the root so the pelvis remains above the carrying frame.
+            amount = phase * phase * (3 - 2 * phase)
+            p["root"].rotation_euler.x = -math.pi/2 * (1-amount)
+            p["root"].location.y = .12 * (1-amount)
+            p["robe"].rotation_euler.x = -math.pi/2 * amount
+            for side in ("left", "right"):
+                p["thigh_" + side].rotation_euler.x = -math.pi/2 * amount
+        if clip in ("FrameCarry", "TouchFrame"):
+            # The forearms extend toward -Y, the modeled actor's front. Hand
+            # centers meet the 0.84 m handrails with actors 0.93 m from center.
+            for side in (("left", "right") if clip == "FrameCarry" else ("right",)):
+                p["arm_" + side].rotation_euler.x = -.45
+                p["forearm_" + side].rotation_euler.x = -.40
         if clip == "Kneel":
             p["root"].location.y = -.38
             p["robe"].scale.y = .68
@@ -174,6 +190,9 @@ def export_character(name, parts, scene, output, grid_index):
 
     scene.render.fps = 30
     for clip, duration in CLIPS.items():
+        specialist = {"SitUp": "young_man", "FrameCarry": "bearer", "TouchFrame": "jesus"}
+        if clip in specialist and name != specialist[clip]:
+            continue
         rig.animation_data_create()
         rig.animation_data.action = None
         for step in range(9):

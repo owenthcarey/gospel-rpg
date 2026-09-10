@@ -9,7 +9,7 @@ const server = await createServer({
 });
 try {
   const { action, district, gateway } = await server.ssrLoadModule('/tests/helpers/campaign.ts');
-  const { makeSave } = await server.ssrLoadModule('/src/persistence/schema.ts');
+  const { makeSave, parseSave } = await server.ssrLoadModule('/src/persistence/schema.ts');
   const run = (ids, initial = district()) => ids.reduce((s, id) => action(s, id), initial);
   const identified = run([
     'life-thread-accept',
@@ -51,7 +51,11 @@ try {
     'v6-living-capernaum': gateway(complete, 'bakehouse-exit'),
   })) {
     const save = makeSave(state);
+    // These are historical migration fixtures, not current-version examples.
+    save.version = 6;
+    delete save.state.road;
     save.savedAt = '2026-09-09T00:00:00.000Z';
+    parseSave(save);
     await writeFile(
       'tests/fixtures/saves/' + name + '.json',
       await format(JSON.stringify(save), { parser: 'json' }),

@@ -12,12 +12,18 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { AssetLibrary } from './assets';
 import { Actor } from './actors/actor';
 import { NeighborhoodActivity } from './actors/neighborhood';
+import { RoadActivity } from './actors/road';
+import { isRoadRegion } from '../game/road/types';
+import { roadPlaces } from '../content/road/places';
+import { regions } from '../content/regions';
 import {
   campaignLayout,
+  groundHeight,
   layoutObstacles,
   type ExplorationLayout,
 } from '../content/campaign/layouts';
@@ -51,6 +57,7 @@ import { newGame, type GameState, type Point, type Settings } from '../game/type
 
 export interface WorldCallbacks {
   walkCheckpoint: () => void;
+  roadCheckpoint: (step: number) => void;
   interact: (id: string) => void;
   notice: (message: string) => void;
   frame: (point: Point, labels: ScreenLabel[], heading: number, nearest: string | null) => void;
@@ -66,6 +73,7 @@ export class World {
   grid: WalkGrid;
   private layout?: ExplorationLayout;
   private neighborhood?: NeighborhoodActivity;
+  private road?: RoadActivity;
   private life!: LifeActivity;
   private seatedAction?: { time: number; x: number; z: number; started: boolean };
   private cutaways: { node: TransformNode; kind: string }[] = [];
@@ -170,7 +178,11 @@ export class World {
     if (this.layout) {
       const floor = MeshBuilder.CreateGround(
         'walkable-terrain',
-        { width: this.layout.inside ? 16 : 100, height: this.layout.inside ? 16 : 100 },
+        {
+          width: this.layout.inside ? 16 : 100,
+          height: this.layout.inside ? 16 : 100,
+          subdivisions: this.layout.height ? 100 : 1,
+        },
         this.scene,
       );
       floor.material = this.material(
@@ -179,17 +191,41 @@ export class World {
       );
       floor.receiveShadows = true;
       floor.metadata = { ground: true };
+      if (this.layout.height) this.conformToGround(floor);
       const pathMaterial = this.material('worn-paths', '#d7c194');
+      const junctions = new Map<string, { point: Point; width: number }>();
       for (const [a, b, width] of this.layout.paths) {
         const path = MeshBuilder.CreateGround(
           'lane-path',
-          { width, height: distance(a, b) },
+          {
+            width,
+            height: distance(a, b),
+            subdivisions: this.layout.height ? Math.ceil(distance(a, b)) : 1,
+          },
           this.scene,
         );
         path.position.set((a.x + b.x) / 2, 0.012, (a.z + b.z) / 2);
         path.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
+        if (this.layout.height) this.conformToGround(path, 0.014);
         path.material = pathMaterial;
         path.metadata = { ground: true };
+        if (this.layout.height)
+          for (const point of [a, b]) {
+            const key = point.x + ',' + point.z;
+            if ((junctions.get(key)?.width ?? 0) < width) junctions.set(key, { point, width });
+          }
+      }
+      for (const { point, width } of junctions.values())
+        this.makePathJunction(point, width, pathMaterial);
+      if (initial.region === 'galilean-road') {
+        const lake = MeshBuilder.CreateGround(
+          'distant-galilee',
+          { width: 80, height: 38 },
+          this.scene,
+        );
+        lake.position.set(53, -0.13, -20);
+        lake.material = this.material('distant-lake-blue', '#80aaa9');
+        lake.isPickable = false;
       }
       this.camera.lowerRadiusLimit = this.layout.camera.min;
       this.camera.upperRadiusLimit = this.layout.camera.max;
@@ -235,19 +271,23 @@ export class World {
     await this.library.load(
       explorationAssets(this.state.region as ExplorationRegion),
       (loaded, total) => {
-        onProgress('Preparing Capernaum · ' + loaded + ' of ' + total);
+        onProgress(
+          'Preparing ' + regions[this.state.region].title + ' · ' + loaded + ' of ' + total,
+        );
       },
     );
     if (this.layout) {
       for (const p of this.layout.decor) {
         const node = this.place(p);
-        node.position.y = p.y ?? 0;
+        node.position.y = groundHeight(this.state.region, p) + (p.y ?? 0);
         node.scaling.x *= p.scaleX ?? 1;
         if (p.cutaway) this.cutaways.push({ node, kind: p.cutaway });
       }
     } else for (const p of [...buildings, ...trees, ...props]) this.place(p);
     for (const person of this.layout
-      ? (neighborhoodPlaces[this.state.region as keyof typeof neighborhoodPlaces] ?? [])
+      ? isRoadRegion(this.state.region)
+        ? roadPlaces[this.state.region].filter((p) => p.id !== 'neri')
+        : (neighborhoodPlaces[this.state.region as keyof typeof neighborhoodPlaces] ?? [])
       : [...interactables, ...episodePlaces].filter((p) => !['james', 'john'].includes(p.id))) {
       if (!person.asset) continue;
       const node = this.place({ ...person, asset: person.asset }, person.id);
@@ -280,7 +320,14 @@ export class World {
     ring.parent = this.player;
     ring.position.y = 0.045;
     ring.isPickable = false;
-    if (this.layout)
+    if (isRoadRegion(this.state.region))
+      this.road = new RoadActivity(
+        this.library,
+        this.state.region,
+        () => this.grid,
+        this.callbacks.roadCheckpoint,
+      );
+    else if (this.layout)
       this.neighborhood = new NeighborhoodActivity(
         this.library,
         this.actors,
@@ -322,7 +369,11 @@ export class World {
     );
     const anchor = model.root;
     if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model));
-    anchor.position.set(p.x, p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : 0, p.z);
+    anchor.position.set(
+      p.x,
+      p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : groundHeight(this.state.region, p),
+      p.z,
+    );
     anchor.rotation.y =
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
@@ -330,6 +381,43 @@ export class World {
     return anchor;
   }
 
+  private makePathJunction(point: Point, width: number, material: StandardMaterial): void {
+    const positions = [point.x, groundHeight(this.state.region, point) + 0.014, point.z],
+      indices: number[] = [];
+    for (let i = 0; i < 12; i++) {
+      const x = point.x + (Math.cos((i * Math.PI) / 6) * width) / 2,
+        z = point.z + (Math.sin((i * Math.PI) / 6) * width) / 2;
+      positions.push(x, groundHeight(this.state.region, { x, z }) + 0.014, z);
+      indices.push(0, i + 1, ((i + 1) % 12) + 1);
+    }
+    const mesh = new Mesh('path-junction', this.scene),
+      data = new VertexData(),
+      normals: number[] = [];
+    VertexData.ComputeNormals(positions, indices, normals);
+    data.positions = positions;
+    data.indices = indices;
+    data.normals = normals;
+    data.applyToMesh(mesh);
+    mesh.material = material;
+    mesh.isPickable = false;
+    mesh.receiveShadows = true;
+  }
+  private conformToGround(mesh: Mesh, offset = 0): void {
+    const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+    const world = mesh.computeWorldMatrix(true);
+    for (let i = 0; i < positions.length; i += 3) {
+      const p = Vector3.TransformCoordinates(
+        new Vector3(positions[i]!, 0, positions[i + 2]!),
+        world,
+      );
+      positions[i + 1] = groundHeight(this.state.region, p) + offset - mesh.position.y;
+    }
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, mesh.getIndices()!, normals);
+    mesh.setVerticesData(VertexBuffer.PositionKind, positions);
+    mesh.setVerticesData(VertexBuffer.NormalKind, normals);
+    mesh.refreshBoundingInfo();
+  }
   private makeTerrain(): void {
     const positions: number[] = [],
       indices: number[] = [],
@@ -522,7 +610,7 @@ export class World {
     }
     this.path = path;
     this.destination = undefined;
-    this.marker.position.set(cell!.x, 0.045, cell!.z);
+    this.marker.position.set(cell!.x, groundHeight(this.state.region, cell!) + 0.045, cell!.z);
     this.marker.setEnabled(true);
     this.showRoute();
     return true;
@@ -545,7 +633,7 @@ export class World {
     this.path = path;
     this.destination = id;
     const end = path.at(-1)!;
-    this.marker.position.set(end.x, 0.045, end.z);
+    this.marker.position.set(end.x, groundHeight(this.state.region, end) + 0.045, end.z);
     this.marker.setEnabled(true);
     this.showRoute();
   }
@@ -574,7 +662,7 @@ export class World {
     this.routeDots.forEach((dot, i) => {
       const point = this.path[i * 2];
       dot.setEnabled(Boolean(point));
-      if (point) dot.position.set(point.x, 0.04, point.z);
+      if (point) dot.position.set(point.x, groundHeight(this.state.region, point) + 0.04, point.z);
     });
   }
   private poseTraveler(moving: boolean, dt: number): void {
@@ -635,7 +723,12 @@ export class World {
   }
   setPosition(p: Point, snap = false): void {
     this.position = this.grid.walkable(p) ? { ...p } : (this.grid.nearest(p) ?? { x: -1, z: -3 });
-    if (this.player) this.player.position.set(this.position.x, 0, this.position.z);
+    if (this.player)
+      this.player.position.set(
+        this.position.x,
+        groundHeight(this.state.region, this.position),
+        this.position.z,
+      );
     if (snap) this.camera.target.copyFrom(this.cameraTarget());
     this.stop();
   }
@@ -659,7 +752,7 @@ export class World {
     if (this.layout)
       return new Vector3(
         Math.max(-5, Math.min(5, this.position.x)),
-        0,
+        groundHeight(this.state.region, this.position),
         Math.max(-4, Math.min(6, this.position.z + 3)),
       );
     return new Vector3(this.position.x, 0, this.position.z + 2);
@@ -682,6 +775,7 @@ export class World {
     this.reducedMotion = settings.reducedMotion;
     this.activity?.settings(settings);
     this.neighborhood?.settings(settings);
+    this.road?.settings(settings);
     this.life?.settings(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
@@ -690,7 +784,10 @@ export class World {
         boat.rotation.z = 0;
       });
       this.people.forEach((person) => {
-        person.position.y = 0;
+        person.position.y = groundHeight(this.state.region, {
+          x: person.position.x,
+          z: person.position.z,
+        });
       });
       this.waterLines.forEach((line) => {
         line.scaling.x = 1;
@@ -703,6 +800,7 @@ export class World {
       this.time += dt;
       this.activity?.tick(dt, false);
       this.neighborhood?.tick(dt, this.position);
+      this.road?.tick(dt, this.position, this.destination === 'neri');
       this.life?.tick(dt);
       for (const [id, actor] of this.actors)
         if (id !== 'amos' || !this.neighborhood) actor.tick(dt, this.reducedMotion);
@@ -738,7 +836,10 @@ export class World {
         const step = stepPath(
           this.position,
           this.path,
-          dt * (this.destination === 'amos-waypoint' ? 0.44 : 1),
+          dt *
+            (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
+              ? 0.44
+              : 1),
         );
         if (step.facing) this.face(step.facing);
         this.position = step.position;
@@ -757,7 +858,11 @@ export class World {
         }
       }
       if (this.keys.has('q')) this.camera.alpha += dt * 0.8;
-      this.player.position.set(this.position.x, 0, this.position.z);
+      this.player.position.set(
+        this.position.x,
+        groundHeight(this.state.region, this.position),
+        this.position.z,
+      );
       this.poseTraveler(moving && !this.paused, dt);
       const target = this.cameraTarget();
       if (this.reducedMotion) this.camera.target.copyFrom(target);
@@ -803,6 +908,17 @@ export class World {
       this.destinations = this.destinations.map((p) =>
         p.id === 'amos' ? { ...p, ...companion } : p,
       );
+    const neri = this.road?.position();
+    this.canvas.dataset.roadCompanion = neri
+      ? JSON.stringify({
+          ...neri,
+          region: this.state.region,
+          step: this.state.road.company.step,
+          stage: this.state.road.company.stage,
+        })
+      : '';
+    if (neri)
+      this.destinations = this.destinations.map((p) => (p.id === 'neri' ? { ...p, ...neri } : p));
     this.scene.render();
     const playback = this.actorPlayer.playback;
     this.canvas.dataset.actorPose = playback.clip;
@@ -815,7 +931,11 @@ export class World {
       const rect = this.canvas.getBoundingClientRect();
       const labels = this.destinations.map((p) => {
         const v = Vector3.Project(
-          new Vector3(p.x, p.kind === 'person' ? 2.18 : 1.9, p.z),
+          new Vector3(
+            p.x,
+            groundHeight(this.state.region, p) + (p.kind === 'person' ? 2.18 : 1.9),
+            p.z,
+          ),
           Matrix.Identity(),
           this.scene.getTransformMatrix(),
           this.camera.viewport.toGlobal(width, height),
@@ -855,12 +975,16 @@ export class World {
         this.layout.bounds.max,
       );
     this.neighborhood?.update(state);
+    this.road?.update(state);
     this.life?.update(state);
     // Cancel approaches when an actor departs or a carried object disappears.
     if (this.destination && !this.destinations.some((p) => p.id === this.destination)) this.stop();
   }
   getCompanionPosition(): Point | undefined {
     return this.neighborhood?.position();
+  }
+  getRoadCompanionPosition(): Point | undefined {
+    return this.road?.position();
   }
   performInteraction(motion?: ActionMotion, target?: string): void {
     if (!motion) this.activity?.perform();

@@ -11,6 +11,19 @@ import './ui/styles.css';
 import './ui/episode.css';
 import './ui/campaign.css';
 import './ui/life.css';
+import './ui/road.css';
+import {
+  ROAD_ACTIONS,
+  TRAIL_EVIDENCE,
+  TRAIL_INTERPRETATIONS,
+  TRAIL_ENDINGS,
+  COMPANY_ROUTES,
+  NAIN_SCENES,
+  NAIN_REFLECTIONS,
+  type RoadEvent,
+} from './game/road/types';
+import { roadActions } from './content/road/actions';
+import { leavePresentationEvent } from './game/presentation';
 import { dialogueFor, type Dialogue, type Choice } from './content/story';
 import { transition } from './game/quest';
 import { newGame, type GameEvent, type GameState, type Settings } from './game/types';
@@ -106,6 +119,8 @@ function snapshot(): GameState {
   const current = structuredClone({ ...state, position: world?.getPosition() ?? state.position });
   const companion = world?.getCompanionPosition();
   if (companion) current.campaign.walk.position = companion;
+  const neri = world?.getRoadCompanionPosition();
+  if (neri) current.road.company.position = neri;
   return current;
 }
 function enqueueSave(slot: SlotId = 'auto', notify = false): Promise<void> {
@@ -148,6 +163,22 @@ async function apply(event: GameEvent): Promise<void> {
   world?.update(state);
   ui.update(state);
   audio.region(state.region);
+  if (event.type === 'road-action') {
+    audio.chime();
+    ui.toast(roadActions.find((a) => a.id === event.id)?.notice ?? 'Remembered.');
+  }
+  if (event.type === 'road-evidence')
+    ui.toast('Observation recorded. The other marker may be inspected in either order.');
+  if (event.type === 'road-step' && state.road.company.stage === 'arrived')
+    ui.toast('You have arrived together. Speak with Neri beside the bench.');
+  if (event.type === 'nain-reflect') {
+    audio.chime();
+    ui.toast('At the gate complete · Your reflection is remembered.');
+  }
+  if (event.type === 'road-ending') {
+    audio.chime();
+    ui.toast('A way remembered complete · Your shared memory is in the journal.');
+  }
   if (event.type === 'campaign-action') {
     const action = worldAction(event.id);
     if (action && actionMotion(action))
@@ -210,6 +241,12 @@ async function apply(event: GameEvent): Promise<void> {
   await enqueueSave();
 }
 function openDialogue(id: string): void {
+  if (id === 'neri-meeting') {
+    ui.toast(
+      'Stay near Neri at this stop. At a doorway, wait until you are together before continuing.',
+    );
+    return;
+  }
   if (id === 'amos-waypoint') {
     ui.toast('Stay near Amos at this turn. The next meeting point appears when you both arrive.');
     return;
@@ -321,11 +358,11 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       menuRequest++;
       conversation = null;
       if (name === 'journal') {
-        if (value === 'memories' || value === 'stories') ui.journal(state, value, 'all');
-        else ui.journal(state);
+        if (value === 'memories' || value === 'stories') ui.journal(snapshot(), value, 'all');
+        else ui.journal(snapshot());
       }
       if (name === 'transcript') ui.transcript(state, value);
-      if (name === 'inventory') ui.inventory(state);
+      if (name === 'inventory') ui.inventory(snapshot());
       if (name === 'map') ui.map(snapshot());
       if (name === 'help') ui.help();
       break;
@@ -333,13 +370,29 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (ui.panel === 'settings' && value === 'toggle') await close();
       else await showSettings();
       break;
+    case 'journey-map':
+    case 'local-map':
+      pause();
+      menuRequest++;
+      conversation = null;
+      contextId = null;
+      ui.map(snapshot(), name === 'journey-map');
+      break;
+    case 'road-guide':
+    case 'road-company':
+      pause();
+      menuRequest++;
+      conversation = null;
+      contextId = null;
+      ui.journal(snapshot(), 'stories', name === 'road-guide' ? 'trail' : 'company');
+      break;
     case 'navigate':
       if (started && !ui.panel && value) world.navigate(localTarget(state, value));
       break;
     case 'travel':
       if (value) {
         if (regions[state.region].mode === 'presentation')
-          await apply({ type: state.region === 'roof-account' ? 'roof-leave' : 'leave-scene' });
+          await apply(leavePresentationEvent(state));
         await close();
         world.navigate(localTarget(state, value));
       }
@@ -420,6 +473,44 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
         if (contextId) ui.context(contextId, snapshot());
       }
       break;
+    case 'road-action':
+    case 'road-evidence':
+    case 'road-interpret':
+    case 'road-ending':
+    case 'road-route':
+    case 'nain-reflect': {
+      const allowed = {
+        'road-action': ROAD_ACTIONS,
+        'road-evidence': TRAIL_EVIDENCE,
+        'road-interpret': TRAIL_INTERPRETATIONS,
+        'road-ending': TRAIL_ENDINGS,
+        'road-route': COMPANY_ROUTES,
+        'nain-reflect': NAIN_REFLECTIONS,
+      }[name];
+      if (!allowed.some((id) => id === value)) break;
+      await apply({ type: name, id: value } as RoadEvent);
+      if (
+        regions[state.region].mode === 'presentation' ||
+        value === 'company-start' ||
+        name === 'nain-reflect' ||
+        name === 'road-ending'
+      )
+        await close();
+      else if (contextId) ui.context(contextId, snapshot());
+      break;
+    }
+    case 'road-hint':
+      await apply({ type: 'road-hint' });
+      if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
+      else ui.journal(snapshot(), 'stories', 'trail');
+      break;
+    case 'nain-next':
+    case 'nain-summary':
+      if (NAIN_SCENES.some((id) => id === value)) {
+        await apply({ type: name, checkpoint: value } as RoadEvent);
+        await close();
+      }
+      break;
     case 'roof-reflect':
       if (ROOF_REFLECTIONS.some((id) => id === value)) {
         await apply({ type: 'roof-reflect', id: value as (typeof ROOF_REFLECTIONS)[number] });
@@ -459,7 +550,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       }
       break;
     case 'scene-leave':
-      await apply({ type: state.region === 'roof-account' ? 'roof-leave' : 'leave-scene' });
+      await apply(leavePresentationEvent(state));
       await close();
       break;
     case 'scene-summary':
@@ -562,6 +653,7 @@ async function boot(): Promise<void> {
   world = new GameRuntime(canvas, {
     interact: openDialogue,
     walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
+    roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
     frame: (position, labels, heading, nearest) => {
       state.position = { ...position };

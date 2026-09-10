@@ -8,6 +8,7 @@ import { hasReturned } from '../../game/episode/progress';
 import { allInteractables } from '../../content/region';
 import { placeRegion } from '../../content/campaign/places';
 import { regions } from '../../content/regions';
+import { knownRegions, journeyPlaces } from '../../content/journey';
 import { escapeHtml as esc } from '../icons';
 
 export const JOURNAL_CATEGORIES = ['stories', 'people', 'places', 'memories'] as const;
@@ -17,6 +18,9 @@ export function journalToolbar(category: JournalCategory, filter: JournalFilter)
   return `<nav class="journal-categories" aria-label="Journal categories">${JOURNAL_CATEGORIES.map((id) => `<button class="secondary-button" aria-pressed="${category === id}" data-action="journal-category" data-value="${id}">${id[0]!.toUpperCase() + id.slice(1)}</button>`).join('')}</nav>${category === 'stories' || category === 'memories' ? `<label class="journal-filter">Story <select data-journal-filter aria-label="Filter journal by story"><option value="all" ${filter === 'all' ? 'selected' : ''}>All stories</option>${STORY_TRACKS.map((id) => `<option value="${id}" ${filter === id ? 'selected' : ''}>${esc(chapters[id].title)}</option>`).join('')}</select></label>` : ''}`;
 }
 export function journalTrack(id: string): StoryTrack {
+  if (id.startsWith('trail-')) return 'trail';
+  if (id.startsWith('company-')) return 'company';
+  if (id.startsWith('nain-')) return 'nain';
   if (id.startsWith('thread-')) return 'belonging';
   if (id.startsWith('bench-')) return 'rest';
   if (id.startsWith('walk-')) return 'neighbors';
@@ -49,11 +53,8 @@ export function journalPeople(s: GameState): string {
     .filter((p) => {
       if (p.kind !== 'person' || seen.has(p.id)) return false;
       seen.add(p.id);
-      const region = placeRegion(p.id) ?? 'capernaum';
-      return (
-        region === 'capernaum' ||
-        Boolean(s.campaign.visited[region as keyof typeof s.campaign.visited])
-      );
+      const region = placeRegion(p.id, s) ?? 'capernaum';
+      return region === 'capernaum' || knownRegions(s).some((id) => id === region);
     })
     .map((p) => {
       const departed = hasReturned(s.episode) && ['simon', 'jesus', 'james', 'john'].includes(p.id);
@@ -70,14 +71,12 @@ export function journalPeople(s: GameState): string {
     .join('')}</div>`;
 }
 export function journalPlaces(s: GameState): string {
-  const known = ['capernaum', ...Object.keys(s.campaign.visited)].filter(
-    (id, i, ids) => ids.indexOf(id) === i,
-  );
-  const destinations: Record<string, string> = {
-    capernaum: 'shore',
-    'capernaum-lanes': 'water-point',
-    'gathering-house': 'house-viewpoint',
-    bakehouse: 'hannah',
-  };
-  return `<p class="panel-lead">Places you have reached in this artistic interpretation of Capernaum. Each destination offers a walk from your current region.</p><div class="journal-directory">${known.map((id) => `<article><h3>${esc(regions[id as keyof typeof regions].title)}</h3><p>${id === 'capernaum' ? 'The village shore, lake memories, and a place beside Miriam’s stall.' : id === 'capernaum-lanes' ? 'The water point, courtyard, and two ways to walk with Amos.' : id === 'bakehouse' ? 'Hannah’s oven, shelves, mending cloth, and a table for neighbors.' : 'A place to witness and remember Mark 2:1–12.'}</p><button class="secondary-button" data-action="travel" data-value="${destinations[id]}">Walk to this place</button></article>`).join('')}</div>`;
+  return `<p class="panel-lead">Places you have reached in this artistic interpretation of Galilee. Each destination offers a walk from your current region.</p><button class="secondary-button" data-action="journey-map">See the connected journey map</button><div class="journal-directory">${knownRegions(
+    s,
+  )
+    .map(
+      (id) =>
+        `<article><h3>${esc(regions[id].title)}</h3><p>${esc(journeyPlaces[id].description)}</p><button class="secondary-button" data-action="travel" data-value="${journeyPlaces[id].destination}">Walk to this place</button></article>`,
+    )
+    .join('')}</div>`;
 }

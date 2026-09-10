@@ -135,7 +135,7 @@ test('Ruth’s investigation survives clue order, pouch recovery, travel, journa
   await act(page, mobile ? 'life-ending-welcome' : 'life-ending-route');
   await close(page);
   const save = await exported(page);
-  expect(save.version).toBe(6);
+  expect(save.version).toBe(7);
   expect(save.state.life.thread.stage).toBe('complete');
   expect(save.state.life.thread.ending).toBe(mobile ? 'welcome' : 'route');
   expect(save.state.campaign.roof.stage).toBe('exploring');

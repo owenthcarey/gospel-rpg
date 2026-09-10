@@ -61,6 +61,15 @@ export class Actor {
     this.oneShot = { name, time: 0 };
     this.setClip(name);
   }
+  /** A bounded presentation pose, reconstructed directly from its local scene clock. */
+  sampleAt(name: ActorClip, progress: number): void {
+    this.oneShot = undefined;
+    this.setClip(name);
+    this.sampledFrame =
+      this.current!.from +
+      Math.max(0, Math.min(1, progress)) * (this.current!.to - this.current!.from);
+    this.current!.goToFrame(this.sampledFrame);
+  }
   get performing(): boolean {
     return Boolean(this.oneShot);
   }

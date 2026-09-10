@@ -54,3 +54,17 @@ Both stories unlock after Into the Deep and remain independent of Mark’s accou
 **A place to rest** concerns an unstable landing bench. A rope lashing and a wooden brace are equally useful repairs. Clearing loose pieces and collecting material can happen in either order; fitting requires both. Sitting checks the completed seat, and a fictional neighbor subsequently rests there. Miriam acknowledges the work while retaining her earlier reflection. This bounded repair is ordinary neighborly work, without a crafting economy or spiritual reward.
 
 The journal separates investigation evidence, remembered experiences, known people and known places while preserving provenance and both complete Gospel transcripts. Existing tables gain fictional seated company. Amos keeps his actual saved escort position; ambient arrangements never rewrite his journey.
+
+## Chapter III: At the gate
+
+After the completed Chapter II reflection, the traveler follows an explicitly imagined, compressed road to **Nain**. Six scenes present **Luke 7:11–17** from the public-domain World English Bible. `content/road/scripture.ts` stores all seven verses separately, checked against [Luke 7](https://ebible.org/engwebp/LUK07.htm). The transcript retains every verse and its provenance.
+
+The account progresses through approach, procession, compassion, the stopped bearers and command, restoration, and shared wonder. The open carrying frame, four bearer instances, clothing, gate, crowd size and camera positions are artistic interpretations. They do not establish a particular archaeological reconstruction or add details to the quoted text. The funeral procession and mother’s grief are treated without graphic imagery. Luke does not record the young man’s words; none are supplied. No invented speech is attributed to Jesus or the unnamed mother/son.
+
+The traveler observes. Tamar’s and Neri’s stories do not gate, cause or earn the account. The gate, quiet courtyard and fictional neighbor Adina provide three aftermath visits; compassion, restoration and shared wonder are equally valid reflections. The journal and full transcript stay available after completion, and the roads back remain open.
+
+**A way remembered** is an original observation story. Tamar recalls a dry resting shelter beside a split olive and two pale stones. The spring and terrace markers can be inspected in either order. Both readable studies and GLBs show the same water, stones and branch marks. Choosing the exposed ridge or waterside explains the mismatch without punishment; the shelter route remains available. Three optional hint levels move from broad direction to exact destination. The player chooses to remember careful observation or the company of the journey.
+
+**Company on the road** is an original shared walk with Neri. Shade and open terraces are equal choices with distinct meeting points and memories. He can wait while the player visits elsewhere, reads an account or returns supplies. Reaching the courtyard together leads to a final conversation and visible resting company. Route choices are ordinary travel preferences, without moral scoring or a preferred spiritual outcome.
+
+Historical/editorial review and human pacing remain separate from automated provenance and flow checks. Future writing should acknowledge only choices actually present in a save; migration must not invent an earlier memory.

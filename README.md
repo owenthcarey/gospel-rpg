@@ -6,6 +6,8 @@ A single-player browser RPG inspired by the Gospels. The first chapter, **Into t
 
 Chapter II, **Through the Roof**, continues some days later in an explorable Capernaum neighborhood. Enter the gathering house to witness Mark 2:1–12, walk with Amos, and help Hannah prepare a table for neighbors. The optional stories preserve your choices and can be played before or after the account. **Living Capernaum** adds Ruth’s missing-pouch investigation and a choice of repairs for the landing bench, with lasting changes to the village.
 
+**Beyond Capernaum — The Road to Nain** continues after Chapter II with an explorable Galilean road, roadside farm and town gate. Follow Tamar’s landmark investigation, walk across regions with Neri, and witness **At the gate**, a six-scene presentation of Luke 7:11–17.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -34,16 +36,18 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 
 ## Playable chapters
 
+- **At the gate:** six user-paced Gospel scenes, three aftermath visits and an equal choice of reflections; three new exploration regions, gentle slopes and a connected journey map.
+- **Two independent road adventures:** compare physical landmarks with Tamar’s recollection, or choose a shaded or terrace route with Neri. Evidence, hints, endings and the companion’s actual region and position persist.
 - **Through the Roof:** eight narrated Gospel scenes, three aftermath visits and a chosen reflection; explorable lanes and two enterable buildings.
 - **Four independent neighborhood stories:** investigate Ruth’s missing sewing pouch, repair the landing bench with cord or a brace, choose a walking route with Amos, or a table location with Hannah; carry bread and water, clear a passage, and return to visible results.
 - **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
-- **62 original Blender assets**, twelve skinned character variants and sixteen named clips, including walking, carrying, sitting, rowing, hauling and kneeling.
+- **71 original Blender assets**, fourteen skinned character variants, sixteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling.
 - A compact nearby-action tray for practical tasks, distinct pick-up/put-down/repair/sit motions, stationary holding, persistent repaired benches and seated table company.
 - A journal organized into **Stories, People, Places, and Memories**, with story filters, investigation evidence and destinations.
 - A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.
 - The original prelude, Ezra's independent village story, three discoveries, additional shoreline observations, selectable story tracking, satchel, journal and navigable map.
 - User-paced captions with scripture provenance, full transcript, pause, checkpoint resume and finish-with-summary controls. Your imagined traveler remains on shore during the narrated lake views.
-- Autosave, three manual slots, JSON export/import and **v6 migration from v1–v5 saves**, including interrupted lake scenes and remembered choices.
+- Autosave, three manual slots, JSON export/import and **v7 migration from v1–v6 saves**, including interrupted lake scenes and remembered choices.
 - Compact phone objectives, standard/large reading sizes, readable captions, keyboard focus management, reduced motion, lower graphics settings and optional ambience.
 - Transactional region loading with retry, explicit regional asset inventories and a local F3 rendering snapshot with object visibility counts.
 
@@ -51,7 +55,9 @@ Progress is stored in this browser. Use **Settings → Export** to change device
 
 After completing Into the Deep, follow **The road into Capernaum** or track Chapter II in the journal. Use the local map to find entrances. **Walk with Amos** guides a companion walk at a shared pace; if you leave him, the map locates him again. Carry one object at a time, and use the satchel’s return-point guidance to put it down. Speak with **Ruth** for **A familiar thread**, or inspect **The landing bench** on the shore for **A place to rest**. Both unlock after Into the Deep; neither gates the Gospel account. Simple tasks appear in the **Within reach** tray after you approach and close the reading panel.
 
-This delivers two bounded Gospel chapters; additional towns, open-water sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/003-living-capernaum.md), and [verification record](docs/VERIFICATION.md).
+After completing Through the Roof, take **The road beyond Capernaum** from the lanes. Tamar waits near the road’s southern end; Neri waits at the farm. Choose **Map → Journey map** for connected places and **Find Neri** to regroup. At a route gateway, reach its meeting point together before continuing. Both new adventures are optional; you can go directly to the Nain account.
+
+This delivers three bounded Gospel chapters and seven optional stories. More of Galilee/Judea, open-water sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/004-the-road-to-nain.md), and [verification record](docs/VERIFICATION.md).
 
 For a guided review and portable example saves, see the [playtest guide](docs/PLAYTEST.md).
 

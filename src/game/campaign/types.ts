@@ -1,14 +1,21 @@
 import type { Point } from '../types';
 import { LIFE_ITEMS } from '../life/types';
+import { ROAD_REGIONS } from '../road/types';
 
 export const EXPLORATION_REGIONS = [
   'capernaum',
   'capernaum-lanes',
   'gathering-house',
   'bakehouse',
+  ...ROAD_REGIONS,
 ] as const;
 export type ExplorationRegion = (typeof EXPLORATION_REGIONS)[number];
-export const REGION_IDS = [...EXPLORATION_REGIONS, 'lake-gennesaret', 'roof-account'] as const;
+export const REGION_IDS = [
+  ...EXPLORATION_REGIONS,
+  'lake-gennesaret',
+  'roof-account',
+  'nain-account',
+] as const;
 export type RegionId = (typeof REGION_IDS)[number];
 export const STORY_TRACKS = [
   'main',
@@ -18,6 +25,9 @@ export const STORY_TRACKS = [
   'table',
   'belonging',
   'rest',
+  'nain',
+  'trail',
+  'company',
 ] as const;
 export type StoryTrack = (typeof STORY_TRACKS)[number];
 export const ROOF_SCENES = [

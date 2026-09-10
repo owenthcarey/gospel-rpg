@@ -1,4 +1,5 @@
 import { campaignQuest } from './campaign';
+import { gospelControls } from './gospel';
 import { sceneBeats, beatFor } from '../../content/episode/scenes';
 import { SCRIPTURE_SOURCE } from '../../content/episode/scripture';
 import { reflectionEntries } from '../../content/episode/journal';
@@ -153,64 +154,31 @@ export function episodeSummary(state: GameState): string {
         icon('arrow') +
         '</button>'
       : '') +
-    '<button class="secondary-button" data-action="transcript">' +
+    '<button class="secondary-button" data-action="transcript" data-value="lake">' +
     icon('journal') +
     'Read the Gospel scenes</button></div></section>'
   );
 }
 export function sceneControls(state: GameState, paused: boolean): string {
   if (state.region !== 'lake-gennesaret' || !state.episode.checkpoint) return '';
-  const beat = beatFor(state.episode.checkpoint);
-  const index = SCENE_IDS.indexOf(beat.id);
-  return (
-    '<div class="scene-heading"><div><span class="eyebrow">INTO THE DEEP · SCENE ' +
-    (index + 1) +
-    ' OF ' +
-    SCENE_IDS.length +
-    '</span><h1 id="scene-title">' +
-    esc(beat.title) +
-    '</h1></div>' +
-    '<button class="scene-pause" data-action="scene-pause" aria-pressed="' +
-    paused +
-    '">' +
-    (paused ? 'Resume motion' : 'Pause motion') +
-    '</button></div>' +
-    '<div class="scene-progress" aria-label="Scene ' +
-    (index + 1) +
-    ' of ' +
-    SCENE_IDS.length +
-    '">' +
-    SCENE_IDS.map((_, i) => '<span class="' + (i <= index ? 'reached' : '') + '"></span>').join(
-      '',
-    ) +
-    '</div>' +
-    '<div class="scene-reading" tabindex="0" aria-label="Scene text">' +
-    beat.captions
-      .map(
-        (caption) =>
-          '<article class="scene-caption ' +
-          (caption.provenance === 'Scripture · WEB' ? 'scripture-caption' : '') +
-          '"><p class="caption-source">' +
-          esc(caption.speaker) +
-          ' · ' +
-          esc(caption.provenance) +
-          (caption.reference ? ' · ' + esc(caption.reference) : '') +
-          '</p><p>' +
-          esc(caption.text) +
-          '</p></article>',
-      )
-      .join('') +
-    '<details class="scene-observation"><summary>Pause and notice</summary><p>' +
-    esc(beat.observation) +
-    '</p></details></div>' +
-    '<div class="scene-footer"><button class="primary-button scene-continue" data-action="scene-next" data-value="' +
-    beat.id +
-    '">' +
-    esc(beat.continueLabel) +
-    icon('arrow') +
-    '</button>' +
-    '<div class="scene-secondary"><button class="text-button" data-action="transcript">Read all scenes</button><button class="text-button" data-action="scene-summary">Finish with summary</button><button class="text-button" data-action="scene-leave">Return to village</button></div>' +
-    '<p class="scene-save-note">Your place is saved at each scene. Continue whenever you are ready.</p></div>'
+  const b = beatFor(state.episode.checkpoint);
+  return gospelControls(
+    {
+      ...b,
+      chapter: 'Into the Deep',
+      index: SCENE_IDS.indexOf(b.id),
+      total: SCENE_IDS.length,
+      captions: b.captions.map((c) => ({
+        label: c.speaker + ' · ' + c.provenance + (c.reference ? ' · ' + c.reference : ''),
+        text: c.text,
+        scripture: c.provenance === 'Scripture · WEB',
+      })),
+      description: b.journal.text,
+      noticeLabel: 'Pause and notice',
+      nextAction: 'scene-next',
+      returnLabel: 'Return to village',
+    },
+    paused,
   );
 }
 export function transcriptView(state: GameState): string {

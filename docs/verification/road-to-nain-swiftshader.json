@@ -1,0 +1,638 @@
+{
+  "chromium/galilean-road-high": {
+    "region": "galilean-road",
+    "meshes": "129",
+    "materials": "35",
+    "textures": "8",
+    "activeMeshes": "68",
+    "fps": "13",
+    "drawCalls": "83",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "63",
+      "elapsedMs": "5001.6",
+      "median": "83.3",
+      "p95": "83.8",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "olive": [13, 13, 11],
+      "spring_marker": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "terrace_wall": [2, 2, 2],
+      "rock": [2, 2, 2],
+      "cypress": [1, 1, 1],
+      "ruth": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "chromium/galilean-road-low": {
+    "region": "galilean-road",
+    "meshes": "129",
+    "materials": "35",
+    "textures": "8",
+    "activeMeshes": "68",
+    "fps": "20",
+    "drawCalls": "52",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "97",
+      "elapsedMs": "5001.3",
+      "median": "50.0",
+      "p95": "66.7",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "olive": [13, 13, 11],
+      "spring_marker": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "terrace_wall": [2, 2, 2],
+      "rock": [2, 2, 2],
+      "cypress": [1, 1, 1],
+      "ruth": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/galilean-road-high": {
+    "region": "galilean-road",
+    "meshes": "129",
+    "materials": "35",
+    "textures": "8",
+    "activeMeshes": "55",
+    "fps": "19",
+    "drawCalls": "75",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "91",
+      "elapsedMs": "5000.8",
+      "median": "50.0",
+      "p95": "67.0",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "olive": [13, 13, 6],
+      "spring_marker": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "terrace_wall": [2, 2, 2],
+      "rock": [2, 2, 1],
+      "cypress": [1, 1, 1],
+      "ruth": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/galilean-road-low": {
+    "region": "galilean-road",
+    "meshes": "129",
+    "materials": "35",
+    "textures": "8",
+    "activeMeshes": "55",
+    "fps": "30",
+    "drawCalls": "44",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "120",
+      "elapsedMs": "3985.9",
+      "median": "33.4",
+      "p95": "50.0",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "olive": [13, 13, 6],
+      "spring_marker": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "terrace_wall": [2, 2, 2],
+      "rock": [2, 2, 1],
+      "cypress": [1, 1, 1],
+      "ruth": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "chromium/nain-account-high": {
+    "region": "nain-account",
+    "meshes": "132",
+    "materials": "37",
+    "textures": "25",
+    "activeMeshes": "125",
+    "fps": "5",
+    "drawCalls": "197",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "26",
+      "elapsedMs": "5000.9",
+      "median": "183.4",
+      "p95": "216.7",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "house": [4, 4, 4],
+      "olive": [2, 2, 2],
+      "procession_frame": [1, 1, 1],
+      "jesus": [5, 5, 5],
+      "widow": [5, 5, 5],
+      "young_man": [5, 5, 5],
+      "bearer": [20, 20, 20],
+      "hannah": [20, 20, 20],
+      "villager": [30, 30, 27]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "chromium/nain-account-low": {
+    "region": "nain-account",
+    "meshes": "132",
+    "materials": "37",
+    "textures": "25",
+    "activeMeshes": "100",
+    "fps": "26",
+    "drawCalls": "76",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "120",
+      "elapsedMs": "4665.5",
+      "median": "33.4",
+      "p95": "50.4",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "house": [4, 4, 4],
+      "olive": [2, 2, 2],
+      "procession_frame": [1, 1, 1],
+      "jesus": [5, 5, 5],
+      "widow": [5, 5, 5],
+      "young_man": [5, 5, 5],
+      "bearer": [20, 20, 20],
+      "hannah": [20, 10, 10],
+      "villager": [30, 15, 15]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/nain-account-high": {
+    "region": "nain-account",
+    "meshes": "132",
+    "materials": "37",
+    "textures": "25",
+    "activeMeshes": "116",
+    "fps": "16",
+    "drawCalls": "193",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "77",
+      "elapsedMs": "5002.9",
+      "median": "66.6",
+      "p95": "83.2",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "low_wall": [6, 6, 3],
+      "house": [4, 4, 2],
+      "olive": [2, 2, 0],
+      "procession_frame": [1, 1, 1],
+      "jesus": [5, 5, 5],
+      "widow": [5, 5, 5],
+      "young_man": [5, 5, 5],
+      "bearer": [20, 20, 20],
+      "hannah": [20, 20, 20],
+      "villager": [30, 30, 30]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/nain-account-low": {
+    "region": "nain-account",
+    "meshes": "132",
+    "materials": "37",
+    "textures": "25",
+    "activeMeshes": "87",
+    "fps": "56",
+    "drawCalls": "69",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "120",
+      "elapsedMs": "2271.1",
+      "median": "16.7",
+      "p95": "33.3",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "low_wall": [6, 6, 3],
+      "house": [4, 4, 2],
+      "olive": [2, 2, 0],
+      "procession_frame": [1, 1, 1],
+      "jesus": [5, 5, 5],
+      "widow": [5, 5, 5],
+      "young_man": [5, 5, 5],
+      "bearer": [20, 20, 20],
+      "hannah": [20, 10, 10],
+      "villager": [30, 15, 15]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "chromium/nain-gate-high": {
+    "region": "nain-gate",
+    "meshes": "108",
+    "materials": "34",
+    "textures": "8",
+    "activeMeshes": "54",
+    "fps": "5",
+    "drawCalls": "63",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "26",
+      "elapsedMs": "5001.8",
+      "median": "166.8",
+      "p95": "249.7",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "house": [6, 6, 6],
+      "bench": [1, 1, 1],
+      "olive": [1, 1, 1],
+      "amphora": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "hannah": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "chromium/nain-gate-low": {
+    "region": "nain-gate",
+    "meshes": "108",
+    "materials": "34",
+    "textures": "8",
+    "activeMeshes": "54",
+    "fps": "10",
+    "drawCalls": "36",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "50",
+      "elapsedMs": "5000.9",
+      "median": "100.0",
+      "p95": "116.7",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "house": [6, 6, 6],
+      "bench": [1, 1, 1],
+      "olive": [1, 1, 1],
+      "amphora": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "hannah": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/nain-gate-high": {
+    "region": "nain-gate",
+    "meshes": "108",
+    "materials": "34",
+    "textures": "8",
+    "activeMeshes": "49",
+    "fps": "18",
+    "drawCalls": "63",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "84",
+      "elapsedMs": "5001.7",
+      "median": "65.7",
+      "p95": "66.8",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "house": [6, 6, 5],
+      "bench": [1, 1, 1],
+      "olive": [1, 1, 1],
+      "amphora": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "hannah": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/nain-gate-low": {
+    "region": "nain-gate",
+    "meshes": "108",
+    "materials": "34",
+    "textures": "8",
+    "activeMeshes": "49",
+    "fps": "29",
+    "drawCalls": "36",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "120",
+      "elapsedMs": "4417.3",
+      "median": "33.4",
+      "p95": "50.1",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "house": [6, 6, 5],
+      "bench": [1, 1, 1],
+      "olive": [1, 1, 1],
+      "amphora": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "hannah": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "chromium/roadside-farm-high": {
+    "region": "roadside-farm",
+    "meshes": "106",
+    "materials": "33",
+    "textures": "6",
+    "activeMeshes": "56",
+    "fps": "13",
+    "drawCalls": "68",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "64",
+      "elapsedMs": "5001.1",
+      "median": "67.3",
+      "p95": "83.7",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "house_large": [1, 1, 1],
+      "farm_shelter": [1, 1, 1],
+      "split_olive": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "worktable": [1, 1, 1],
+      "bench": [1, 1, 1],
+      "olive": [8, 8, 8],
+      "amphora": [1, 1, 1],
+      "flour_sack": [1, 1, 1],
+      "low_wall": [2, 2, 2],
+      "traveler": [6, 6, 6],
+      "amos": [5, 5, 5],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "chromium/roadside-farm-low": {
+    "region": "roadside-farm",
+    "meshes": "106",
+    "materials": "33",
+    "textures": "6",
+    "activeMeshes": "56",
+    "fps": "22",
+    "drawCalls": "39",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "110",
+      "elapsedMs": "5002.1",
+      "median": "50.0",
+      "p95": "50.9",
+      "viewport": "1440\u00d7900"
+    },
+    "assets": {
+      "house_large": [1, 1, 1],
+      "farm_shelter": [1, 1, 1],
+      "split_olive": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "worktable": [1, 1, 1],
+      "bench": [1, 1, 1],
+      "olive": [8, 8, 8],
+      "amphora": [1, 1, 1],
+      "flour_sack": [1, 1, 1],
+      "low_wall": [2, 2, 2],
+      "traveler": [6, 6, 6],
+      "amos": [5, 5, 5],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/roadside-farm-high": {
+    "region": "roadside-farm",
+    "meshes": "106",
+    "materials": "33",
+    "textures": "6",
+    "activeMeshes": "46",
+    "fps": "18",
+    "drawCalls": "63",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "99",
+      "elapsedMs": "5001.4",
+      "median": "50.0",
+      "p95": "66.6",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "house_large": [1, 1, 1],
+      "farm_shelter": [1, 1, 1],
+      "split_olive": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "worktable": [1, 1, 1],
+      "bench": [1, 1, 1],
+      "olive": [8, 8, 4],
+      "amphora": [1, 1, 1],
+      "flour_sack": [1, 1, 1],
+      "low_wall": [2, 2, 1],
+      "traveler": [6, 6, 6],
+      "amos": [5, 5, 5],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "mobile-chromium/roadside-farm-low": {
+    "region": "roadside-farm",
+    "meshes": "106",
+    "materials": "33",
+    "textures": "6",
+    "activeMeshes": "46",
+    "fps": "37",
+    "drawCalls": "34",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "samples": "120",
+      "elapsedMs": "3234.6",
+      "median": "33.1",
+      "p95": "33.9",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "house_large": [1, 1, 1],
+      "farm_shelter": [1, 1, 1],
+      "split_olive": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "worktable": [1, 1, 1],
+      "bench": [1, 1, 1],
+      "olive": [8, 8, 4],
+      "amphora": [1, 1, 1],
+      "flour_sack": [1, 1, 1],
+      "low_wall": [2, 2, 1],
+      "traveler": [6, 6, 6],
+      "amos": [5, 5, 5],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  }
+}

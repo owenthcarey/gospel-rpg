@@ -1,0 +1,84 @@
+import { createServer } from 'vite';
+import { writeFile } from 'node:fs/promises';
+import { format } from 'prettier';
+
+// Portable examples are earned with the real reducers, then accepted by the v7 validator.
+const server = await createServer({
+  server: { middlewareMode: true, ws: false },
+  appType: 'custom',
+});
+try {
+  const { roadStart, roadAt, roadAction, completedRoof } =
+    await server.ssrLoadModule('/tests/helpers/road.ts');
+  const { gateway } = await server.ssrLoadModule('/tests/helpers/campaign.ts');
+  const { transition } = await server.ssrLoadModule('/src/game/quest.ts');
+  const { COMPANY_PATHS, companyMeeting } = await server.ssrLoadModule(
+    '/src/content/road/routes.ts',
+  );
+  const { NAIN_SCENES } = await server.ssrLoadModule('/src/game/road/types.ts');
+  const { makeSave } = await server.ssrLoadModule('/src/persistence/schema.ts');
+  let investigation = roadAction(roadStart(), 'trail-accept');
+  investigation = transition(roadAt(investigation, 'road-terrace'), {
+    type: 'road-evidence',
+    id: 'terrace',
+  });
+  let company = roadAction(gateway(roadStart(), 'to-farm'), 'company-accept');
+  company = transition(company, { type: 'road-route', id: 'shade' });
+  company = roadAction(company, 'company-start');
+  const first = companyMeeting(company.road.company);
+  company.position = { x: first.x, z: first.z };
+  company.road.company.position = { ...company.position };
+  company = transition(company, { type: 'road-step', step: 0 });
+  company = gateway(company, 'farm-exit'); // The companion is still at the courtyard edge.
+  let checkpoint = roadAction(gateway(roadStart(), 'to-nain'), 'nain-enter');
+  for (const id of NAIN_SCENES.slice(0, 3))
+    checkpoint = transition(checkpoint, { type: 'nain-next', checkpoint: id });
+  let complete = transition(roadAt(investigation, 'road-spring'), {
+    type: 'road-evidence',
+    id: 'spring',
+  });
+  complete = transition(roadAt(complete, 'tamar'), { type: 'road-interpret', id: 'shelter' });
+  complete = roadAction(gateway(complete, 'to-farm'), 'trail-arrive');
+  complete = transition(roadAt(gateway(complete, 'farm-exit'), 'tamar'), {
+    type: 'road-ending',
+    id: 'company',
+  });
+  complete = roadAction(gateway(complete, 'to-farm'), 'company-accept');
+  complete = transition(complete, { type: 'road-route', id: 'terrace' });
+  complete = roadAction(complete, 'company-start');
+  for (let step = 0; step < COMPANY_PATHS.terrace.length; step++) {
+    const node = companyMeeting(complete.road.company);
+    complete.position = { x: node.x, z: node.z };
+    complete.road.company.position = { ...complete.position };
+    complete = node.exit
+      ? gateway(complete, node.exit)
+      : transition(complete, { type: 'road-step', step });
+  }
+  complete = roadAction(complete, 'company-finish');
+  complete = roadAction(complete, 'nain-enter');
+  for (const id of NAIN_SCENES)
+    complete = transition(complete, { type: 'nain-next', checkpoint: id });
+  for (const id of ['nain-after-gate', 'nain-after-courtyard', 'nain-after-neighbor'])
+    complete = roadAction(complete, id);
+  complete = transition(roadAt(complete, 'nain-viewpoint'), {
+    type: 'nain-reflect',
+    id: 'compassion',
+  });
+  for (const [name, state] of Object.entries({
+    'v7-beyond-capernaum': completedRoof(),
+    'v7-road-investigation': investigation,
+    'v7-companion-waiting': company,
+    'v7-nain-checkpoint': checkpoint,
+    'v7-road-complete': complete,
+  })) {
+    const save = makeSave(state);
+    save.savedAt = '2026-09-10T00:00:00.000Z';
+    await writeFile(
+      'tests/fixtures/saves/' + name + '.json',
+      await format(JSON.stringify(save), { parser: 'json' }),
+    );
+    console.log('Validated ' + name);
+  }
+} finally {
+  await server.close();
+}

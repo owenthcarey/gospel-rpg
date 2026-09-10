@@ -1,0 +1,125 @@
+{
+  "completedAt": "2026-09-10T03:22:10.926607+00:00",
+  "production": "Blender MCP native execute_code, independent GLB import, viewport inspection and rendered review",
+  "blender": "5.2.1 LTS",
+  "addonVersion": "1.6",
+  "protocolVersion": 5,
+  "workshopExports": 71,
+  "installedExports": [
+    {
+      "path": "public/assets/models/bearer.glb",
+      "bytes": 193976,
+      "sha256": "b6d412d7f805e2e18fa35e71b68fbf5c62fd92d42b0efd07928aad47cacc5945"
+    },
+    {
+      "path": "public/assets/models/jesus.glb",
+      "bytes": 198236,
+      "sha256": "5da73a044b7ed8181d750991a3fd98583fe841111c64aee90819ef451bf41fe0"
+    },
+    {
+      "path": "public/assets/models/widow.glb",
+      "bytes": 194748,
+      "sha256": "57b72fc87ad2e7095cb5daec065a841483244f7dc9d557f873712361a1a02b5f"
+    },
+    {
+      "path": "public/assets/models/young_man.glb",
+      "bytes": 193412,
+      "sha256": "341fe76e72a84d248a89bc5f6d5c99712a2a007012ceb41cd4066251960c25bc"
+    },
+    {
+      "path": "public/assets/models/town_gate.glb",
+      "bytes": 180844,
+      "sha256": "47773eb89cae0ce9c42b72b79d6ccedc793fdf47d642a8288e8199f6db4de65a"
+    },
+    {
+      "path": "public/assets/models/terrace_wall.glb",
+      "bytes": 109060,
+      "sha256": "1b9fd76201f144ddb1b8cf690abab0c0b488e0b901a9f0a346161a861fd80c17"
+    },
+    {
+      "path": "public/assets/models/spring_marker.glb",
+      "bytes": 22320,
+      "sha256": "ef6076c27d0a686667e7589515f8d0056d41372253c1017acaf66b81410eed68"
+    },
+    {
+      "path": "public/assets/models/terrace_marker.glb",
+      "bytes": 20504,
+      "sha256": "507f0cbd52bf7bd508e50264a438524e636963a9fa3ffac5e19e88ff2924b4f7"
+    },
+    {
+      "path": "public/assets/models/farm_shelter.glb",
+      "bytes": 29536,
+      "sha256": "412f99b2d9be32937bd277f21c89682ce887090bf76b4e65323ddadae67f5607"
+    },
+    {
+      "path": "public/assets/models/split_olive.glb",
+      "bytes": 31916,
+      "sha256": "c39ca245ecacc40e7e93cbfd303f93a2d35ca65e9b3dfec0b34fa2cdb076f79c"
+    },
+    {
+      "path": "public/assets/models/procession_frame.glb",
+      "bytes": 35088,
+      "sha256": "12fbc69b3f593d22e856921af5096133e4ea4c18a48e91d23cf9b49634f3daca"
+    }
+  ],
+  "retainedPriorMcpExports": 60,
+  "source": {
+    "path": "assets/source/galilee-kit.blend",
+    "bytes": 1295783,
+    "sha256": "cae039e671412f328ce4ed91f8502683fa83450b6f9f7344b19dce15a7ffdb43"
+  },
+  "recipes": [
+    {
+      "path": "tools/blender/generate_kit.py",
+      "bytes": 17077,
+      "sha256": "9fb96dd68cbf515973276c83e38dddb1d9483bea48275ebf82ab0f0247af1078"
+    },
+    {
+      "path": "tools/blender/rigging.py",
+      "bytes": 11009,
+      "sha256": "effaaed8a8e38a18499605693412d70a5ad180b124b07c9daae068d880141a22"
+    },
+    {
+      "path": "tools/blender/neighborhood.py",
+      "bytes": 3907,
+      "sha256": "5ca94298a37939f4d39f7d135a57775090031ba51766472bc113742146f00f89"
+    },
+    {
+      "path": "tools/blender/life.py",
+      "bytes": 2998,
+      "sha256": "0664f8e5ea86507340dfd2f482f9b4e6bfb72b83ab5385bc9618b3338068ee48"
+    },
+    {
+      "path": "tools/blender/road.py",
+      "bytes": 4701,
+      "sha256": "ec1eb04307401f12463eba5aed79a818f73e5b9402780d633b847e73c9be7949"
+    },
+    {
+      "path": "tools/blender/inspect_road.py",
+      "bytes": 5813,
+      "sha256": "919df31f7b22f4af841b589cf7b6c17fb271ac2ae024b4a4d182924353e98675"
+    }
+  ],
+  "reviewImages": [
+    {
+      "path": "docs/verification/road-to-nain-kit.png",
+      "bytes": 1633346,
+      "sha256": "aeee9347fd27ac69808ebbcf8cfe9a022e2f4a7ca0ccd0105fc035b853db8e50"
+    },
+    {
+      "path": "docs/verification/road-to-nain-contact.png",
+      "bytes": 1620759,
+      "sha256": "5148285bde015bf6be4fe954a8811e62d8bc361b48418b9988f5884635cc9740"
+    },
+    {
+      "path": "docs/verification/road-to-nain-poses.png",
+      "bytes": 1537706,
+      "sha256": "5c81a46db28edcfdc5b3ce52b5b841ba7b331755b1c03a91df22cdf0df548664"
+    }
+  ],
+  "refinement": "Added weathered stone courses to both faces of the town gate so the detail is visible on approach and departure.",
+  "originalScenesPreserved": ["Scene"],
+  "externalAssets": false,
+  "kitBytes": 4951908,
+  "capBytes": 5242880
+}

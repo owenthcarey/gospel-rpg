@@ -83,7 +83,8 @@ describe('the complete original asset manifest', () => {
     if (asset.kind === 'actor') {
       expect(gltf.skins).toHaveLength(1);
       expect(gltf.skins![0]!.joints.length).toBeGreaterThanOrEqual(10);
-      expect(gltf.animations!.map((clip) => clip.name).sort()).toEqual([...ANIMATION_CLIPS].sort());
+      expect(gltf.animations!.map((clip) => clip.name).sort()).toEqual([...asset.clips].sort());
+      expect(asset.clips).toEqual(expect.arrayContaining([...ANIMATION_CLIPS]));
       expect(gltf.meshes).toHaveLength(1);
       for (const primitive of primitives) {
         expect(primitive.attributes.JOINTS_0).toBeDefined();

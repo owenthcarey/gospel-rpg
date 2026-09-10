@@ -10,11 +10,14 @@ import { DEFAULT_SETTINGS } from '../game/types';
 import { newLife } from '../game/life/types';
 import { lifeJournalIds } from '../game/life/progress';
 import { parseLife } from './life';
+import { newRoad, isRoadRegion } from '../game/road/types';
+import { roadJournalIds } from '../game/road/progress';
+import { parseRoad } from './road';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 6;
+  version: 7;
   region: RegionId;
   savedAt: string;
   state: GameState;
@@ -94,14 +97,25 @@ export function parseSave(raw: unknown): SaveFile {
   }
   if (
     !record(raw) ||
-    (raw.version !== 5 && raw.version !== 6) ||
+    (raw.version !== 5 && raw.version !== 6 && raw.version !== 7) ||
     !REGION_IDS.some((id) => id === raw.region) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
     !record(raw.state)
   )
     throw new SaveError('The save format is damaged or unsupported.');
-  const s = raw.version === 5 ? { ...raw.state, life: newLife() } : raw.state;
+  const s: Record<string, unknown> = {
+    ...raw.state,
+    ...(raw.version === 5 ? { life: newLife() } : {}),
+    ...(raw.version !== 7 ? { road: newRoad() } : {}),
+  };
+  if (
+    raw.version !== 7 &&
+    (isRoadRegion(String(raw.region)) ||
+      raw.region === 'nain-account' ||
+      ['nain', 'trail', 'company'].includes(String(s.tracking)))
+  )
+    throw new SaveError('This older save contains unknown road progress.');
   // Old saves cannot introduce newly earned stories, held items, or tracking.
   if (raw.version === 5) {
     if (
@@ -141,6 +155,17 @@ export function parseSave(raw: unknown): SaveFile {
   } catch {
     throw new SaveError('This save contains inconsistent investigation or bench progress.');
   }
+  let road;
+  try {
+    road = parseRoad(s.road, campaign.roof.stage, raw.region as RegionId, s.position);
+  } catch {
+    throw new SaveError('This save contains inconsistent road, companion or Nain progress.');
+  }
+  if (
+    ['nain', 'trail', 'company'].includes(String(s.tracking)) &&
+    campaign.roof.stage !== 'complete'
+  )
+    throw new SaveError('The tracked road story is not available in this save.');
   if (
     !record(s.position) ||
     !finite(s.position.x) ||
@@ -182,6 +207,7 @@ export function parseSave(raw: unknown): SaveFile {
     ...episodeJournalIds(episode),
     ...campaignJournalIds(campaign),
     ...lifeJournalIds(life),
+    ...roadJournalIds(road),
   ]);
   if (s.villageStory !== 'not-started') expectedJournal.add('ezra-invitation');
   if (s.villageStory === 'complete') {
@@ -202,7 +228,7 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 6,
+    version: 7,
     region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
@@ -210,6 +236,7 @@ export function parseSave(raw: unknown): SaveFile {
       episode,
       campaign,
       life,
+      road,
       tracking: s.tracking as GameState['tracking'],
       villageMemory: s.villageMemory as GameState['villageMemory'],
       position: { x: s.position.x, z: s.position.z },
