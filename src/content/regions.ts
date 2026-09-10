@@ -10,6 +10,38 @@ export interface RegionDefinition {
   returnRegion: RegionId | null;
 }
 export const regions: Record<RegionId, RegionDefinition> = {
+  'galilean-road': {
+    id: 'galilean-road',
+    title: 'The Galilean road',
+    subtitle: 'Later in the journey · An imagined route',
+    mode: 'exploration',
+    arrival: { x: 0, z: -12 },
+    returnRegion: 'capernaum-lanes',
+  },
+  'roadside-farm': {
+    id: 'roadside-farm',
+    title: 'The roadside farm',
+    subtitle: 'Olive shade · Original traveler stories',
+    mode: 'exploration',
+    arrival: { x: 0, z: -9 },
+    returnRegion: 'galilean-road',
+  },
+  'nain-gate': {
+    id: 'nain-gate',
+    title: 'The gate of Nain',
+    subtitle: 'At the gate · Luke 7:11–17',
+    mode: 'exploration',
+    arrival: { x: 0, z: -11 },
+    returnRegion: 'galilean-road',
+  },
+  'nain-account': {
+    id: 'nain-account',
+    title: 'At the gate',
+    subtitle: 'The Gospel according to Luke · 7:11–17',
+    mode: 'presentation',
+    arrival: { x: 0, z: -5 },
+    returnRegion: 'nain-gate',
+  },
   'capernaum-lanes': {
     id: 'capernaum-lanes',
     title: 'Capernaum lanes',

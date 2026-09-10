@@ -1,6 +1,7 @@
 import type { Point, GameState } from '../../game/types';
 import type { Obstacle } from '../../game/pathfinding';
 import type { AssetId } from '../assets';
+import { roadLayouts } from '../road/layouts';
 export interface Decor extends Point {
   asset: AssetId;
   y?: number;
@@ -13,6 +14,7 @@ export interface ExplorationLayout {
   bounds: { min: number; max: number };
   inside: boolean;
   terrain: (p: Point) => boolean;
+  height?: (p: Point) => number;
   obstacles: readonly Obstacle[];
   decor: readonly Decor[];
   paths: readonly [Point, Point, number][];
@@ -163,8 +165,13 @@ export function campaignLayout(region: string): ExplorationLayout | undefined {
       'capernaum-lanes': districtLayout,
       'gathering-house': houseLayout,
       bakehouse: bakehouseLayout,
+      ...roadLayouts,
     } as Record<string, ExplorationLayout>
   )[region];
+}
+/** Shared by mesh vertices, actors, labels and routes. All legacy regions remain level. */
+export function groundHeight(region: string, point: Point): number {
+  return campaignLayout(region)?.height?.(point) ?? 0;
 }
 export function layoutObstacles(s: GameState): Obstacle[] {
   const layout = campaignLayout(s.region);

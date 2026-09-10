@@ -40,7 +40,7 @@ Input clears on blur, menus and movement cancellation. Slow exploration frames a
 
 ## Presentation
 
-Twelve character variants share a twelve-bone skeleton and sixteen Blender-authored clips. Each actor samples its own animation groups; movement follows the gameplay grid, not root motion. A named socket holds the traveler's basket. Village props, gathered neighbors, returned boats and departed fishermen derive from progress, including after loading earlier saves.
+Fourteen character variants share a twelve-bone skeleton and sixteen Blender-authored clips. Three additional clips are exported only on the actors that use them in Nain. Each actor samples its own animation groups; movement follows the gameplay grid, not root motion. A named socket holds the traveler's basket. Village props, gathered neighbors, returned boats and departed fishermen derive from progress, including after loading earlier saves.
 
 The lake uses ten durable beats with bounded four-second visual transitions. Continue is always available; animation never advances the account. Restored checkpoints establish a complete composition. Pause/read, modal menus and document visibility suspend motion. Reduced motion uses immediate camera/boat compositions and still actor poses. Low quality removes shadows, lowers render resolution and reduces the crowd.
 
@@ -48,11 +48,11 @@ F3 opens a local rendering snapshot. Development builds also expose a once-per-s
 
 ## Persistence
 
-Database `the-way-journeys` contains `saves` and `preferences`. Database layout version 1 is separate from **save envelope version 6**. One autosave and three manual slots are supported. The envelope stores `version`, `region`, `savedAt`, and `state`; state also carries the validated current region.
+Database `the-way-journeys` contains `saves` and `preferences`. Database layout version 1 is separate from **save envelope version 7**. One autosave and three manual slots are supported. The envelope stores `version`, `region`, `savedAt`, and `state`; state also carries the validated current region.
 
-State contains the legacy position, quest, inventory, discoveries, village story, journal and play time, plus `episode`, `campaign`, `life`, `tracking`, `villageMemory`, and `region`. See [versioned fixtures](../tests/fixtures/saves/) for full portable examples, including an interrupted lake scene and completed episode.
+State contains the legacy position, quest, inventory, discoveries, village story, journal and play time, plus `episode`, `campaign`, `life`, `road`, `tracking`, `villageMemory`, and `region`. See [versioned fixtures](../tests/fixtures/saves/) for full portable examples, including an interrupted lake scene and completed episode.
 
-Migrations proceed v1 → v2 → v3 → v4 → v5 → v6. Existing journeys retain their earned content. Completing an old prelude unlocks the episode without replaying errands; it does not complete the new episode. Unknown future versions, invalid enums, duplicate IDs, impossible inventories, inconsistent region/checkpoint phases, missing or extra journal records, nonfinite coordinates, and files over 128 KB are rejected. Restored exploration positions are checked for walkability.
+Migrations proceed v1 → v2 → v3 → v4 → v5 → v6 → v7. Existing journeys retain their earned content. Completing an old prelude unlocks the episode without replaying errands; it does not complete the new episode. Unknown future versions, invalid enums, duplicate IDs, impossible inventories, inconsistent region/checkpoint phases, missing or extra journal records, nonfinite coordinates, and files over 128 KB are rejected. Restored exploration positions are checked for walkability.
 
 Serialized writes prevent old snapshots overtaking newer events. Autosave follows story events, checkpoint/region changes, every 20 seconds of active play and page hiding. Browser shutdown durability remains best effort. Manual saves and export use the current snapshot. When IndexedDB cannot open, session slots and export remain available with a visible warning. Failed writes reject and preserve the earlier durable slot; the interface reports the failure and export remains available.
 
@@ -60,7 +60,7 @@ Additional towns, streamed open worlds and offline caching remain deferred. See 
 
 ## Chapter II and the neighborhood (RFC-002)
 
-The `content/campaign/chapters.ts` registry originally defined five story tracks, source metadata, availability, and completion. `regions.ts` defines four exploration spaces and two presentation spaces. Runtime factories create each view; exploration capabilities expose movement without coupling runtime dispatch to a particular scene class.
+The `content/campaign/chapters.ts` registry originally defined five story tracks, source metadata, availability, and completion. `regions.ts` now defines seven exploration spaces and three presentation spaces. Runtime factories create each view; exploration capabilities expose movement without coupling runtime dispatch to a particular scene class.
 
 `game/campaign/progress.ts` handles the roof chapter, companion and table stories. Contextual actions have stable IDs, local targets, explicit requirements and a distance guard. Gateways form a small directed graph: guidance chooses the next doorway rather than teleporting the traveler. A successful transition retains the last exploration position in each visited region. Failed loads never commit candidate state.
 
@@ -89,3 +89,17 @@ V6 adds `life` and extends held-item/tracking enums. `persistence/life.ts` valid
 `AssetLibrary` uses geometry/material-sharing mesh clones with independent render lifecycles. This fixes static scenery disappearing when shadow passes are removed in Low quality. Explicit exploration inventories load only local architecture/activity plus shared held objects, with the existing four-request bound. F3 includes per-asset placed/enabled/recently-drawn counts and the loaded inventory. Lightweight canvas pose attributes support production animation checks; the larger automatic diagnostic snapshot remains development-only. Required-asset contracts and a deterministic software-rendered image comparison test actual scenery separately from performance counters.
 
 See [RFC-003](rfcs/003-living-capernaum.md) and [verification](VERIFICATION.md) for acceptance and measured limits.
+
+## Beyond Capernaum (RFC-004)
+
+`game/road/` owns Chapter III, Tamar’s investigation and Neri’s cross-region walk. `content/road/` contains stable actions, places, gateway arrivals, route nodes, evidence, journal entries, six Gospel beats and seven source verses. Story metadata in `campaign/chapters.ts` supplies availability, started/completed status and source labels. Prelude journal text is independent of the tracked chapter.
+
+`roadJourney` runs within the existing guarded campaign gateway transition. The companion crosses only his current route’s exit, with both participants near the meeting point. Crossing another exit preserves his actual region and position. `RoadActivity` moves him through the current region’s walk grid; it pauses when approached for conversation, when the player is too far away, or when the region is paused/inactive. The runtime snapshots his actual position before every transition or save. A route step is committed only when its expected index and both proximity checks agree. Both routes terminate at the same courtyard; the completed seated pose is cosmetic, preserving the authoritative navigation position.
+
+The new exploration layouts supply a deterministic `height(Point)` function. Ground/path vertices, placed actors, player/companion roots, labels, destination rings and route dots use `groundHeight`. Gameplay remains bounded 2D A* with explicit obstacle footprints; there are no stacked walkable surfaces. Distant scenery is outside the walkable area. The regional journey map is schematic and directs the existing gateway navigation, without teleporting the player. Its story unlocks match the playable gateway unlocks.
+
+`ui/views/gospel.ts` provides common reading, focus, progress, transcript, pause, summary and leave controls for all three accounts, preserving prior action/checkpoint IDs. `NainRegion` owns a complete composition for every checkpoint and a bounded cosmetic clock. `Actor.sampleAt` establishes a finite pose directly. Reduced motion selects still compositions. Scripture progress belongs exclusively to the reducer.
+
+V7 initializes road stories empty when migrating any v1–v6 save. `persistence/road.ts` checks finite/reachable positions, known phases, prerequisites, visited-region evidence, exact route/region/index consistency and completed positions. The shared schema requires the exact derived road journal set and preserves all old fields and earned IDs. Export/import includes a companion waiting in a different region and every Gospel checkpoint. Transactional load failure continues to preserve both active state and the prior durable save.
+
+New rendering tests use the existing bounded warmup/cadence procedure, explicit essential-asset checks and fixed SwiftShader image contracts. The Nain negative control removes static GLB geometry while leaving actors and terrain, requiring the damaged image to fail comparison. Reference compositions keep the unchanged 300 High / 130 Low draw-call limits and 5 MiB kit budget. See [RFC-004](rfcs/004-the-road-to-nain.md) and [verification](VERIFICATION.md).

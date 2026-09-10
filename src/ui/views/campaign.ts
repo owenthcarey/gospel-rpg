@@ -1,3 +1,7 @@
+import { gospelControls } from './gospel';
+import { roadContext } from './road';
+import { companyTravelsThrough } from '../../game/road/progress';
+import { trackedChapter } from '../../content/campaign/chapters';
 import { chapters, neighborhoodChapters, storyStatus } from '../../content/campaign/chapters';
 import type { GameState, Point } from '../../game/types';
 import { campaignGoal, localTarget } from '../../game/campaign/objectives';
@@ -21,7 +25,12 @@ const button = (label: string, action: string, value = '', primary = false) =>
 export function campaignQuest(s: GameState): string | undefined {
   const goal = campaignGoal(s);
   if (!goal) return;
-  return `<div class="quest-eyebrow">✧ ${chapters[s.tracking].optional ? 'NEIGHBORHOOD STORY' : 'CHAPTER II'} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : 'Follow the path', goal.done ? 'journal' : 'navigate', goal.done ? 'memories' : goal.target)}<button class="compact-journal text-button" data-action="journal" data-value="stories">Choose a story</button><div class="quest-details"><p class="quest-reference">${chapters[s.tracking].optional ? 'Optional · Original neighborhood story' : 'Mark 2:1–12 · World English Bible'}</p></div>`;
+  const chapter = trackedChapter(s);
+  const discovering =
+    s.tracking === 'trail' &&
+    ['exploring', 'interpreted'].includes(s.road.trail.stage) &&
+    s.road.trail.hint < 3;
+  return `<div class="quest-eyebrow">✧ ${chapter.optional ? 'OPTIONAL STORY' : chapter.label.split(' · ')[0]!.toUpperCase()} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : discovering ? 'Review the clues' : 'Follow the path', goal.done ? 'journal' : discovering ? 'road-guide' : 'navigate', goal.done ? 'memories' : goal.target)}<button class="compact-journal text-button" data-action="journal" data-value="stories">Choose a story</button><div class="quest-details"><p class="quest-reference">${chapter.optional ? 'Optional · Original traveler story' : esc(chapter.source!.title) + ' · World English Bible'}</p></div>`;
 }
 export function campaignSummary(s: GameState, filter: JournalFilter = 'all'): string {
   if (s.episode.stage !== 'complete')
@@ -38,13 +47,15 @@ export function campaignSummary(s: GameState, filter: JournalFilter = 'all'): st
     )}</section><div class="context-actions">${button('Read Into the Deep transcript', 'transcript', 'lake')}${button('Read Through the Roof transcript', 'transcript', 'roof')}</div><p class="content-note">Some days later, the traveler’s imagined journey continues in Capernaum. Amos, Hannah and Ruth are fictional neighbors. Their stories can be completed before or after witnessing the account.</p>`;
 }
 export function contextView(id: string, s: GameState): { title: string; body: string } | undefined {
+  const road = roadContext(id, s);
+  if (road) return road;
   const place = allNeighborhoodPlaces.find((p) => p.id === id);
   if (!place) return;
   const gateway = gateways.find((g) => g.id === id && g.from === s.region);
   if (gateway)
     return {
       title: place.name,
-      body: `<p class="panel-lead">${gateway.id === 'to-lanes' && s.campaign.roof.stage === 'not-started' ? 'Some days later, your imagined journey continues into the neighborhood. Your shore memories remain in the journal.' : 'Continue to ' + esc(regions[gateway.to].title) + '. Your place here will be remembered.'}</p>${button('Continue to ' + regions[gateway.to].title, 'journey', id, true)}`,
+      body: `<p class="panel-lead">${gateway.id === 'to-lanes' && s.campaign.roof.stage === 'not-started' ? 'Some days later, your imagined journey continues into the neighborhood. Your shore memories remain in the journal.' : 'Continue to ' + esc(regions[gateway.to].title) + '. Your place here will be remembered.'}</p>${s.road.company.stage === 'walking' ? `<p class="held-notice">${companyTravelsThrough(s, gateway) ? 'Neri is here and ready. You will continue through this doorway together.' : 'Neri will stay in ' + esc(regions[s.road.company.region].title) + '. Find him again in the journal or journey map.'}</p>` : ''}${button('Continue to ' + regions[gateway.to].title, 'journey', id, true)}`,
     };
   const actions = worldActions.filter((a) => a.target === id);
   const available = actions.filter((a) => a.available(s));
@@ -63,8 +74,24 @@ export function contextView(id: string, s: GameState): { title: string; body: st
   };
 }
 export function roofControls(s: GameState, paused: boolean): string {
-  const beat = roofBeat(s.campaign.roof.checkpoint ?? 'house');
-  return `<header class="scene-heading"><div><p class="eyebrow">THROUGH THE ROOF · ${ROOF_SCENES.indexOf(beat.id) + 1} / ${ROOF_SCENES.length}</p><h1 id="scene-title">${esc(beat.title)}</h1></div><button class="scene-pause" data-action="scene-pause" aria-pressed="${paused}">${paused ? 'Resume motion' : 'Pause motion'}</button></header><div class="scene-progress" aria-hidden="true">${ROOF_SCENES.map((id) => `<span class="${ROOF_SCENES.indexOf(id) <= ROOF_SCENES.indexOf(beat.id) ? 'reached' : ''}"></span>`).join('')}</div><div class="scene-reading"><div class="scene-caption"><p class="caption-source">Original narration · Visual interpretation</p><p class="scene-narration">${esc(beat.narration)}</p></div><div class="scene-caption scripture-caption"><p class="caption-source">Scripture · WEB · ${esc(beat.reference)}</p><p class="scene-scripture">${esc(roofScripture(beat))}</p></div><details class="scene-observation"><summary>Describe this scene</summary><p>${esc(beat.description)}</p><p>${esc(beat.observation)}</p></details></div><footer class="scene-footer"><button class="primary-button scene-continue" data-action="roof-next" data-value="${beat.id}">${esc(beat.continueLabel)} ${icon('arrow')}</button><div class="scene-secondary">${button('Read transcript', 'transcript')}${button('Finish with a summary', 'scene-summary')}${button('Return to the house', 'scene-leave')}</div><p class="scene-save-note">Your place is saved after each scene. Take your time.</p></footer>`;
+  const b = roofBeat(s.campaign.roof.checkpoint ?? 'house');
+  return gospelControls(
+    {
+      ...b,
+      chapter: 'Through the Roof',
+      index: ROOF_SCENES.indexOf(b.id),
+      total: ROOF_SCENES.length,
+      captions: [
+        { label: 'Original narration · Visual interpretation', text: b.narration },
+        { label: 'Scripture · WEB · ' + b.reference, text: roofScripture(b), scripture: true },
+      ],
+      nextAction: 'roof-next',
+      returnLabel: 'Return to the house',
+      transcriptLabel: 'Read transcript',
+      summaryLabel: 'Finish with a summary',
+    },
+    paused,
+  );
 }
 export function roofTranscript(): string {
   return `<p class="panel-lead">Mark 2:1–12 · World English Bible. Scripture is public domain. Scene descriptions and traveler observations are original.</p>${roofBeats.map((b) => `<article class="transcript-beat"><span class="eyebrow">${b.reference}</span><h3>${esc(b.title)}</h3><p>${esc(b.narration)}</p><blockquote>${esc(roofScripture(b))}</blockquote><p><strong>Scene description:</strong> ${esc(b.description)}</p><p>${esc(b.observation)}</p></article>`).join('')}<p><a href="${ROOF_SOURCE.url}" target="_blank" rel="noopener noreferrer">Read Mark 2:1–12 · WEB</a></p><p>Parallel account, separately attributed: <a href="${ROOF_SOURCE.parallel}" target="_blank" rel="noopener noreferrer">Luke 5:17–26 · WEB</a>. Mark describes opening the roof; Luke mentions tiles. The game does not combine their wording into a new quotation.</p>`;

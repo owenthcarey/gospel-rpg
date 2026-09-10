@@ -13,6 +13,7 @@ import {
 import { WALK_ROUTES } from '../content/campaign/places';
 import type { Point } from '../game/types';
 import { LIFE_ITEMS } from '../game/life/types';
+import { isRoadRegion } from '../game/road/types';
 const member = (value: unknown, values: readonly string[]): boolean =>
   typeof value === 'string' && values.includes(value);
 function fail(): never {
@@ -21,7 +22,7 @@ function fail(): never {
 export function regionBounds(region: RegionId): number {
   return region === 'capernaum' || region === 'lake-gennesaret'
     ? 24
-    : region === 'capernaum-lanes'
+    : region === 'capernaum-lanes' || isRoadRegion(region) || region === 'nain-account'
       ? 16
       : 8;
 }
@@ -132,7 +133,11 @@ export function parseCampaign(raw: unknown, episodeStage: string, region: Region
   }
   const visited: CampaignState['visited'] = {};
   for (const [id, point] of Object.entries(raw.visited)) {
-    if (!member(id, EXPLORATION_REGIONS) || !validPoint(point, regionBounds(id as RegionId)))
+    if (
+      !member(id, EXPLORATION_REGIONS) ||
+      isRoadRegion(id) ||
+      !validPoint(point, regionBounds(id as RegionId))
+    )
       fail();
     visited[id as ExplorationRegion] = { x: point.x, z: point.z };
   }

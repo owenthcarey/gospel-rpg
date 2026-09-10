@@ -1,6 +1,6 @@
 # Asset production
 
-The 62 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The episode kit was built and inspected through Blender MCP using **Blender 5.2.1 LTS**. No external models, textures or generation services are required.
+The 71 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -28,7 +28,7 @@ exec(compile(open(recipe).read(), recipe, 'exec'))
 
 ## Model contracts
 
-- Twelve skinned actors: traveler, Simon, Miriam, Jesus, village neighbor, James, John, Hannah, Amos, Ruth, a bearer and the healed man. Ezra uses the neighbor model.
+- Fourteen skinned actors: traveler, Simon, Miriam, Jesus, village neighbor, James, John, Hannah, Amos, Ruth, a bearer, the healed man, a widow and a young man. Ezra uses the neighbor model; Tamar, Neri and Adina reuse Ruth, Amos and Hannah.
 - Shared twelve-bone rig, with rigid per-part weights that preserve the chunky silhouettes. Named clips: `Idle`, `Walk`, `Carry`, `Gesture`, `Sit`, `Row`, `Haul`, `Kneel`, `Recline`, `Rise`, `MatCarry`, `Use`, `PickUp`, `PutDown`, `Repair`, `SitDown`. Blender NLA tracks export each clip; Babylon samples them independently per actor. This is skeletal animation with deliberately restrained deformation, not cloth simulation.
 - Every actor exports `carry_socket`; the traveler uses it for baskets, jugs, tools and the sewing pouch. The boat exports `seat_front`, `seat_middle`, `seat_back`, `net_socket`, `oar_left`, and `oar_right` attachment transforms.
 - Separate oar, empty/full basket, folded/cast/full net, bread bundle, mooring coil and landing mat models support persistent interactions and staged scenes.
@@ -42,7 +42,7 @@ exec(compile(open(recipe).read(), recipe, 'exec'))
 npm run test -- tests/unit/assets.test.ts
 ```
 
-Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all sixteen clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under 5 MiB, actors under 5,000 triangles each and props under 10,000.
+Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all sixteen shared clips, each actor’s declared specialized clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under 5 MiB, actors under 5,000 triangles each and props under 10,000.
 
 Inspect the Blender viewport and the actual Babylon view. Check front direction, feet, seated/kneeling height, carried basket, readable net silhouettes, both graphics settings and reduced motion. Phone captions must leave the action visible. Screenshot fixtures exercise lowering, abundance, partners, astonishment and calling on desktop and phone layouts.
 
@@ -75,3 +75,21 @@ The script accepts `GOSPEL_RPG_ROOT` and `GOSPEL_REVIEW_OUTPUT` for alternate in
 ### Static scenery correction
 
 Hardware instances created from off-scene asset-container sources could stop drawing when High shadows were disabled. Actors and terrain still drew, hiding the failure from aggregate geometry checks. The runtime now creates mesh clones with shared geometry/materials and independent render lifecycles. F3 reports placed, enabled and recently drawn meshes per asset. The software-rendered image regression also injects invisible static GLBs and requires that damaged scene to fail the reference comparison. Required-object checks cover all six regions at both quality levels.
+
+## Road to Nain kit
+
+`road.py` adds seven props and two actors: a town gate, terrace wall, spring marker, terrace marker, farm shelter, split olive, open procession frame, widow and young man. The full kit is **71 GLBs: 14 actors and 57 props**, totaling **4,951,908 bytes (4.72 MiB)**. All existing geometry is retained, and only the two existing actors that gained specialist clips require changed GLBs. The town gate has weathered stone courses on both faces so the detail remains visible when approaching and leaving it.
+
+The sixteen shared clips remain on every actor. Only the young man exports `SitUp`, only the bearer exports `FrameCarry`, and only Jesus exports `TouchFrame`. The carry/touch poses place hands against the frame’s long rails; the Nain composition holds it 0.84 m above the ground. The sitting-up clip and scene root offset keep the pelvis supported, with legs resting along the frame. Reduced motion selects an established still composition. These are restrained authored poses, not physics or cloth simulation.
+
+The Nain standing compositions and Neri's walk explicitly account for the imported skins facing −Z after the existing actor wrapper. Reclining and seated root poses are calibrated independently. `tests/unit/nain-staging.test.ts` imports the shipped GLBs with Babylon, samples the real deformed skins and measures contact with the frame rails for all eight bearer hands and Jesus's right hand. Blender appearance alone did not catch the reversed runtime orientation; both views are required.
+
+Inspect the shipped models in an isolated Blender scene:
+
+```sh
+npm run assets:inspect:road
+```
+
+`inspect_road.py` produces a [kit sheet](verification/road-to-nain-kit.png), [frame-contact view](verification/road-to-nain-contact.png), [three sitting-up poses](verification/road-to-nain-poses.png) and [byte inventory](verification/road-to-nain-assets.json). It accepts the same root/output environment variables as the earlier inspection script and can also be executed through Blender MCP. It imports the exported GLBs rather than inspecting only source geometry. The `.blend`, recipe and GLBs are delivered together.
+
+The initial CLI fallback has been replaced. After Blender was reopened, enabling the installed addon and connecting its server restored native MCP access (addon 1.6, protocol 5). MCP rebuilt the full isolated workshop, exported and independently imported the models, rendered the three review sheets, and installed the nine new assets plus the bearer and Jesus clips. The other sixty prior MCP exports remain unchanged. Live review prompted the gate detailing correction. The [rebuild record](verification/road-to-nain-mcp.json) includes hashes for the installed exports, recipes, source and review images. The original Blender scene was preserved. Asset contracts and acceptance budgets are unchanged.

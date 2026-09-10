@@ -57,5 +57,8 @@ export const lifePlaces: Record<ExplorationRegion, readonly Interactable[]> = {
     },
   ],
   'gathering-house': [],
+  'galilean-road': [],
+  'roadside-farm': [],
+  'nain-gate': [],
 };
 export const BENCH_FOOTPRINT = { x: 3, z: 7, width: 2.3, depth: 1.2 };

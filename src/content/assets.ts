@@ -16,7 +16,7 @@ export const ANIMATION_CLIPS = [
   'Repair',
   'SitDown',
 ] as const;
-export type ActorClip = (typeof ANIMATION_CLIPS)[number];
+export type ActorClip = (typeof ANIMATION_CLIPS)[number] | 'SitUp' | 'FrameCarry' | 'TouchFrame';
 export const ACTOR_ASSETS = [
   'traveler',
   'simon',
@@ -30,6 +30,8 @@ export const ACTOR_ASSETS = [
   'ruth',
   'bearer',
   'healed_man',
+  'widow',
+  'young_man',
 ] as const;
 export type ActorAsset = (typeof ACTOR_ASSETS)[number];
 export const PROP_ASSETS = [
@@ -83,6 +85,13 @@ export const PROP_ASSETS = [
   'bench_lashed',
   'bench_braced',
   'bench_pieces',
+  'town_gate',
+  'terrace_wall',
+  'spring_marker',
+  'terrace_marker',
+  'farm_shelter',
+  'split_olive',
+  'procession_frame',
 ] as const;
 export type AssetId = ActorAsset | (typeof PROP_ASSETS)[number];
 export interface AssetDefinition {
@@ -97,7 +106,16 @@ export const assets: readonly AssetDefinition[] = [
     id,
     kind: 'actor' as const,
     maxTriangles: 5000,
-    clips: ANIMATION_CLIPS,
+    clips: [
+      ...ANIMATION_CLIPS,
+      ...(id === 'young_man'
+        ? ['SitUp' as const]
+        : id === 'bearer'
+          ? ['FrameCarry' as const]
+          : id === 'jesus'
+            ? ['TouchFrame' as const]
+            : []),
+    ],
     attachments: ['carry_socket'],
   })),
   ...PROP_ASSETS.map((id) => ({
@@ -170,6 +188,20 @@ export const LAKE_ASSETS: readonly AssetId[] = [
   'rock',
   'palm',
   'house',
+];
+export const NAIN_ASSETS: readonly AssetId[] = [
+  'jesus',
+  'widow',
+  'young_man',
+  'bearer',
+  'villager',
+  'hannah',
+  'town_gate',
+  'procession_frame',
+  'house',
+  'low_wall',
+  'olive',
+  'rock',
 ];
 export function isActorAsset(id: string): id is ActorAsset {
   return ACTOR_ASSETS.some((candidate) => candidate === id);

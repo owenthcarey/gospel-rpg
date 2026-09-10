@@ -5,6 +5,7 @@ import { regions } from '../content/regions';
 import type { RegionId } from '../game/episode/types';
 import { World, type WorldCallbacks } from './world';
 import { RoofRegion } from './regions/roof';
+import { NainRegion } from './regions/nain';
 import { LakeRegion } from './regions/lake';
 import { isExplorationView, type RegionView } from './regions/types';
 import { sceneAssets, type AssetVisibility } from './assets';
@@ -81,6 +82,10 @@ export class GameRuntime {
         'capernaum-lanes': explore,
         'gathering-house': explore,
         bakehouse: explore,
+        'galilean-road': explore,
+        'roadside-farm': explore,
+        'nain-gate': explore,
+        'nain-account': () => new NainRegion(this.engine, state),
         'lake-gennesaret': () => new LakeRegion(this.engine, state),
         'roof-account': () => new RoofRegion(this.engine, state),
       };
@@ -119,7 +124,11 @@ export class GameRuntime {
     this.view?.update(state);
     this.canvas.dataset.worldStage = state.episode.stage;
     this.canvas.dataset.checkpoint =
-      state.campaign.roof.checkpoint ?? state.episode.checkpoint ?? '';
+      state.region === 'nain-account'
+        ? (state.road.chapter.checkpoint ?? '')
+        : state.region === 'roof-account'
+          ? (state.campaign.roof.checkpoint ?? '')
+          : (state.episode.checkpoint ?? '');
     this.canvas.dataset.carrying = state.campaign.carrying ?? state.episode.carrying ?? '';
   }
   setPaused(value: boolean): void {
@@ -131,6 +140,9 @@ export class GameRuntime {
   }
   getCompanionPosition(): Point | undefined {
     return isExplorationView(this.view) ? this.view.getCompanionPosition() : undefined;
+  }
+  getRoadCompanionPosition(): Point | undefined {
+    return isExplorationView(this.view) ? this.view.getRoadCompanionPosition() : undefined;
   }
   applySettings(settings: Settings): void {
     this.settings = { ...settings };

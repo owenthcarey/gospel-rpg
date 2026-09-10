@@ -19,7 +19,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
-    "assets:build": "python3 tools/build_assets.py"
+    "assets:build": "python3 tools/build_assets.py",
+    "assets:inspect:road": "python3 tools/build_assets.py --inspect-road",
+    "fixtures:road": "node tools/generate_road_fixtures.mjs"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

@@ -1,5 +1,6 @@
 import { campaignJournal } from './campaign/journal';
 import { lifeJournal } from './life/journal';
+import { roadJournal } from './road/journal';
 import { episodeDialogue } from './episode/dialogue';
 import { episodeJournal } from './episode/journal';
 import { hasMemories, hasSupplies } from '../game/quest';
@@ -33,6 +34,7 @@ export const items: Record<ItemId, { name: string; description: string; icon: st
 };
 export const journalEntries: Record<string, { title: string; text: string; reference?: string }> = {
   ...lifeJournal,
+  ...roadJournal,
   ...episodeJournal,
   ...campaignJournal,
   arrival: {

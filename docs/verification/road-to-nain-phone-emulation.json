@@ -1,0 +1,320 @@
+{
+  "galilean-road-high": {
+    "region": "galilean-road",
+    "meshes": "129",
+    "materials": "35",
+    "textures": "8",
+    "activeMeshes": "55",
+    "fps": "60",
+    "drawCalls": "75",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2010.2",
+      "median": "16.7",
+      "p95": "17.7",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "olive": [13, 13, 6],
+      "spring_marker": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "terrace_wall": [2, 2, 2],
+      "rock": [2, 2, 1],
+      "cypress": [1, 1, 1],
+      "ruth": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "galilean-road-low": {
+    "region": "galilean-road",
+    "meshes": "129",
+    "materials": "35",
+    "textures": "8",
+    "activeMeshes": "55",
+    "fps": "60",
+    "drawCalls": "44",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2009.2",
+      "median": "16.7",
+      "p95": "17.6",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "olive": [13, 13, 6],
+      "spring_marker": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "terrace_wall": [2, 2, 2],
+      "rock": [2, 2, 1],
+      "cypress": [1, 1, 1],
+      "ruth": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "nain-account-high": {
+    "region": "nain-account",
+    "meshes": "132",
+    "materials": "37",
+    "textures": "25",
+    "activeMeshes": "116",
+    "fps": "60",
+    "drawCalls": "193",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2009.0",
+      "median": "16.7",
+      "p95": "17.6",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "low_wall": [6, 6, 3],
+      "house": [4, 4, 2],
+      "olive": [2, 2, 0],
+      "procession_frame": [1, 1, 1],
+      "jesus": [5, 5, 5],
+      "widow": [5, 5, 5],
+      "young_man": [5, 5, 5],
+      "bearer": [20, 20, 20],
+      "hannah": [20, 20, 20],
+      "villager": [30, 30, 30]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "nain-account-low": {
+    "region": "nain-account",
+    "meshes": "132",
+    "materials": "37",
+    "textures": "25",
+    "activeMeshes": "87",
+    "fps": "60",
+    "drawCalls": "69",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2014.1",
+      "median": "16.7",
+      "p95": "17.6",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "low_wall": [6, 6, 3],
+      "house": [4, 4, 2],
+      "olive": [2, 2, 0],
+      "procession_frame": [1, 1, 1],
+      "jesus": [5, 5, 5],
+      "widow": [5, 5, 5],
+      "young_man": [5, 5, 5],
+      "bearer": [20, 20, 20],
+      "hannah": [20, 10, 10],
+      "villager": [30, 15, 15]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "nain-gate-high": {
+    "region": "nain-gate",
+    "meshes": "108",
+    "materials": "34",
+    "textures": "8",
+    "activeMeshes": "49",
+    "fps": "60",
+    "drawCalls": "63",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2003.8",
+      "median": "16.7",
+      "p95": "17.6",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "house": [6, 6, 5],
+      "bench": [1, 1, 1],
+      "olive": [1, 1, 1],
+      "amphora": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "hannah": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "nain-gate-low": {
+    "region": "nain-gate",
+    "meshes": "108",
+    "materials": "34",
+    "textures": "8",
+    "activeMeshes": "49",
+    "fps": "60",
+    "drawCalls": "36",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2000.7",
+      "median": "16.7",
+      "p95": "17.7",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "town_gate": [1, 1, 1],
+      "house": [6, 6, 5],
+      "bench": [1, 1, 1],
+      "olive": [1, 1, 1],
+      "amphora": [1, 1, 1],
+      "low_wall": [6, 6, 6],
+      "hannah": [5, 5, 5],
+      "traveler": [6, 6, 6],
+      "amos": [5, 0, 0],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "roadside-farm-high": {
+    "region": "roadside-farm",
+    "meshes": "106",
+    "materials": "33",
+    "textures": "6",
+    "activeMeshes": "46",
+    "fps": "60",
+    "drawCalls": "63",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2004.2",
+      "median": "16.7",
+      "p95": "17.7",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "house_large": [1, 1, 1],
+      "farm_shelter": [1, 1, 1],
+      "split_olive": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "worktable": [1, 1, 1],
+      "bench": [1, 1, 1],
+      "olive": [8, 8, 4],
+      "amphora": [1, 1, 1],
+      "flour_sack": [1, 1, 1],
+      "low_wall": [2, 2, 1],
+      "traveler": [6, 6, 6],
+      "amos": [5, 5, 5],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  },
+  "roadside-farm-low": {
+    "region": "roadside-farm",
+    "meshes": "106",
+    "materials": "33",
+    "textures": "6",
+    "activeMeshes": "46",
+    "fps": "60",
+    "drawCalls": "34",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2011.8",
+      "median": "16.7",
+      "p95": "17.6",
+      "viewport": "390\u00d7844"
+    },
+    "assets": {
+      "house_large": [1, 1, 1],
+      "farm_shelter": [1, 1, 1],
+      "split_olive": [1, 1, 1],
+      "terrace_marker": [1, 1, 1],
+      "worktable": [1, 1, 1],
+      "bench": [1, 1, 1],
+      "olive": [8, 8, 4],
+      "amphora": [1, 1, 1],
+      "flour_sack": [1, 1, 1],
+      "low_wall": [2, 2, 1],
+      "traveler": [6, 6, 6],
+      "amos": [5, 5, 5],
+      "bread_basket": [1, 0, 0],
+      "jug": [2, 0, 0],
+      "cart_handle": [1, 0, 0],
+      "sewing_pouch": [1, 0, 0],
+      "lashing_cord": [1, 0, 0],
+      "wood_brace": [1, 0, 0]
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "physicalDevice": false
+  }
+}

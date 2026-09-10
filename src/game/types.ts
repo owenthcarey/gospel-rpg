@@ -1,5 +1,6 @@
 import { newCampaign, type CampaignState, type CampaignEvent } from './campaign/types';
 import { newLife, type LifeState } from './life/types';
+import { newRoad, type RoadState, type RoadEvent } from './road/types';
 import {
   newEpisode,
   type EpisodeEvent,
@@ -20,6 +21,7 @@ export interface GameState {
   region: RegionId;
   campaign: CampaignState;
   life: LifeState;
+  road: RoadState;
   episode: EpisodeProgress;
   tracking: StoryTrack;
   villageMemory: DiscoveryId | null;
@@ -33,6 +35,7 @@ export interface GameState {
 }
 export type GameEvent =
   | CampaignEvent
+  | RoadEvent
   | EpisodeEvent
   | { type: 'remember-village'; id: DiscoveryId }
   | { type: 'accept-quest' }
@@ -61,6 +64,7 @@ export function newGame(): GameState {
     region: 'capernaum',
     campaign: newCampaign(),
     life: newLife(),
+    road: newRoad(),
     episode: newEpisode(),
     tracking: 'main',
     villageMemory: null,

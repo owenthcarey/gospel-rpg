@@ -1,6 +1,7 @@
 import type { GameState } from '../../game/types';
 import type { RegionId, StoryTrack } from '../../game/campaign/types';
 import { ROOF_SOURCE } from './scripture';
+import { NAIN_SOURCE } from '../road/scripture';
 /** Shared story metadata. Reducers own progress; views never invent unlock conditions. */
 export interface ChapterDefinition {
   id: StoryTrack;
@@ -11,8 +12,10 @@ export interface ChapterDefinition {
   source: { title: string; url: string } | null;
   available: (s: GameState) => boolean;
   complete: (s: GameState) => boolean;
+  started: (s: GameState) => boolean;
 }
 const afterLake = (s: GameState) => s.episode.stage === 'complete';
+const afterRoof = (s: GameState) => s.campaign.roof.stage === 'complete';
 export const chapters: Record<StoryTrack, ChapterDefinition> = {
   main: {
     id: 'main',
@@ -23,6 +26,7 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     source: { title: 'Luke 5:1–11', url: 'https://ebible.org/engwebp/LUK05.htm' },
     available: () => true,
     complete: afterLake,
+    started: (s) => s.quest !== 'not-started',
   },
   village: {
     id: 'village',
@@ -33,6 +37,7 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     source: null,
     available: () => true,
     complete: (s) => s.villageStory === 'complete',
+    started: (s) => s.villageStory !== 'not-started',
   },
   roof: {
     id: 'roof',
@@ -43,6 +48,7 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     source: ROOF_SOURCE,
     available: afterLake,
     complete: (s) => s.campaign.roof.stage === 'complete',
+    started: (s) => s.campaign.roof.stage !== 'not-started',
   },
   neighbors: {
     id: 'neighbors',
@@ -53,6 +59,7 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     source: null,
     available: afterLake,
     complete: (s) => s.campaign.walk.stage === 'complete',
+    started: (s) => s.campaign.walk.stage !== 'not-started',
   },
   table: {
     id: 'table',
@@ -63,6 +70,7 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     source: null,
     available: afterLake,
     complete: (s) => s.campaign.table.stage === 'complete',
+    started: (s) => s.campaign.table.stage !== 'not-started',
   },
   belonging: {
     id: 'belonging',
@@ -73,6 +81,7 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     source: null,
     available: afterLake,
     complete: (s) => s.life.thread.stage === 'complete',
+    started: (s) => s.life.thread.stage !== 'not-started',
   },
   rest: {
     id: 'rest',
@@ -83,9 +92,49 @@ export const chapters: Record<StoryTrack, ChapterDefinition> = {
     source: null,
     available: afterLake,
     complete: (s) => s.life.bench.stage === 'complete',
+    started: (s) => s.life.bench.stage !== 'not-started',
+  },
+  nain: {
+    id: 'nain',
+    title: 'At the gate',
+    label: 'Chapter III · Luke 7:11–17',
+    region: 'nain-gate',
+    optional: false,
+    source: NAIN_SOURCE,
+    available: afterRoof,
+    started: (s) => s.road.chapter.stage !== 'not-started',
+    complete: (s) => s.road.chapter.stage === 'complete',
+  },
+  trail: {
+    id: 'trail',
+    title: 'A way remembered',
+    label: 'Optional · Follow Tamar’s recollection',
+    region: 'galilean-road',
+    optional: true,
+    source: null,
+    available: afterRoof,
+    started: (s) => s.road.trail.stage !== 'not-started',
+    complete: (s) => s.road.trail.stage === 'complete',
+  },
+  company: {
+    id: 'company',
+    title: 'Company on the road',
+    label: 'Optional · Walk with Neri to Nain',
+    region: 'roadside-farm',
+    optional: true,
+    source: null,
+    available: afterRoof,
+    started: (s) => s.road.company.stage !== 'not-started',
+    complete: (s) => s.road.company.stage === 'complete',
   },
 };
 export const neighborhoodChapters = ['roof', 'neighbors', 'table', 'belonging', 'rest'] as const;
+export const roadChapters = ['nain', 'trail', 'company'] as const;
+export function trackedChapter(s: GameState): ChapterDefinition {
+  return chapters[
+    s.tracking === 'main' && afterLake(s) ? (afterRoof(s) ? 'nain' : 'roof') : s.tracking
+  ];
+}
 export function storyStatus(
   s: GameState,
   id: StoryTrack,
@@ -93,19 +142,5 @@ export function storyStatus(
   const chapter = chapters[id];
   if (!chapter.available(s)) return 'unavailable';
   if (chapter.complete(s)) return 'complete';
-  const started =
-    id === 'belonging'
-      ? s.life.thread.stage !== 'not-started'
-      : id === 'rest'
-        ? s.life.bench.stage !== 'not-started'
-        : id === 'main'
-          ? s.quest !== 'not-started'
-          : id === 'village'
-            ? s.villageStory !== 'not-started'
-            : id === 'roof'
-              ? s.campaign.roof.stage !== 'not-started'
-              : id === 'neighbors'
-                ? s.campaign.walk.stage !== 'not-started'
-                : s.campaign.table.stage !== 'not-started';
-  return started ? 'in-progress' : 'available';
+  return chapter.started(s) ? 'in-progress' : 'available';
 }

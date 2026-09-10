@@ -1,5 +1,7 @@
 import type { GameState } from '../types';
 import { distance } from '../pathfinding';
+import { isRoadRegion } from '../road/types';
+import { rememberPosition, visitPosition, roadJourney } from '../road/progress';
 import { applyLifeAction } from '../life/progress';
 import { actionAllowed, noteTargets } from '../../content/campaign/actions';
 import { gateways, localNeighborhoodPlaces, WALK_ROUTES } from '../../content/campaign/places';
@@ -54,10 +56,13 @@ export function transitionCampaign(state: GameState, event: CampaignEvent): Game
     case 'journey': {
       const gate = gateways.find((g) => g.id === event.gateway && g.from === state.region);
       if (!gate || distance(state.position, gate) >= 2.8) return state;
-      c.visited[gate.from] = { ...state.position };
+      if ((isRoadRegion(gate.from) || isRoadRegion(gate.to)) && c.roof.stage !== 'complete')
+        return state;
+      rememberPosition(next, gate.from);
       next.region = gate.to;
-      next.position = { ...(c.visited[gate.to] ?? gate.arrival) };
-      c.visited[gate.to] = { ...next.position };
+      next.position = { ...(visitPosition(next, gate.to) ?? gate.arrival) };
+      roadJourney(next, gate, state);
+      rememberPosition(next, gate.to);
       if (c.roof.stage === 'not-started') {
         c.roof.stage = 'exploring';
         if (next.tracking === 'main' || next.tracking === 'roof') next.tracking = 'roof';
@@ -212,7 +217,7 @@ export function transitionCampaign(state: GameState, event: CampaignEvent): Game
       break;
     }
   }
-  if (isExploration(next.region)) c.visited[next.region] = { ...next.position };
+  if (isExploration(next.region)) rememberPosition(next, next.region);
   for (const id of campaignJournalIds(c)) if (!next.journal.includes(id)) next.journal.push(id);
   return next;
 }

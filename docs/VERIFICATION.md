@@ -1,6 +1,64 @@
 # Verification record
 
-## Living Capernaum · 2026-09-09
+## Beyond Capernaum — The Road to Nain · 2026-09-09
+
+[RFC-004](rfcs/004-the-road-to-nain.md) was drafted and accepted before gameplay changes. The milestone adds three exploration regions, a six-scene Luke 7:11–17 chapter, Tamar’s landmark investigation and Neri’s two cross-region walks. The [playtest guide](PLAYTEST.md) includes full journeys and five portable v7 examples.
+
+### Results and coverage
+
+- **267 unit tests passed** across fourteen files. Coverage includes every v1–v6 fixture’s complete prior state and journal, v7 portable examples, both evidence orders and endings, wrong interpretations/retry, all hint levels, both companion routes, boundary conditions, all Nain checkpoints/reflections, stale/remote events, reachable approaches and slope bounds. An imported-geometry regression uses the actual Babylon GLB importer and deformed skin vertices to verify all four bearers’ hands and Jesus’s right hand touch the procession rails. It rejected the reversed pose before the correction. Existing life-state combination coverage remains intact.
+- TypeScript, ESLint, the production build, formatting and whitespace checks passed.
+- The **full production browser regression passed all 67 runnable checks**, with nine intentional skips, in 24.6 minutes. It covers all three chapters and the earlier optional stories on desktop and phone emulation.
+- After the final procession-facing, sitting-up capture and farm-model corrections, the road journeys and both static-image contracts passed **21 checks**, with three intentional skips, in 8.8 minutes. The last courtyard placement and text-color corrections then passed all **ten affected desktop/phone checks** in 6.5 minutes: Tamar, both Neri routes, the complete Nain account/aftermath and the Nain exploration rendering contract. These selections overlap the full suite; they are not additional unique scenarios or a second full-suite run.
+- After recreating the assets through MCP, all **267 unit tests**, types, lint and the production build passed again. The affected desktop/phone account journeys, all four new regions at both graphics settings, and the Nain SwiftShader image contract passed **eleven checks**, with one intentional fixed-viewport phone skip, in 5.0 minutes. The gate reference was visually reviewed before this run; snapshot updates were disabled for the passing regression, including its missing-scenery negative control.
+- The kit contains **71 GLBs: 14 actors and 57 props**, with sixteen shared clips and three specialized procession clips. Total download size is **4,951,908 bytes (4.72 MiB)**, below the unchanged 5 MiB cap. The largest actor remains 544 triangles and largest prop 2,320, below the unchanged 5,000/10,000 limits.
+- The application bundle is approximately **92 KB gzip**, CSS **11 KB gzip**, and the Babylon engine **692 KB gzip**, plus models. The existing large engine-chunk advisory remains. No runtime CDN or external model service is needed.
+
+New browser journeys walk from the completed roof chapter to the road, examine both markers, retry an unsupported route, use hints, find the farm and retain both ending choices. Both Neri routes exercise menus, actual position export/import, reduced motion, alternate exits, Find Neri and visible completion. One route carries a legacy filled jug to Nain and back to the bakehouse. An imported waiting-companion fixture is preserved through Gospel reading, reload and a return to find him. The account journey covers all six scenes, transcript/source/focus, leave/resume/reload, aftermath and reflection without optional tasks. A deliberately failed procession asset load retains the prior scene/state and supports retry and summary.
+
+### Rendering and Blender inspection
+
+All four new regions have explicit inventories and required-object contracts. Production checks inspect each required asset’s enabled and drawn geometry at High and Low, assert one settled scene, reject page-width overflow and keep large-text phone-landscape Gospel controls inside the viewport. The unchanged limits are 300 High / 130 Low draw calls for new reference compositions. The existing shore baseline remains separately reported below.
+
+The new Nain image reference uses the same 960×640, DPR 1, Low, reduced-motion SwiftShader contract as the bakehouse. It checks region replacement and reload. A negative control serves valid GLBs with static roots scaled to zero; the resulting missing-gate/frame image must fail comparison while actors and terrain remain. Reference image tolerance remains 2% with a 0.2 color threshold.
+
+After Blender was reopened, enabling the installed addon and connecting its server restored native MCP access: **Blender 5.2.1 LTS, addon 1.6, protocol 5**. MCP recreated the full workshop and replaced all eleven exports from the earlier CLI fallback: nine new models plus the bearer and Jesus specialist clips. The other sixty prior MCP exports and the original Blender scene were preserved. The [MCP rebuild record](verification/road-to-nain-mcp.json) includes recipe, source, model and review-image hashes. Independent GLB imports, live viewport review and MCP rendering produced the updated [kit sheet](verification/road-to-nain-kit.png), [frame-contact view](verification/road-to-nain-contact.png), [sitting-up poses](verification/road-to-nain-poses.png) and [byte inventory](verification/road-to-nain-assets.json). Live review added weathered courses to both gate faces, making them visible from the player's approach. The inspection recipe can be rerun through MCP or `npm run assets:inspect:road`.
+
+Inspection corrected outward-facing carrying arms, hand/frame contact, the sitting-up leg/root offsets, a tree obscuring Tamar, visible distant water, path junctions, missing obstacle footprints, the shelter's front/back orientation, and an inherited toast animation that could stretch a notice across the Gospel scene. Neri's final bench is placed clear of the gate's obstruction. End-to-end testing also corrected Neri moving away while approached for conversation. The rendering sampler now warms after graphics changes, avoiding counters left over from the previous frame.
+
+Review captures show the [farm](verification/road-to-nain-farm.png), [phone inspection](verification/road-to-nain-inspection-phone.png), [journey map](verification/road-to-nain-journey-map.png) and [journal](verification/road-to-nain-journal.png). The completed company is visible on [desktop](verification/road-to-nain-courtyard.png) and [phone](verification/road-to-nain-courtyard-phone.png). Gospel views cover the command on [desktop](verification/road-to-nain-command-desktop.png) and [phone](verification/road-to-nain-command-phone.png), [sitting up](verification/road-to-nain-sitting-up.png), [mother and son together](verification/road-to-nain-restored.png), and [large-text phone landscape](verification/road-to-nain-landscape.png).
+
+The evidence, route and shared story cards now use readable colors against the actual dark panels. Checked solid-background text pairs range from 5.9:1 to 9.5:1 contrast; the inspection caption was also corrected and reviewed on phone. This is a focused color/visual check, with physical accessibility review still outstanding.
+
+### Measurement and review limits
+
+The new measurements use the existing active-play procedure: two seconds of warmup, up to 120 animation-frame intervals in a five-second observation window, then a local F3 snapshot. Menus are excluded. Results identify renderer, viewport, count and elapsed time; they describe local presentation cadence rather than isolated GPU work or sustained thermal performance.
+
+Chromium 151.0.7922.34 used ANGLE Metal on the same Apple M3/macOS host for [desktop measurements](verification/road-to-nain-desktop.json) at 1440×900 and [phone emulation](verification/road-to-nain-phone-emulation.json) at 390×844. All sixteen samples were refreshed after the MCP asset rebuild. Every sample contains 120 intervals, a 16.7 ms median, a 17.5–17.7 ms p95 and one settled scene. F3 reported 60 FPS. The added gate detail remains in one static primitive; the measured draw-call counts are unchanged.
+
+| Region                      | Desktop High / Low draws | Phone High / Low draws |
+| --------------------------- | ------------------------ | ---------------------- |
+| Galilean road               | 83 / 52                  | 75 / 44                |
+| Roadside farm               | 68 / 39                  | 63 / 34                |
+| Nain gate                   | 63 / 36                  | 63 / 36                |
+| Nain account, command scene | 197 / 76                 | 193 / 69               |
+
+Before the MCP gate-detail refinement, the build also passed all **eight desktop/phone new-region checks under forced SwiftShader**, with retries disabled, in 3.2 minutes. Each check exercises both graphics levels, required-object drawing, the unchanged draw-call cap and one settled scene; the phone account check also covers large-text landscape controls. The [software-renderer records](verification/road-to-nain-swiftshader.json) retain those sixteen quality samples. After the MCP rebuild, the affected Nain SwiftShader image contract and the complete hardware rendering matrix passed again as recorded above. Cadence is diagnostic and does not establish physical-device performance.
+
+To reproduce against a production build:
+
+```sh
+npm run build
+PLAYWRIGHT_SWIFTSHADER=1 npm run test:e2e -- tests/e2e/road.spec.ts --grep 'new region'
+```
+
+The existing eight CI shards select all 76 cases exactly once: four shards contain ten cases and four contain nine. New region rendering checks can shard independently. Local enumeration verifies selection, not GitHub runner timing or a successful hosted CI run.
+
+Human pacing, historical/editorial review, physical screen-reader/touch testing, Safari/iOS/Android and other-browser compatibility remain external review items. Phone emulation is not a physical-device test. Targets remain 30 FPS on a representative phone at Low and 60 FPS on a representative laptop at High. No asset/draw-call budget, license or deployment setting was increased or changed for this milestone.
+
+The implementation is local and uncommitted. No push, merge or deployment was performed.
+
+## Historical: Living Capernaum · 2026-09-09
 
 [RFC-003](rfcs/003-living-capernaum.md) was drafted before implementation. It adds two original adventures and strengthens the existing chapters’ interactions, rendering, journal and save continuity. The [playtest guide](PLAYTEST.md) includes both clue orders/endings, both repair methods, interruption checks and v6 fixtures.
 

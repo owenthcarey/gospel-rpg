@@ -3,12 +3,23 @@ import { campaignLayout } from './campaign/layouts';
 import { neighborhoodPlaces } from './campaign/places';
 import { heldAssets, lifeRegionAssets } from './life/presentation';
 import type { ExplorationRegion } from '../game/campaign/types';
+import { isRoadRegion } from '../game/road/types';
+import { roadPlaces } from './road/places';
 
 /** Interiors only load their own architecture, actors and activity props. */
 export function explorationAssets(region: ExplorationRegion): AssetId[] {
   const shared = ['traveler' as const, ...Object.values(heldAssets), ...lifeRegionAssets[region]];
   if (region === 'capernaum') return [...new Set([...VILLAGE_ASSETS, ...shared])];
   const layout = campaignLayout(region)!;
+  if (isRoadRegion(region))
+    return [
+      ...new Set([
+        ...shared,
+        ...layout.decor.map((p) => p.asset),
+        ...roadPlaces[region].flatMap((p) => (p.asset ? [p.asset as AssetId] : [])),
+        'amos' as const,
+      ]),
+    ];
   const activity: AssetId[] = region === 'capernaum-lanes' ? ['villager', 'gate', 'handcart'] : [];
   return [
     ...new Set([
