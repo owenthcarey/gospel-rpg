@@ -52,11 +52,17 @@ npm run build
 PLAYWRIGHT_SWIFTSHADER=1 npm run test:e2e -- tests/e2e/road.spec.ts --grep 'new region'
 ```
 
-The existing eight CI shards select all 76 cases exactly once: four shards contain ten cases and four contain nine. New region rendering checks can shard independently. Local enumeration verifies selection, not GitHub runner timing or a successful hosted CI run.
+The sixteen CI shards select all 76 cases exactly once: twelve shards contain five cases and four contain four. New region rendering checks can shard independently. The CI capacity correction below records why the shard count changed.
 
 Human pacing, historical/editorial review, physical screen-reader/touch testing, Safari/iOS/Android and other-browser compatibility remain external review items. Phone emulation is not a physical-device test. Targets remain 30 FPS on a representative phone at Low and 60 FPS on a representative laptop at High. No asset/draw-call budget, license or deployment setting was increased or changed for this milestone.
 
-The implementation is local and uncommitted. No push, merge or deployment was performed.
+### CI suite capacity · PR #12
+
+The [initial PR run](https://github.com/owenthcarey/gospel-rpg/actions/runs/34434089123) passed the build and seven browser shards. Shard 3/8 reached Playwright's 900-second suite deadline after seven passing tests, leaving three cases unfinished. It reported no test assertion failures. Shards 1/8 and 7/8 also approached the deadline at 14.0 and 13.7 minutes.
+
+Quality now distributes the same 76 desktop/phone cases across sixteen shards, with four or five cases per job. The matrix job count still supplies the shard denominator. The one-worker limit, test and assertion timeouts, 15-minute suite deadline, 20-minute job deadline, retries, screenshot contracts, report uploads and required `verify` gate are unchanged.
+
+Local enumeration of all sixteen shards confirms complete selection without duplicates. After a fresh production build, shard 6/16 passed all five checks under forced SwiftShader with CI settings and retries disabled in 8.3 minutes. This includes both Neri routes and the complete Nain account, the three cases left unfinished in the initial run. All 267 unit tests, types, lint, build, formatting and whitespace checks passed. The original milestone's full-suite results above precede this CI configuration correction; local software-renderer timing does not establish GitHub runner timing.
 
 ## Historical: Living Capernaum · 2026-09-09
 
