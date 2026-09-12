@@ -23,7 +23,9 @@
     "assets:inspect:road": "python3 tools/build_assets.py --inspect-road",
     "fixtures:road": "node tools/generate_road_fixtures.mjs",
     "fixtures:galilee": "node tools/generate_galilee_fixtures.mjs",
-    "assets:inspect:galilee": "python3 tools/build_assets.py --inspect-galilee"
+    "assets:inspect:galilee": "python3 tools/build_assets.py --inspect-galilee",
+    "fixtures:lake": "node tools/generate_lake_fixtures.mjs",
+    "assets:inspect:lake": "python3 tools/build_assets.py --inspect-lake"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

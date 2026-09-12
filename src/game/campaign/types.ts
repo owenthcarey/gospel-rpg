@@ -1,3 +1,4 @@
+import { LAKE_REGIONS } from '../lake/types';
 import type { Point } from '../types';
 import { GALILEE_ITEMS } from '../galilee/types';
 import { LIFE_ITEMS } from '../life/types';
@@ -9,6 +10,7 @@ export const EXPLORATION_REGIONS = [
   'gathering-house',
   'bakehouse',
   ...ROAD_REGIONS,
+  ...LAKE_REGIONS,
 ] as const;
 export type ExplorationRegion = (typeof EXPLORATION_REGIONS)[number];
 export const REGION_IDS = [
@@ -16,6 +18,7 @@ export const REGION_IDS = [
   'lake-gennesaret',
   'roof-account',
   'nain-account',
+  'storm-account',
 ] as const;
 export type RegionId = (typeof REGION_IDS)[number];
 export const STORY_TRACKS = [
@@ -31,6 +34,8 @@ export const STORY_TRACKS = [
   'company',
   'spring',
   'shelter',
+  'storm',
+  'crossing',
 ] as const;
 export type StoryTrack = (typeof STORY_TRACKS)[number];
 export const ROOF_SCENES = [

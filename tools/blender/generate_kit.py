@@ -20,7 +20,7 @@ if not ROOT:
 sys.path.insert(0, os.path.join(ROOT, "tools/blender"))
 from rigging import export_character
 
-OUT = os.path.join(ROOT, "public/assets/models")
+OUT = os.environ.get("GOSPEL_MODEL_OUTPUT", os.path.join(ROOT, "public/assets/models"))
 os.makedirs(OUT, exist_ok=True)
 random.seed(41)
 scene = bpy.data.scenes.new("The Way - asset workshop")
@@ -406,6 +406,10 @@ exec(compile(Path(ROOT, "tools/blender/life.py").read_text(), "life.py", "exec")
 exec(compile(Path(ROOT, "tools/blender/road.py").read_text(), "road.py", "exec"))
 
 exec(compile(Path(ROOT, "tools/blender/galilee.py").read_text(), "galilee.py", "exec"))
+
+exec(compile(Path(ROOT, "tools/blender/crossing.py").read_text(), "crossing.py", "exec"))
+from compact_glb import compact_kit
+compact_kit(OUT)
 
 scene.render.engine = "BLENDER_EEVEE_NEXT" if bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
 os.makedirs(os.path.join(ROOT,"assets/source"),exist_ok=True)

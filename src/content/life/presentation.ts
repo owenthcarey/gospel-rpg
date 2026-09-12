@@ -15,6 +15,9 @@ export const heldAssets: Record<HeldItem, AssetId> = {
   'wood-brace': 'wood_brace',
 };
 export const lifeRegionAssets: Record<ExplorationRegion, readonly AssetId[]> = {
+  'galilee-water': [],
+  'reed-landing': [],
+  'sheltered-cove': [],
   capernaum: [
     'sewing_pouch',
     'lashing_cord',

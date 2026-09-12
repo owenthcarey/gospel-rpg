@@ -36,6 +36,11 @@ export const ACTOR_ASSETS = [
 ] as const;
 export type ActorAsset = (typeof ACTOR_ASSETS)[number];
 export const PROP_ASSETS = [
+  'landing_pier',
+  'reed_bank',
+  'split_rock',
+  'cove_headland',
+  'boat_cushion',
   'house',
   'house_large',
   'market',

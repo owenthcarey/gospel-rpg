@@ -1,3 +1,12 @@
+import './ui/lake.css';
+import {
+  STORM_SCENES,
+  STORM_REFLECTIONS,
+  LAKE_INTERPRETATIONS,
+  LAKE_ENDINGS,
+  type LakeEvent,
+} from './game/lake/types';
+import { normalizeHeading } from './game/lake/navigation';
 import { galileeActions } from './content/galilee/actions';
 import { practicalActions } from './content/practical';
 import { CHANNEL_IDS, type ChannelId, type Direction } from './game/galilee/types';
@@ -105,6 +114,7 @@ function reportError(error: unknown): void {
 }
 function pause(): void {
   world?.setPaused(true);
+  if (started && !regionLoading) void enqueueSave();
 }
 function syncPause(): void {
   world?.setPaused(
@@ -118,6 +128,13 @@ function syncPause(): void {
 }
 function snapshot(): GameState {
   const current = structuredClone({ ...state, position: world?.getPosition() ?? state.position });
+  if (current.region === 'galilee-water') {
+    current.lake.boat.position = { ...current.position };
+    current.lake.boat.heading = normalizeHeading(
+      world?.getBoatHeading() ?? current.lake.boat.heading,
+    );
+    current.lake.visited['galilee-water'] = { ...current.position };
+  }
   const companion = world?.getCompanionPosition();
   if (companion) current.campaign.walk.position = companion;
   const neri = world?.getRoadCompanionPosition();
@@ -180,6 +197,28 @@ async function apply(event: GameEvent): Promise<void> {
       'Repair',
       event.type === 'galilee-turn' ? 'channel-' + event.id : 'rest-' + state.galilee.shelter.site,
     );
+  if (event.type === 'journey' && event.gateway.startsWith('board-'))
+    ui.toast('Steer with arrows or WASD, or choose a map destination. Approach a landing to dock.');
+  if (event.type === 'lake-action' && event.id !== 'enter') {
+    audio.chime();
+    ui.toast(
+      event.id.startsWith('evidence-')
+        ? 'Observation recorded. Compare your clues in A sheltered way in the journal.'
+        : event.id === 'accept'
+          ? 'Joel’s recollection is in your journal. Both shores are open to explore.'
+          : event.id === 'arrive'
+            ? 'The sheltered landing fits both clues. Return to Joel when you are ready.'
+            : 'Your lake memory is recorded.',
+    );
+  }
+  if (event.type === 'storm-reflect' || event.type === 'lake-ending') {
+    audio.chime();
+    ui.toast(
+      event.type === 'storm-reflect'
+        ? 'Peace, be still complete · Your reflection is remembered.'
+        : 'A sheltered way complete · Your memory is in the journal.',
+    );
+  }
   if (event.type === 'road-action') {
     audio.chime();
     ui.toast(roadActions.find((a) => a.id === event.id)?.notice ?? 'Remembered.');
@@ -399,11 +438,17 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     case 'road-guide':
     case 'road-company':
+    case 'lake-guide':
       pause();
       menuRequest++;
       conversation = null;
       contextId = null;
-      ui.journal(snapshot(), 'stories', name === 'road-guide' ? 'trail' : 'company');
+      ui.journal(
+        snapshot(),
+        'stories',
+        name === 'lake-guide' ? 'crossing' : name === 'road-guide' ? 'trail' : 'company',
+      );
+      if (name === 'lake-guide') ui.focusCrossing('review');
       break;
     case 'cancel-navigation':
       world.cancelNavigation();
@@ -569,6 +614,38 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
       else ui.journal(snapshot(), 'stories', 'trail');
       break;
+    case 'lake-action':
+    case 'lake-interpret':
+    case 'lake-ending':
+    case 'lake-hint':
+    case 'storm-reflect': {
+      if (name === 'lake-action' && value) await apply({ type: name, id: value });
+      if (name === 'lake-hint') await apply({ type: name });
+      if (name === 'lake-interpret' && LAKE_INTERPRETATIONS.some((id) => id === value))
+        await apply({ type: name, id: value } as LakeEvent);
+      if (name === 'lake-ending' && LAKE_ENDINGS.some((id) => id === value))
+        await apply({ type: name, id: value } as LakeEvent);
+      if (name === 'storm-reflect' && STORM_REFLECTIONS.some((id) => id === value))
+        await apply({ type: name, id: value } as LakeEvent);
+      if (state.region === 'storm-account' || name === 'storm-reflect' || name === 'lake-ending')
+        await close();
+      else if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
+      else ui.journal(snapshot(), 'stories', 'crossing');
+      if (name === 'lake-hint') {
+        const hints = document.querySelector<HTMLDetailsElement>('.crossing-hints');
+        if (hints) hints.open = true;
+        ui.focusCrossing('hint');
+      }
+      if (name === 'lake-interpret') ui.focusCrossing('feedback');
+      break;
+    }
+    case 'storm-next':
+    case 'storm-summary':
+      if (STORM_SCENES.some((id) => id === value)) {
+        await apply({ type: name, checkpoint: value } as LakeEvent);
+        await close();
+      }
+      break;
     case 'nain-next':
     case 'nain-summary':
       if (NAIN_SCENES.some((id) => id === value)) {
@@ -652,6 +729,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       }
       break;
     case 'export': {
+      await enqueueSave();
       const json = JSON.stringify(makeSave(snapshot()), null, 2);
       const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
       const a = document.createElement('a');
@@ -710,6 +788,10 @@ const visibility = () => {
 };
 window.addEventListener('keydown', keydown);
 document.addEventListener('visibilitychange', visibility);
+const pagehide = () => {
+  if (started && !regionLoading) void enqueueSave();
+};
+window.addEventListener('pagehide', pagehide);
 
 async function boot(): Promise<void> {
   await saves.init();
@@ -779,4 +861,5 @@ if (import.meta.hot)
     saves.close();
     window.removeEventListener('keydown', keydown);
     document.removeEventListener('visibilitychange', visibility);
+    window.removeEventListener('pagehide', pagehide);
   });

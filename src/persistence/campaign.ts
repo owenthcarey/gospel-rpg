@@ -1,3 +1,4 @@
+import { isLakeRegion } from '../game/lake/types';
 import { isRecord, idList } from './episode';
 import {
   EXPLORATION_REGIONS,
@@ -20,6 +21,8 @@ function fail(): never {
   throw new Error('This save contains inconsistent chapter or neighborhood progress.');
 }
 export function regionBounds(region: RegionId): number {
+  if (region === 'galilee-water') return 25;
+  if (isLakeRegion(region) || region === 'storm-account') return 16;
   return region === 'capernaum' || region === 'lake-gennesaret'
     ? 24
     : region === 'capernaum-lanes' || isRoadRegion(region) || region === 'nain-account'
@@ -136,6 +139,7 @@ export function parseCampaign(raw: unknown, episodeStage: string, region: Region
     if (
       !member(id, EXPLORATION_REGIONS) ||
       isRoadRegion(id) ||
+      isLakeRegion(id) ||
       !validPoint(point, regionBounds(id as RegionId))
     )
       fail();

@@ -10,6 +10,38 @@ export interface RegionDefinition {
   returnRegion: RegionId | null;
 }
 export const regions: Record<RegionId, RegionDefinition> = {
+  'galilee-water': {
+    id: 'galilee-water',
+    title: 'The lake crossing',
+    subtitle: 'Across the Lake · An imagined ordinary journey',
+    mode: 'exploration',
+    arrival: { x: -17, z: -13 },
+    returnRegion: 'capernaum',
+  },
+  'reed-landing': {
+    id: 'reed-landing',
+    title: 'The reed landing',
+    subtitle: 'Open water · An original shore',
+    mode: 'exploration',
+    arrival: { x: 0, z: -6 },
+    returnRegion: 'galilee-water',
+  },
+  'sheltered-cove': {
+    id: 'sheltered-cove',
+    title: 'The sheltered cove',
+    subtitle: 'Peace, be still · An imagined shore',
+    mode: 'exploration',
+    arrival: { x: 0, z: -6 },
+    returnRegion: 'galilee-water',
+  },
+  'storm-account': {
+    id: 'storm-account',
+    title: 'Peace, be still',
+    subtitle: 'The Gospel according to Mark · 4:35–41',
+    mode: 'presentation',
+    arrival: { x: -2, z: 0 },
+    returnRegion: 'sheltered-cove',
+  },
   'galilean-road': {
     id: 'galilean-road',
     title: 'The Galilean road',

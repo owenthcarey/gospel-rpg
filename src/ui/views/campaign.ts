@@ -1,3 +1,4 @@
+import { lakeContext } from './lake';
 import { galileeContext } from './galilee';
 import { galileeAcknowledgement } from '../../content/galilee/conversations';
 import { gospelControls } from './gospel';
@@ -32,9 +33,14 @@ export function campaignQuest(s: GameState): string | undefined {
     s.tracking === 'trail' &&
     ['exploring', 'interpreted'].includes(s.road.trail.stage) &&
     s.road.trail.hint < 3;
-  return `<div class="quest-eyebrow">✧ ${chapter.optional ? 'OPTIONAL STORY' : chapter.label.split(' · ')[0]!.toUpperCase()} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : discovering ? 'Review the clues' : 'Follow the path', goal.done ? 'journal' : discovering ? 'road-guide' : 'navigate', goal.done ? 'memories' : goal.target)}<button class="compact-journal text-button" data-action="journal" data-value="stories">Choose a story</button><div class="quest-details"><p class="quest-reference">${chapter.optional ? 'Optional · Original traveler story' : esc(chapter.source!.title) + ' · World English Bible'}</p></div>`;
+  const comparing =
+    s.tracking === 'crossing' &&
+    s.lake.trail.stage === 'exploring' &&
+    s.lake.trail.evidence.length === 2;
+  return `<div class="quest-eyebrow">✧ ${chapter.optional ? 'OPTIONAL STORY' : chapter.label.split(' · ')[0]!.toUpperCase()} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : discovering || comparing ? 'Review the clues' : 'Follow the path', goal.done ? 'journal' : comparing ? 'lake-guide' : discovering ? 'road-guide' : 'navigate', goal.done ? 'memories' : goal.target)}<button class="compact-journal text-button" data-action="journal" data-value="stories">Choose a story</button><div class="quest-details"><p class="quest-reference">${chapter.optional ? 'Optional · Original traveler story' : esc(chapter.source!.title) + ' · World English Bible'}</p></div>`;
 }
 export function campaignSummary(s: GameState, filter: JournalFilter = 'all'): string {
+  if (filter !== 'all' && !neighborhoodChapters.some((id) => id === filter)) return '';
   if (s.episode.stage !== 'complete')
     return '<p class="content-note">Chapter II opens after your reflection in Into the Deep.</p>';
   return `<section class="campaign-stories" aria-label="Neighborhood stories">${neighborhoodChapters
@@ -49,6 +55,8 @@ export function campaignSummary(s: GameState, filter: JournalFilter = 'all'): st
     )}</section><div class="context-actions">${button('Read Into the Deep transcript', 'transcript', 'lake')}${button('Read Through the Roof transcript', 'transcript', 'roof')}</div><p class="content-note">Some days later, the traveler’s imagined journey continues in Capernaum. Amos, Hannah and Ruth are fictional neighbors. Their stories can be completed before or after witnessing the account.</p>`;
 }
 export function contextView(id: string, s: GameState): { title: string; body: string } | undefined {
+  const lake = lakeContext(id, s);
+  if (lake) return lake;
   const galilee = galileeContext(id, s);
   if (galilee) return galilee;
   const road = roadContext(id, s);
@@ -116,7 +124,7 @@ export function neighborhoodMap(
   const x = (v: number) => (v - min) * scale,
     z = (v: number) => (max - v) * scale;
   const p = position ?? s.position;
-  return `<svg class="map-svg" viewBox="0 0 192 192" aria-label="Map of ${esc(regions[s.region].title)}"><rect width="192" height="192" fill="${layout.inside ? '#b7a27d' : '#a1ac7b'}"/>${layout.paths.map(([a, b, w]) => `<path d="M${x(a.x)},${z(a.z)}L${x(b.x)},${z(b.z)}" stroke="#ded1a8" stroke-width="${w * scale}"/>`).join('')}${layout.obstacles.map((o) => `<rect x="${x(o.x - o.width / 2)}" y="${z(o.z + o.depth / 2)}" width="${o.width * scale}" height="${o.depth * scale}" fill="#786b53"/>`).join('')}${activeInteractables(
+  return `<svg class="map-svg" viewBox="0 0 192 192" aria-label="Map of ${esc(regions[s.region].title)}"><rect width="192" height="192" fill="${s.region === 'galilee-water' ? '#87aaa2' : layout.inside ? '#b7a27d' : '#a1ac7b'}"/>${layout.paths.map(([a, b, w]) => `<path d="M${x(a.x)},${z(a.z)}L${x(b.x)},${z(b.z)}" stroke="#ded1a8" stroke-width="${w * scale}"/>`).join('')}${layout.obstacles.map((o) => `<rect x="${x(o.x - o.width / 2)}" y="${z(o.z + o.depth / 2)}" width="${o.width * scale}" height="${o.depth * scale}" fill="#786b53"/>`).join('')}${activeInteractables(
     s,
   )
     .map(
@@ -129,5 +137,5 @@ export function neighborhoodMap(
 }
 export function carriedView(s: GameState): string {
   if (!s.campaign.carrying) return '';
-  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">IN YOUR HANDS</span><h3>${esc(heldItems[s.campaign.carrying].name)}</h3><p>${esc(heldReturn(s)!.text)}</p>${button('Find the return point', 'travel', heldReturn(s)!.target)}${button('Find the next stop', 'travel', campaignGoal(s)?.target ?? localTarget(s, 'hannah'))}</div></article>`;
+  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">${s.region === 'galilee-water' ? 'STOWED ABOARD' : 'IN YOUR HANDS'}</span><h3>${esc(heldItems[s.campaign.carrying].name)}</h3><p>${esc(heldReturn(s)!.text)}</p>${button('Find the return point', 'travel', heldReturn(s)!.target)}${button('Find the next stop', 'travel', campaignGoal(s)?.target ?? localTarget(s, 'hannah'))}</div></article>`;
 }

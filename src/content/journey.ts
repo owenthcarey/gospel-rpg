@@ -5,6 +5,24 @@ export const journeyPlaces: Record<
   ExplorationRegion,
   { destination: string; description: string; x: number; y: number }
 > = {
+  'galilee-water': {
+    destination: 'lake-split-rock',
+    description: 'Steer an ordinary boat between three landings, reeds and a rocky headland.',
+    x: 65,
+    y: 470,
+  },
+  'reed-landing': {
+    destination: 'reed-shore',
+    description: 'An open shore with reeds and a quiet resting place.',
+    x: 260,
+    y: 470,
+  },
+  'sheltered-cove': {
+    destination: 'storm-viewpoint',
+    description: 'An inward-facing landing, Dalia and Mark 4:35–41.',
+    x: 480,
+    y: 470,
+  },
   capernaum: {
     destination: 'shore',
     description: 'The village shore, lake memories and a place beside Miriam’s stall.',
@@ -54,6 +72,7 @@ export function knownRegions(s: GameState): ExplorationRegion[] {
       'capernaum' as const,
       ...(Object.keys(s.campaign.visited) as ExplorationRegion[]),
       ...(Object.keys(s.road.visited) as ExplorationRegion[]),
+      ...(Object.keys(s.lake.visited) as ExplorationRegion[]),
     ]),
   ];
 }

@@ -2,6 +2,10 @@ import type { RegionId } from '../game/campaign/types';
 import type { AssetId } from './assets';
 /** Essential static geometry exists independently of episode poses and shadows. */
 export const requiredRegionAssets: Record<RegionId, readonly AssetId[]> = {
+  'galilee-water': ['boat', 'split_rock', 'reed_bank', 'cove_headland', 'landing_pier'],
+  'reed-landing': ['landing_pier', 'reed_bank', 'boat'],
+  'sheltered-cove': ['landing_pier', 'cove_headland', 'farm_shelter', 'boat'],
+  'storm-account': ['boat', 'oar', 'boat_cushion'],
   capernaum: ['house', 'olive', 'well'],
   'capernaum-lanes': ['house_large', 'low_wall', 'well', 'worktable'],
   'gathering-house': ['room_wall', 'bench', 'stool'],

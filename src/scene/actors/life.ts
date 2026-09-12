@@ -28,6 +28,12 @@ export class LifeActivity {
         model.root.rotation.x = -0.25;
         model.root.position.z = 0.12;
       }
+      if (region === 'galilee-water') {
+        // Ownership remains in the same one-item slot; rowing hands stay free.
+        model.root.parent = player.root.parent;
+        model.root.position.set(0.35, 0.07, 1);
+        model.root.rotation.set(0, Math.PI / 2, 0);
+      }
       model.root.setEnabled(false);
       this.held.set(id, model);
     }

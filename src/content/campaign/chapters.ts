@@ -17,6 +17,28 @@ export interface ChapterDefinition {
 const afterLake = (s: GameState) => s.episode.stage === 'complete';
 const afterRoof = (s: GameState) => s.campaign.roof.stage === 'complete';
 export const chapters: Record<StoryTrack, ChapterDefinition> = {
+  storm: {
+    id: 'storm',
+    title: 'Peace, be still',
+    label: 'Chapter IV · Mark 4:35–41',
+    region: 'sheltered-cove',
+    optional: false,
+    source: { title: 'Mark 4:35–41', url: 'https://ebible.org/engwebp/MRK04.htm' },
+    available: (s) => s.road.chapter.stage === 'complete',
+    started: (s) => s.lake.chapter.stage !== 'not-started',
+    complete: (s) => s.lake.chapter.stage === 'complete',
+  },
+  crossing: {
+    id: 'crossing',
+    title: 'A sheltered way',
+    label: 'Optional · Navigate across the lake',
+    region: 'capernaum',
+    optional: true,
+    source: null,
+    available: (s) => s.road.chapter.stage === 'complete',
+    started: (s) => s.lake.trail.stage !== 'not-started',
+    complete: (s) => s.lake.trail.stage === 'complete',
+  },
   spring: {
     id: 'spring',
     title: 'A spring for travelers',
@@ -154,7 +176,13 @@ export const neighborhoodChapters = ['roof', 'neighbors', 'table', 'belonging', 
 export const roadChapters = ['nain', 'trail', 'company'] as const;
 export function trackedChapter(s: GameState): ChapterDefinition {
   return chapters[
-    s.tracking === 'main' && afterLake(s) ? (afterRoof(s) ? 'nain' : 'roof') : s.tracking
+    ['main', 'nain'].includes(s.tracking) && s.road.chapter.stage === 'complete'
+      ? 'storm'
+      : s.tracking === 'main' && afterLake(s)
+        ? afterRoof(s)
+          ? 'nain'
+          : 'roof'
+        : s.tracking
   ];
 }
 export function storyStatus(

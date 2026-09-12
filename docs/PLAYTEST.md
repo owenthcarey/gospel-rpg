@@ -1,4 +1,4 @@
-# Playing the three-chapter build
+# Playing the four-chapter build
 
 Run `npm ci` and `npm run dev`, then open the printed local URL. A fresh journey begins on the shore. Complete the net-and-bread prelude, return to Simon, prepare the landing and gathering, witness Into the Deep, and finish its aftermath with a reflection. The next chapter appears in the journal and on the road into Capernaum.
 
@@ -51,7 +51,7 @@ For a focused Chapter II review, choose **Saves & settings → Import** and sele
 
 ## Journal and continuity
 
-Visit Stories, People, Places and Memories. Filter the story cards and memories, read evidence and all three transcripts, and follow a person/place destination from a lake or roof presentation. The presentation should return to exploration with its current checkpoint preserved. After the fishermen depart, their entries should point to remembered accounts rather than unavailable people.
+Visit Stories, People, Places and Memories. Filter the story cards and memories, read evidence and all four transcripts, and follow a person/place destination from a lake or roof presentation. The presentation should return to exploration with its current checkpoint preserved. After the fishermen depart, their entries should point to remembered accounts rather than unavailable people.
 
 Check the compact action tray with mouse, keyboard and touch; the original shoreline preparation tasks also use it. Conversations, clue reading and choices retain their reading panels. Repeat on a narrow portrait viewport and 844×390 landscape with large text. Labels should avoid controls and one another; the map retains destinations hidden by crowding.
 
@@ -125,3 +125,27 @@ Import an older completed-Chapter-II journey or `v7-beyond-capernaum.json`, then
 | `v8-living-galilee-complete.json`  | North basin flowing and the open farm resting place occupied.       |
 
 Run `npm run fixtures:galilee` to regenerate these with the real reducers and validator. The historical generators retain their original envelope versions. Record how long both stories take, whether repeated trips remain enjoyable, and where the plan, props or directions become unclear. The 25–40 minute combined pacing target, physical touch/screen-reader usability and sustained device performance require human review.
+
+## Across the Lake
+
+Use **Settings → Import** with a v9 fixture from `tests/fixtures/saves` to enter a review point directly:
+
+| Fixture                            | Review point                                                  |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `v9-ready-to-cross.json`           | Chapter III complete; return to Joel and the Capernaum boat   |
+| `v9-afloat.json`                   | Fractional saved water position and heading                   |
+| `v9-crossing-evidence.json`        | Both clues, a wrong interpretation and one hint               |
+| `v9-cove-berthed.json`             | Boat waiting at the cove; Gospel and optional story untouched |
+| `v9-storm-waking.json`             | Interrupted fourth Gospel scene                               |
+| `v9-afloat-with-supply.json`       | Farm screen aboard and Neri waiting in his earlier region     |
+| `v9-across-the-lake-complete.json` | Both stories complete; all prior journeys remain available    |
+
+1. From the shore, approach Joel and listen to his recollection. Approach **Board for the lake**, read the controls, then choose **Board the boat**. Arrows/WASD or clicks/taps steer; named map destinations find clear routes. Approach a landing before explicitly docking. Simply arriving beside it must leave the traveler afloat.
+2. Visit the reed landing, remember the open shore, and reboard. Study **The reed bank** and **The split rock** in either order. Choose **Review the clues**, or filter the journal to **A sheltered way**. Try the exposed landing and the rock itself before selecting the sheltered cove. Wrong answers retain all observations. Open the optional hints and advance through all three levels; each new hint should stay in view with keyboard focus retained.
+3. Dock at the sheltered cove and confirm **The inward landing**. Reboard, return to Capernaum and speak with Joel. Compare **Remember looking closely** and **Remember the welcome** using a restored fixture; both should complete the story without a higher-ranked result.
+4. Independently of that investigation, approach **A view over the lake** at the cove. Read all seven Gospel scenes, open each description, pause motion, leave, reload and resume. Read the complete Mark 4:35–41 transcript and try **Finish with summary** in a separate run. Neither steering nor an optional task should gate the account.
+5. After the presentation, visit the inward landing, quiet lookout and Dalia. Return to the viewpoint and compare stillness, trust and wonder. Revisit the cove after completion and inspect its resting company.
+6. While afloat, steer, cancel a selected route, open Settings and export. Reload and compare position/heading, then dock and reboard at each landing. Repeat with the carried-screen fixture; it appears stowed aboard, returns to the traveler's hands ashore and retains its original return destination. Neri's saved region and position should stay unchanged while the traveler is elsewhere.
+7. On a narrow viewport, use large text, reduced motion and restrained guidance. Complete the same approaches with destination lists. In landscape, check Continue, pause, transcript, summary and return controls. Record readability, focus, accidental touches and whether the boat/landmarks remain understandable without distant labels.
+
+The geography is compressed and imagined. Record human completion times, hesitation at boarding/docking, whether both clues are understandable without hints, and whether the distinction between ordinary sailing and Gospel presentation is clear. Physical device, screen-reader, editorial and historical review remain separate from automated browser emulation.

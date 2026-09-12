@@ -1,3 +1,7 @@
+import { isLakeRegion } from '../game/lake/types';
+import { normalizeHeading } from '../game/lake/navigation';
+import { localLakePlaces, boatkeeper } from '../content/lake/places';
+import { TravelerBoat } from './actors/boat';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
@@ -80,6 +84,9 @@ export interface ScreenLabel {
 export class World {
   grid: WalkGrid;
   private layout?: ExplorationLayout;
+  private travelerBoat?: TravelerBoat;
+  private mooredBoat?: TransformNode;
+  private lakeCompany?: Actor;
   private neighborhood?: NeighborhoodActivity;
   private road?: RoadActivity;
   private life!: LifeActivity;
@@ -204,7 +211,7 @@ export class World {
       );
       floor.material = this.material(
         'neighborhood-ground',
-        this.layout.inside ? '#ddcfae' : '#b1b780',
+        initial.region === 'galilee-water' ? '#659caa' : this.layout.inside ? '#ddcfae' : '#b1b780',
       );
       floor.receiveShadows = true;
       floor.metadata = { ground: true };
@@ -234,6 +241,7 @@ export class World {
       }
       for (const { point, width } of junctions.values())
         this.makePathJunction(point, width, pathMaterial);
+      if (isLakeRegion(initial.region)) this.makeCrossingTerrain();
       if (initial.region === 'galilean-road') {
         const lake = MeshBuilder.CreateGround(
           'distant-galilee',
@@ -302,13 +310,17 @@ export class World {
       }
     } else for (const p of [...buildings, ...trees, ...props]) this.place(p);
     for (const person of this.layout
-      ? isRoadRegion(this.state.region)
-        ? [
-            ...roadPlaces[this.state.region].filter((p) => p.id !== 'neri'),
-            ...localGalileePlaces(this.state),
-          ]
-        : (neighborhoodPlaces[this.state.region as keyof typeof neighborhoodPlaces] ?? [])
-      : [...interactables, ...episodePlaces].filter((p) => !['james', 'john'].includes(p.id))) {
+      ? isLakeRegion(this.state.region)
+        ? localLakePlaces(this.state)
+        : isRoadRegion(this.state.region)
+          ? [
+              ...roadPlaces[this.state.region].filter((p) => p.id !== 'neri'),
+              ...localGalileePlaces(this.state),
+            ]
+          : (neighborhoodPlaces[this.state.region as keyof typeof neighborhoodPlaces] ?? [])
+      : [...interactables, ...episodePlaces, boatkeeper].filter(
+          (p) => !['james', 'john'].includes(p.id),
+        )) {
       if (!person.asset) continue;
       const node = this.place({ ...person, asset: person.asset }, person.id);
       if (person.kind === 'person') {
@@ -347,7 +359,7 @@ export class World {
         () => this.grid,
         this.callbacks.roadCheckpoint,
       );
-    else if (this.layout)
+    else if (this.layout && !isLakeRegion(this.state.region))
       this.neighborhood = new NeighborhoodActivity(
         this.library,
         this.actors,
@@ -355,7 +367,7 @@ export class World {
         this.callbacks.walkCheckpoint,
         this.state.region,
       );
-    else
+    else if (!this.layout)
       this.activity = new VillageActivity(
         this.library,
         this.scene,
@@ -374,9 +386,69 @@ export class World {
       this.scene,
       this.state.region as ExplorationRegion,
     );
+    if (this.state.region === 'galilee-water') {
+      this.travelerBoat = new TravelerBoat(this.library, this.player, this.actorPlayer);
+      this.player.rotation.y = this.state.lake.boat.heading;
+      ring.scaling.setAll(2.2);
+    } else if (isLakeRegion(this.state.region) || this.state.region === 'capernaum') {
+      this.mooredBoat = this.library.instantiate('boat', 'ordinary-moored-boat').root;
+      this.mooredBoat.position.set(
+        this.state.region === 'capernaum' ? 10 : 0,
+        -0.03,
+        this.state.region === 'capernaum' ? -4 : -10,
+      );
+      if (this.state.region === 'sheltered-cove') {
+        this.lakeCompany = new Actor(this.library.instantiate('villager', 'cove-resting-company'));
+        this.lakeCompany.root.position.set(-5, 0.08, 7);
+        this.lakeCompany.root.rotation.y = Math.PI;
+      }
+    }
     this.update(this.state);
     this.setPosition(this.position, true);
     await this.scene.whenReadyAsync();
+  }
+
+  private makeCrossingTerrain(): void {
+    const water = this.state.region === 'galilee-water';
+    const sand = this.material('crossing-sand', '#bdba85');
+    const sea = this.material('crossing-blue', '#659caa');
+    const patches = water
+      ? [
+          [-40, 0, 36, 100],
+          [40, 0, 36, 100],
+          [-5, 3, 5, 4],
+        ]
+      : [[0, -34, 100, 52]];
+    for (const [x, z, width, height] of patches) {
+      const p = MeshBuilder.CreateGround(
+        'crossing-bank',
+        { width: width!, height: height! },
+        this.scene,
+      );
+      p.position.set(x!, 0.01, z!);
+      p.material = water ? sand : sea;
+      p.metadata = water ? {} : { ground: true };
+      p.isPickable = !water;
+    }
+    const ripple = this.material('crossing-ripple', '#9ac6c8');
+    for (let i = 0; i < 18; i++) {
+      const r = MeshBuilder.CreateGround(
+        'crossing-ripple-' + i,
+        { width: 1.1 + (i % 3), height: 0.045 },
+        this.scene,
+      );
+      r.position.set(
+        water ? -16 + (i % 6) * 6 : -18 + (i % 6) * 7,
+        0.02,
+        water ? -19 + Math.floor(i / 6) * 17 : -14 - Math.floor(i / 6) * 6,
+      );
+      r.material = ripple;
+      r.isPickable = false;
+      this.waterLines.push(r);
+    }
+  }
+  getBoatHeading(): number | undefined {
+    return this.travelerBoat ? normalizeHeading(this.player.rotation.y) : undefined;
   }
 
   private material(name: string, hex: string, alpha = 1): StandardMaterial {
@@ -638,7 +710,11 @@ export class World {
     const cell = this.grid.nearest(target, 3);
     const path = cell ? findPath(this.grid, this.position, cell) : [];
     if (!path.length) {
-      this.callbacks.notice('That path is out of reach. Try the village paths.');
+      this.callbacks.notice(
+        this.travelerBoat
+          ? 'That route is out of reach. Try the open water or choose a landing on the map.'
+          : 'That path is out of reach. Try the village paths.',
+      );
       return false;
     }
     this.path = path;
@@ -672,6 +748,12 @@ export class World {
   }
 
   private face(target: Point): void {
+    if (this.travelerBoat) {
+      this.player.rotation.y = normalizeHeading(
+        Math.atan2(target.x - this.position.x, target.z - this.position.z),
+      );
+      return;
+    }
     if (this.playerModel)
       this.playerModel.rotation.y = Math.atan2(
         target.x - this.position.x,
@@ -700,6 +782,10 @@ export class World {
   }
   private poseTraveler(moving: boolean, dt: number): void {
     if (!this.playerModel) return;
+    if (this.travelerBoat) {
+      this.travelerBoat.pose(moving, dt, this.reducedMotion || this.paused);
+      return;
+    }
     if (this.paused && this.actorPlayer.performing && !this.reducedMotion) return;
     if (this.seatedAction && !this.reducedMotion) {
       const seat = this.seatedAction;
@@ -755,6 +841,7 @@ export class World {
     if (value) this.stop();
   }
   setPosition(p: Point, snap = false): void {
+    if (this.travelerBoat && snap) this.player.rotation.y = this.state.lake.boat.heading;
     this.position = this.grid.walkable(p) ? { ...p } : (this.grid.nearest(p) ?? { x: -1, z: -3 });
     if (this.player)
       this.player.position.set(
@@ -781,6 +868,8 @@ export class World {
     this.cameraAspectScale = scale;
   }
   private cameraTarget(): Vector3 {
+    if (this.state.region === 'galilee-water')
+      return new Vector3(this.position.x * 0.65, 0, this.position.z * 0.65 + 2);
     if (this.layout?.inside) return new Vector3(0, 0, 0);
     if (this.layout)
       return new Vector3(
@@ -839,6 +928,7 @@ export class World {
       this.road?.tick(dt, this.position, this.destination === 'neri');
       this.life?.tick(dt);
       this.galilee?.tick(dt);
+      this.lakeCompany?.sample('Sit', dt, this.reducedMotion);
       for (const [id, actor] of this.actors)
         if (id !== 'amos' || !this.neighborhood) actor.tick(dt, this.reducedMotion);
       const dx =
@@ -975,6 +1065,7 @@ export class World {
       this.destinations = this.destinations.map((p) => (p.id === 'neri' ? { ...p, ...neri } : p));
     this.scene.render();
     const playback = this.actorPlayer.playback;
+    this.canvas.dataset.boatHeading = String(this.getBoatHeading() ?? '');
     this.canvas.dataset.actorPose = playback.clip;
     this.canvas.dataset.actorFrame = playback.frame.toFixed(2);
     this.canvas.dataset.actionMotion = this.seatedAction ? 'SitDown' : playback.action;
@@ -1047,6 +1138,13 @@ export class World {
     this.road?.update(state);
     this.life?.update(state);
     this.galilee?.update(state);
+    this.people.get('joel')?.setEnabled(state.road.chapter.stage === 'complete');
+    this.mooredBoat?.setEnabled(
+      state.road.chapter.stage === 'complete' && state.lake.boat.berth === state.region,
+    );
+    this.lakeCompany?.root.setEnabled(
+      state.lake.trail.stage === 'complete' || state.lake.chapter.stage === 'complete',
+    );
     // Newly placed furniture may cover an old standing point; keep an escape route.
     if (this.player && !this.grid.walkable(this.position)) {
       const site = this.destinations.find((p) => p.id === 'rest-' + state.galilee.shelter.site);

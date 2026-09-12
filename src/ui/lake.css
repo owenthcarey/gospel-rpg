@@ -1,0 +1,52 @@
+.crossing-evidence {
+  margin: 1.5rem 0;
+  padding: 1.2rem;
+  border: 1px solid #858665;
+  border-radius: 12px;
+  background: #edf0dc;
+  color: #263c37;
+}
+.panel .crossing-evidence h3,
+.panel .crossing-evidence h4 {
+  color: #263c37;
+  scroll-margin-top: 1rem;
+}
+.crossing-observations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.crossing-observations article {
+  padding: 1rem;
+  background: #fcf7e7;
+  border-radius: 8px;
+}
+.crossing-feedback {
+  padding: 1rem;
+  background: #dae4cf;
+  border-left: 3px solid #536e59;
+}
+.crossing-hints {
+  margin-top: 1rem;
+}
+.crossing-hints summary {
+  cursor: pointer;
+  padding: 0.6rem 0;
+}
+.crossing-evidence button {
+  max-width: 100%;
+  white-space: normal;
+}
+.crossing-evidence .secondary-button {
+  color: #263c37;
+  background: #f7efd6;
+  border-color: #6f7f66;
+}
+@media (max-width: 600px) {
+  .crossing-observations {
+    grid-template-columns: 1fr;
+  }
+  .crossing-evidence {
+    padding: 0.85rem;
+  }
+}
