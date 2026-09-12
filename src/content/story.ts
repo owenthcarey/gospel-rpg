@@ -1,3 +1,4 @@
+import { lakeJournal } from './lake/journal';
 import { galileeAcknowledgement } from './galilee/conversations';
 import { galileeJournal } from './galilee/journal';
 import { campaignJournal } from './campaign/journal';
@@ -38,6 +39,7 @@ export const journalEntries: Record<string, { title: string; text: string; refer
   ...galileeJournal,
   ...lifeJournal,
   ...roadJournal,
+  ...lakeJournal,
   ...episodeJournal,
   ...campaignJournal,
   arrival: {

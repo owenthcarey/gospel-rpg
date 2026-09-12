@@ -76,3 +76,17 @@ Historical/editorial review and human pacing remain separate from automated prov
 The spring asks the traveler to observe, clear and physically connect a small channel. Either basin is a valid destination, with equal memories of patience or sharing. An unsuccessful test gives specific information and costs nothing. The resting-place story introduces Leah, an original fictional host. Shade and breeze are useful choices with different screen placements. All supply orders work; the player may recover and rearrange supplies before choosing a memory of welcome or care. There is no score, preferred spiritual outcome, timed duty or simulated scarcity.
 
 Completed water and resting company remain visible on later visits. Original neighbors acknowledge the work and recall only earlier memories actually stored in the save. Authoritative companion positions are preserved. The source, basins, screen construction and farm arrangement are artistic simplifications, not archaeological claims. The two stories' combined 25–40 minute target is an unmeasured human-playtesting goal; automated journeys do not establish reading pace.
+
+## Chapter IV: Peace, be still
+
+After the Nain reflection, the game opens an explicitly imagined later lake journey. This unlock order is a progression convention, not a chronological or geographical reconstruction. The traveler's ordinary boat, Joel, Dalia, the reed landing and sheltered cove are original fiction. The traveler can explore both shores without accepting Joel's optional story.
+
+`content/lake/scripture.ts` contains every verse of Mark 4:35–41 from the public-domain World English Bible. The seven separately paced scenes follow evening departure, other boats, the storm, waking Jesus, the command, the calm and the disciples' question. No additional speech is assigned to Jesus. Descriptions identify artistic staging, and scripture remains visibly labeled. The complete transcript is available before completion and after leaving; summary records all scenes without removing their words.
+
+The Gospel viewpoint does not simulate a player-controlled miracle. The traveler's ordinary boat and supplies wait at the cove. After the account, visit the inward landing, quiet lookout and Dalia, then choose stillness, trust or wonder. Each reflection is equally valid, with no reward ranking or judgment about the player's faith.
+
+## Original navigation adventure: A sheltered way
+
+Joel recalls an inward-facing berth protected by a headland. The reeds show an exposed shore, while the split rock gives a turning landmark. Study either first, compare both with Joel's recollection, choose a route interpretation, confirm the sheltered landing and return. Choosing the exposed landing or split rock explains why it does not fit; no object is consumed. Three optional hints culminate in a precise route, and the accessible map can guide the same physical approach.
+
+The two final memories emphasize looking closely or receiving a welcome. These are original traveler reflections, distinct from Chapter IV's scripture. Acknowledgement and resting company derive from saved conclusions. Neither this investigation nor its interpretation gates the Gospel account. Human review of clarity, pacing, history and pastoral/editorial framing remains valuable; automated verse coverage does not establish those qualities.

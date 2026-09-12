@@ -55,6 +55,7 @@ try {
     save.version = 6;
     delete save.state.road;
     delete save.state.galilee;
+    delete save.state.lake;
     save.savedAt = '2026-09-09T00:00:00.000Z';
     parseSave(save);
     await writeFile(

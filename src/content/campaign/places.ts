@@ -1,3 +1,11 @@
+import {
+  lakeGateways,
+  lakePlaces,
+  boatkeeper,
+  localLakePlaces,
+  lakePlaceRegion,
+} from '../lake/places';
+import { isLakeRegion } from '../../game/lake/types';
 import { allGalileePlaces, galileePlaceRegion, localGalileePlaces } from '../galilee/places';
 import type { Interactable } from '../region';
 import type { GameState, Point } from '../../game/types';
@@ -19,6 +27,7 @@ export interface Gateway extends Interactable {
 }
 export const gateways: readonly Gateway[] = [
   ...roadGateways,
+  ...lakeGateways,
   {
     id: 'to-lanes',
     name: 'The road into Capernaum',
@@ -250,17 +259,22 @@ export const allNeighborhoodPlaces: readonly Interactable[] = [
   ...Object.values(roadPlaces).flat(),
   ...roadDynamicPlaces,
   ...allGalileePlaces,
+  boatkeeper,
+  ...Object.values(lakePlaces).flat(),
 ];
 export function localNeighborhoodPlaces(state: GameState): Interactable[] {
   if (state.episode.stage !== 'complete') return [];
   const exits = gateways.filter(
     (g) =>
       g.from === state.region &&
-      (!roadGateways.includes(g) || state.campaign.roof.stage === 'complete'),
+      (!roadGateways.includes(g) || state.campaign.roof.stage === 'complete') &&
+      (!lakeGateways.includes(g) || state.road.chapter.stage === 'complete'),
   );
   if (isRoadRegion(state.region))
     return [...exits, ...localRoadPlaces(state), ...localGalileePlaces(state)];
-  if (state.region === 'capernaum') return [...exits, ...lifePlaces.capernaum];
+  if (isLakeRegion(state.region)) return [...exits, ...localLakePlaces(state)];
+  if (state.region === 'capernaum')
+    return [...exits, ...lifePlaces.capernaum, ...localLakePlaces(state)];
   if (!(state.region in neighborhoodPlaces)) return [];
   const walk = state.campaign.walk;
   return [
@@ -277,6 +291,8 @@ export function localNeighborhoodPlaces(state: GameState): Interactable[] {
   ];
 }
 export function placeRegion(id: string, state?: GameState): RegionId | undefined {
+  const lake = lakePlaceRegion(id);
+  if (lake) return lake;
   const galilee = galileePlaceRegion(id);
   if (galilee) return galilee;
   const road = roadPlaceRegion(id, state);

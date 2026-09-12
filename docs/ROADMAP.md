@@ -10,13 +10,13 @@ The prelude, three discoveries and Ezra's independent story remain playable. See
 
 ## Next priorities
 
-1. Playtest all three chapters and nine optional stories for pacing, navigation clarity and visual legibility. Review the source, historical framing and original connective narrative with a human editor or specialist.
+1. Playtest all four chapters and ten optional stories for pacing, navigation clarity and visual legibility. Review the source, historical framing and original connective narrative with a human editor or specialist.
 2. Profile real mobile GPUs and test Safari/iOS, Android, Firefox and Edge, including storage limits and eviction. Use the diagnostics and model budgets before increasing crowd or region size.
 3. Broaden accessibility review with screen readers and touch hardware, including destination-list navigation, caption focus and small landscape layouts.
 4. Use playtest findings to select the next bounded Gospel episode or region, reusing the terrain, cross-region companion, source, caption and save contracts.
 5. Add region-aware offline caching and an update policy once device/storage behavior is measured.
 
-Additional towns, open-water sailing, combat, a crafting economy, voice acting, runtime-generated dialogue and a content editor were outside this milestone. The full Galilee/Judea RPG remains a longer-term project. The repository still needs an explicit project license before open-source distribution; no license or public deployment change is implied by this local implementation.
+Additional towns, unrestricted open-water sailing, combat, a crafting economy, voice acting, runtime-generated dialogue and a content editor were outside this milestone. The full Galilee/Judea RPG remains a longer-term project. The repository still needs an explicit project license before open-source distribution; no license or public deployment change is implied by this local implementation.
 
 ## Implemented: Through the Roof
 
@@ -45,3 +45,9 @@ Next, prioritize human pacing/editorial review and physical-device/accessibility
 [RFC-005](rfcs/005-living-galilee.md) adds a channel-connection adventure and an arrangement adventure across the existing road and farm. Both offer alternate solutions, recoverable supplies, saveable intermediate work, original memories and persistent visible company. Shared practical actions, quieter guidance, explicit walk cancellation, camera clearance and direct saved-region startup make the existing world easier to explore. The kit grows to 79 original assets within the existing limits; v8 preserves previous saves.
 
 The next decision should follow human playtesting of the now twelve story tracks (three chapters and nine optional stories), especially repeated carrying, channel legibility and phone navigation. Physical-device performance, assistive technology, historical/editorial review and pacing remain the external review priorities above. The complete Galilee/Judea map, free sailing and offline update/storage policy remain separate milestones.
+
+## Implemented: Across the Lake
+
+[RFC-006](rfcs/006-across-the-lake.md) adds an ordinary controllable boat, two revisitable shores, Joel's optional landmark-navigation adventure and Chapter IV, Peace, be still. Seven Mark 4:35–41 scenes, three aftermath visits and equal reflections retain the shared reading controls. Explicit boarding/docking, map routes, saved heading/position, clues, retry and hints support the crossing. V9 preserves all earlier journeys, supplies and both companions. The 84-model kit stays below the unchanged 5 MiB cap through verified lossless compaction.
+
+The build now has four bounded Gospel chapters and ten optional stories. The next expansion should follow playtesting of the complete journey, especially repeated travel, landmark clarity, boat handling and the difference between exploration and Gospel staging. Broader Galilee/Judea travel, unrestricted sailing, offline updates and larger world systems remain future work; the human and physical-device review priorities above still apply.

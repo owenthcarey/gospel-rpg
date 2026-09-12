@@ -1,3 +1,4 @@
+import { StormRegion } from './regions/storm';
 import { SceneInstrumentation } from '@babylonjs/core/Instrumentation/sceneInstrumentation';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import type { GameState, Point, Settings } from '../game/types';
@@ -78,6 +79,10 @@ export class GameRuntime {
       progress('Opening ' + definition.title + '…');
       const explore = () => new World(this.canvas, this.callbacks, this.engine, state);
       const factories: Record<RegionId, () => RegionView> = {
+        'galilee-water': explore,
+        'reed-landing': explore,
+        'sheltered-cove': explore,
+        'storm-account': () => new StormRegion(this.engine, state),
         capernaum: explore,
         'capernaum-lanes': explore,
         'gathering-house': explore,
@@ -107,7 +112,10 @@ export class GameRuntime {
       this.canvas.setAttribute(
         'aria-label',
         definition.mode === 'exploration'
-          ? definition.title + ' game world. Click to walk; use WASD or arrow keys to move.'
+          ? definition.title +
+              (state.region === 'galilee-water'
+                ? ' game world. Click to steer; use WASD or arrow keys to steer the boat.'
+                : ' game world. Click to walk; use WASD or arrow keys to move.')
           : 'A narrated Gospel scene. Use the scene controls to read and continue.',
       );
     } catch (error) {
@@ -124,11 +132,13 @@ export class GameRuntime {
     this.view?.update(state);
     this.canvas.dataset.worldStage = state.episode.stage;
     this.canvas.dataset.checkpoint =
-      state.region === 'nain-account'
-        ? (state.road.chapter.checkpoint ?? '')
-        : state.region === 'roof-account'
-          ? (state.campaign.roof.checkpoint ?? '')
-          : (state.episode.checkpoint ?? '');
+      state.region === 'storm-account'
+        ? (state.lake.chapter.checkpoint ?? '')
+        : state.region === 'nain-account'
+          ? (state.road.chapter.checkpoint ?? '')
+          : state.region === 'roof-account'
+            ? (state.campaign.roof.checkpoint ?? '')
+            : (state.episode.checkpoint ?? '');
     this.canvas.dataset.carrying = state.campaign.carrying ?? state.episode.carrying ?? '';
   }
   setPaused(value: boolean): void {
@@ -137,6 +147,9 @@ export class GameRuntime {
   }
   getPosition(): Point {
     return this.view?.getPosition() ?? { x: -1, z: -3 };
+  }
+  getBoatHeading(): number | undefined {
+    return this.view instanceof World ? this.view.getBoatHeading() : undefined;
   }
   getCompanionPosition(): Point | undefined {
     return isExplorationView(this.view) ? this.view.getCompanionPosition() : undefined;

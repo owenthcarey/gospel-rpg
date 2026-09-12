@@ -1,0 +1,1738 @@
+{
+  "full": {
+    "stats": {
+      "startTime": "2026-09-12T06:17:13.727Z",
+      "duration": 2101277.484,
+      "expected": 94,
+      "skipped": 10,
+      "unexpected": 2,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "campaign.spec.ts",
+        "title": "a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 41172
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "bread and water remain portable across interiors, reload, and large reading size",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 46436
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "Amos walks the outer route, waits through menus, and resumes from an exported checkpoint",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 26576
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "Amos walks the passage route, waits through menus, and resumes from an exported checkpoint",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 14620
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "a failed neighborhood load can be retried and summary preserves the roof account",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 22409
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "capernaum stays within rendering budgets and keeps one settled scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11126
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10493
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "capernaum-lanes stays within rendering budgets and keeps one settled scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10167
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "gathering-house stays within rendering budgets and keeps one settled scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10691
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "bakehouse stays within rendering budgets and keeps one settled scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10391
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "roof-account stays within rendering budgets and keeps one settled scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10485
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "the borrowed handle opens the passage and an indoor table accepts bread first",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 36802
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 41664
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "bread and water remain portable across interiors, reload, and large reading size",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 50980
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "Amos walks the outer route, waits through menus, and resumes from an exported checkpoint",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 26212
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "Amos walks the passage route, waits through menus, and resumes from an exported checkpoint",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 14690
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "a failed neighborhood load can be retried and summary preserves the roof account",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 531
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "capernaum stays within rendering budgets and keeps one settled scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11926
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11238
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "capernaum-lanes stays within rendering budgets and keeps one settled scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11207
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "gathering-house stays within rendering budgets and keeps one settled scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10989
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "bakehouse stays within rendering budgets and keeps one settled scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11006
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "roof-account stays within rendering budgets and keeps one settled scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11132
+          }
+        ]
+      },
+      {
+        "file": "campaign.spec.ts",
+        "title": "the borrowed handle opens the passage and an indoor table accepts bread first",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 275
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "a migrated traveler completes preparation, every lake scene and a remembered aftermath",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 29053
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "scene exit, resume, summary and reduced motion keep the same checkpoint",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 14643
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "a failed lake asset load leaves the shoreline playable and permits retry",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 16116
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "story tracking persists and phone objectives remain compact and readable",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 3286
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "v4 import and manual restoration replace regions without accumulating scenes",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 9275
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "unavailable browser storage stays explicit and still allows portable export",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 2841
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "the shoreline preparation tray works with keyboard and touch without a reading panel",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 15990
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "a migrated traveler completes preparation, every lake scene and a remembered aftermath",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 30617
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "scene exit, resume, summary and reduced motion keep the same checkpoint",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 15033
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "a failed lake asset load leaves the shoreline playable and permits retry",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 293
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "story tracking persists and phone objectives remain compact and readable",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 3299
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "v4 import and manual restoration replace regions without accumulating scenes",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 4420
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "unavailable browser storage stays explicit and still allows portable export",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 330
+          }
+        ]
+      },
+      {
+        "file": "episode.spec.ts",
+        "title": "the shoreline preparation tray works with keyboard and touch without a reading panel",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11818
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "restore the spring through inspection, failed flow, rotation, hints and a lasting memory",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 21264
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "prepare either resting place, recover supplies across travel, correct its approach and welcome company",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 33704
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "welcome does not request models; failed direct continuation keeps its save and supports retry",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 8010
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 5106
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "completed spring restores its visible arrangement within both rendering budgets",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 12197
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "completed shelter restores its visible arrangement within both rendering budgets",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11878
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 23212
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "restore the spring through inspection, failed flow, rotation, hints and a lasting memory",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 14625
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "prepare either resting place, recover supplies across travel, correct its approach and welcome company",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 40077
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "welcome does not request models; failed direct continuation keeps its save and supports retry",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 7022
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 5362
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "completed spring restores its visible arrangement within both rendering budgets",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11447
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "completed shelter restores its visible arrangement within both rendering budgets",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10655
+          }
+        ]
+      },
+      {
+        "file": "galilee.spec.ts",
+        "title": "a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 20968
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "a traveler completes the chapter, saves, reloads, and exports",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 20599
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "menus, touch navigation, settings, and invalid imports stay usable",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 6572
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "ground clicks, keyboard movement, and menu focus work together",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 2517
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "Ezra remembers earlier discoveries and the village story survives a reload",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 27926
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "a traveler completes the chapter, saves, reloads, and exports",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 202
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "menus, touch navigation, settings, and invalid imports stay usable",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 4482
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "ground clicks, keyboard movement, and menu focus work together",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 228
+          }
+        ]
+      },
+      {
+        "file": "journey.spec.ts",
+        "title": "Ezra remembers earlier discoveries and the village story survives a reload",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 25888
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 68050
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 8652
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+        "project": "chromium",
+        "status": "unexpected",
+        "results": [
+          {
+            "status": "failed",
+            "durationMs": 27715
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 39631
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11448
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11354
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11337
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 12129
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 66903
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 6992
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 15080
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 271
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "unexpected",
+        "results": [
+          {
+            "status": "failed",
+            "durationMs": 5874
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10778
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10601
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10230
+          }
+        ]
+      },
+      {
+        "file": "life.spec.ts",
+        "title": "Ruth\u2019s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 58346
+          }
+        ]
+      },
+      {
+        "file": "life.spec.ts",
+        "title": "the landing bench supports both material routes, visible repair, pause, save recovery and lasting company",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 20802
+          }
+        ]
+      },
+      {
+        "file": "life.spec.ts",
+        "title": "a carried pouch has a usable return route while journal travel preserves a roof checkpoint",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 43981
+          }
+        ]
+      },
+      {
+        "file": "life.spec.ts",
+        "title": "Ruth\u2019s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 59337
+          }
+        ]
+      },
+      {
+        "file": "life.spec.ts",
+        "title": "the landing bench supports both material routes, visible repair, pause, save recovery and lasting company",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 42366
+          }
+        ]
+      },
+      {
+        "file": "life.spec.ts",
+        "title": "a carried pouch has a usable return route while journal travel preserves a roof checkpoint",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 43410
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "the road opens after Chapter II; Tamar\u2019s investigation supports observation, retry, hints, reload and both memories",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 36955
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 74351
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 57544
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 21405
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 20951
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "failed Nain assets preserve the prior scene and autosave; summary keeps the full account",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 8558
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region galilean-road draws essential objects at both qualities and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11556
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region roadside-farm draws essential objects at both qualities and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11620
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region nain-gate draws essential objects at both qualities and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11213
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region nain-account draws essential objects at both qualities and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11183
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "the road opens after Chapter II; Tamar\u2019s investigation supports observation, retry, hints, reload and both memories",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 34687
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 75531
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 56959
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 19725
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 20061
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "failed Nain assets preserve the prior scene and autosave; summary keeps the full account",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 231
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region galilean-road draws essential objects at both qualities and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10484
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region roadside-farm draws essential objects at both qualities and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10498
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region nain-gate draws essential objects at both qualities and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 9917
+          }
+        ]
+      },
+      {
+        "file": "road.spec.ts",
+        "title": "new region nain-account draws essential objects at both qualities and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10150
+          }
+        ]
+      },
+      {
+        "file": "static-render.spec.ts",
+        "title": "static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 42503
+          }
+        ]
+      },
+      {
+        "file": "static-render.spec.ts",
+        "title": "the Nain tableau survives replacement and reload; missing gate geometry fails its image contract",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 19150
+          }
+        ]
+      },
+      {
+        "file": "static-render.spec.ts",
+        "title": "static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 1334
+          }
+        ]
+      },
+      {
+        "file": "static-render.spec.ts",
+        "title": "the Nain tableau survives replacement and reload; missing gate geometry fails its image contract",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 141
+          }
+        ]
+      }
+    ]
+  },
+  "finalLake": {
+    "stats": {
+      "startTime": "2026-09-12T06:53:02.311Z",
+      "duration": 414387.57899999997,
+      "expected": 17,
+      "skipped": 1,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "lake-restore.spec.ts",
+        "title": "direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 7085
+          }
+        ]
+      },
+      {
+        "file": "lake-restore.spec.ts",
+        "title": "direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10569
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 97744
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 15585
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 24830
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 44231
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 13155
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 12857
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 13172
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 12122
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 78457
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 9712
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 19749
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+        "project": "mobile-chromium",
+        "status": "skipped",
+        "results": [
+          {
+            "status": "skipped",
+            "durationMs": 643
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 12618
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 12372
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 12868
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 11793
+          }
+        ]
+      }
+    ]
+  },
+  "uniqueScenarios": {
+    "total": 108,
+    "latestStatusCounts": {
+      "expected": 98,
+      "skipped": 10
+    },
+    "note": "Full regression followed by overlapping final lake reruns; not a second clean full-suite run."
+  },
+  "softwareRendering": {
+    "stats": {
+      "startTime": "2026-09-12T07:00:54.161Z",
+      "duration": 296348.732,
+      "expected": 8,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "lake.spec.ts",
+        "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 55627
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 32478
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 34124
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 33745
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 48747
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 34538
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 30863
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 21849
+          }
+        ]
+      }
+    ]
+  },
+  "journalInitial": {
+    "stats": {
+      "startTime": "2026-09-12T07:07:36.921Z",
+      "duration": 77211.20599999999,
+      "expected": 0,
+      "skipped": 0,
+      "unexpected": 2,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "chromium",
+        "status": "unexpected",
+        "results": [
+          {
+            "status": "failed",
+            "durationMs": 35090
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "mobile-chromium",
+        "status": "unexpected",
+        "results": [
+          {
+            "status": "failed",
+            "durationMs": 39559
+          }
+        ]
+      }
+    ]
+  },
+  "journalFinal": {
+    "stats": {
+      "startTime": "2026-09-12T07:09:27.727Z",
+      "duration": 137193.363,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 66803
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 67305
+          }
+        ]
+      }
+    ]
+  },
+  "readingFinal": {
+    "stats": {
+      "startTime": "2026-09-12T07:24:23.880Z",
+      "duration": 138983.786,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 66914
+          }
+        ]
+      },
+      {
+        "file": "lake.spec.ts",
+        "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "project": "mobile-chromium",
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 69452
+          }
+        ]
+      }
+    ]
+  }
+}

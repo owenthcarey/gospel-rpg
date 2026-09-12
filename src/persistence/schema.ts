@@ -1,3 +1,6 @@
+import { newLake, isLakeRegion } from '../game/lake/types';
+import { lakeJournalIds } from '../game/lake/progress';
+import { parseLake } from './lake';
 import { parseGalilee } from './galilee';
 import { newGalilee, GALILEE_ITEMS } from '../game/galilee/types';
 import { galileeJournalIds } from '../game/galilee/progress';
@@ -17,10 +20,10 @@ import { newRoad, isRoadRegion } from '../game/road/types';
 import { roadJournalIds } from '../game/road/progress';
 import { parseRoad } from './road';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 8;
+  version: 9;
   region: RegionId;
   savedAt: string;
   state: GameState;
@@ -100,7 +103,11 @@ export function parseSave(raw: unknown): SaveFile {
   }
   if (
     !record(raw) ||
-    (raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8) ||
+    (raw.version !== 5 &&
+      raw.version !== 6 &&
+      raw.version !== 7 &&
+      raw.version !== 8 &&
+      raw.version !== 9) ||
     !REGION_IDS.some((id) => id === raw.region) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
@@ -112,6 +119,7 @@ export function parseSave(raw: unknown): SaveFile {
     ...(raw.version === 5 ? { life: newLife() } : {}),
     ...(Number(raw.version) < 7 ? { road: newRoad() } : {}),
     ...(Number(raw.version) < 8 ? { galilee: newGalilee() } : {}),
+    ...(Number(raw.version) < 9 ? { lake: newLake() } : {}),
   };
   if (
     Number(raw.version) < 7 &&
@@ -127,6 +135,13 @@ export function parseSave(raw: unknown): SaveFile {
         GALILEE_ITEMS.includes(s.campaign.carrying as (typeof GALILEE_ITEMS)[number])))
   )
     throw new SaveError('This older save contains unknown Galilee progress.');
+  if (
+    Number(raw.version) < 9 &&
+    (isLakeRegion(String(raw.region)) ||
+      raw.region === 'storm-account' ||
+      ['storm', 'crossing'].includes(String(s.tracking)))
+  )
+    throw new SaveError('This older save contains unknown lake progress.');
   // Old saves cannot introduce newly earned stories, held items, or tracking.
   if (raw.version === 5) {
     if (
@@ -177,6 +192,9 @@ export function parseSave(raw: unknown): SaveFile {
     campaign.roof.stage !== 'complete'
   )
     throw new SaveError('The tracked road story is not available in this save.');
+  const lake = parseLake(s.lake, road.chapter.stage, raw.region as RegionId, s.position);
+  if (['storm', 'crossing'].includes(String(s.tracking)) && road.chapter.stage !== 'complete')
+    throw new SaveError('The tracked lake story is not available.');
   const galilee = parseGalilee(s.galilee, campaign);
   if (['spring', 'shelter'].includes(String(s.tracking)) && campaign.roof.stage !== 'complete')
     throw new SaveError('The tracked Galilee story is not available.');
@@ -223,6 +241,7 @@ export function parseSave(raw: unknown): SaveFile {
     ...lifeJournalIds(life),
     ...roadJournalIds(road),
     ...galileeJournalIds(galilee),
+    ...lakeJournalIds(lake),
   ]);
   if (s.villageStory !== 'not-started') expectedJournal.add('ezra-invitation');
   if (s.villageStory === 'complete') {
@@ -243,7 +262,7 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 8,
+    version: 9,
     region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
@@ -253,6 +272,7 @@ export function parseSave(raw: unknown): SaveFile {
       life,
       road,
       galilee,
+      lake,
       tracking: s.tracking as GameState['tracking'],
       villageMemory: s.villageMemory as GameState['villageMemory'],
       position: { x: s.position.x, z: s.position.z },

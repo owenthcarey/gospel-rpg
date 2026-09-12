@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Keep 90 desktop/phone cases to 2–3 per shard. Six long software-WebGL
+        # Keep 108 desktop/phone cases to 3–4 per shard. Six long software-WebGL
         # journeys exhausted the 15-minute suite limit despite passing assertions.
         shard:
           [

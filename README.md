@@ -10,6 +10,8 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **Living Galilee** makes those places useful to revisit: restore a working water channel beside the road, then help Leah arrange a resting place at the farm. Both original adventures offer alternate solutions, recoverable supplies and lasting visible results.
 
+**Across the Lake** opens after Chapter III: steer an ordinary boat between Capernaum and two new shores, investigate **A sheltered way** with Joel, and witness Chapter IV, **Peace, be still** (Mark 4:35–41). The navigation adventure is optional; neither steering nor story choices determine the Gospel account.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -23,21 +25,25 @@ npm run dev
 
 Open the URL printed by Vite. Select **Begin your journey**, then speak with **Simon** or select **Follow the path**. After the opening net-and-bread errand, return to Simon to begin **Into the Deep**. Existing completed saves can continue here immediately. Speak with **Ezra** or open the journal for **An ordinary morning**, an independent village story. The episode is unhurried: lake scenes advance when you choose, and can be paused, left and resumed, or finished with a summary.
 
-| Control                                 | Action                      |
-| --------------------------------------- | --------------------------- |
-| Click/tap the ground                    | Walk around obstacles       |
-| Click a name / choose a map destination | Approach and interact       |
-| WASD / arrow keys                       | Move relative to the camera |
-| E                                       | Interact nearby             |
-| Right-drag / two fingers                | Orbit                       |
-| Scroll / pinch / zoom buttons           | Zoom                        |
-| Q / rotate buttons                      | Rotate                      |
-| R                                       | Reset camera                |
-| J / I / M                               | Journal / satchel / map     |
-| Escape                                  | Pause or close a menu       |
-| Cancel walk                             | Clear the selected approach |
+| Control                                 | Action                         |
+| --------------------------------------- | ------------------------------ |
+| Click/tap ground or water               | Walk or steer around obstacles |
+| Click a name / choose a map destination | Approach and interact          |
+| WASD / arrow keys                       | Move relative to the camera    |
+| E                                       | Interact nearby                |
+| Right-drag / two fingers                | Orbit                          |
+| Scroll / pinch / zoom buttons           | Zoom                           |
+| Q / rotate buttons                      | Rotate                         |
+| R                                       | Reset camera                   |
+| J / I / M                               | Journal / satchel / map        |
+| Escape                                  | Pause or close a menu          |
+| Cancel walk                             | Clear the selected approach    |
 
 ## Playable chapters
+
+- **Across the Lake:** steer or use map routes, dock explicitly at the reed landing and sheltered cove, then reboard and return. The boat remembers its berth or exact saved position and heading.
+- **Peace, be still:** seven complete Gospel scenes, full Mark 4:35–41 transcript, three aftermath visits and three equal reflections.
+- **A sheltered way:** study reeds and split rock in either order, compare interpretations, use graduated hints, find the sheltered landing and return to Joel with either memory.
 
 - **A spring for travelers:** inspect and clear the channel, rotate its physical sections, test water through either connected route, and choose a memory. Readable plans and optional graduated hints support exploration.
 - **Room under the olives:** inspect two sites, carry and place a mat, water and screen, leave an open approach, and welcome company. Supplies can be recovered or returned before completion.
@@ -46,13 +52,13 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 - **Through the Roof:** eight narrated Gospel scenes, three aftermath visits and a chosen reflection; explorable lanes and two enterable buildings.
 - **Four independent neighborhood stories:** investigate Ruth’s missing sewing pouch, repair the landing bench with cord or a brace, choose a walking route with Amos, or a table location with Hannah; carry bread and water, clear a passage, and return to visible results.
 - **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
-- **79 original Blender assets**, fifteen skinned character variants, sixteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling.
+- **84 original Blender assets**, fifteen skinned character variants, sixteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling.
 - A compact nearby-action tray for practical tasks, distinct pick-up/put-down/repair/sit motions, stationary holding, persistent repaired benches and seated table company.
 - A journal organized into **Stories, People, Places, and Memories**, with story filters, investigation evidence and destinations.
 - A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.
 - The original prelude, Ezra's independent village story, three discoveries, additional shoreline observations, selectable story tracking, satchel, journal and navigable map.
 - User-paced captions with scripture provenance, full transcript, pause, checkpoint resume and finish-with-summary controls. Your imagined traveler remains on shore during the narrated lake views.
-- Autosave, three manual slots, JSON export/import and **v8 migration from v1–v7 saves**, including interrupted lake scenes and remembered choices.
+- Autosave, three manual slots, JSON export/import and **v9 migration from v1–v8 saves**, including interrupted lake scenes and remembered choices.
 - Compact phone objectives, standard/large reading sizes, readable captions, keyboard focus management, reduced motion, lower graphics settings and optional ambience.
 - Welcome and save controls open before any models download; continue/import load the saved region directly with retry.
 - Saved full/restrained exploration guidance, explicit walk cancellation, placement guides, and camera cutaways for obstructing trees.
@@ -66,7 +72,9 @@ After completing Through the Roof, take **The road beyond Capernaum** from the l
 
 At **The spring channel**, restore water to either basin. At the farm, speak with **Leah** to prepare **Room under the olives**. Both unlock after Chapter II and can be interrupted at any point. Carry one supply at a time; return placed supplies to the rack to relocate the resting place before completing it. Choose **Settings → Exploration guidance** for fewer distant markers.
 
-This delivers three bounded Gospel chapters and nine optional stories. More of Galilee/Judea, open-water sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/005-living-galilee.md), and [verification record](docs/VERIFICATION.md).
+After completing At the gate, return to Capernaum and approach **Board for the lake**. Joel offers the optional landmark story. Steer with the same controls as walking, or choose any named landing/landmark on the local map. Approach a landing, choose **Dock and step ashore**, and use **Board the boat** to return. A carried item stays in its existing slot and appears stowed aboard while rowing. At the cove, approach **A view over the lake** for Chapter IV. The journal keeps your observations, hints and unfinished work.
+
+This delivers four bounded Gospel chapters and ten optional stories. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/006-across-the-lake.md), and [verification record](docs/VERIFICATION.md).
 
 For a guided review and portable example saves, see the [playtest guide](docs/PLAYTEST.md).
 
@@ -80,7 +88,7 @@ npm run test:e2e          # Full episode, legacy stories, migration, recovery an
 npm run preview          # Serve the production build
 ```
 
-Use `npm run fixtures:galilee` for portable examples and `npm run assets:inspect:galilee` to review the shipped exports in Blender.
+Use `npm run fixtures:lake` for portable v9 examples and `npm run assets:inspect:lake` to review the shipped lake kit and imported boat poses in Blender. Historical fixture generators remain available.
 
 Use `npm run format`, `npm run test:watch`, and `npm run assets:build` as needed. Dependencies are pinned; the lockfile is committed.
 

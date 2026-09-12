@@ -2,6 +2,9 @@ import type { Interactable } from '../region';
 import type { ExplorationRegion } from '../../game/campaign/types';
 
 export const lifePlaces: Record<ExplorationRegion, readonly Interactable[]> = {
+  'galilee-water': [],
+  'reed-landing': [],
+  'sheltered-cove': [],
   capernaum: [
     {
       id: 'sewing-rest',

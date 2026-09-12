@@ -1,3 +1,4 @@
+import { stormControls, stormTranscript, stormSummary, lakeSummary } from './views/lake';
 import { galileeSummary } from './views/galilee';
 import { trackedChapter } from '../content/campaign/chapters';
 import { nainControls, nainTranscript, nainSummary, roadSummary } from './views/road';
@@ -184,12 +185,16 @@ export class Interface {
     this.root.classList.toggle('scene-mode', inScene);
     this.sceneControls.hidden = !inScene || !this.active;
     this.sceneControls.innerHTML = inScene
-      ? state.region === 'nain-account'
-        ? nainControls(state, this.scenePaused)
-        : state.region === 'roof-account'
-          ? roofControls(state, this.scenePaused)
-          : sceneControls(state, this.scenePaused)
+      ? state.region === 'storm-account'
+        ? stormControls(state, this.scenePaused)
+        : state.region === 'nain-account'
+          ? nainControls(state, this.scenePaused)
+          : state.region === 'roof-account'
+            ? roofControls(state, this.scenePaused)
+            : sceneControls(state, this.scenePaused)
       : '';
+    this.root.querySelector('.control-hints span')!.innerHTML =
+      icon('mouse') + (state.region === 'galilee-water' ? ' Click to steer' : ' Click to walk');
     const quest = questView(state);
     if (this.quest.innerHTML !== quest) this.quest.innerHTML = quest;
     this.root.querySelector('.time-of-day span')!.textContent =
@@ -374,7 +379,7 @@ export class Interface {
   welcome(hasSave: boolean, storage: boolean): void {
     this.show(
       'welcome',
-      `<div class="welcome-shade"></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand"><span>✧</span> THE WAY</div><p class="eyebrow">CHAPTER I &nbsp; / &nbsp; GALILEE</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore, witness the catch and calling, enter Capernaum’s lanes for Through the Roof, then follow the road to Nain.</p><p class="welcome-copy secondary">Walk the shore. Meet its people.<br>Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">Three Gospel chapters · Luke 5:1–11, Mark 2:1–12 and Luke 7:11–17.<br>Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
+      `<div class="welcome-shade"></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand"><span>✧</span> THE WAY</div><p class="eyebrow">CHAPTER I &nbsp; / &nbsp; GALILEE</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore, witness the catch and calling, enter Capernaum’s lanes for Through the Roof, then follow the road to Nain and cross the lake to a sheltered cove.</p><p class="welcome-copy secondary">Walk the shore. Meet its people.<br>Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">Four Gospel chapters · Luke 5:1–11, Mark 2:1–12, Luke 7:11–17 and Mark 4:35–41.<br>Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
     );
   }
   private panelShell(title: string, eyebrow: string, body: string, wide = false): string {
@@ -396,16 +401,35 @@ export class Interface {
           ? journalPlaces(state)
           : category === 'memories'
             ? memoryEntries(state, filter)
-            : `${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(preludeObjective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${roadSummary(state, filter)}${galileeSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
+            : `${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(preludeObjective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${roadSummary(state, filter)}${galileeSummary(state, filter)}${lakeSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
     this.show(
       'journal',
       this.panelShell(
         'A traveler’s journal',
         'PEOPLE, PLACES & SMALL DISCOVERIES',
-        `${journalToolbar(category, filter)}${content}<aside class="content-note"><strong>About these stories</strong><p>Into the Deep follows Luke 5:1–11; Through the Roof follows Mark 2:1–12; At the gate follows Luke 7:11–17. Scripture is quoted from the public-domain World English Bible. The traveler, neighbors, investigations, repairs, and connective conversations are original. Each memory preserves its own reference. All three full transcripts remain in Stories.</p></aside>`,
+        `${journalToolbar(category, filter)}${content}<aside class="content-note"><strong>About these stories</strong><p>Into the Deep follows Luke 5:1–11; Through the Roof follows Mark 2:1–12; At the gate follows Luke 7:11–17; Peace, be still follows Mark 4:35–41. Scripture is quoted from the public-domain World English Bible. The traveler, neighbors, investigations, repairs, and connective conversations are original. Each memory preserves its own reference. All four full transcripts remain in Stories.</p></aside>`,
         true,
       ),
     );
+  }
+  focusCrossing(mode: 'review' | 'feedback' | 'hint'): void {
+    // Replacing a reading panel must keep the relevant clue/control in view.
+    // Run after show()'s initial focus so keyboard users can keep reading.
+    requestAnimationFrame(() => {
+      if (this.panel !== 'journal' && this.panel !== 'context') return;
+      const target = this.overlay.querySelector<HTMLElement>(
+        mode === 'review'
+          ? '.crossing-evidence h3'
+          : mode === 'feedback'
+            ? '.crossing-feedback'
+            : '.crossing-hints summary',
+      );
+      if (!target) return;
+      if (mode !== 'hint') target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+      const reading = mode === 'hint' ? target.closest('.crossing-hints')! : target;
+      reading.scrollIntoView({ block: mode === 'review' ? 'start' : 'nearest' });
+    });
   }
   inventory(state: GameState): void {
     this.show(
@@ -446,7 +470,7 @@ export class Interface {
       this.panelShell(
         regions[state.region].title,
         'LOCAL PEOPLE AND PLACES',
-        `<nav class="map-tabs" aria-label="Map views"><button class="secondary-button" data-action="local-map" aria-pressed="true">Local destinations</button><button class="secondary-button" data-action="journey-map" aria-pressed="false">Journey map</button></nav><p class="panel-lead">Choose a person or place to walk there. Your traveler will find a clear path.</p><div class="map-layout"><div class="large-map">${this.mapSvg(true, state.position, state)}<span class="large-map-north">N ↑</span>${state.region === 'capernaum' ? '<span class="lake-label">Sea of<br>Galilee</span>' : ''}</div><div class="map-destinations">${activeInteractables(
+        `<nav class="map-tabs" aria-label="Map views"><button class="secondary-button" data-action="local-map" aria-pressed="true">Local destinations</button><button class="secondary-button" data-action="journey-map" aria-pressed="false">Journey map</button></nav><p class="panel-lead">Choose a person or place to approach it. Your traveler or boat will follow a clear route.</p><div class="map-layout"><div class="large-map">${this.mapSvg(true, state.position, state)}<span class="large-map-north">N ↑</span>${state.region === 'capernaum' ? '<span class="lake-label">Sea of<br>Galilee</span>' : ''}</div><div class="map-destinations">${activeInteractables(
           state,
         )
           .map(
@@ -466,7 +490,7 @@ export class Interface {
       this.panelShell(
         'A moment of rest',
         'SETTINGS & SAVED JOURNEYS',
-        `<div class="settings-grid"><div><h3>Your experience</h3><label class="setting-row"><span>${icon('sound')} Ambient sound<small>Soft regional ambience and gentle chimes</small></span><input type="checkbox" data-setting="sound" ${settings.sound ? 'checked' : ''}></label><label class="setting-row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" value="${settings.volume}" data-setting="volume" aria-label="Sound volume"></label><label class="setting-row"><span>Visual quality<small>Lower quality saves battery</small></span><select data-setting="quality"><option value="high" ${settings.quality === 'high' ? 'selected' : ''}>High</option><option value="low" ${settings.quality === 'low' ? 'selected' : ''}>Low</option></select></label><label class="setting-row"><span>Reduce motion<small>Still water and immediate camera follow</small></span><input type="checkbox" data-setting="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}></label><label class="setting-row"><span>Exploration guidance<small>Full labels and routes, or nearby labels with quieter paths. Maps remain available.</small></span><select data-setting="guidance"><option value="full" ${settings.guidance !== 'explore' ? 'selected' : ''}>Full guidance</option><option value="explore" ${settings.guidance === 'explore' ? 'selected' : ''}>Explore with fewer markers</option></select></label><label class="setting-row"><span>Reading size<small>Dialogue, scripture and journal text</small></span><select data-setting="textSize"><option value="standard" ${settings.textSize === 'standard' ? 'selected' : ''}>Standard</option><option value="large" ${settings.textSize === 'large' ? 'selected' : ''}>Large</option></select></label><button class="secondary-button full-width" data-action="help">${icon('help')} Controls &amp; how to play</button></div><div><h3>Saved journeys</h3><p class="settings-note">${persistent ? 'Progress autosaves as you explore. Manual slots keep a moment you can return to.' : 'Browser storage is unavailable. These slots last only this session. Export a file to keep your journey.'}</p><div class="save-slots">${slots.map((slot) => `<div class="save-slot"><span class="slot-icon">${icon('save')}</span><div><strong>${slot.id === 'auto' ? 'Autosave' : `Journey ${slot.id.at(-1)}`}</strong><small>${slot.error ? 'Unreadable save' : slot.save ? `${regions[slot.save.state.region].title + (slot.save.state.road.chapter.stage === 'complete' ? ' · Chapter III complete' : slot.save.state.road.chapter.checkpoint ? ' · ' + slot.save.state.road.chapter.checkpoint : slot.save.state.campaign.roof.stage === 'complete' ? ' · Chapter II complete' : slot.save.state.campaign.roof.checkpoint ? ' · ' + slot.save.state.campaign.roof.checkpoint : '')} · ${esc(new Date(slot.save.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))}` : 'Empty slot'}</small></div>${slot.id !== 'auto' ? `<button class="small-button" data-action="save-slot" data-value="${slot.id}" ${started ? '' : 'disabled'}>Save</button>` : ''}<button class="small-button" data-action="load-slot" data-value="${slot.id}" ${slot.save ? '' : 'disabled'}>Load</button></div>`).join('')}</div><div class="save-actions"><button class="secondary-button" data-action="export" ${started ? '' : 'disabled'}>${icon('download')} Export</button><label class="secondary-button import-button">${icon('upload')} Import<input type="file" id="import-save" accept=".json,application/json" aria-label="Import a journey save"></label></div></div></div>${started ? '<button class="text-button new-journey" data-action="new-journey">Start a new journey…</button>' : ''}`,
+        `<div class="settings-grid"><div><h3>Your experience</h3><label class="setting-row"><span>${icon('sound')} Ambient sound<small>Soft regional ambience and gentle chimes</small></span><input type="checkbox" data-setting="sound" ${settings.sound ? 'checked' : ''}></label><label class="setting-row"><span>Volume</span><input type="range" min="0" max="1" step="0.05" value="${settings.volume}" data-setting="volume" aria-label="Sound volume"></label><label class="setting-row"><span>Visual quality<small>Lower quality saves battery</small></span><select data-setting="quality"><option value="high" ${settings.quality === 'high' ? 'selected' : ''}>High</option><option value="low" ${settings.quality === 'low' ? 'selected' : ''}>Low</option></select></label><label class="setting-row"><span>Reduce motion<small>Still water and immediate camera follow</small></span><input type="checkbox" data-setting="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}></label><label class="setting-row"><span>Exploration guidance<small>Full labels and routes, or nearby labels with quieter paths. Maps remain available.</small></span><select data-setting="guidance"><option value="full" ${settings.guidance !== 'explore' ? 'selected' : ''}>Full guidance</option><option value="explore" ${settings.guidance === 'explore' ? 'selected' : ''}>Explore with fewer markers</option></select></label><label class="setting-row"><span>Reading size<small>Dialogue, scripture and journal text</small></span><select data-setting="textSize"><option value="standard" ${settings.textSize === 'standard' ? 'selected' : ''}>Standard</option><option value="large" ${settings.textSize === 'large' ? 'selected' : ''}>Large</option></select></label><button class="secondary-button full-width" data-action="help">${icon('help')} Controls &amp; how to play</button></div><div><h3>Saved journeys</h3><p class="settings-note">${persistent ? 'Progress autosaves as you explore. Manual slots keep a moment you can return to.' : 'Browser storage is unavailable. These slots last only this session. Export a file to keep your journey.'}</p><div class="save-slots">${slots.map((slot) => `<div class="save-slot"><span class="slot-icon">${icon('save')}</span><div><strong>${slot.id === 'auto' ? 'Autosave' : `Journey ${slot.id.at(-1)}`}</strong><small>${slot.error ? 'Unreadable save' : slot.save ? `${regions[slot.save.state.region].title + (slot.save.state.lake.chapter.stage === 'complete' ? ' · Chapter IV complete' : slot.save.state.lake.chapter.checkpoint ? ' · ' + slot.save.state.lake.chapter.checkpoint : slot.save.state.road.chapter.stage === 'complete' ? ' · Chapter III complete' : slot.save.state.road.chapter.checkpoint ? ' · ' + slot.save.state.road.chapter.checkpoint : slot.save.state.campaign.roof.stage === 'complete' ? ' · Chapter II complete' : slot.save.state.campaign.roof.checkpoint ? ' · ' + slot.save.state.campaign.roof.checkpoint : '')} · ${esc(new Date(slot.save.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))}` : 'Empty slot'}</small></div>${slot.id !== 'auto' ? `<button class="small-button" data-action="save-slot" data-value="${slot.id}" ${started ? '' : 'disabled'}>Save</button>` : ''}<button class="small-button" data-action="load-slot" data-value="${slot.id}" ${slot.save ? '' : 'disabled'}>Load</button></div>`).join('')}</div><div class="save-actions"><button class="secondary-button" data-action="export" ${started ? '' : 'disabled'}>${icon('download')} Export</button><label class="secondary-button import-button">${icon('upload')} Import<input type="file" id="import-save" accept=".json,application/json" aria-label="Import a journey save"></label></div></div></div>${started ? '<button class="text-button new-journey" data-action="new-journey">Start a new journey…</button>' : ''}`,
         true,
       ),
     );
@@ -522,21 +546,27 @@ export class Interface {
   }
   transcript(state: GameState, chapter?: string): void {
     const account =
-      chapter === 'lake' || chapter === 'roof' || chapter === 'nain' ? chapter : accountFor(state);
+      chapter === 'lake' || chapter === 'roof' || chapter === 'nain' || chapter === 'storm'
+        ? chapter
+        : accountFor(state);
     this.show(
       'transcript',
       this.panelShell(
-        account === 'nain'
-          ? 'At the gate · Transcript'
-          : account === 'roof'
-            ? 'Through the Roof · Transcript'
-            : 'Words beside the water',
+        account === 'storm'
+          ? 'Peace, be still · Transcript'
+          : account === 'nain'
+            ? 'At the gate · Transcript'
+            : account === 'roof'
+              ? 'Through the Roof · Transcript'
+              : 'Words beside the water',
         'THE COMPLETE SCENE TRANSCRIPT',
-        account === 'nain'
-          ? nainTranscript()
-          : account === 'roof'
-            ? roofTranscript()
-            : transcriptView(state),
+        account === 'storm'
+          ? stormTranscript()
+          : account === 'nain'
+            ? nainTranscript()
+            : account === 'roof'
+              ? roofTranscript()
+              : transcriptView(state),
         true,
       ),
     );
@@ -547,11 +577,13 @@ export class Interface {
       this.panelShell(
         'Finish with a summary',
         'CONTINUE AT YOUR OWN PACE',
-        state.region === 'nain-account'
-          ? nainSummary(state)
-          : state.region === 'roof-account'
-            ? roofSummary(state)
-            : sceneSummaryView(state),
+        state.region === 'storm-account'
+          ? stormSummary(state)
+          : state.region === 'nain-account'
+            ? nainSummary(state)
+            : state.region === 'roof-account'
+              ? roofSummary(state)
+              : sceneSummaryView(state),
       ),
     );
   }

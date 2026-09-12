@@ -1,3 +1,4 @@
+import { lakePracticalActions } from './lake/actions';
 import type { GameEvent, GameState } from '../game/types';
 import type { ActionMotion } from './campaign/actions';
 import { actionBlocker, actionMotion, worldActions } from './campaign/actions';
@@ -14,6 +15,7 @@ export interface PracticalAction {
 /** A shared UI contract; each authoritative reducer still validates the event. */
 export function practicalActions(s: GameState): PracticalAction[] {
   return [
+    ...lakePracticalActions(s),
     ...worldActions
       .filter((a) => actionMotion(a) && (a.visible?.(s) ?? a.available(s)))
       .map((a) => ({

@@ -1,0 +1,27 @@
+{
+  "browser": "151.0.7922.34",
+  "records": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "physicalDevice": false,
+      "contrasts": {
+        "heading": 10.145274027387398,
+        "button": 10.24283332061406
+      }
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "physicalDevice": false,
+      "contrasts": {
+        "heading": 10.145274027387398,
+        "button": 10.24283332061406
+      }
+    }
+  ]
+}

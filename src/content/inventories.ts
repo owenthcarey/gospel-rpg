@@ -1,3 +1,5 @@
+import { isLakeRegion } from '../game/lake/types';
+import { lakePlaces } from './lake/places';
 import { galileePlaces } from './galilee/places';
 import { VILLAGE_ASSETS, type AssetId } from './assets';
 import { campaignLayout } from './campaign/layouts';
@@ -12,6 +14,17 @@ export function explorationAssets(region: ExplorationRegion): AssetId[] {
   const shared = ['traveler' as const, ...Object.values(heldAssets), ...lifeRegionAssets[region]];
   if (region === 'capernaum') return [...new Set([...VILLAGE_ASSETS, ...shared])];
   const layout = campaignLayout(region)!;
+  if (isLakeRegion(region))
+    return [
+      ...new Set([
+        ...shared,
+        ...layout.decor.map((p) => p.asset),
+        ...lakePlaces[region].flatMap((p) => (p.asset ? [p.asset as AssetId] : [])),
+        'boat' as const,
+        'oar' as const,
+        'villager' as const,
+      ]),
+    ];
   if (isRoadRegion(region))
     return [
       ...new Set([

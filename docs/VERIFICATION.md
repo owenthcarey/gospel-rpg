@@ -1,5 +1,50 @@
 # Verification record
 
+## Across the Lake · 2026-09-12
+
+[RFC-006](rfcs/006-across-the-lake.md) was drafted before implementation. This milestone adds a controllable ordinary boat, two revisitable shores, Joel's landmark investigation and the seven-scene Mark 4:35–41 chapter, **Peace, be still**. The game contains four Gospel chapters and ten optional stories. The [playtest guide](PLAYTEST.md#across-the-lake) includes seven portable v9 saves for unlocked, afloat, docked, interrupted, carrying and completed journeys.
+
+### State and geometry coverage
+
+The unit suite contains **390 passing tests across eighteen files**. Types, ESLint, the production build, formatting, Python recipe compilation and whitespace checks pass. New coverage includes all three boarding/docking pairs, reachable land and water approaches, exact afloat position/heading, both clue orders and endings, wrong interpretations and all hints, every Gospel checkpoint and leave/resume path, all three reflections, full verse coverage, carried supplies, waiting companions, historical save preservation and forged-state rejection. Every v1–v8 fixture retains its existing state fields and journal while gaining empty lake progress. Reordered JSON keys remain valid; unsupported fields are not copied into the new record.
+
+The real Babylon GLB importer verifies hand/oar contact through five stroke phases, seat and foot support, sleeping head/cushion and torso/platform contact, separation from the disciples, and hull clearance at every navigable water cell. The tests rejected detached grips, incorrect stern orientation and insufficient support before correction. [Measured contact data](verification/across-the-lake-contact.json) records hand/oar distances below 0.013 world units and oar blades dipping below and recovering above the water surface. The ordinary boat's floor now stays above the flat exploration water, including while berthed.
+
+Opening a menu captures a fresh autosave and export waits for that snapshot. This closes the steering/reload interruption gap discovered during browser testing. Scene replacement remains transactional: failed boarding or Gospel loading retains the earlier scene and durable save. Direct continuation also covers failed Gospel startup, retry, a berthed boat, an older farm supply and an independently waiting Neri.
+
+### Browser regression
+
+The complete production run finished **106 cases in 35.0 minutes: 94 passed, two failed and ten were intentionally skipped**. One new test reloaded before leaving the Gospel scene had finished its transactional region change; it now waits for the destination and action completion. The other expected an eastern reed bank to draw outside the phone camera's view; the reference position now lies between the landmarks, with every essential-object assertion retained.
+
+After the final boat staging, narration and objective corrections, a fresh production build passed **17 lake checks**, with one intentional phone skip, in **6.9 minutes**. This includes both previously failing checks and two new direct-Gospel startup/retry cases. Across the full run and overlapping reruns, all **98 runnable scenarios** in the expanded **108-case suite** passed. These are unique scenarios, not a second clean full-suite run. The [case-level record](verification/across-the-lake-browser-runs.json) preserves the actual run results.
+
+Coverage includes both complete investigation journeys, keyboard steering, automatic navigation and cancellation, explicit docking/reboarding, held-item and waiting-companion persistence, exact afloat restoration, all Gospel controls and aftermath, failed loading, large text, reduced motion, portrait/landscape layouts, required-object drawing, draw-call limits and one settled scene. The original bakehouse and Nain software image contracts, including their missing-geometry negative controls, passed unchanged in the full regression.
+
+Screenshot review subsequently corrected the investigation journal: unrelated neighborhood content is excluded by the story filter, **Review the clues** focuses the recollection, and interpretation/hint updates retain the relevant reading position. Both investigation journeys passed again in **2.3 minutes** after the focus assertion was narrowed to the named heading. An earlier selector matched two headings and failed before evaluating focus; that attempt is included in the case record. A final contrast correction keeps dark text on the clue panel's pale surfaces. The two investigation journeys then passed once more in **2.3 minutes**, with permanent assertions for rendered contrast and visibility of each new hint's text. [Rendered measurements](verification/across-the-lake-reading.json) show **10.15:1 heading contrast and 10.24:1 button contrast** on both tested viewports.
+
+### Assets and review
+
+Blender MCP generated the five new props and workshop in **Blender 5.2.1 LTS**, with addon 1.6/protocol 5. Independent imports of the shipped new GLBs produced the [kit review](verification/across-the-lake-kit.png). Posed meshes from the actual Babylon importer produced matching [rower](verification/across-the-lake-rower.png) and [stern](verification/across-the-lake-stern.png) views in Blender. Unrelated scenes were preserved. The [asset record](verification/across-the-lake-assets.json) includes source, recipe, model and review-image hashes.
+
+The **84-model kit has 15 actors and 69 props**, totaling **5,128,144 bytes**, with **114,736 bytes** remaining under the unchanged **5 MiB** cap. Lossless sharing of duplicate storage reduced the prior 79 exports by 214,292 bytes; the [baseline comparison](verification/across-the-lake-compaction.json) verifies identical resolved geometry, skins, materials, sockets, animation channels and samples. Actor/prop triangle limits remain 5,000/10,000. The four new region inventories contain 602,204–1,067,464 model bytes each, below their 2.5 MiB limit. Opening the original village does not fetch the expansion kit.
+
+The production application is **118.46 KB gzip**, CSS **11.75 KB gzip**, and the separately cached Babylon bundle **691.60 KB gzip**. The existing large-engine-chunk advisory remains. The [CI enumeration](verification/across-the-lake-shards.json) selects all **108 cases exactly once** across the existing 32 shards: twelve contain four cases and twenty contain three. Deadlines, retries and the required verification gate are unchanged; enumeration does not establish GitHub runner timing.
+
+| Reference region               | Desktop High / Low draw calls | Phone High / Low draw calls |
+| ------------------------------ | ----------------------------- | --------------------------- |
+| Lake crossing                  | 64 / 39                       | 61 / 36                     |
+| Reed landing                   | 40 / 24                       | 43 / 27                     |
+| Sheltered cove                 | 48 / 28                       | 50 / 30                     |
+| Peace, be still, evening scene | 71 / 37                       | 69 / 35                     |
+
+The limits remain **300 High / 130 Low**, with each sample reporting one settled scene. The [rendering record](verification/across-the-lake-rendering.json) includes regional download inventories, enabled/drawn asset counts, renderer, viewport and cadence. Hardware samples used ANGLE Metal on Apple M3: all sixteen collected 120 intervals, with 16.7 ms medians and 17.6–18.7 ms p95. These bounded local measurements include concurrent verification activity and are not sustained device benchmarks.
+
+The eight new-region checks also passed under forced SwiftShader, with retries disabled, in **4.9 minutes**. They exercised both qualities and phone landscape controls; all sixteen software samples are in the rendering record. This matrix preceded the final journal-only filter/focus/contrast corrections; scene geometry, rendering and graphics settings were unchanged by those corrections.
+
+Reviewed browser views show the water on [desktop](verification/across-the-lake-water-desktop.png) and [phone](verification/across-the-lake-water-phone.png), the [reed landing](verification/across-the-lake-reed-landing-desktop.png), the cove on [desktop](verification/across-the-lake-cove-desktop.png) and [phone](verification/across-the-lake-cove-phone.png), and the Gospel on [desktop](verification/across-the-lake-storm-desktop.png), [phone](verification/across-the-lake-storm-phone.png) and [large-text phone landscape](verification/across-the-lake-storm-landscape.png). The investigation has reviewed [desktop clues](verification/across-the-lake-evidence-desktop.png), [phone clues](verification/across-the-lake-evidence-phone.png) and [phone hints](verification/across-the-lake-hint-phone.png). A [carried farm screen](verification/across-the-lake-cargo.png) is visible stowed in the ordinary boat.
+
+Human editorial/pacing review, assistive-technology usability, physical touch hardware and sustained mobile/Safari/Firefox performance remain unverified. Desktop Chromium and phone viewport emulation do not establish those outcomes. No public deployment was part of this implementation.
+
 ## Living Galilee · 2026-09-10
 
 [RFC-005](rfcs/005-living-galilee.md) was written before implementation. It adds two original practical adventures, shared nearby actions, readable spatial plans, saved exploration guidance, walk cancellation, lasting activity and direct saved-region startup. The game now contains three Gospel chapters and nine optional stories. The [playtest guide](PLAYTEST.md#living-galilee) describes both solutions, recovery paths and four portable v8 saves.

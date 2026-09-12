@@ -1,0 +1,1382 @@
+{
+  "regionalPayloads": {
+    "galilee-water": {
+      "bytes": 946484,
+      "models": 21,
+      "inventory": [
+        "traveler",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "split_rock",
+        "cove_headland",
+        "reed_bank",
+        "landing_pier",
+        "olive",
+        "rock",
+        "farm_shelter",
+        "house",
+        "boat",
+        "oar",
+        "villager"
+      ]
+    },
+    "reed-landing": {
+      "bytes": 814984,
+      "models": 19,
+      "inventory": [
+        "traveler",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "landing_pier",
+        "olive",
+        "bench",
+        "rock",
+        "reed_bank",
+        "split_rock",
+        "boat",
+        "oar",
+        "villager"
+      ]
+    },
+    "sheltered-cove": {
+      "bytes": 1067464,
+      "models": 22,
+      "inventory": [
+        "traveler",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "landing_pier",
+        "olive",
+        "bench",
+        "rock",
+        "farm_shelter",
+        "cove_headland",
+        "amphora",
+        "reed_bank",
+        "miriam",
+        "boat",
+        "oar",
+        "villager"
+      ]
+    },
+    "storm-account": {
+      "bytes": 602204,
+      "models": 8,
+      "inventory": [
+        "boat",
+        "oar",
+        "boat_cushion",
+        "jesus",
+        "simon",
+        "john",
+        "rock",
+        "cove_headland"
+      ]
+    }
+  },
+  "hardware": [
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "53",
+          "fps": "60",
+          "drawCalls": "64",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2013.1",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 2],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 4],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "53",
+          "fps": "60",
+          "drawCalls": "39",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2018.2",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 2],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 4],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "46",
+          "fps": "60",
+          "drawCalls": "61",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2021.5",
+            "median": "16.7",
+            "p95": "18.7",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 1],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 2],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "46",
+          "fps": "60",
+          "drawCalls": "36",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2014.9",
+            "median": "16.7",
+            "p95": "18.7",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 1],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 2],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "35",
+          "fps": "60",
+          "drawCalls": "40",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2007.5",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "35",
+          "fps": "60",
+          "drawCalls": "24",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2017.4",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "36",
+          "fps": "60",
+          "drawCalls": "43",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2003.3",
+            "median": "16.7",
+            "p95": "18.7",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "36",
+          "fps": "60",
+          "drawCalls": "27",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2011.7",
+            "median": "16.7",
+            "p95": "18.5",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "60",
+          "drawCalls": "48",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2015.3",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "60",
+          "drawCalls": "28",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2003.2",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "60",
+          "drawCalls": "50",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2017.1",
+            "median": "16.7",
+            "p95": "18.6",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 0],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "60",
+          "drawCalls": "30",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2014.1",
+            "median": "16.7",
+            "p95": "18.6",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 0],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "56",
+          "fps": "60",
+          "drawCalls": "71",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2011.2",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "boat": [3, 3, 3],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 1]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "47",
+          "fps": "60",
+          "drawCalls": "37",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2006.0",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "boat": [3, 3, 3],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 1]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "52",
+          "fps": "60",
+          "drawCalls": "69",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2005.4",
+            "median": "16.7",
+            "p95": "18.6",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "boat": [3, 3, 2],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 0]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "43",
+          "fps": "60",
+          "drawCalls": "35",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+            "samples": "120",
+            "elapsedMs": "2004.5",
+            "median": "16.7",
+            "p95": "18.6",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "boat": [3, 3, 2],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 0]
+          },
+          "physicalDevice": false
+        }
+      }
+    }
+  ],
+  "software": [
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "53",
+          "fps": "5",
+          "drawCalls": "64",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "24",
+            "elapsedMs": "5001.4",
+            "median": "200.0",
+            "p95": "250.0",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 2],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 4],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "53",
+          "fps": "10",
+          "drawCalls": "39",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "47",
+            "elapsedMs": "5000.8",
+            "median": "100.0",
+            "p95": "133.3",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 2],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 4],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "46",
+          "fps": "9",
+          "drawCalls": "61",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "41",
+            "elapsedMs": "5001.6",
+            "median": "115.6",
+            "p95": "148.1",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 1],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 2],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "galilee-water",
+          "meshes": "124",
+          "materials": "36",
+          "textures": "5",
+          "activeMeshes": "46",
+          "fps": "12",
+          "drawCalls": "36",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "61",
+            "elapsedMs": "5002.5",
+            "median": "82.1",
+            "p95": "102.0",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "split_rock": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "landing_pier": [3, 3, 1],
+            "olive": [4, 4, 0],
+            "rock": [4, 4, 2],
+            "farm_shelter": [1, 1, 1],
+            "house": [1, 1, 0],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "oar": [2, 2, 2]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "35",
+          "fps": "6",
+          "drawCalls": "40",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "28",
+            "elapsedMs": "5002.8",
+            "median": "168.6",
+            "p95": "200.9",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "35",
+          "fps": "10",
+          "drawCalls": "24",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "48",
+            "elapsedMs": "5002.3",
+            "median": "100.0",
+            "p95": "117.5",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "36",
+          "fps": "8",
+          "drawCalls": "43",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "37",
+            "elapsedMs": "5001.9",
+            "median": "133.3",
+            "p95": "150.7",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "reed-landing",
+          "meshes": "105",
+          "materials": "32",
+          "textures": "5",
+          "activeMeshes": "36",
+          "fps": "15",
+          "drawCalls": "27",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "68",
+            "elapsedMs": "5005.2",
+            "median": "68.2",
+            "p95": "100.1",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "reed_bank": [4, 4, 4],
+            "split_rock": [1, 1, 1],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "5",
+          "drawCalls": "48",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "24",
+            "elapsedMs": "5001.8",
+            "median": "200.0",
+            "p95": "233.3",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "7",
+          "drawCalls": "28",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "36",
+            "elapsedMs": "5003.1",
+            "median": "117.3",
+            "p95": "201.9",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 1],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "8",
+          "drawCalls": "50",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "38",
+            "elapsedMs": "5002.4",
+            "median": "118.2",
+            "p95": "200.0",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 0],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "sheltered-cove",
+          "meshes": "115",
+          "materials": "44",
+          "textures": "8",
+          "activeMeshes": "39",
+          "fps": "17",
+          "drawCalls": "30",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "77",
+            "elapsedMs": "5002.1",
+            "median": "66.6",
+            "p95": "99.9",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "landing_pier": [1, 1, 1],
+            "olive": [1, 1, 1],
+            "bench": [1, 1, 1],
+            "rock": [1, 1, 1],
+            "farm_shelter": [1, 1, 1],
+            "cove_headland": [1, 1, 1],
+            "amphora": [1, 1, 0],
+            "reed_bank": [1, 1, 1],
+            "miriam": [5, 5, 5],
+            "traveler": [6, 6, 6],
+            "channel_scoop": [1, 0, 0],
+            "resting_mat": [1, 0, 0],
+            "jug": [3, 0, 0],
+            "reed_screen": [1, 0, 0],
+            "bread_basket": [1, 0, 0],
+            "cart_handle": [1, 0, 0],
+            "sewing_pouch": [1, 0, 0],
+            "lashing_cord": [1, 0, 0],
+            "wood_brace": [1, 0, 0],
+            "boat": [1, 1, 1],
+            "villager": [5, 0, 0]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "chromium",
+      "samples": {
+        "high": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "56",
+          "fps": "8",
+          "drawCalls": "71",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "41",
+            "elapsedMs": "5002.5",
+            "median": "116.7",
+            "p95": "133.4",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "boat": [3, 3, 3],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 1]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "47",
+          "fps": "19",
+          "drawCalls": "37",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "112",
+            "elapsedMs": "5002.2",
+            "median": "49.3",
+            "p95": "51.9",
+            "viewport": "1440\u00d7900"
+          },
+          "assets": {
+            "boat": [3, 3, 3],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 1]
+          },
+          "physicalDevice": false
+        }
+      }
+    },
+    {
+      "project": "mobile-chromium",
+      "samples": {
+        "high": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "52",
+          "fps": "24",
+          "drawCalls": "69",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "118",
+            "elapsedMs": "5001.8",
+            "median": "49.2",
+            "p95": "50.7",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "boat": [3, 3, 2],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 0]
+          },
+          "physicalDevice": false
+        },
+        "low": {
+          "region": "storm-account",
+          "meshes": "67",
+          "materials": "25",
+          "textures": "8",
+          "activeMeshes": "43",
+          "fps": "56",
+          "drawCalls": "35",
+          "scenes": "1",
+          "cadence": {
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+            "samples": "120",
+            "elapsedMs": "2106.9",
+            "median": "16.7",
+            "p95": "17.6",
+            "viewport": "390\u00d7844"
+          },
+          "assets": {
+            "boat": [3, 3, 2],
+            "boat_cushion": [1, 1, 1],
+            "jesus": [5, 5, 5],
+            "simon": [5, 5, 5],
+            "john": [5, 5, 5],
+            "oar": [2, 2, 2],
+            "rock": [3, 3, 1],
+            "cove_headland": [1, 1, 0]
+          },
+          "physicalDevice": false
+        }
+      }
+    }
+  ]
+}

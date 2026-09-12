@@ -1,3 +1,4 @@
+import { isLakeRegion } from '../../game/lake/types';
 import type { GameState } from '../../game/types';
 import type { ExplorationRegion } from '../../game/campaign/types';
 import { journeyPlaces, knownRegions, travelerRegion } from '../../content/journey';
@@ -14,7 +15,11 @@ export function journeyMap(s: GameState): string {
   const visible = Object.keys(journeyPlaces).filter(
     (id) =>
       id === 'capernaum' ||
-      (isRoadRegion(id) ? s.campaign.roof.stage === 'complete' : s.episode.stage === 'complete'),
+      (isLakeRegion(id)
+        ? s.road.chapter.stage === 'complete'
+        : isRoadRegion(id)
+          ? s.campaign.roof.stage === 'complete'
+          : s.episode.stage === 'complete'),
   ) as ExplorationRegion[];
   const connections = gateways
     .filter((g) => visible.includes(g.from) && visible.includes(g.to))
@@ -26,7 +31,7 @@ export function journeyMap(s: GameState): string {
             (other.to === g.from && other.from === g.to),
         ) === i,
     );
-  return `<p class="panel-lead">Your journey through the places you know. Lines show connected paths; travel still takes place on foot. This is a schematic of the game’s imagined, compressed journey.</p><div class="journey-guidance"><strong>You are at ${esc(regions[here].title)}.</strong><p>${next ? 'Next doorway for your tracked story: ' + esc(next.name) + '.' : 'Your tracked destination is within this region.'}</p>${next ? `<button class="primary-button" data-action="travel" data-value="${next.id}">Walk to the next doorway</button>` : ''}</div><svg class="journey-map" viewBox="0 0 620 410" role="img" aria-label="Connected places: the shore leads to Capernaum lanes, with the house and bakehouse nearby. After Chapter II, the Galilean road connects Capernaum to the roadside farm and Nain."><rect width="620" height="410" rx="20" fill="#ede5d0"/>${connections
+  return `<p class="panel-lead">Your journey through the places you know. Lines show connected paths; travel takes place on foot or aboard your ordinary boat. This is a schematic of the game’s imagined, compressed journey.</p><div class="journey-guidance"><strong>You are at ${esc(regions[here].title)}.</strong><p>${next ? 'Next passage for your tracked story: ' + esc(next.name) + '.' : 'Your tracked destination is within this region.'}</p>${next ? `<button class="primary-button" data-action="travel" data-value="${next.id}">Approach the next passage</button>` : ''}</div><svg class="journey-map" viewBox="0 0 620 540" role="img" aria-label="Connected places: the shore leads to Capernaum lanes, with the house and bakehouse nearby. After Chapter II, the Galilean road connects Capernaum to the roadside farm and Nain. After Chapter III, the lake connects the Capernaum landing to the reed shore and sheltered cove."><rect width="620" height="540" rx="20" fill="#ede5d0"/>${connections
     .map((g) => {
       const a = journeyPlaces[g.from],
         b = journeyPlaces[g.to];
@@ -35,7 +40,7 @@ export function journeyMap(s: GameState): string {
     .join('')}${visible
     .map((id) => {
       const p = journeyPlaces[id];
-      return `<g transform="translate(${p.x} ${p.y})"><circle r="${id === here ? 17 : 12}" fill="${id === here ? '#314f46' : known.includes(id) ? '#b28a44' : '#e0d5b9'}" stroke="#667767" stroke-width="2"/>${id === here ? '<path d="m0-8 5 14-5-3-5 3z" fill="#fff4cf"/>' : ''}<text text-anchor="middle" y="35" fill="#34453c" font-size="13">${esc(id === 'capernaum' ? 'The shore' : id === 'capernaum-lanes' ? 'Capernaum lanes' : id === 'gathering-house' ? 'Gathering house' : id === 'roadside-farm' ? 'Roadside farm' : id === 'galilean-road' ? 'Galilean road' : id === 'nain-gate' ? 'Nain' : 'Bakehouse')}</text></g>`;
+      return `<g transform="translate(${p.x} ${p.y})"><circle r="${id === here ? 17 : 12}" fill="${id === here ? '#314f46' : known.includes(id) ? '#b28a44' : '#e0d5b9'}" stroke="#667767" stroke-width="2"/>${id === here ? '<path d="m0-8 5 14-5-3-5 3z" fill="#fff4cf"/>' : ''}<text text-anchor="middle" y="35" fill="#34453c" font-size="13">${esc(isLakeRegion(id) ? regions[id].title : id === 'capernaum' ? 'The shore' : id === 'capernaum-lanes' ? 'Capernaum lanes' : id === 'gathering-house' ? 'Gathering house' : id === 'roadside-farm' ? 'Roadside farm' : id === 'galilean-road' ? 'Galilean road' : id === 'nain-gate' ? 'Nain' : 'Bakehouse')}</text></g>`;
     })
     .join('')}</svg><div class="journey-destinations">${visible
     .map((id) => {

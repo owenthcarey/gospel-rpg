@@ -1,3 +1,4 @@
+import { lakeLayouts } from '../lake/layouts';
 import { supplyPosition, REST_LAYOUTS } from '../../game/galilee/arrangement';
 import type { Point, GameState } from '../../game/types';
 import type { Obstacle } from '../../game/pathfinding';
@@ -167,6 +168,7 @@ export function campaignLayout(region: string): ExplorationLayout | undefined {
       'gathering-house': houseLayout,
       bakehouse: bakehouseLayout,
       ...roadLayouts,
+      ...lakeLayouts,
     } as Record<string, ExplorationLayout>
   )[region];
 }
