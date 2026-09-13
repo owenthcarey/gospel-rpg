@@ -179,6 +179,7 @@ export function sceneControls(state: GameState, paused: boolean): string {
       returnLabel: 'Return to village',
     },
     paused,
+    state.connection.replay?.account,
   );
 }
 export function transcriptView(state: GameState): string {

@@ -25,7 +25,9 @@
     "fixtures:galilee": "node tools/generate_galilee_fixtures.mjs",
     "assets:inspect:galilee": "python3 tools/build_assets.py --inspect-galilee",
     "fixtures:lake": "node tools/generate_lake_fixtures.mjs",
-    "assets:inspect:lake": "python3 tools/build_assets.py --inspect-lake"
+    "assets:inspect:lake": "python3 tools/build_assets.py --inspect-lake",
+    "fixtures:connection": "node tools/generate_connection_fixtures.mjs",
+    "assets:inspect:connection": "python3 tools/build_assets.py --inspect-connection"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

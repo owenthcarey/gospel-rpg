@@ -11,7 +11,12 @@ import { roadPlaces } from './road/places';
 
 /** Interiors only load their own architecture, actors and activity props. */
 export function explorationAssets(region: ExplorationRegion): AssetId[] {
-  const shared = ['traveler' as const, ...Object.values(heldAssets), ...lifeRegionAssets[region]];
+  const shared = [
+    'traveler' as const,
+    'passage_marker' as const,
+    ...Object.values(heldAssets),
+    ...lifeRegionAssets[region],
+  ];
   if (region === 'capernaum') return [...new Set([...VILLAGE_ASSETS, ...shared])];
   const layout = campaignLayout(region)!;
   if (isLakeRegion(region))

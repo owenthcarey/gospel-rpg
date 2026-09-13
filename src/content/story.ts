@@ -1,3 +1,4 @@
+import { homeJournal } from './connection/home';
 import { lakeJournal } from './lake/journal';
 import { galileeAcknowledgement } from './galilee/conversations';
 import { galileeJournal } from './galilee/journal';
@@ -36,6 +37,7 @@ export const items: Record<ItemId, { name: string; description: string; icon: st
   },
 };
 export const journalEntries: Record<string, { title: string; text: string; reference?: string }> = {
+  ...homeJournal,
   ...galileeJournal,
   ...lifeJournal,
   ...roadJournal,

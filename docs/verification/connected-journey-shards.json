@@ -1,0 +1,297 @@
+{
+  "date": "2026-09-12",
+  "method": "Playwright --list, same include/exclude and shard selection as Quality CI; enumeration only, no GitHub runner timing claim.",
+  "declared": 124,
+  "selected": 123,
+  "intentionallyOmitted": [
+    "[mobile-chromium] › continuous-journey.spec.ts › one fresh traveler completes all four chapters without replacing or importing campaign state"
+  ],
+  "continuous": [
+    "[chromium] › continuous-journey.spec.ts › one fresh traveler completes all four chapters without replacing or importing campaign state"
+  ],
+  "shards": [
+    {
+      "shard": 1,
+      "cases": [
+        "[chromium] › campaign.spec.ts › a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+        "[chromium] › campaign.spec.ts › bread and water remain portable across interiors, reload, and large reading size",
+        "[chromium] › campaign.spec.ts › Amos walks the outer route, waits through menus, and resumes from an exported checkpoint",
+        "[chromium] › campaign.spec.ts › Amos walks the passage route, waits through menus, and resumes from an exported checkpoint"
+      ]
+    },
+    {
+      "shard": 2,
+      "cases": [
+        "[chromium] › campaign.spec.ts › a failed neighborhood load can be retried and summary preserves the roof account",
+        "[chromium] › campaign.spec.ts › capernaum stays within rendering budgets and keeps one settled scene",
+        "[chromium] › campaign.spec.ts › lake-gennesaret stays within rendering budgets and keeps one settled scene",
+        "[chromium] › campaign.spec.ts › capernaum-lanes stays within rendering budgets and keeps one settled scene"
+      ]
+    },
+    {
+      "shard": 3,
+      "cases": [
+        "[chromium] › campaign.spec.ts › gathering-house stays within rendering budgets and keeps one settled scene",
+        "[chromium] › campaign.spec.ts › bakehouse stays within rendering budgets and keeps one settled scene",
+        "[chromium] › campaign.spec.ts › roof-account stays within rendering budgets and keeps one settled scene",
+        "[chromium] › campaign.spec.ts › the borrowed handle opens the passage and an indoor table accepts bread first"
+      ]
+    },
+    {
+      "shard": 4,
+      "cases": [
+        "[chromium] › connection-render.spec.ts › the completed shore and passage markers render within the original High and Low budgets",
+        "[chromium] › connection-render.spec.ts › replay reading retains visible controls and world space at large text sizes",
+        "[chromium] › connection.spec.ts › a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+        "[chromium] › connection.spec.ts › all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return"
+      ]
+    },
+    {
+      "shard": 5,
+      "cases": [
+        "[chromium] › connection.spec.ts › failed replay startup and return preserve a portable journey and support retry",
+        "[chromium] › connection.spec.ts › return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+        "[chromium] › connection.spec.ts › direct story shortcuts reopen their reading content after status filtering",
+        "[chromium] › episode.spec.ts › a migrated traveler completes preparation, every lake scene and a remembered aftermath"
+      ]
+    },
+    {
+      "shard": 6,
+      "cases": [
+        "[chromium] › episode.spec.ts › scene exit, resume, summary and reduced motion keep the same checkpoint",
+        "[chromium] › episode.spec.ts › a failed lake asset load leaves the shoreline playable and permits retry",
+        "[chromium] › episode.spec.ts › story tracking persists and phone objectives remain compact and readable",
+        "[chromium] › episode.spec.ts › v4 import and manual restoration replace regions without accumulating scenes"
+      ]
+    },
+    {
+      "shard": 7,
+      "cases": [
+        "[chromium] › episode.spec.ts › unavailable browser storage stays explicit and still allows portable export",
+        "[chromium] › episode.spec.ts › the shoreline preparation tray works with keyboard and touch without a reading panel",
+        "[chromium] › galilee.spec.ts › restore the spring through inspection, failed flow, rotation, hints and a lasting memory",
+        "[chromium] › galilee.spec.ts › prepare either resting place, recover supplies across travel, correct its approach and welcome company"
+      ]
+    },
+    {
+      "shard": 8,
+      "cases": [
+        "[chromium] › galilee.spec.ts › welcome does not request models; failed direct continuation keeps its save and supports retry",
+        "[chromium] › galilee.spec.ts › restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+        "[chromium] › galilee.spec.ts › completed spring restores its visible arrangement within both rendering budgets",
+        "[chromium] › galilee.spec.ts › completed shelter restores its visible arrangement within both rendering budgets"
+      ]
+    },
+    {
+      "shard": 9,
+      "cases": [
+        "[chromium] › galilee.spec.ts › a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+        "[chromium] › journey.spec.ts › a traveler completes the chapter, saves, reloads, and exports",
+        "[chromium] › journey.spec.ts › menus, touch navigation, settings, and invalid imports stay usable",
+        "[chromium] › journey.spec.ts › ground clicks, keyboard movement, and menu focus work together"
+      ]
+    },
+    {
+      "shard": 10,
+      "cases": [
+        "[chromium] › journey.spec.ts › Ezra remembers earlier discoveries and the village story survives a reload",
+        "[chromium] › lake-restore.spec.ts › direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+        "[chromium] › lake.spec.ts › sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+        "[chromium] › lake.spec.ts › steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload"
+      ]
+    },
+    {
+      "shard": 11,
+      "cases": [
+        "[chromium] › lake.spec.ts › Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+        "[chromium] › lake.spec.ts › failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+        "[chromium] › lake.spec.ts › galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+        "[chromium] › lake.spec.ts › reed-landing draws essential models at both qualities, fits small screens and settles to one scene"
+      ]
+    },
+    {
+      "shard": 12,
+      "cases": [
+        "[chromium] › lake.spec.ts › sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "[chromium] › lake.spec.ts › storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+        "[chromium] › life.spec.ts › Ruth’s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+        "[chromium] › life.spec.ts › the landing bench supports both material routes, visible repair, pause, save recovery and lasting company"
+      ]
+    },
+    {
+      "shard": 13,
+      "cases": [
+        "[chromium] › life.spec.ts › a carried pouch has a usable return route while journal travel preserves a roof checkpoint",
+        "[chromium] › road.spec.ts › the road opens after Chapter II; Tamar’s investigation supports observation, retry, hints, reload and both memories",
+        "[chromium] › road.spec.ts › Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+        "[chromium] › road.spec.ts › Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves"
+      ]
+    },
+    {
+      "shard": 14,
+      "cases": [
+        "[chromium] › road.spec.ts › At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+        "[chromium] › road.spec.ts › an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+        "[chromium] › road.spec.ts › failed Nain assets preserve the prior scene and autosave; summary keeps the full account",
+        "[chromium] › road.spec.ts › new region galilean-road draws essential objects at both qualities and settles to one scene"
+      ]
+    },
+    {
+      "shard": 15,
+      "cases": [
+        "[chromium] › road.spec.ts › new region roadside-farm draws essential objects at both qualities and settles to one scene",
+        "[chromium] › road.spec.ts › new region nain-gate draws essential objects at both qualities and settles to one scene",
+        "[chromium] › road.spec.ts › new region nain-account draws essential objects at both qualities and settles to one scene",
+        "[chromium] › static-render.spec.ts › static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract"
+      ]
+    },
+    {
+      "shard": 16,
+      "cases": [
+        "[chromium] › static-render.spec.ts › the Nain tableau survives replacement and reload; missing gate geometry fails its image contract",
+        "[mobile-chromium] › campaign.spec.ts › a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+        "[mobile-chromium] › campaign.spec.ts › bread and water remain portable across interiors, reload, and large reading size",
+        "[mobile-chromium] › campaign.spec.ts › Amos walks the outer route, waits through menus, and resumes from an exported checkpoint"
+      ]
+    },
+    {
+      "shard": 17,
+      "cases": [
+        "[mobile-chromium] › campaign.spec.ts › Amos walks the passage route, waits through menus, and resumes from an exported checkpoint",
+        "[mobile-chromium] › campaign.spec.ts › a failed neighborhood load can be retried and summary preserves the roof account",
+        "[mobile-chromium] › campaign.spec.ts › capernaum stays within rendering budgets and keeps one settled scene",
+        "[mobile-chromium] › campaign.spec.ts › lake-gennesaret stays within rendering budgets and keeps one settled scene"
+      ]
+    },
+    {
+      "shard": 18,
+      "cases": [
+        "[mobile-chromium] › campaign.spec.ts › capernaum-lanes stays within rendering budgets and keeps one settled scene",
+        "[mobile-chromium] › campaign.spec.ts › gathering-house stays within rendering budgets and keeps one settled scene",
+        "[mobile-chromium] › campaign.spec.ts › bakehouse stays within rendering budgets and keeps one settled scene",
+        "[mobile-chromium] › campaign.spec.ts › roof-account stays within rendering budgets and keeps one settled scene"
+      ]
+    },
+    {
+      "shard": 19,
+      "cases": [
+        "[mobile-chromium] › campaign.spec.ts › the borrowed handle opens the passage and an indoor table accepts bread first",
+        "[mobile-chromium] › connection-render.spec.ts › the completed shore and passage markers render within the original High and Low budgets",
+        "[mobile-chromium] › connection-render.spec.ts › replay reading retains visible controls and world space at large text sizes",
+        "[mobile-chromium] › connection.spec.ts › a saved multi-region destination survives interruption and requires deliberate boarding and docking"
+      ]
+    },
+    {
+      "shard": 20,
+      "cases": [
+        "[mobile-chromium] › connection.spec.ts › all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return",
+        "[mobile-chromium] › connection.spec.ts › failed replay startup and return preserve a portable journey and support retry",
+        "[mobile-chromium] › connection.spec.ts › return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+        "[mobile-chromium] › connection.spec.ts › direct story shortcuts reopen their reading content after status filtering"
+      ]
+    },
+    {
+      "shard": 21,
+      "cases": [
+        "[mobile-chromium] › episode.spec.ts › a migrated traveler completes preparation, every lake scene and a remembered aftermath",
+        "[mobile-chromium] › episode.spec.ts › scene exit, resume, summary and reduced motion keep the same checkpoint",
+        "[mobile-chromium] › episode.spec.ts › a failed lake asset load leaves the shoreline playable and permits retry",
+        "[mobile-chromium] › episode.spec.ts › story tracking persists and phone objectives remain compact and readable"
+      ]
+    },
+    {
+      "shard": 22,
+      "cases": [
+        "[mobile-chromium] › episode.spec.ts › v4 import and manual restoration replace regions without accumulating scenes",
+        "[mobile-chromium] › episode.spec.ts › unavailable browser storage stays explicit and still allows portable export",
+        "[mobile-chromium] › episode.spec.ts › the shoreline preparation tray works with keyboard and touch without a reading panel",
+        "[mobile-chromium] › galilee.spec.ts › restore the spring through inspection, failed flow, rotation, hints and a lasting memory"
+      ]
+    },
+    {
+      "shard": 23,
+      "cases": [
+        "[mobile-chromium] › galilee.spec.ts › prepare either resting place, recover supplies across travel, correct its approach and welcome company",
+        "[mobile-chromium] › galilee.spec.ts › welcome does not request models; failed direct continuation keeps its save and supports retry",
+        "[mobile-chromium] › galilee.spec.ts › restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+        "[mobile-chromium] › galilee.spec.ts › completed spring restores its visible arrangement within both rendering budgets"
+      ]
+    },
+    {
+      "shard": 24,
+      "cases": [
+        "[mobile-chromium] › galilee.spec.ts › completed shelter restores its visible arrangement within both rendering budgets",
+        "[mobile-chromium] › galilee.spec.ts › a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+        "[mobile-chromium] › journey.spec.ts › a traveler completes the chapter, saves, reloads, and exports",
+        "[mobile-chromium] › journey.spec.ts › menus, touch navigation, settings, and invalid imports stay usable"
+      ]
+    },
+    {
+      "shard": 25,
+      "cases": [
+        "[mobile-chromium] › journey.spec.ts › ground clicks, keyboard movement, and menu focus work together",
+        "[mobile-chromium] › journey.spec.ts › Ezra remembers earlier discoveries and the village story survives a reload",
+        "[mobile-chromium] › lake-restore.spec.ts › direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+        "[mobile-chromium] › lake.spec.ts › sail to both shores, compare landmarks in either order, retry, save hints and return with either memory"
+      ]
+    },
+    {
+      "shard": 26,
+      "cases": [
+        "[mobile-chromium] › lake.spec.ts › steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+        "[mobile-chromium] › lake.spec.ts › Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+        "[mobile-chromium] › lake.spec.ts › failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+        "[mobile-chromium] › lake.spec.ts › galilee-water draws essential models at both qualities, fits small screens and settles to one scene"
+      ]
+    },
+    {
+      "shard": 27,
+      "cases": [
+        "[mobile-chromium] › lake.spec.ts › reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+        "[mobile-chromium] › lake.spec.ts › sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+        "[mobile-chromium] › lake.spec.ts › storm-account draws essential models at both qualities, fits small screens and settles to one scene"
+      ]
+    },
+    {
+      "shard": 28,
+      "cases": [
+        "[mobile-chromium] › life.spec.ts › Ruth’s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+        "[mobile-chromium] › life.spec.ts › the landing bench supports both material routes, visible repair, pause, save recovery and lasting company",
+        "[mobile-chromium] › life.spec.ts › a carried pouch has a usable return route while journal travel preserves a roof checkpoint"
+      ]
+    },
+    {
+      "shard": 29,
+      "cases": [
+        "[mobile-chromium] › road.spec.ts › the road opens after Chapter II; Tamar’s investigation supports observation, retry, hints, reload and both memories",
+        "[mobile-chromium] › road.spec.ts › Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+        "[mobile-chromium] › road.spec.ts › Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves"
+      ]
+    },
+    {
+      "shard": 30,
+      "cases": [
+        "[mobile-chromium] › road.spec.ts › At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+        "[mobile-chromium] › road.spec.ts › an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+        "[mobile-chromium] › road.spec.ts › failed Nain assets preserve the prior scene and autosave; summary keeps the full account"
+      ]
+    },
+    {
+      "shard": 31,
+      "cases": [
+        "[mobile-chromium] › road.spec.ts › new region galilean-road draws essential objects at both qualities and settles to one scene",
+        "[mobile-chromium] › road.spec.ts › new region roadside-farm draws essential objects at both qualities and settles to one scene",
+        "[mobile-chromium] › road.spec.ts › new region nain-gate draws essential objects at both qualities and settles to one scene"
+      ]
+    },
+    {
+      "shard": 32,
+      "cases": [
+        "[mobile-chromium] › road.spec.ts › new region nain-account draws essential objects at both qualities and settles to one scene",
+        "[mobile-chromium] › static-render.spec.ts › static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract",
+        "[mobile-chromium] › static-render.spec.ts › the Nain tableau survives replacement and reload; missing gate geometry fails its image contract"
+      ]
+    }
+  ],
+  "caseIdentifiers": "Project, file and title; formatting-dependent line numbers are omitted."
+}

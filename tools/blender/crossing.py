@@ -8,6 +8,11 @@ for i in range(11):
 for x in [-.83, .83]:
     for y in [-.95, .95]:
         cone('landing_post', (x, y, .13), .085, .065, 1.0, 'wood', 6)
+# Shallow contrasting edge strips leave both boarding ends and the deck open.
+for x in [-.86, .86]:
+    box('landing_edge', (x, 0, .21), (.09, 2.08, .08), 'wood')
+    for y in [-.95, .95]:
+        cone('landing_post_cap', (x, y, .65), .105, .075, .07, 'lightwood', 6)
 beam('mooring_rope', (-.85, -.96, .48), (-.85, -.5, .16), .025, 'rope')
 export('landing_pier')
 

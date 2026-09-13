@@ -119,6 +119,7 @@ export function stormControls(s: GameState, paused: boolean): string {
       returnLabel: 'Return to the cove',
     },
     paused,
+    s.connection.replay?.account,
   );
 }
 export function stormTranscript(): string {

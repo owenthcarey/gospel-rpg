@@ -1,3 +1,4 @@
+import { presentationState } from '../game/connection/accounts';
 import { StormRegion } from './regions/storm';
 import { SceneInstrumentation } from '@babylonjs/core/Instrumentation/sceneInstrumentation';
 import { Engine } from '@babylonjs/core/Engines/engine';
@@ -63,6 +64,7 @@ export class GameRuntime {
     });
   }
   async load(state: GameState, progress: (message: string) => void): Promise<void> {
+    state = presentationState(state);
     if (this.disposed) throw new Error('The game has been closed.');
     if (this.switching) throw new Error('A region is already being opened.');
     if (this.region === state.region && this.view) {
@@ -129,6 +131,7 @@ export class GameRuntime {
     }
   }
   update(state: GameState): void {
+    state = presentationState(state);
     this.view?.update(state);
     this.canvas.dataset.worldStage = state.episode.stage;
     this.canvas.dataset.checkpoint =

@@ -51,6 +51,7 @@ try {
     'v6-living-capernaum': gateway(complete, 'bakehouse-exit'),
   })) {
     const save = makeSave(state);
+    delete save.state.connection;
     // These are historical migration fixtures, not current-version examples.
     save.version = 6;
     delete save.state.road;

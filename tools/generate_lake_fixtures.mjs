@@ -65,6 +65,8 @@ try {
     'v9-across-the-lake-complete': complete,
   })) {
     const save = makeSave(state);
+    delete save.state.connection;
+    save.version = 9;
     save.savedAt = '2026-09-12T00:00:00.000Z';
     parseSave(save);
     await writeFile(

@@ -408,6 +408,7 @@ exec(compile(Path(ROOT, "tools/blender/road.py").read_text(), "road.py", "exec")
 exec(compile(Path(ROOT, "tools/blender/galilee.py").read_text(), "galilee.py", "exec"))
 
 exec(compile(Path(ROOT, "tools/blender/crossing.py").read_text(), "crossing.py", "exec"))
+exec(compile(Path(ROOT, "tools/blender/connection.py").read_text(), "connection.py", "exec"))
 from compact_glb import compact_kit
 compact_kit(OUT)
 

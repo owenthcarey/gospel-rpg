@@ -18,6 +18,7 @@ export function journalToolbar(category: JournalCategory, filter: JournalFilter)
   return `<nav class="journal-categories" aria-label="Journal categories">${JOURNAL_CATEGORIES.map((id) => `<button class="secondary-button" aria-pressed="${category === id}" data-action="journal-category" data-value="${id}">${id[0]!.toUpperCase() + id.slice(1)}</button>`).join('')}</nav>${category === 'stories' || category === 'memories' ? `<label class="journal-filter">Story <select data-journal-filter aria-label="Filter journal by story"><option value="all" ${filter === 'all' ? 'selected' : ''}>All stories</option>${STORY_TRACKS.map((id) => `<option value="${id}" ${filter === id ? 'selected' : ''}>${esc(chapters[id].title)}</option>`).join('')}</select></label>` : ''}`;
 }
 export function journalTrack(id: string): StoryTrack {
+  if (id.startsWith('home-')) return 'home';
   if (id.startsWith('storm-')) return 'storm';
   if (id.startsWith('crossing-') || id.startsWith('lake-note-')) return 'crossing';
   if (id.startsWith('galilee-spring-')) return 'spring';

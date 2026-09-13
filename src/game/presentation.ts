@@ -1,6 +1,8 @@
+export type { AccountId } from './connection/types';
+import type { AccountId } from './connection/types';
 import type { GameEvent, GameState } from './types';
-export type AccountId = 'lake' | 'roof' | 'nain' | 'storm';
 export function accountFor(s: GameState): AccountId {
+  if (s.connection.replay) return s.connection.replay.account;
   if (s.region === 'storm-account') return 'storm';
   if (s.region === 'nain-account') return 'nain';
   if (s.region === 'roof-account') return 'roof';
@@ -15,6 +17,7 @@ export function accountFor(s: GameState): AccountId {
   return 'lake';
 }
 export function leavePresentationEvent(s: GameState): GameEvent {
+  if (s.connection.replay) return { type: 'replay-close' };
   return {
     type:
       s.region === 'storm-account'

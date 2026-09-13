@@ -148,6 +148,7 @@ export function nainControls(s: GameState, paused: boolean): string {
       returnLabel: 'Return to the gate',
     },
     paused,
+    s.connection.replay?.account,
   );
 }
 export function nainTranscript(): string {
