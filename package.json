@@ -32,8 +32,8 @@
     "fixtures:exploration": "node tools/generate_exploration_fixtures.mjs"
   },
   "dependencies": {
-    "@babylonjs/core": "9.23.0",
-    "@babylonjs/loaders": "9.23.0",
+    "@babylonjs/core": "9.26.0",
+    "@babylonjs/loaders": "9.26.0",
     "idb": "8.0.3"
   },
   "devDependencies": {
