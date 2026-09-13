@@ -119,6 +119,7 @@ test('a migrated traveler completes preparation, every lake scene and a remember
   await page.getByRole('button', { name: 'Continue your journey' }).click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-world-stage', 'complete');
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(page.locator('.saved-reflection')).toContainText('The other boat');
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   expect(errors).toEqual([]);
@@ -178,6 +179,7 @@ test('story tracking persists and phone objectives remain compact and readable',
 }) => {
   await importPrelude(page);
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.getByRole('button', { name: 'Track village story', exact: true }).click();
   await page.getByRole('button', { name: 'Close menu', exact: true }).click();
   await expect(page.locator('#quest-card')).toContainText('An ordinary morning');

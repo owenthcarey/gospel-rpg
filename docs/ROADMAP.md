@@ -59,3 +59,7 @@ The build now has four bounded Gospel chapters and ten optional stories. The nex
 V10 preserves v1–v9 journeys and adds four portable examples. The kit contains 85 original models within the unchanged 5 MiB cap, including a reusable passage marker and refined landing edges. Replay/route interruption, legacy saves, both return endings and one continuous fresh-save four-chapter journey are covered by automated checks; consult the verification record for actual outcomes and review limits.
 
 The next expansion should follow human review of the complete connected journey, including how often players use saved routes, whether the recap helps after time away, whether replay is clearly distinguished from new progress, and whether the closing interlude feels earned with different optional-story histories. Physical-device, assistive-technology and editorial review remain the leading external validation priorities.
+
+## Delivered: The Journey in Your Hands
+
+RFC-008 adds a useful journal overview, compact expandable objectives, work controls beside the world, temporary screen previews, target/camera focus and deliberate pointer selection. Existing narratives, practical solutions and saves remain intact. Firefox/WebKit now have a separate real-WebGL smoke suite in addition to the complete Chromium journeys. The next evaluation should use physical touch devices and assistive technology alongside the supplied practical review saves; automated coverage does not settle pacing or usability.

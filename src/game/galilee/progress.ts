@@ -45,11 +45,16 @@ export function transitionGalilee(state: GameState, event: GalileeEvent): GameSt
         g.shelter.stage !== 'arranging' ||
         !g.shelter.placed.includes('screen') ||
         g.shelter.screen !== event.expected ||
+        (event.direction !== undefined &&
+          (!Number.isInteger(event.direction) ||
+            event.direction < 0 ||
+            event.direction > 3 ||
+            event.direction === event.expected)) ||
         state.campaign.carrying ||
         !galileeInReach(state, 'rest-' + g.shelter.site)
       )
         return state;
-      g.shelter.screen = ((event.expected + 1) % 4) as typeof event.expected;
+      g.shelter.screen = event.direction ?? (((event.expected + 1) % 4) as typeof event.expected);
       g.shelter.checked = false;
       break;
     case 'galilee-hint':

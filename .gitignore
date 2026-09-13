@@ -12,3 +12,6 @@ test-results/
 *.blend2
 __pycache__/
 .venv/
+
+/test-results-compat/
+/.compat-dist/

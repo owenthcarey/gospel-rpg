@@ -80,7 +80,10 @@ rest |= model('reed_screen', (0, -1.4, .03))
 for x in [-.4, .4]:
     rest |= model('villager', (x, -.9, .02), 'Sit')
 rest |= model('leah', (-2, .5, 0), 'Gesture')
-rest |= label('Open southern approach', -2, 2)
+approach_caption = label('Open southern approach', 2, 2)
+for caption in approach_caption:
+    caption.rotation_euler.z = math.pi
+rest |= approach_caption
 bpy.ops.mesh.primitive_plane_add(size=200)
 floor = bpy.context.object
 floor.location.z = -.025
@@ -111,7 +114,7 @@ scene.view_settings.view_transform = 'Standard'
 scene.frame_set(1)
 for name, objects, location, target, scale in [
     ('living-galilee-kit', kit, (9, -15, 16), (0, 0, .5), 15),
-    ('living-galilee-channel', channel, (2, -5, 12), (0, 0, .2), 9),
+    ('living-galilee-channel', channel, (2, -5, 12), (0, 0, .2), 11),
     ('living-galilee-rest', rest, (5, 7, 6), (0, -.2, .7), 6.7),
 ]:
     for group in [kit, channel, rest]:

@@ -1,5 +1,42 @@
 # Verification record
 
+## The Journey in Your Hands · 2026-09-13
+
+[RFC-008](rfcs/008-the-journey-in-your-hands.md) was written before implementation. This milestone makes the existing journey easier to discover and operate through a journal overview, compact objectives, nonmodal practical controls, reserved camera space, temporary screen-placement proposals, deliberate pointer gestures and shared keyboard focus handling. The existing four Gospel chapters, ten optional stories, save v10 and historical migrations retain their progression rules. Five [portable review saves and playtest steps](verification/rfc008/README.md) expose the new surfaces directly.
+
+### State, controls and recovery
+
+The final `npm run check` passed types, ESLint, **481 unit tests across 22 files**, and the production build. The 51 added unit checks cover suggestion accuracy and immutability, completed/replay/carrying states, shared practical guards, explicit screen directions, stale/remote commands, pointer ownership, viewport projection, camera restoration and disposal. Real Babylon geometry checks verify that proposals leave actual screen meshes and collision unchanged, and every channel section fits the reserved camera view at desktop, portrait and short landscape sizes. Existing solver, asset, contact, save and migration checks remain in place.
+
+The browser acceptance covers journal tracking, objective expansion, work/read/return, keyboard action focus, disclosure and import focus order, saved orientation, temporary proposal discard and commit, interrupted work, replay return, shore supplies, neighborhood bread and deliberate boat boarding/docking. Failed boarding restores the same work controls for a deliberate retry. Walking away while a placement saves cannot update an obsolete panel. Menus invalidate pending focus and feedback callbacks, and previews never enter portable saves.
+
+### Browser runs and corrections
+
+The complete Chromium run at that stage contained **132 cases: 119 passed, eleven were intentionally skipped, and two failed**, in **26.0 minutes**. Both failures were navigation HTTP errors while the initial compatibility build concurrently replaced the shared production output. Compatibility now builds into its own `.compat-dist` locally and uses a separate port. Both interrupted campaign checks passed in the subsequent production selection. The uninterrupted fresh-save journey through all four chapters and 31 scenes passed in the complete run, along with the existing software image contracts and missing-geometry negative controls.
+
+A subsequent mixed selection passed sixteen checks, skipped one and failed three. One import timed out under heavy concurrent local verification; two focus assertions omitted the existing **Start a new journey…** control from the expected tab order. The corrected acceptance suite then passed **all twenty desktop/phone cases in 3.0 minutes**, with one worker and retries disabled. After the final proposal geometry, landscape layout and failed-boarding recovery changes, the six affected browser cases passed again in **1.4 minutes**. All **133 runnable scenarios in the expanded 144-case Chromium suite** have therefore passed across the complete run and overlapping selections; this is not a second complete-suite run.
+
+The separate real-WebGL compatibility smoke passed in **Firefox and WebKit**, **two checks in 1.8 minutes**. Each starts a journey, moves by keyboard, opens menus, performs a focused practical action, exports and reloads its saved result, and confirms one rendering scene with actual draw calls. Earlier compatibility attempts exposed a shared-server shutdown and assumptions about movement timing and click-to-focus; the final checks wait for movement and activate the action by keyboard. The local CI configuration adds both browsers on macOS against the same production artifact as the Chromium matrix. Remote GitHub Actions execution is not claimed.
+
+An earlier unit run under concurrent generated-output linting hit existing timeouts. Generated compatibility output is now excluded from lint, formatting and development reloads. The final isolated unit run passed all 481 checks in **6.61 seconds**, without raising their timeouts. [The delivery record](verification/rfc008/delivery.json) preserves case-level results, artifact hashes and review limits.
+
+### Blender assets and rendering
+
+Blender MCP refined only the two channel pieces, receiving basin and reed screen in an isolated workshop, preserving unrelated scenes. Inset ochre bands clarify the actual open ends and inlet; a woven crest and asymmetric ties identify the screen face toward the seat. The recipes, source workshop and four exports ship together. An independent Blender MCP scene imported the final shipped GLBs for the [kit](verification/rfc008/living-galilee-kit.png), [channel](verification/rfc008/living-galilee-channel.png) and [resting-place](verification/rfc008/living-galilee-rest.png) reviews. Existing ports, contact, footing and collision checks passed. The proposal uses a broken outline and approach shape plus text; it neither accepts picks nor changes physical geometry.
+
+The **85-model kit totals 5,161,668 bytes**, leaving **81,212 bytes** below the unchanged **5 MiB** cap. The other 81 GLBs retain their original bytes. Actor/prop triangle caps, region inventories and four-request loading remain unchanged. [All 85 model hashes](verification/rfc008/living-galilee-assets.json) and the source/review hashes in the delivery record match the shipped files.
+
+| Focused work with active proposal | High / Low draw calls | High / Low median interval | High / Low p95 interval |
+| --------------------------------- | --------------------- | -------------------------- | ----------------------- |
+| Desktop 1440×900                  | 94 / 53               | 16.7 / 16.7 ms             | 17.7 / 17.7 ms          |
+| Phone emulation 390×844           | 102 / 61              | 16.7 / 16.7 ms             | 17.6 / 17.7 ms          |
+
+The limits remain **300 High / 130 Low**, and all four final samples report one settled scene. Each collected 120 intervals on ANGLE Metal / Apple M3. [Desktop](verification/rfc008/focused-rendering-desktop.json) and [phone](verification/rfc008/focused-rendering-phone.json) records contain the measured values. These bounded samples do not establish sustained physical-device performance. The existing large Babylon bundle build advisory remains.
+
+Reviewed browser compositions include the overview on [desktop](verification/rfc008/fresh-journey-overview-desktop.png) and [phone](verification/rfc008/fresh-journey-overview-phone.png), channel work on [desktop](verification/rfc008/channel-work-desktop.png) and [phone](verification/rfc008/channel-work-phone.png), and screen proposals on [desktop](verification/rfc008/screen-preview-1440-desktop.png), [large-text portrait](verification/rfc008/screen-preview-390-phone.png) and [large-text landscape](verification/rfc008/screen-preview-844-phone.png). The compatibility reviews show [Firefox](verification/rfc008/focused-work-firefox.png) and [WebKit](verification/rfc008/focused-work-webkit.png).
+
+Human pacing/editorial review, physical touch and screen-reader usability, and sustained device performance remain unverified. The compatibility smoke is narrower than the full Chromium journey suite. No public deployment was part of this implementation.
+
 ## A Connected Journey · 2026-09-12
 
 [RFC-007](rfcs/007-a-connected-journey.md) was written before gameplay or asset changes. This milestone connects the existing four Gospel chapters, ten optional stories and ten exploration regions with saved final destinations, a returning-player recap, story status views, completed-account replay and the optional **The way home** closing interlude. Four [portable v10 examples](PLAYTEST.md#a-connected-journey) are generated through the actual reducers.

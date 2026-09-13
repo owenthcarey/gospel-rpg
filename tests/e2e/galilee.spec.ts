@@ -224,6 +224,7 @@ test('restrained guidance retains destinations, explicit cancellation and access
   const save = await exported(page);
   expect(save.state.galilee.spring).toEqual(preparedSpring().galilee.spring);
   await visit(page, 'channel-entry');
+  await page.getByRole('button', { name: 'Read the full inspection' }).click();
   await expect(page.locator('.channel-plan svg')).toHaveAttribute('aria-label', /Source west/);
   await expect(page.locator('.channel-directions li')).toHaveCount(4);
   await page.screenshot({ path: info.outputPath('large-plan-portrait.png') });

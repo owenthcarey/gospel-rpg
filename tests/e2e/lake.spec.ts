@@ -116,6 +116,7 @@ test('sail to both shores, compare landmarks in either order, retry, save hints 
   await page.reload();
   await page.getByRole('button', { name: 'Continue your journey' }).click();
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.locator('[data-journal-filter]').selectOption('crossing');
   await act(page, 'sheltered', 'lake-interpret');
   await passage(page, 'dock-sheltered-cove', 'sheltered-cove');

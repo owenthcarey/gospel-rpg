@@ -27,7 +27,9 @@
     "fixtures:lake": "node tools/generate_lake_fixtures.mjs",
     "assets:inspect:lake": "python3 tools/build_assets.py --inspect-lake",
     "fixtures:connection": "node tools/generate_connection_fixtures.mjs",
-    "assets:inspect:connection": "python3 tools/build_assets.py --inspect-connection"
+    "assets:inspect:connection": "python3 tools/build_assets.py --inspect-connection",
+    "test:compat": "playwright test --config=playwright.compat.config.ts",
+    "fixtures:exploration": "node tools/generate_exploration_fixtures.mjs"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

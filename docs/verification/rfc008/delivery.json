@@ -1,0 +1,1724 @@
+{
+  "milestone": "RFC-008: The Journey in Your Hands",
+  "recordedAt": "2026-09-13T18:25:39.231218+00:00",
+  "baselineCommit": "eff2795ff91197dc2162300fdbfd1c8a1c4e1c7b",
+  "scope": "Journal discovery and compact objectives; focused practical work; camera and pointer/focus handling; reversible screen proposals; bounded Blender refinements; compatibility smoke and portable review fixtures.",
+  "persistence": {
+    "saveVersion": 10,
+    "newDurableFields": false,
+    "historicalMigrations": "v1–v9 retained"
+  },
+  "localChecks": {
+    "typecheck": "passed after final gameplay changes",
+    "lint": "passed after final gameplay changes",
+    "unitTests": {
+      "passed": 481,
+      "files": 22,
+      "durationSeconds": 6.61,
+      "command": "npm run check",
+      "timeoutsRaised": false
+    },
+    "productionBuild": "passed; existing large Babylon bundle advisory remains",
+    "checkLog": {
+      "name": "exploration-check.log",
+      "bytes": 1346,
+      "sha256": "fb66699e59bbe0d3042b8b745fb6cb107a70995b4cca64077d9e0e8e7d8a60bd"
+    },
+    "formatCheck": "passed across the repository",
+    "whitespaceCheck": "git diff --check passed",
+    "deliveryAudit": "All 71 recorded file hashes, all 85 model hashes and all local links in eight changed Markdown files verified."
+  },
+  "chromiumCoverage": {
+    "enumerated": 144,
+    "uniquePassed": 133,
+    "intentionalSkips": 11,
+    "unresolvedFailures": 0,
+    "method": "Matched final Playwright enumeration by project/file/title to the most recent case result across the recorded complete run and overlapping selections. This is not one clean final complete-suite run."
+  },
+  "browserRuns": [
+    {
+      "id": "complete-chromium",
+      "command": "playwright test --workers=2",
+      "durationMinutes": 26.0,
+      "counts": {
+        "passed": 119,
+        "failed": 2,
+        "skipped": 11
+      },
+      "note": "Complete suite at that stage. Two HTTP navigation failures while a concurrent compatibility build replaced shared dist; both later passed. Local compatibility now uses isolated output.",
+      "sourceLog": {
+        "name": "exploration-full-browser.log",
+        "bytes": 28668,
+        "sha256": "2856171e6326dfd0c739e489b5d91179c4e92278387c48fd1840e7a4acac8610"
+      },
+      "cases": [
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+          "duration": "47.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bread and water remain portable across interiors, reload, and large reading size",
+          "duration": "54.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the passage route, waits through menus, and resumes from an exported checkpoint",
+          "duration": "21.0s"
+        },
+        {
+          "status": "failed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a failed neighborhood load can be retried and summary preserves the roof account",
+          "duration": "1.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the outer route, waits through menus, and resumes from an exported checkpoint",
+          "duration": "29.7s"
+        },
+        {
+          "status": "failed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+          "duration": "622ms"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum-lanes stays within rendering budgets and keeps one settled scene",
+          "duration": "22.1s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum stays within rendering budgets and keeps one settled scene",
+          "duration": "24.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "gathering-house stays within rendering budgets and keeps one settled scene",
+          "duration": "16.1s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bakehouse stays within rendering budgets and keeps one settled scene",
+          "duration": "15.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "roof-account stays within rendering budgets and keeps one settled scene",
+          "duration": "14.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "the completed shore and passage markers render within the original High and Low budgets",
+          "duration": "42.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "the borrowed handle opens the passage and an indoor table accepts bread first",
+          "duration": "1.0m"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "replay reading retains visible controls and world space at large text sizes",
+          "duration": "12.9s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return",
+          "duration": "33.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "duration": "47.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "failed replay startup and return preserve a portable journey and support retry",
+          "duration": "17.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "direct story shortcuts reopen their reading content after status filtering",
+          "duration": "6.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+          "duration": "1.3m"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a migrated traveler completes preparation, every lake scene and a remembered aftermath",
+          "duration": "41.8s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "scene exit, resume, summary and reduced motion keep the same checkpoint",
+          "duration": "20.8s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a failed lake asset load leaves the shoreline playable and permits retry",
+          "duration": "19.7s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "story tracking persists and phone objectives remain compact and readable",
+          "duration": "3.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "v4 import and manual restoration replace regions without accumulating scenes",
+          "duration": "5.9s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "unavailable browser storage stays explicit and still allows portable export",
+          "duration": "2.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "the shoreline preparation tray works with keyboard and touch without a reading panel",
+          "duration": "15.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "the journey overview prioritizes local play and deliberately follows the chosen story",
+          "duration": "12.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused spring work keeps reading, keyboard focus, framing and interrupted orientation",
+          "duration": "8.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/continuous-journey.spec.ts",
+          "title": "one fresh traveler completes all four chapters without replacing or importing campaign state",
+          "duration": "3.2m"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "8.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "replay overview can return to the actual traveler without changing the journey",
+          "duration": "4.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restore the spring through inspection, failed flow, rotation, hints and a lasting memory",
+          "duration": "27.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "welcome does not request models; failed direct continuation keeps its save and supports retry",
+          "duration": "10.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "prepare either resting place, recover supplies across travel, correct its approach and welcome company",
+          "duration": "42.9s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+          "duration": "8.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed spring restores its visible arrangement within both rendering budgets",
+          "duration": "53.1s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed shelter restores its visible arrangement within both rendering budgets",
+          "duration": "52.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "a traveler completes the chapter, saves, reloads, and exports",
+          "duration": "22.7s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+          "duration": "26.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "ground clicks, keyboard movement, and menu focus work together",
+          "duration": "3.4s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "menus, touch navigation, settings, and invalid imports stay usable",
+          "duration": "8.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake-restore.spec.ts",
+          "title": "direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+          "duration": "10.4s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "Ezra remembers earlier discoveries and the village story survives a reload",
+          "duration": "35.7s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+          "duration": "10.4s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+          "duration": "19.1s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+          "duration": "1.2m"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "10.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+          "duration": "40.4s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "10.9s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "11.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "10.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "the landing bench supports both material routes, visible repair, pause, save recovery and lasting company",
+          "duration": "24.8s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "Ruth’s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+          "duration": "1.1m"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "a carried pouch has a usable return route while journal travel preserves a roof checkpoint",
+          "duration": "48.4s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "the road opens after Chapter II; Tamar’s investigation supports observation, retry, hints, reload and both memories",
+          "duration": "46.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+          "duration": "1.4m"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves",
+          "duration": "59.7s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+          "duration": "21.9s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "failed Nain assets preserve the prior scene and autosave; summary keeps the full account",
+          "duration": "8.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+          "duration": "21.7s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region galilean-road draws essential objects at both qualities and settles to one scene",
+          "duration": "31.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region roadside-farm draws essential objects at both qualities and settles to one scene",
+          "duration": "32.9s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-gate draws essential objects at both qualities and settles to one scene",
+          "duration": "11.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-account draws essential objects at both qualities and settles to one scene",
+          "duration": "11.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "the Nain tableau survives replacement and reload; missing gate geometry fails its image contract",
+          "duration": "23.8s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract",
+          "duration": "33.4s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+          "duration": "40.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bread and water remain portable across interiors, reload, and large reading size",
+          "duration": "47.2s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the outer route, waits through menus, and resumes from an exported checkpoint",
+          "duration": "26.9s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a failed neighborhood load can be retried and summary preserves the roof account"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the passage route, waits through menus, and resumes from an exported checkpoint",
+          "duration": "15.3s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum stays within rendering budgets and keeps one settled scene",
+          "duration": "11.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+          "duration": "11.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum-lanes stays within rendering budgets and keeps one settled scene",
+          "duration": "11.4s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "gathering-house stays within rendering budgets and keeps one settled scene",
+          "duration": "11.1s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bakehouse stays within rendering budgets and keeps one settled scene",
+          "duration": "10.9s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "the borrowed handle opens the passage and an indoor table accepts bread first"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "roof-account stays within rendering budgets and keeps one settled scene",
+          "duration": "11.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "replay reading retains visible controls and world space at large text sizes",
+          "duration": "12.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "the completed shore and passage markers render within the original High and Low budgets",
+          "duration": "18.2s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return",
+          "duration": "18.5s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "failed replay startup and return preserve a portable journey and support retry",
+          "duration": "11.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "duration": "40.3s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "direct story shortcuts reopen their reading content after status filtering",
+          "duration": "3.7s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/continuous-journey.spec.ts",
+          "title": "one fresh traveler completes all four chapters without replacing or importing campaign state"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a migrated traveler completes preparation, every lake scene and a remembered aftermath",
+          "duration": "32.5s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "scene exit, resume, summary and reduced motion keep the same checkpoint",
+          "duration": "17.2s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a failed lake asset load leaves the shoreline playable and permits retry"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "story tracking persists and phone objectives remain compact and readable",
+          "duration": "3.6s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+          "duration": "1.1m"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "unavailable browser storage stays explicit and still allows portable export"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "v4 import and manual restoration replace regions without accumulating scenes",
+          "duration": "5.3s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "the journey overview prioritizes local play and deliberately follows the chosen story",
+          "duration": "7.9s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "the shoreline preparation tray works with keyboard and touch without a reading panel",
+          "duration": "13.3s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused spring work keeps reading, keyboard focus, framing and interrupted orientation",
+          "duration": "4.2s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "3.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "replay overview can return to the actual traveler without changing the journey",
+          "duration": "2.4s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restore the spring through inspection, failed flow, rotation, hints and a lasting memory",
+          "duration": "16.5s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "welcome does not request models; failed direct continuation keeps its save and supports retry",
+          "duration": "6.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+          "duration": "3.9s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed spring restores its visible arrangement within both rendering budgets",
+          "duration": "10.9s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "prepare either resting place, recover supplies across travel, correct its approach and welcome company",
+          "duration": "41.6s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed shelter restores its visible arrangement within both rendering budgets",
+          "duration": "11.0s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "a traveler completes the chapter, saves, reloads, and exports"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "menus, touch navigation, settings, and invalid imports stay usable",
+          "duration": "5.8s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "ground clicks, keyboard movement, and menu focus work together"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+          "duration": "21.9s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake-restore.spec.ts",
+          "title": "direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+          "duration": "7.0s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "Ezra remembers earlier discoveries and the village story survives a reload",
+          "duration": "28.5s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+          "duration": "7.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+          "duration": "17.1s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "10.9s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "10.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "11.0s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+          "duration": "1.2m"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+          "duration": "10.6s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "the landing bench supports both material routes, visible repair, pause, save recovery and lasting company",
+          "duration": "45.2s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "Ruth’s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+          "duration": "1.0m"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "a carried pouch has a usable return route while journal travel preserves a roof checkpoint",
+          "duration": "44.0s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "the road opens after Chapter II; Tamar’s investigation supports observation, retry, hints, reload and both memories",
+          "duration": "35.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves",
+          "duration": "58.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+          "duration": "1.2m"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+          "duration": "21.8s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "failed Nain assets preserve the prior scene and autosave; summary keeps the full account"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region galilean-road draws essential objects at both qualities and settles to one scene",
+          "duration": "11.3s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+          "duration": "21.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region roadside-farm draws essential objects at both qualities and settles to one scene",
+          "duration": "11.5s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-gate draws essential objects at both qualities and settles to one scene",
+          "duration": "11.7s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "the Nain tableau survives replacement and reload; missing gate geometry fails its image contract"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-account draws essential objects at both qualities and settles to one scene",
+          "duration": "12.2s"
+        }
+      ]
+    },
+    {
+      "id": "campaign-recovery-and-expanded-work",
+      "command": "playwright test tests/e2e/exploration.spec.ts tests/e2e/campaign.spec.ts --grep the journey overview|focused spring|screen preview|replay overview|ordinary shore|canvas dragging|modal focus|focused work and|a failed neighborhood|lake-gennesaret stays --workers=2",
+      "durationMinutes": 7.3,
+      "counts": {
+        "passed": 16,
+        "failed": 3,
+        "skipped": 1
+      },
+      "note": "Both interrupted campaign cases passed. One import timeout under concurrent verification and two incorrect focus-order assertions were resolved before the clean acceptance run.",
+      "sourceLog": {
+        "name": "exploration-final-browser.log",
+        "bytes": 13287,
+        "sha256": "d200332de1b846220f68b37b25c3d15ea1fbdbaf76428d4beed26f3e92910bb4"
+      },
+      "cases": [
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+          "duration": "23.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a failed neighborhood load can be retried and summary preserves the roof account",
+          "duration": "38.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "the journey overview prioritizes local play and deliberately follows the chosen story",
+          "duration": "17.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused spring work keeps reading, keyboard focus, framing and interrupted orientation",
+          "duration": "14.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "23.7s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "replay overview can return to the actual traveler without changing the journey",
+          "duration": "15.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "ordinary shore work shares the same carried-object rules as reading and the nearby tray",
+          "duration": "1.5m"
+        },
+        {
+          "status": "failed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "canvas dragging leaves work selected while a deliberate ground tap leaves it",
+          "duration": "1.5m"
+        },
+        {
+          "status": "failed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "modal focus includes disclosures and the import control, while work remains nonmodal",
+          "duration": "32.4s"
+        },
+        {
+          "status": "skipped",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a failed neighborhood load can be retried and summary preserves the roof account"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused work and its proposal stay within the original graphics budgets",
+          "duration": "25.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+          "duration": "24.6s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused spring work keeps reading, keyboard focus, framing and interrupted orientation",
+          "duration": "12.6s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "22.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "the journey overview prioritizes local play and deliberately follows the chosen story",
+          "duration": "24.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "replay overview can return to the actual traveler without changing the journey",
+          "duration": "6.3s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "canvas dragging leaves work selected while a deliberate ground tap leaves it",
+          "duration": "18.4s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "ordinary shore work shares the same carried-object rules as reading and the nearby tray",
+          "duration": "18.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused work and its proposal stay within the original graphics budgets",
+          "duration": "39.4s"
+        },
+        {
+          "status": "failed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "modal focus includes disclosures and the import control, while work remains nonmodal",
+          "duration": "43.1s"
+        }
+      ]
+    },
+    {
+      "id": "complete-new-work-acceptance",
+      "command": "playwright test tests/e2e/exploration.spec.ts --workers=1",
+      "durationMinutes": 3.0,
+      "counts": {
+        "passed": 20
+      },
+      "note": "All ten new scenarios on desktop and phone emulation; one worker, retries disabled.",
+      "sourceLog": {
+        "name": "exploration-acceptance-browser.log",
+        "bytes": 4389,
+        "sha256": "3523bb61d0f2cb21ab5d62bf4a740703bb15c0bc5ee4f8c3d8cdc841bd36f50b"
+      },
+      "cases": [
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "the journey overview prioritizes local play and deliberately follows the chosen story",
+          "duration": "30.8s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused spring work keeps reading, keyboard focus, framing and interrupted orientation",
+          "duration": "10.3s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "5.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "replay overview can return to the actual traveler without changing the journey",
+          "duration": "4.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "ordinary shore work shares the same carried-object rules as reading and the nearby tray",
+          "duration": "9.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "canvas dragging leaves work selected while a deliberate ground tap leaves it",
+          "duration": "6.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "modal focus includes disclosures and the import control, while work remains nonmodal",
+          "duration": "4.6s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused work and its proposal stay within the original graphics budgets",
+          "duration": "13.0s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "neighborhood work carries bread through the same focused action contract",
+          "duration": "3.2s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused landing controls still require deliberate boarding and docking",
+          "duration": "12.4s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "the journey overview prioritizes local play and deliberately follows the chosen story",
+          "duration": "11.5s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused spring work keeps reading, keyboard focus, framing and interrupted orientation",
+          "duration": "5.3s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "4.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "replay overview can return to the actual traveler without changing the journey",
+          "duration": "3.2s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "ordinary shore work shares the same carried-object rules as reading and the nearby tray",
+          "duration": "6.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "canvas dragging leaves work selected while a deliberate ground tap leaves it",
+          "duration": "3.2s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "modal focus includes disclosures and the import control, while work remains nonmodal",
+          "duration": "3.4s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused work and its proposal stay within the original graphics budgets",
+          "duration": "11.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "neighborhood work carries bread through the same focused action contract",
+          "duration": "2.1s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused landing controls still require deliberate boarding and docking",
+          "duration": "11.0s"
+        }
+      ]
+    },
+    {
+      "id": "final-visual-and-boarding-recovery",
+      "command": "playwright test tests/e2e/exploration.spec.ts --grep screen preview|focused work and|focused landing --workers=1",
+      "durationMinutes": 1.4,
+      "counts": {
+        "passed": 6
+      },
+      "note": "Affected scenarios rerun after final proposal geometry, landscape layout and failed-boarding recovery changes; one worker, retries disabled.",
+      "sourceLog": {
+        "name": "exploration-final-visual.log",
+        "bytes": 2888,
+        "sha256": "c29e8642cff5de766f7564a7c0395de31e16bdd95e992b881a991bc5f027ea1b"
+      },
+      "cases": [
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "4.8s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused work and its proposal stay within the original graphics budgets",
+          "duration": "11.5s"
+        },
+        {
+          "status": "passed",
+          "project": "chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused landing controls still require deliberate boarding and docking",
+          "duration": "15.5s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "screen preview is temporary, readable and usable at large portrait and landscape sizes",
+          "duration": "3.8s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused work and its proposal stay within the original graphics budgets",
+          "duration": "11.7s"
+        },
+        {
+          "status": "passed",
+          "project": "mobile-chromium",
+          "file": "tests/e2e/exploration.spec.ts",
+          "title": "focused landing controls still require deliberate boarding and docking",
+          "duration": "20.0s"
+        }
+      ]
+    },
+    {
+      "id": "firefox-webkit-smoke",
+      "command": "playwright test --config=playwright.compat.config.ts",
+      "durationMinutes": 1.8,
+      "counts": {
+        "passed": 2
+      },
+      "note": "Real WebGL startup, keyboard movement, menus, practical action, export, reload and one rendering scene; narrower than the complete Chromium suite.",
+      "sourceLog": {
+        "name": "exploration-compat3.log",
+        "bytes": 2213,
+        "sha256": "1e72ecd7ed735ef10ff328579f4ea8c02ab6c8e17a4a6c2c891404d3045b854c"
+      },
+      "cases": [
+        {
+          "status": "passed",
+          "project": "firefox",
+          "file": "tests/compat/exploration.spec.ts",
+          "title": "WebGL startup, keyboard exploration, journal and a saved practical action",
+          "duration": "57.1s"
+        },
+        {
+          "status": "passed",
+          "project": "webkit",
+          "file": "tests/compat/exploration.spec.ts",
+          "title": "WebGL startup, keyboard exploration, journal and a saved practical action",
+          "duration": "21.2s"
+        }
+      ]
+    }
+  ],
+  "assets": {
+    "blender": "5.2.1 LTS via connected Blender MCP",
+    "review": "Isolated source workshop and independent import of final shipped GLBs; unrelated scenes preserved. Two long MCP responses timed out, but final output, scene contents and all 85 hashes were independently verified.",
+    "models": 85,
+    "actors": 15,
+    "props": 70,
+    "bytes": 5161668,
+    "capBytes": 5242880,
+    "headroomBytes": 81212,
+    "changedModels": [
+      "channel_bend.glb",
+      "channel_straight.glb",
+      "reed_screen.glb",
+      "water_basin.glb"
+    ],
+    "unchangedModels": 81,
+    "allModelHashes": "living-galilee-assets.json"
+  },
+  "rendering": {
+    "limits": {
+      "highDrawCalls": 300,
+      "lowDrawCalls": 130,
+      "settledScenes": 1
+    },
+    "desktop": "focused-rendering-desktop.json",
+    "phoneEmulation": "focused-rendering-phone.json",
+    "physicalDevice": false
+  },
+  "productionBundles": {
+    "engine-BnsO7Knh.js": {
+      "bytes": 2988310,
+      "gzipBytes": 683820
+    },
+    "index-7L90krbd.css": {
+      "bytes": 59952,
+      "gzipBytes": 13589
+    },
+    "index-Pdbf-L04.js": {
+      "bytes": 440386,
+      "gzipBytes": 131666
+    }
+  },
+  "reviewFixtures": [
+    "saves/breeze-blocked-approach.json",
+    "saves/channel-ready-to-turn.json",
+    "saves/fresh-traveler.json",
+    "saves/screen-on-the-road.json",
+    "saves/shade-blocked-approach.json"
+  ],
+  "limitations": [
+    "No remote GitHub Actions execution recorded.",
+    "Firefox/WebKit coverage is a smoke test, not the full Chromium journey matrix.",
+    "Physical touch and screen-reader usability need human review.",
+    "Human pacing/editorial review and sustained physical-device performance remain unverified.",
+    "No commit, push or deployment performed."
+  ],
+  "hashes": {
+    "algorithm": "SHA-256",
+    "scope": "All delivered changed and new repository files except this self-referential manifest. All 85 model hashes are also independently recorded in living-galilee-assets.json.",
+    "files": {
+      ".github/workflows/ci.yml": {
+        "bytes": 4699,
+        "sha256": "304f62ac49248182babf369eea940732d691cde2e67b0eb314eeadcffbf7d1bf"
+      },
+      ".gitignore": {
+        "bytes": 181,
+        "sha256": "ae1d302bfdbcd23ec92f4694646a65861f829c961a00b26f0d5dbb4e69773e33"
+      },
+      ".prettierignore": {
+        "bytes": 133,
+        "sha256": "9fb2b3ba48fb6caa8d5810e8b8ba21e0bfaff31020f690db5fb71f277905be83"
+      },
+      "README.md": {
+        "bytes": 15482,
+        "sha256": "30f768ce006fcf65b1462900443412aa70faa495a62dabab4b7604d87a6718af"
+      },
+      "assets/source/galilee-kit.blend": {
+        "bytes": 1386201,
+        "sha256": "87be7c8566b3246a040147e6fc93d896a60e189fe9b59eee65d774c49afc5f3e"
+      },
+      "docs/ARCHITECTURE.md": {
+        "bytes": 30707,
+        "sha256": "f3bcb98c60eace74d6ecc5a8c039c13cd64b2217aa5606c7feba9eaeb5c5430d"
+      },
+      "docs/ASSETS.md": {
+        "bytes": 20397,
+        "sha256": "615f4a04409a68a6ffe3bb67973debd05409fa672968d9c662e88c6ede5a4c19"
+      },
+      "docs/PLAYTEST.md": {
+        "bytes": 24592,
+        "sha256": "071be17bb282ed9f37b5d35f060ad8a3425ceffb3a36cb73c168bfb0b3421346"
+      },
+      "docs/ROADMAP.md": {
+        "bytes": 9370,
+        "sha256": "44784f6d7a0682c2cd734177c98d2a74cc96a2cb137d1ec4cc9353e7b1c2066a"
+      },
+      "docs/VERIFICATION.md": {
+        "bytes": 67748,
+        "sha256": "90b73e09bab7119888ec7ec29339290278c735a118c537939bf94ce2c8cfbace"
+      },
+      "docs/rfcs/008-the-journey-in-your-hands.md": {
+        "bytes": 13937,
+        "sha256": "4c37a8e61381c8d81f7a9ed7cb8c4a0118e94d4ea75ca3b3232712822491f80e"
+      },
+      "docs/verification/rfc008/README.md": {
+        "bytes": 9261,
+        "sha256": "36b4f43974c62194ce920b70e798f9fc93da9bc216cb195741bd58e2d9488b8b"
+      },
+      "docs/verification/rfc008/channel-work-desktop.png": {
+        "bytes": 191578,
+        "sha256": "7e3c94ce2092c36061159676c855344b85807bca2888f2602414f1cc4aa4c1b6"
+      },
+      "docs/verification/rfc008/channel-work-phone.png": {
+        "bytes": 268942,
+        "sha256": "2414c72856c1b862e4da1151f6b924c634da5af530c0dbc62c031eb35c8cf46a"
+      },
+      "docs/verification/rfc008/focused-rendering-desktop.json": {
+        "bytes": 936,
+        "sha256": "72f3727ad98fe025520da9bcc0cd54b0c1574885e97a1cb76b4e7c0e3169ca5e"
+      },
+      "docs/verification/rfc008/focused-rendering-phone.json": {
+        "bytes": 935,
+        "sha256": "494d88232a5483b29e5f4ed61b9c28a52b490014bfa180b2f5a378f3e7196fb3"
+      },
+      "docs/verification/rfc008/focused-work-firefox.png": {
+        "bytes": 213806,
+        "sha256": "73df7afcccd6770d4a1b0e80c4f58247bfb78fe513d6f2ca18d4c50753f52bde"
+      },
+      "docs/verification/rfc008/focused-work-webkit.png": {
+        "bytes": 541571,
+        "sha256": "7b0ee3fb96edc7b0afa96b4cf63931bdcf681e3f9315fc4c596759320be214ba"
+      },
+      "docs/verification/rfc008/fresh-journey-overview-desktop.png": {
+        "bytes": 226789,
+        "sha256": "f43c9f4e93c69d0f0e71e0cddc0e5c868c7afc69ed1153a2f908cb20c2e0cd11"
+      },
+      "docs/verification/rfc008/fresh-journey-overview-phone.png": {
+        "bytes": 218445,
+        "sha256": "510536c08a56e7086b1c664306bbc6d526f636de8be832e07e214ab1361b32ae"
+      },
+      "docs/verification/rfc008/living-galilee-assets.json": {
+        "bytes": 11665,
+        "sha256": "4201558ab9c42d92486a5cc491fb4083088a8ac651c6b487dcb2666a9edac621"
+      },
+      "docs/verification/rfc008/living-galilee-channel.png": {
+        "bytes": 1576945,
+        "sha256": "5a5342fc2caa319a846f4bd358ba8e11c2f565f467a730b5398a4a97a16bd068"
+      },
+      "docs/verification/rfc008/living-galilee-kit.png": {
+        "bytes": 1585898,
+        "sha256": "4b3ff1908411afd7187612fb24e2dae067a3e2da8d8ad512ba951f5bd4f39030"
+      },
+      "docs/verification/rfc008/living-galilee-rest.png": {
+        "bytes": 1647242,
+        "sha256": "f02906c3276f070e97e21d8a80ba0b6eacfd724487f02d6542d5d093866f17bb"
+      },
+      "docs/verification/rfc008/saves/breeze-blocked-approach.json": {
+        "bytes": 4361,
+        "sha256": "7d4984782b7a6450bb2b228c6f82599efe31f49dfec63a147cf20b8c86fae845"
+      },
+      "docs/verification/rfc008/saves/channel-ready-to-turn.json": {
+        "bytes": 4357,
+        "sha256": "deb5b41d199eace61baaf043610307c17f0cb74b2fe39c6f2f87760626e75f0b"
+      },
+      "docs/verification/rfc008/saves/fresh-traveler.json": {
+        "bytes": 2807,
+        "sha256": "e73dc414387b3eeed62940c3927eead2e033dde6139a397c65ba2434376e045b"
+      },
+      "docs/verification/rfc008/saves/screen-on-the-road.json": {
+        "bytes": 4348,
+        "sha256": "6dc2beab31bebd203d26dcb16571ec89f3e790622e8e53da7622c914693b4c46"
+      },
+      "docs/verification/rfc008/saves/shade-blocked-approach.json": {
+        "bytes": 4362,
+        "sha256": "8999a87eeb91cf991b1d157b49e00bf61a33cf06f168eda8c35686aafe2bbf35"
+      },
+      "docs/verification/rfc008/screen-preview-1440-desktop.png": {
+        "bytes": 236593,
+        "sha256": "15d60b609f1e6fd22b35dac3cca0d16265ad356137e9bf44b9dc8d9e5d4bbb53"
+      },
+      "docs/verification/rfc008/screen-preview-390-phone.png": {
+        "bytes": 285742,
+        "sha256": "d4aefa313830dc51eef9f52ef15284c498eaff438f120b1e7c10e028deb35343"
+      },
+      "docs/verification/rfc008/screen-preview-844-phone.png": {
+        "bytes": 263661,
+        "sha256": "c9bc419c2d49f7e86613b883f316a0bd9ff1f2d6ea67763c876d7edc34b0f5c2"
+      },
+      "eslint.config.js": {
+        "bytes": 457,
+        "sha256": "2660e3a2245e1544141f03e7f8058fdd2a8d28a2f0e1df69dc21813c3fe0cbf9"
+      },
+      "package.json": {
+        "bytes": 1934,
+        "sha256": "3922858707c43a7e2edc5d848a02d961b872859910812602050c93379a14392c"
+      },
+      "playwright.compat.config.ts": {
+        "bytes": 1162,
+        "sha256": "dc4377a76bbc475dc7c408e5d27e9b0071b81f369206f5b1a2a0786a329ecb7d"
+      },
+      "public/assets/models/channel_bend.glb": {
+        "bytes": 11460,
+        "sha256": "da0855a233c37d9387b3709b46e3dc9cea52cb3b80a1f65bad3587dd256faf25"
+      },
+      "public/assets/models/channel_straight.glb": {
+        "bytes": 6952,
+        "sha256": "ba15b7b023424c0e2759f93f869007ae7024cddb6153f20268d83dc958fa31ca"
+      },
+      "public/assets/models/reed_screen.glb": {
+        "bytes": 32408,
+        "sha256": "e7da420fa4e5fa8fe80de8da30aa753781194c9a8cfe2a0f0fd5627c924acffb"
+      },
+      "public/assets/models/water_basin.glb": {
+        "bytes": 10344,
+        "sha256": "160deb08591ac03b8807357ef3be22ee995b44b58b3c23afc5e1d63a5c500e78"
+      },
+      "src/content/exploration/suggestions.ts": {
+        "bytes": 3142,
+        "sha256": "09c933b1913d4281eed09b1c10ebc7f15725a32e17c5730c69df00046a6d426e"
+      },
+      "src/content/exploration/work.ts": {
+        "bytes": 6888,
+        "sha256": "3f2285ba5ca301a4c5e11564645d52a9c2a070d21d2e4bd018f26fc58acf318c"
+      },
+      "src/game/galilee/progress.ts": {
+        "bytes": 2689,
+        "sha256": "6d25b2b24edb0de355ebd49969c8104c4529b31545b1b00d667f0f362f2dedc7"
+      },
+      "src/game/galilee/types.ts": {
+        "bytes": 2097,
+        "sha256": "3cd3af10edf6626844af172659ef1496615b981d0b091cdafb8af55e07cc8fa9"
+      },
+      "src/game/gestures.ts": {
+        "bytes": 1198,
+        "sha256": "54cff86e331d939ffbbbf87090427ecddb3af3fb844cd05c5f9a3de07fd71ba5"
+      },
+      "src/main.ts": {
+        "bytes": 41344,
+        "sha256": "e377e84054dbe11ece5c73a9724a418fa751230bf017cee2981c0025ecdf6085"
+      },
+      "src/scene/input.ts": {
+        "bytes": 3950,
+        "sha256": "b8adf25b6e17d7c505255ff627a33adbb74a20422346d94fc1ebc8b1350dc7c6"
+      },
+      "src/scene/regions/types.ts": {
+        "bytes": 1395,
+        "sha256": "bc8cc1598bbb41027f3f21e7338d581db5608b332af8f2fce109f6c6be1ad133"
+      },
+      "src/scene/runtime.ts": {
+        "bytes": 8899,
+        "sha256": "630ec735cc01dc1d85ef667f06fd1019548ee815d38b5cc845d4ea0e9afb856f"
+      },
+      "src/scene/work.ts": {
+        "bytes": 8826,
+        "sha256": "b340baae61c1acbeb028db8b69b1bcf4318dcbc2b180fdf2a4aa2b342e02fc08"
+      },
+      "src/scene/world.ts": {
+        "bytes": 46421,
+        "sha256": "80941ca047ba58e2eb50a4e2722812fed74f896aa710a983459f54017c4e3ebc"
+      },
+      "src/ui/exploration.css": {
+        "bytes": 8444,
+        "sha256": "f4b49243bc143c76eb4f93709ea27553b29934a84da58e2d64ca09d92cbf28ff"
+      },
+      "src/ui/focus.ts": {
+        "bytes": 1425,
+        "sha256": "6f01440563b470d15c825b8fa8f6a476b47c807a4bf0a3b998e038bcb8c6fbed"
+      },
+      "src/ui/interface.ts": {
+        "bytes": 46783,
+        "sha256": "d71945d33a3155f103d669b1c9391ff5bd34c598249733d1adb4425a57e8c09d"
+      },
+      "src/ui/views/exploration.ts": {
+        "bytes": 7352,
+        "sha256": "4b6f036d5bd899e00a0d447e6c8852f83947089e1fbca3e7ee6140a255f45a32"
+      },
+      "src/ui/views/journal.ts": {
+        "bytes": 6658,
+        "sha256": "04871687fe8384d7b564cb78227c5502f8ed80c0473ed0d12f248600182faa89"
+      },
+      "tests/compat/exploration.spec.ts": {
+        "bytes": 3210,
+        "sha256": "90f8323389448430a9d58aef6931d2d55d26f81180ec6ad0080ead83d85c1803"
+      },
+      "tests/e2e/continuous-journey.spec.ts": {
+        "bytes": 5780,
+        "sha256": "06d64f8abe6c436ff908914d640aca2b81e41f5a5c0f7866e309b771c659b3c9"
+      },
+      "tests/e2e/episode.spec.ts": {
+        "bytes": 15657,
+        "sha256": "8123acd14ac144661c07e7e70d484f56cad9571f7120ef72f6e388051f1a921f"
+      },
+      "tests/e2e/exploration.spec.ts": {
+        "bytes": 14452,
+        "sha256": "c02b85de5b2b24bd385fe57574d7780a1f0f2e05ba0d12ba8ae0b9de3689c633"
+      },
+      "tests/e2e/galilee.spec.ts": {
+        "bytes": 15968,
+        "sha256": "aefbad253fc42754168d26597ff78202753da6b41d2ea8d5086b959e9445bb5b"
+      },
+      "tests/e2e/journey.spec.ts": {
+        "bytes": 10416,
+        "sha256": "44b73fbfcb6ac189f39bb22d8e0f2f3a3ff59de613c2da53e450f12b78bed8c4"
+      },
+      "tests/e2e/lake.spec.ts": {
+        "bytes": 16326,
+        "sha256": "fc93f2a64814dcafa705c1adcabbf18344d73f6eddd2ade1134207fec06ff18e"
+      },
+      "tests/e2e/life.spec.ts": {
+        "bytes": 13991,
+        "sha256": "2818625cf6972bda0123526f2bb6b8d5357ffbe7a1092b3d37b74de7d1dbe1b8"
+      },
+      "tests/e2e/road.spec.ts": {
+        "bytes": 19391,
+        "sha256": "22d414d733c6d5f163f74f3e242076a81ce5ae5df3586fa7d4bd319eec77e260"
+      },
+      "tests/helpers/connection-browser.ts": {
+        "bytes": 4728,
+        "sha256": "f871e12aed6e800eb62b1e8742f4842ccb21f571c93dc1fb528546964e2ccbc5"
+      },
+      "tests/unit/exploration.test.ts": {
+        "bytes": 7572,
+        "sha256": "a131f946dba72a771d18b82d31e769dd8c87bed61d34e85941d187fa7c0ebe97"
+      },
+      "tests/unit/work-staging.test.ts": {
+        "bytes": 6183,
+        "sha256": "c398d9c48010fb78744f6721fb74aaf270eda6d86fc151c7fac5f3572e797490"
+      },
+      "tools/blender/galilee.py": {
+        "bytes": 3757,
+        "sha256": "add628386640bcf1e635188060e6637962f773a01b53dfbd4c5e88453832c7be"
+      },
+      "tools/blender/inspect_galilee.py": {
+        "bytes": 6053,
+        "sha256": "63b865f66cabe43f1ec859a16bb814b2d919156a501e2ea613a58c717f4279ec"
+      },
+      "tools/generate_exploration_fixtures.mjs": {
+        "bytes": 1629,
+        "sha256": "534e763facf764cb023cd984e363f1a2812b00b79e9e56cc268d83f0d4cb1f76"
+      },
+      "vite.config.ts": {
+        "bytes": 583,
+        "sha256": "3f883fa1b40550701c87372eff9218a5249c9bac9f6aa7cfcc5b5204dc8d6b7f"
+      }
+    }
+  },
+  "productionBundleCompression": {
+    "format": "gzip",
+    "level": 9,
+    "mtime": 0,
+    "note": "Byte counts use Python gzip at level 9; Vite console estimates use its own compression defaults."
+  }
+}

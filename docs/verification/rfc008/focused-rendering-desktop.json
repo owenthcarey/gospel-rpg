@@ -1,0 +1,40 @@
+{
+  "high": {
+    "region": "roadside-farm",
+    "meshes": "192",
+    "materials": "52",
+    "textures": "11",
+    "activeMeshes": "63",
+    "fps": "60",
+    "drawCalls": "94",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2016.7",
+      "median": "16.7",
+      "p95": "17.7",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "low": {
+    "region": "roadside-farm",
+    "meshes": "192",
+    "materials": "52",
+    "textures": "11",
+    "activeMeshes": "63",
+    "fps": "60",
+    "drawCalls": "53",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2002.7",
+      "median": "16.7",
+      "p95": "17.7",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  }
+}

@@ -81,6 +81,7 @@ test('Ruth’s investigation survives clue order, pouch recovery, travel, journa
     await close(page);
   }
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Investigation evidence' })).toContainText(
     'two short stitches',
   );
@@ -244,6 +245,7 @@ test('a carried pouch has a usable return route while journal travel preserves a
   await act(page, 'roof-enter');
   const checkpoint = await page.locator('#game-canvas').getAttribute('data-checkpoint');
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.getByRole('button', { name: 'People', exact: true }).click();
   await page.getByRole('button', { name: 'Find Ruth', exact: true }).click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', 'gathering-house');
@@ -258,6 +260,7 @@ test('a carried pouch has a usable return route while journal travel preserves a
   await close(page);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.locator('[data-action="track-story"][data-value="rest"]').click();
   await close(page);

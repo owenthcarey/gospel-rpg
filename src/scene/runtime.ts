@@ -173,6 +173,18 @@ export class GameRuntime {
     this.view?.applySettings(settings);
     this.engine.resize();
   }
+  setWorkFocus(
+    target?: import('../content/exploration/work').WorkTarget,
+    preview?: import('../content/exploration/work').ScreenPreview,
+  ): void {
+    if (isExplorationView(this.view)) this.view.setWorkFocus(target, preview);
+  }
+  setWorkBounds(rect?: import('./work').WorkRect): void {
+    if (isExplorationView(this.view)) this.view.setWorkBounds(rect);
+  }
+  frameWork(): void {
+    if (isExplorationView(this.view)) this.view.frameWork();
+  }
   cancelNavigation(): void {
     if (isExplorationView(this.view)) this.view.stop();
   }

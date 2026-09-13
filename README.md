@@ -14,6 +14,8 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **A Connected Journey** joins those places together. Save a destination across several regions, return with an accurate journey recap, and revisit any completed Gospel scene without changing your traveler’s progress. After Chapter IV, **The way home** offers three original return encounters with Leah, Hannah and Miriam, followed by a closing reflection. Earlier unfinished stories remain available.
 
+**The Journey in Your Hands** makes those stories easier to find and their practical work easier to see. The journal opens with your selected story and nearby invitations; the objective card expands when you want the steps. Restore the spring and arrange a resting place beside the visible world, with optional full inspections and a temporary screen preview. Reading, walking away and returning preserve the work you have done.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -84,7 +86,7 @@ After your Chapter IV reflection, open **Journal → The way home**. Visit **Roo
 
 Use **Journal → Replay Gospel scenes** to revisit a completed account. Replay has its own saved reading place; it leaves the ordinary journey unchanged. **Journey recap** gathers your last memory, unfinished stories, carried object, waiting companions and saved route. Continue shows a compact recap before loading. A restored route waits for **Resume route**; it never moves the traveler on its own.
 
-This delivers four bounded Gospel chapters, ten optional stories and an optional closing interlude. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/007-a-connected-journey.md), and [verification record](docs/VERIFICATION.md).
+This delivers four bounded Gospel chapters, ten optional stories and an optional closing interlude. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/008-the-journey-in-your-hands.md), and [verification record](docs/VERIFICATION.md).
 
 For a guided review and portable example saves, see the [playtest guide](docs/PLAYTEST.md).
 
@@ -122,3 +124,9 @@ Use `npm run format`, `npm run test:watch`, and `npm run assets:build` as needed
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Credits](CREDITS.md) · [Licensing](LICENSE.md)
 
 Every push or merged pull request to `main` automatically runs **Publish to GitHub Pages**. Quality checks must pass before the tested build is deployed to [the live game](https://owenthcarey.github.io/gospel-rpg/). The workflow can also be run manually on `main`. GitHub Actions must be enabled as the repository's Pages source; see the [release guide](docs/DEPLOYMENT.md).
+
+### Focused interaction review
+
+`npm run fixtures:exploration` creates portable review saves in `docs/verification/rfc008/saves`. Import one from Settings, then choose its work target on the map. [The review guide](docs/verification/rfc008/README.md) covers both channel routes, both resting sites, ordinary practical actions, keyboard controls and temporary previews.
+
+`npm run test:compat` runs the smaller Firefox/WebKit WebGL smoke suite, using an isolated build and server. Install its browsers with `npx playwright install firefox webkit` first. The complete desktop/phone journey matrix remains `npm run test:e2e`.
