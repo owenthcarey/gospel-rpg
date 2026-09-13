@@ -90,3 +90,13 @@ The Gospel viewpoint does not simulate a player-controlled miracle. The traveler
 Joel recalls an inward-facing berth protected by a headland. The reeds show an exposed shore, while the split rock gives a turning landmark. Study either first, compare both with Joel's recollection, choose a route interpretation, confirm the sheltered landing and return. Choosing the exposed landing or split rock explains why it does not fit; no object is consumed. Three optional hints culminate in a precise route, and the accessible map can guide the same physical approach.
 
 The two final memories emphasize looking closely or receiving a welcome. These are original traveler reflections, distinct from Chapter IV's scripture. Acknowledgement and resting company derive from saved conclusions. Neither this investigation nor its interpretation gates the Gospel account. Human review of clarity, pacing, history and pastoral/editorial framing remains valuable; automated verse coverage does not establish those qualities.
+
+## The way home: original return encounters
+
+After the Chapter IV reflection, the traveler may revisit Leah at the farm, Hannah at the bakehouse and Miriam at the original shore. These three encounters can occur in any order. Each offers two equally complete memories; after all three, Miriam offers **Carry the welcome onward** or **Remain awhile**. Both close this part of the journey and leave exploration and unfinished work available.
+
+Leah recognizes the chosen shade/breeze site and restored spring only when earned. Hannah recognizes the table location, returned pouch and completed companion walks only when present. Miriam recognizes the Chapter I reflection, Ezra memory and actual bench repair method. Migrated unspecified choices remain unspecified. The base dialogue welcomes a traveler who skipped every optional adventure, without implying neglected duties or retroactively completing work.
+
+All dialogue, narration and eight possible new memory entries in `content/connection/home.ts` are original. Leah, Hannah and Miriam are fictional neighbors. These visits add no Gospel event, Jesus quotation, spiritual score or preferred ending. Replaying a Gospel account creates no new memory or reflection and does not change the traveler’s remembered interpretation. The original full transcripts and source labels remain available.
+
+Editorial review should check the naturally ordered return conversations, repeated-visit acknowledgements, both closing reflections, conditional claims and the clarity of the boundary between an original traveler interlude and scripture. Automated branch checks establish state consistency; human pacing, theological and historical review remain separate work.

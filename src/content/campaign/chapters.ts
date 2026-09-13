@@ -1,3 +1,4 @@
+import { homeAvailable } from '../connection/home';
 import type { GameState } from '../../game/types';
 import type { RegionId, StoryTrack } from '../../game/campaign/types';
 import { ROOF_SOURCE } from './scripture';
@@ -17,6 +18,17 @@ export interface ChapterDefinition {
 const afterLake = (s: GameState) => s.episode.stage === 'complete';
 const afterRoof = (s: GameState) => s.campaign.roof.stage === 'complete';
 export const chapters: Record<StoryTrack, ChapterDefinition> = {
+  home: {
+    id: 'home',
+    title: 'The way home',
+    label: 'Optional · Return to familiar faces',
+    region: 'capernaum',
+    optional: true,
+    source: null,
+    available: homeAvailable,
+    complete: (s) => !!s.connection.home.reflection,
+    started: (s) => Object.keys(s.connection.home.visits).length > 0,
+  },
   storm: {
     id: 'storm',
     title: 'Peace, be still',

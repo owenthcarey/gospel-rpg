@@ -149,3 +149,24 @@ Use **Settings → Import** with a v9 fixture from `tests/fixtures/saves` to ent
 7. On a narrow viewport, use large text, reduced motion and restrained guidance. Complete the same approaches with destination lists. In landscape, check Continue, pause, transcript, summary and return controls. Record readability, focus, accidental touches and whether the boat/landmarks remain understandable without distant labels.
 
 The geography is compressed and imagined. Record human completion times, hesitation at boarding/docking, whether both clues are understandable without hints, and whether the distinction between ordinary sailing and Gospel presentation is clear. Physical device, screen-reader, editorial and historical review remain separate from automated browser emulation.
+
+## A Connected Journey
+
+Use `npm run fixtures:connection` to regenerate the four v10 examples through the actual reducers:
+
+| Save                          | Starting point and useful check                                                                                                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v10-saved-route.json`        | At the cove after Chapter IV, with the farm selected across lake and land. Resume, board, dock, cross each passage and reach Leah.          |
+| `v10-interrupted-replay.json` | The same journey paused on Nain’s command scene in replay. Check the separate cursor, transcript, scene selection, reload and exact return. |
+| `v10-return-visits.json`      | Leah’s return visit remembered. Visit Hannah and Miriam in either order; the remaining ending is local to Miriam.                           |
+| `v10-way-home-complete.json`  | All three visits and Carry the welcome onward remembered, at Miriam’s shore. Check company, recap, journal status and unfinished stories.   |
+
+Select a final destination from the journey map or journal. The travel strip should name both the destination and current leg. Pause in menus, replace the route, stop with the movement keys, reload and import. Explicit cancellation clears the destination; manual movement leaves Resume route available. A restored route must wait for input. Cross gateways deliberately. Boarding and docking never occur automatically. A companion left elsewhere retains their actual place, and a carried supply retains its return point. Repeat with a blocked model request and retry: state must remain at the previous scene until loading succeeds.
+
+Continue’s compact recap names the place, tracked chapter, last memory and replay if active. Expand Where you left off for held items, waiting companions and unfinished work. In the journal, Journey recap adds usable story/return/route buttons. Check All statuses, Active, Available and Completed, including empty filtered views. Keyboard focus should remain on the selected status tab. After selecting Completed, close the journal and use Review the clues or Choose a story: the requested content should reopen under All statuses. Cancelling a route inside the recap should remove its route card; doing so during replay first returns to exploration. Use large text in phone portrait and landscape; the page must not overflow horizontally.
+
+Visit the three new return destinations in every order across separate journeys. Compare two players: one who completed no optional work, and one with the spring, either farm site, table, pouch, both companion walks and either bench repair. Only earned details should appear. Both choices at each visit and both final reflections must feel complete. Reload after one or two visits. Revisit an encounter after choosing and after completing the interlude. The additional shore company appears only after the closing reflection, with a smaller count at Low quality. Earlier bench/table company still depends on those tasks.
+
+Open Replay Gospel scenes from the journal. Uncompleted accounts are unavailable. Revisit each completed account, select any scene, move backward/forward, read its transcript, pause, reload and return. The last replay scene returns directly to exploration. Earlier reflections, journals, held supplies, boat heading/berth, waiting companions and the traveler’s exact saved position must remain unchanged. A first-time Gospel scene must be left before opening replay. Test failed startup and failed return with retry.
+
+Inspect passage-marker footing/collision, pier edge and post silhouettes, grounded return neighbors, supported seated neighbors, carried-object hand contact and visible physical work after its panel closes. Review High/Low and reduced motion in the actual browser. Automated desktop/phone emulation and Blender checks do not establish physical mobile performance, screen-reader usability or human pacing; record those separately with device/browser and participant context.

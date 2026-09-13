@@ -1,0 +1,188 @@
+/* Shared journey tools follow the existing parchment / dark-green reading palette. */
+.journey-tools,
+.story-status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+.story-status-tabs [aria-pressed='true'] {
+  background: #344f43;
+  color: #fff7dc;
+  border-color: #344f43;
+}
+.connection-stories,
+.recap-details {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1rem 0;
+}
+.connection-stories article,
+.recap-details article,
+.replay-library section {
+  padding: 1rem;
+  border: 1px solid #b3b598;
+  border-radius: 10px;
+  background: #f1edda;
+  color: #2c4037;
+}
+.panel .connection-stories h3,
+.panel .connection-stories h4,
+.panel .recap-details h4,
+.panel .replay-library h3,
+.connection-stories .eyebrow,
+.connection-stories .status-pill,
+.replay-library .eyebrow {
+  color: #2c4037;
+}
+.connection-stories .secondary-button,
+.recap-details .secondary-button,
+.replay-library .secondary-button {
+  color: #2c4037;
+  background: #e4e4cb;
+  border-color: #7e8d64;
+}
+.connection-stories h3,
+.connection-stories h4,
+.recap-details h4 {
+  margin: 0 0 0.55rem;
+}
+.connection-stories .story-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.connection-empty {
+  border-left: 3px solid #8c956f;
+  padding: 1rem;
+}
+.home-summary {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #a8af91;
+  border-radius: 12px;
+}
+.home-encounter {
+  color: #eee4c8;
+  background: #202f27;
+  line-height: 1.65;
+}
+.home-encounter .caption-source {
+  color: #c0c9b5;
+}
+.home-encounter blockquote {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #e4e4cb;
+  color: #2c4037;
+  border-left: 3px solid #7e8d64;
+}
+.home-encounter .context-actions {
+  display: grid;
+  gap: 0.6rem;
+}
+.closing-memory {
+  padding: 1rem;
+  background: #e4e4cb;
+  color: #2c4037;
+  border-radius: 8px;
+}
+.replay-library {
+  display: grid;
+  gap: 1rem;
+}
+.replay-library ol {
+  margin: 0.7rem 0 0;
+  padding-left: 1.7rem;
+}
+.replay-library li {
+  margin: 0.35rem 0;
+  padding-left: 0.2rem;
+}
+.replay-library button {
+  width: 100%;
+  text-align: left;
+}
+.journey-recap {
+  color: #eee4c8;
+  background: #202f27;
+  line-height: 1.6;
+}
+.journey-recap ul {
+  padding-left: 1.2rem;
+}
+.journey-recap li {
+  margin: 0.4rem 0;
+}
+.welcome-recap {
+  text-align: left;
+  padding: 0.7rem 1rem;
+  margin: 0.8rem 0;
+  border: 1px solid #aeb395;
+  border-radius: 9px;
+  background: #e9e8d5;
+  color: #2c4037;
+  font-size: 0.85rem;
+}
+.welcome-recap p {
+  margin: 0.3rem 0;
+  line-height: 1.45;
+}
+.welcome-recap summary {
+  cursor: pointer;
+  min-height: 32px;
+  padding-top: 0.35rem;
+}
+#travel-status {
+  max-width: min(540px, 85vw);
+  flex-wrap: wrap;
+}
+#travel-status > span {
+  flex: 1 1 200px;
+  overflow-wrap: anywhere;
+}
+#travel-status button {
+  min-height: 36px;
+  background: #344f43;
+  color: #fff7dc;
+}
+@media (max-width: 700px) {
+  .welcome-card:has(.welcome-recap) {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+  .welcome-card:has(.welcome-recap) .welcome-copy.secondary {
+    display: none;
+  }
+  .home-summary {
+    padding: 0.7rem;
+  }
+  .story-status-tabs {
+    gap: 0.35rem;
+  }
+  .story-status-tabs button {
+    flex: 1 1 40%;
+    min-height: 44px;
+  }
+  #travel-status {
+    font-size: 0.78rem;
+    padding: 0.45rem;
+  }
+  #travel-status > span {
+    flex-basis: 100%;
+  }
+  #travel-status button {
+    min-height: 36px;
+  }
+}
+@media (max-height: 500px) {
+  .welcome-card:has(.welcome-recap) {
+    max-height: calc(100dvh - 12px);
+    overflow-y: auto;
+  }
+  #travel-status {
+    max-width: 350px;
+    font-size: 0.72rem;
+  }
+}

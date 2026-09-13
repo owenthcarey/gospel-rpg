@@ -1,0 +1,63 @@
+{
+  "method": "Computed text luminance ratio against its composited CSS surface, measured in the production browser; threshold 4.5:1. This is not a complete accessibility audit.",
+  "desktop": {
+    "home": {
+      "status-h3": 9.425001069883907,
+      "status-.eyebrow": 9.425001069883907,
+      "status-.status-pill": 9.425001069883907,
+      "status-button": 8.576886033625913,
+      "shore-p:not(.caption-source)": 11.064327009999587,
+      "shore-.caption-source": 8.19010429254607,
+      "shore-.primary-button": 7.047520551226424,
+      "shore-memory": 8.576886033625913,
+      "farm-p:not(.caption-source)": 11.064327009999587,
+      "farm-.caption-source": 8.19010429254607,
+      "farm-.primary-button": 7.047520551226424,
+      "farm-memory": 8.576886033625913,
+      "table-p:not(.caption-source)": 11.064327009999587,
+      "table-.caption-source": 8.19010429254607,
+      "table-.primary-button": 8.136279591185223,
+      "table-memory": 8.576886033625913,
+      "recap": 11.064327009999587,
+      "recapHeading": 11.064327009999587
+    },
+    "library": {
+      "h3": 9.425001069883907,
+      ".eyebrow": 9.425001069883907,
+      "button": 8.576886033625913
+    },
+    "routeControls": {
+      "route": 8.352223682378927
+    }
+  },
+  "phone": {
+    "home": {
+      "status-h3": 9.425001069883907,
+      "status-.eyebrow": 9.425001069883907,
+      "status-.status-pill": 9.425001069883907,
+      "status-button": 8.576886033625913,
+      "table-p:not(.caption-source)": 11.064327009999587,
+      "table-.caption-source": 8.19010429254607,
+      "table-.primary-button": 8.136279591185223,
+      "table-memory": 8.576886033625913,
+      "farm-p:not(.caption-source)": 11.064327009999587,
+      "farm-.caption-source": 8.19010429254607,
+      "farm-.primary-button": 7.047520551226424,
+      "farm-memory": 8.576886033625913,
+      "shore-p:not(.caption-source)": 11.064327009999587,
+      "shore-.caption-source": 8.19010429254607,
+      "shore-.primary-button": 7.047520551226424,
+      "shore-memory": 8.576886033625913,
+      "recap": 11.064327009999587,
+      "recapHeading": 11.064327009999587
+    },
+    "library": {
+      "h3": 9.425001069883907,
+      ".eyebrow": 9.425001069883907,
+      "button": 8.576886033625913
+    },
+    "routeControls": {
+      "route": 8.352223682378927
+    }
+  }
+}

@@ -22,6 +22,7 @@ export const REGION_IDS = [
 ] as const;
 export type RegionId = (typeof REGION_IDS)[number];
 export const STORY_TRACKS = [
+  'home',
   'main',
   'village',
   'roof',

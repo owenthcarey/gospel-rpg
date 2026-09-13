@@ -1,0 +1,1048 @@
+{
+  "date": "2026-09-12",
+  "runs": [
+    {
+      "name": "Full production regression",
+      "command": "npm run test:e2e",
+      "phase": "Before final reading-color, static shadow/selection, route-control and direct-story shortcut refinements; the prepared final rerun covers those changes.",
+      "summary": {
+        "passed": 111,
+        "failed": 0,
+        "skipped": 11,
+        "duration": "50.5m"
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+          "status": "passed",
+          "duration": "39.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bread and water remain portable across interiors, reload, and large reading size",
+          "status": "passed",
+          "duration": "1.0m"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the outer route, waits through menus, and resumes from an exported checkpoint",
+          "status": "passed",
+          "duration": "50.7s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the passage route, waits through menus, and resumes from an exported checkpoint",
+          "status": "passed",
+          "duration": "32.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a failed neighborhood load can be retried and summary preserves the roof account",
+          "status": "passed",
+          "duration": "24.1s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum-lanes stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "gathering-house stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bakehouse stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "roof-account stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "the borrowed handle opens the passage and an indoor table accepts bread first",
+          "status": "passed",
+          "duration": "37.4s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "the completed shore and passage markers render within the original High and Low budgets",
+          "status": "passed",
+          "duration": "19.7s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "replay reading retains visible controls and world space at large text sizes",
+          "status": "passed",
+          "duration": "6.4s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "status": "passed",
+          "duration": "40.6s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return",
+          "status": "passed",
+          "duration": "18.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "failed replay startup and return preserve a portable journey and support retry",
+          "status": "passed",
+          "duration": "12.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+          "status": "passed",
+          "duration": "1.1m"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/continuous-journey.spec.ts",
+          "title": "one fresh traveler completes all four chapters without replacing or importing campaign state",
+          "status": "passed",
+          "duration": "2.9m"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a migrated traveler completes preparation, every lake scene and a remembered aftermath",
+          "status": "passed",
+          "duration": "36.8s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "scene exit, resume, summary and reduced motion keep the same checkpoint",
+          "status": "passed",
+          "duration": "41.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a failed lake asset load leaves the shoreline playable and permits retry",
+          "status": "passed",
+          "duration": "18.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "story tracking persists and phone objectives remain compact and readable",
+          "status": "passed",
+          "duration": "4.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "v4 import and manual restoration replace regions without accumulating scenes",
+          "status": "passed",
+          "duration": "6.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "unavailable browser storage stays explicit and still allows portable export",
+          "status": "passed",
+          "duration": "1.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "the shoreline preparation tray works with keyboard and touch without a reading panel",
+          "status": "passed",
+          "duration": "13.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restore the spring through inspection, failed flow, rotation, hints and a lasting memory",
+          "status": "passed",
+          "duration": "16.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "prepare either resting place, recover supplies across travel, correct its approach and welcome company",
+          "status": "passed",
+          "duration": "27.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "welcome does not request models; failed direct continuation keeps its save and supports retry",
+          "status": "passed",
+          "duration": "6.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+          "status": "passed",
+          "duration": "3.1s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed spring restores its visible arrangement within both rendering budgets",
+          "status": "passed",
+          "duration": "16.6s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed shelter restores its visible arrangement within both rendering budgets",
+          "status": "passed",
+          "duration": "13.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+          "status": "passed",
+          "duration": "23.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "a traveler completes the chapter, saves, reloads, and exports",
+          "status": "passed",
+          "duration": "18.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "menus, touch navigation, settings, and invalid imports stay usable",
+          "status": "passed",
+          "duration": "4.6s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "ground clicks, keyboard movement, and menu focus work together",
+          "status": "passed",
+          "duration": "2.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "Ezra remembers earlier discoveries and the village story survives a reload",
+          "status": "passed",
+          "duration": "28.4s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake-restore.spec.ts",
+          "title": "direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+          "status": "passed",
+          "duration": "7.4s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+          "status": "passed",
+          "duration": "1.2m"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+          "status": "passed",
+          "duration": "7.6s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+          "status": "passed",
+          "duration": "16.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+          "status": "passed",
+          "duration": "38.8s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "9.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "9.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "9.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "10.3s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "Ruth’s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+          "status": "passed",
+          "duration": "58.1s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "the landing bench supports both material routes, visible repair, pause, save recovery and lasting company",
+          "status": "passed",
+          "duration": "22.8s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "a carried pouch has a usable return route while journal travel preserves a roof checkpoint",
+          "status": "passed",
+          "duration": "46.0s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "the road opens after Chapter II; Tamar’s investigation supports observation, retry, hints, reload and both memories",
+          "status": "passed",
+          "duration": "42.6s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+          "status": "passed",
+          "duration": "1.3m"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves",
+          "status": "passed",
+          "duration": "57.8s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+          "status": "passed",
+          "duration": "20.9s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+          "status": "passed",
+          "duration": "21.0s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "failed Nain assets preserve the prior scene and autosave; summary keeps the full account",
+          "status": "passed",
+          "duration": "9.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region galilean-road draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "10.6s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region roadside-farm draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "11.5s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-gate draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "11.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-account draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "11.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract",
+          "status": "passed",
+          "duration": "29.1s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "the Nain tableau survives replacement and reload; missing gate geometry fails its image contract",
+          "status": "passed",
+          "duration": "12.4s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a v4 traveler walks into Chapter II, resumes every scene and completes the aftermath",
+          "status": "passed",
+          "duration": "39.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bread and water remain portable across interiors, reload, and large reading size",
+          "status": "passed",
+          "duration": "44.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the outer route, waits through menus, and resumes from an exported checkpoint",
+          "status": "passed",
+          "duration": "25.7s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "Amos walks the passage route, waits through menus, and resumes from an exported checkpoint",
+          "status": "passed",
+          "duration": "15.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "a failed neighborhood load can be retried and summary preserves the roof account",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "13.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "lake-gennesaret stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "11.4s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum-lanes stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "gathering-house stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "11.0s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "bakehouse stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "10.7s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "roof-account stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "12.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "the borrowed handle opens the passage and an indoor table accepts bread first",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "the completed shore and passage markers render within the original High and Low budgets",
+          "status": "passed",
+          "duration": "20.6s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "replay reading retains visible controls and world space at large text sizes",
+          "status": "passed",
+          "duration": "23.3s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "status": "passed",
+          "duration": "46.6s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return",
+          "status": "passed",
+          "duration": "20.7s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "failed replay startup and return preserve a portable journey and support retry",
+          "status": "passed",
+          "duration": "11.4s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+          "status": "passed",
+          "duration": "1.1m"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/continuous-journey.spec.ts",
+          "title": "one fresh traveler completes all four chapters without replacing or importing campaign state",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a migrated traveler completes preparation, every lake scene and a remembered aftermath",
+          "status": "passed",
+          "duration": "32.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "scene exit, resume, summary and reduced motion keep the same checkpoint",
+          "status": "passed",
+          "duration": "18.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "a failed lake asset load leaves the shoreline playable and permits retry",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "story tracking persists and phone objectives remain compact and readable",
+          "status": "passed",
+          "duration": "3.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "v4 import and manual restoration replace regions without accumulating scenes",
+          "status": "passed",
+          "duration": "4.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "unavailable browser storage stays explicit and still allows portable export",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/episode.spec.ts",
+          "title": "the shoreline preparation tray works with keyboard and touch without a reading panel",
+          "status": "passed",
+          "duration": "14.1s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restore the spring through inspection, failed flow, rotation, hints and a lasting memory",
+          "status": "passed",
+          "duration": "18.1s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "prepare either resting place, recover supplies across travel, correct its approach and welcome company",
+          "status": "passed",
+          "duration": "40.7s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "welcome does not request models; failed direct continuation keeps its save and supports retry",
+          "status": "passed",
+          "duration": "8.9s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "restrained guidance retains destinations, explicit cancellation and accessible plans on a small screen",
+          "status": "passed",
+          "duration": "7.1s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed spring restores its visible arrangement within both rendering budgets",
+          "status": "passed",
+          "duration": "13.2s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "completed shelter restores its visible arrangement within both rendering budgets",
+          "status": "passed",
+          "duration": "12.9s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/galilee.spec.ts",
+          "title": "a farm supply survives Gospel reading and returns to its rack without changing a waiting companion",
+          "status": "passed",
+          "duration": "24.1s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "a traveler completes the chapter, saves, reloads, and exports",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "menus, touch navigation, settings, and invalid imports stay usable",
+          "status": "passed",
+          "duration": "7.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "ground clicks, keyboard movement, and menu focus work together",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "Ezra remembers earlier discoveries and the village story survives a reload",
+          "status": "passed",
+          "duration": "30.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake-restore.spec.ts",
+          "title": "direct Gospel continuation retries a failed load and retains the berthed boat, supply and waiting companion",
+          "status": "passed",
+          "duration": "9.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sail to both shores, compare landmarks in either order, retry, save hints and return with either memory",
+          "status": "passed",
+          "duration": "2.2m"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "steering, cancelled routes and menus preserve actual afloat position, heading and carried supplies across reload",
+          "status": "passed",
+          "duration": "41.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently",
+          "status": "passed",
+          "duration": "50.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "failed boarding and Gospel loads retain the prior scene and save; retry and summary finish safely",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "galilee-water draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "26.0s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "reed-landing draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "26.0s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "sheltered-cove draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "30.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/lake.spec.ts",
+          "title": "storm-account draws essential models at both qualities, fits small screens and settles to one scene",
+          "status": "passed",
+          "duration": "25.1s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "Ruth’s investigation survives clue order, pouch recovery, travel, journal filters and a chosen ending",
+          "status": "passed",
+          "duration": "1.6m"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "the landing bench supports both material routes, visible repair, pause, save recovery and lasting company",
+          "status": "passed",
+          "duration": "43.4s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/life.spec.ts",
+          "title": "a carried pouch has a usable return route while journal travel preserves a roof checkpoint",
+          "status": "passed",
+          "duration": "43.7s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "the road opens after Chapter II; Tamar’s investigation supports observation, retry, hints, reload and both memories",
+          "status": "passed",
+          "duration": "45.0s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves",
+          "status": "passed",
+          "duration": "1.3m"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves",
+          "status": "passed",
+          "duration": "1.0m"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands",
+          "status": "passed",
+          "duration": "29.3s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "an imported waiting companion stays put through Gospel reading, reload and a return to find him",
+          "status": "passed",
+          "duration": "27.1s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "failed Nain assets preserve the prior scene and autosave; summary keeps the full account",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region galilean-road draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "13.3s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region roadside-farm draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "14.7s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-gate draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "14.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/road.spec.ts",
+          "title": "new region nain-account draws essential objects at both qualities and settles to one scene",
+          "status": "passed",
+          "duration": "15.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract",
+          "status": "skipped"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/static-render.spec.ts",
+          "title": "the Nain tableau survives replacement and reload; missing gate geometry fails its image contract",
+          "status": "skipped"
+        }
+      ]
+    },
+    {
+      "name": "Final reviewed production build",
+      "command": "npm run test:e2e -- tests/e2e/connection.spec.ts tests/e2e/connection-render.spec.ts tests/e2e/campaign.spec.ts tests/e2e/journey.spec.ts --grep 'saved multi-region|replay|return encounters|completed shore|capernaum stays within|ground clicks|direct story shortcuts'",
+      "phase": "Final gameplay, reading-panel colors and static-geometry refinements, before the last route-button color refinement. Includes two new direct-story shortcut scenarios.",
+      "summary": {
+        "passed": 17,
+        "failed": 0,
+        "skipped": 1,
+        "duration": "8.1m"
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "22.6s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "the completed shore and passage markers render within the original High and Low budgets",
+          "status": "passed",
+          "duration": "47.1s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "replay reading retains visible controls and world space at large text sizes",
+          "status": "passed",
+          "duration": "9.4s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "status": "passed",
+          "duration": "43.1s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return",
+          "status": "passed",
+          "duration": "24.4s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "failed replay startup and return preserve a portable journey and support retry",
+          "status": "passed",
+          "duration": "15.1s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+          "status": "passed",
+          "duration": "1.7m"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "direct story shortcuts reopen their reading content after status filtering",
+          "status": "passed",
+          "duration": "5.2s"
+        },
+        {
+          "project": "chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "ground clicks, keyboard movement, and menu focus work together",
+          "status": "passed",
+          "duration": "3.1s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/campaign.spec.ts",
+          "title": "capernaum stays within rendering budgets and keeps one settled scene",
+          "status": "passed",
+          "duration": "14.4s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "the completed shore and passage markers render within the original High and Low budgets",
+          "status": "passed",
+          "duration": "20.4s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection-render.spec.ts",
+          "title": "replay reading retains visible controls and world space at large text sizes",
+          "status": "passed",
+          "duration": "14.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "status": "passed",
+          "duration": "41.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "all four replay accounts keep the journey intact through transcripts, previous scenes, reload and return",
+          "status": "passed",
+          "duration": "22.6s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "failed replay startup and return preserve a portable journey and support retry",
+          "status": "passed",
+          "duration": "13.0s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "return encounters, recap and journal statuses remain usable with skipped stories and large phone text",
+          "status": "passed",
+          "duration": "1.1m"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "direct story shortcuts reopen their reading content after status filtering",
+          "status": "passed",
+          "duration": "2.8s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/journey.spec.ts",
+          "title": "ground clicks, keyboard movement, and menu focus work together",
+          "status": "skipped"
+        }
+      ]
+    },
+    {
+      "name": "Continuous journey under software rendering",
+      "command": "CI=1 PLAYWRIGHT_SWIFTSHADER=1 npm run test:e2e -- tests/e2e/continuous-journey.spec.ts --project=chromium --retries=0 --global-timeout=1200000",
+      "phase": "Final gameplay with CI settings and forced SwiftShader, before the route-button color-only refinement. Local M3 host; this is not a GitHub runner timing claim.",
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "duration": "4.6m"
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "tests/e2e/continuous-journey.spec.ts",
+          "title": "one fresh traveler completes all four chapters without replacing or importing campaign state",
+          "status": "passed",
+          "duration": "4.6m"
+        }
+      ]
+    },
+    {
+      "name": "Final route-button contrast",
+      "command": "CI=1 npm run test:e2e -- tests/e2e/connection.spec.ts --grep 'saved multi-region' --retries=0",
+      "phase": "Final production build, including explicit route-button surface colors; both complete route flows and computed contrast are checked.",
+      "summary": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "duration": "1.3m"
+      },
+      "cases": [
+        {
+          "project": "chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "status": "passed",
+          "duration": "39.5s"
+        },
+        {
+          "project": "mobile-chromium",
+          "file": "tests/e2e/connection.spec.ts",
+          "title": "a saved multi-region destination survives interruption and requires deliberate boarding and docking",
+          "status": "passed",
+          "duration": "39.5s"
+        }
+      ]
+    }
+  ],
+  "declaredCases": 124,
+  "uniquePassingScenarios": 113
+}

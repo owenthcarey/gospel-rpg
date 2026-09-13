@@ -37,7 +37,7 @@ export function campaignQuest(s: GameState): string | undefined {
     s.tracking === 'crossing' &&
     s.lake.trail.stage === 'exploring' &&
     s.lake.trail.evidence.length === 2;
-  return `<div class="quest-eyebrow">✧ ${chapter.optional ? 'OPTIONAL STORY' : chapter.label.split(' · ')[0]!.toUpperCase()} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : discovering || comparing ? 'Review the clues' : 'Follow the path', goal.done ? 'journal' : comparing ? 'lake-guide' : discovering ? 'road-guide' : 'navigate', goal.done ? 'memories' : goal.target)}<button class="compact-journal text-button" data-action="journal" data-value="stories">Choose a story</button><div class="quest-details"><p class="quest-reference">${chapter.optional ? 'Optional · Original traveler story' : esc(chapter.source!.title) + ' · World English Bible'}</p></div>`;
+  return `<div class="quest-eyebrow">✧ ${chapter.optional ? 'OPTIONAL STORY' : chapter.label.split(' · ')[0]!.toUpperCase()} <span class="quest-count">${goal.done ? 'COMPLETE' : 'YOUR PACE'}</span></div><h1>${esc(goal.title)}</h1><p class="current-objective">${esc(goal.text)}</p><div class="quest-details"><ol class="quest-steps">${goal.steps.map((t) => `<li>${esc(t)}</li>`).join('')}</ol></div>${button(goal.done ? 'Read your memories' : discovering || comparing ? 'Review the clues' : 'Follow the path', goal.done ? 'journal' : comparing ? 'lake-guide' : discovering ? 'road-guide' : 'navigate', goal.done ? 'memories' : (goal.destination ?? goal.target))}<button class="compact-journal text-button" data-action="journal" data-value="stories">Choose a story</button><div class="quest-details"><p class="quest-reference">${chapter.optional ? 'Optional · Original traveler story' : esc(chapter.source!.title) + ' · World English Bible'}</p></div>`;
 }
 export function campaignSummary(s: GameState, filter: JournalFilter = 'all'): string {
   if (filter !== 'all' && !neighborhoodChapters.some((id) => id === filter)) return '';
@@ -103,6 +103,7 @@ export function roofControls(s: GameState, paused: boolean): string {
       summaryLabel: 'Finish with a summary',
     },
     paused,
+    s.connection.replay?.account,
   );
 }
 export function roofTranscript(): string {

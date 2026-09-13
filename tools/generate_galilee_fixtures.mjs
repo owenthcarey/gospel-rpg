@@ -27,6 +27,7 @@ try {
     'v8-living-galilee-complete': complete,
   })) {
     const save = makeSave(state);
+    delete save.state.connection;
     save.version = 8;
     delete save.state.lake;
     save.savedAt = '2026-09-10T00:00:00.000Z';

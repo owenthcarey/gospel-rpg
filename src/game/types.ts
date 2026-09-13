@@ -1,3 +1,4 @@
+import { newConnection, type ConnectionState, type ConnectionEvent } from './connection/types';
 import { newLake, type LakeState, type LakeEvent } from './lake/types';
 import { newGalilee, type GalileeState, type GalileeEvent } from './galilee/types';
 import { newCampaign, type CampaignState, type CampaignEvent } from './campaign/types';
@@ -20,6 +21,7 @@ export type ItemId = 'net' | 'bread';
 export type DiscoveryId = 'shore' | 'well' | 'olive';
 export type VillageStoryStage = 'not-started' | 'exploring' | 'complete';
 export interface GameState {
+  connection: ConnectionState;
   lake: LakeState;
   galilee: GalileeState;
   region: RegionId;
@@ -38,6 +40,7 @@ export interface GameState {
   playTime: number;
 }
 export type GameEvent =
+  | ConnectionEvent
   | LakeEvent
   | GalileeEvent
   | CampaignEvent
@@ -69,6 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 export function newGame(): GameState {
   return {
+    connection: newConnection(),
     lake: newLake(),
     galilee: newGalilee(),
     region: 'capernaum',

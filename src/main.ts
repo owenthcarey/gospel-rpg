@@ -1,3 +1,14 @@
+import './ui/connection.css';
+import { displayRegion, isPresenting } from './game/connection/accounts';
+import { routePlan } from './game/connection/routes';
+import {
+  ACCOUNTS,
+  HOME_VISITS,
+  HOME_REFLECTIONS,
+  type AccountId,
+  type HomeVisit,
+} from './game/connection/types';
+import { STORY_STATUSES, type StoryStatusFilter } from './ui/views/connection';
 import './ui/lake.css';
 import {
   STORM_SCENES,
@@ -13,8 +24,6 @@ import { CHANNEL_IDS, type ChannelId, type Direction } from './game/galilee/type
 import { traceWater } from './game/galilee/channel';
 import { checkArrangement } from './game/galilee/arrangement';
 import './ui/galilee.css';
-import { regions } from './content/regions';
-import { localTarget } from './game/campaign/objectives';
 import { STORY_TRACKS, ROOF_SCENES, ROOF_REFLECTIONS, NEIGHBOR_NOTES } from './game/campaign/types';
 import { worldAction, actionMotion } from './content/campaign/actions';
 import './ui/styles.css';
@@ -123,11 +132,15 @@ function syncPause(): void {
       document.hidden ||
       regionLoading ||
       graphicsLost ||
-      (regions[state.region].mode === 'presentation' && scenePaused),
+      (isPresenting(state) && scenePaused),
   );
 }
 function snapshot(): GameState {
-  const current = structuredClone({ ...state, position: world?.getPosition() ?? state.position });
+  const current = structuredClone({
+    ...state,
+    position: state.connection.replay ? state.position : (world?.getPosition() ?? state.position),
+  });
+  if (state.connection.replay) return current;
   if (current.region === 'galilee-water') {
     current.lake.boat.position = { ...current.position };
     current.lake.boat.heading = normalizeHeading(
@@ -176,11 +189,11 @@ async function apply(event: GameEvent): Promise<void> {
   const current = snapshot();
   const next = transition(current, event);
   if (next === current) return;
-  if (next.region !== state.region) await changeRegion(next);
+  if (displayRegion(next) !== displayRegion(state)) await changeRegion(next);
   state = next;
   world?.update(state);
   ui.update(state);
-  audio.region(state.region);
+  audio.region(displayRegion(state));
   if (event.type === 'galilee-action') {
     const action = galileeActions.find((a) => a.id === event.id)!;
     world?.performInteraction(action.motion, action.target);
@@ -215,7 +228,7 @@ async function apply(event: GameEvent): Promise<void> {
     audio.chime();
     ui.toast(
       event.type === 'storm-reflect'
-        ? 'Peace, be still complete · Your reflection is remembered.'
+        ? 'Peace, be still complete · The way home is now available in your journal.'
         : 'A sheltered way complete · Your memory is in the journal.',
     );
   }
@@ -329,12 +342,13 @@ async function close(): Promise<void> {
   conversation = null;
   contextId = null;
   if (!started) {
-    ui.welcome(Boolean(await saves.load('auto').catch(() => null)), saves.persistent);
+    const saved = await saves.load('auto').catch(() => null);
+    ui.welcome(Boolean(saved), saves.persistent, saved?.state);
     return;
   }
   ui.close();
   syncPause();
-  if (regions[state.region].mode === 'presentation') ui.focusScene();
+  if (isPresenting(state)) ui.focusScene();
   else canvas.focus();
 }
 async function begin(saved?: GameState): Promise<void> {
@@ -342,7 +356,9 @@ async function begin(saved?: GameState): Promise<void> {
   const next = saved ? structuredClone(saved) : newGame();
   await changeRegion(next);
   state = next;
-  state.position = world?.getPosition() ?? state.position;
+  state.position = state.connection.replay
+    ? state.position
+    : (world?.getPosition() ?? state.position);
   scenePaused = false;
   ui.setScenePaused(false);
   started = true;
@@ -352,9 +368,9 @@ async function begin(saved?: GameState): Promise<void> {
   world?.update(state);
   ui.update(state);
   syncPause();
-  audio.region(state.region);
+  audio.region(displayRegion(state));
   audio.set(settings);
-  if (regions[state.region].mode === 'presentation') ui.focusScene();
+  if (isPresenting(state)) ui.focusScene();
   else canvas.focus();
   await enqueueSave();
   if (!saved) ui.toast('Welcome to Capernaum. Speak with Simon by the boats to begin.');
@@ -378,11 +394,87 @@ async function loadFile(file: File): Promise<void> {
     throw new Error('This file is too large. Choose a journey save smaller than 128 KB.');
   const save = importSave(await file.text());
   await begin(save.state);
-  ui.toast('Your imported journey is ready.');
+  ui.toast(
+    'Your imported journey is ready. Open Journey recap in the journal to see where you left off.',
+  );
+}
+function resumeRoute(): void {
+  const plan = routePlan(snapshot());
+  if (!plan) return;
+  if (plan.available && plan.leg) world?.navigate(plan.leg);
+  else ui.toast(plan.message);
+}
+async function navigateTo(target: string): Promise<void> {
+  await apply({ type: 'route-select', target });
+  const plan = routePlan(snapshot(), target);
+  if (plan?.available && plan.leg) world?.navigate(plan.leg);
+  else if (plan) ui.toast(plan.message);
 }
 async function handleAction(name: string, value?: string, chosen?: Choice): Promise<void> {
   if (!world) return;
   switch (name) {
+    case 'recap':
+      pause();
+      menuRequest++;
+      ui.recap(snapshot());
+      break;
+    case 'replay-library':
+      pause();
+      menuRequest++;
+      ui.replayLibrary(snapshot());
+      break;
+    case 'replay-open':
+    case 'replay-next':
+    case 'replay-previous': {
+      const [account, checkpoint] = (value ?? '').split(':');
+      if (!ACCOUNTS.includes(account as AccountId) || !checkpoint) break;
+      await apply({ type: name, account: account as AccountId, checkpoint });
+      scenePaused = false;
+      ui.setScenePaused(false);
+      await close();
+      break;
+    }
+    case 'home-remember': {
+      const [visit, choice] = (value ?? '').split(':');
+      if (!HOME_VISITS.includes(visit as HomeVisit) || !choice) break;
+      await apply({ type: name, visit: visit as HomeVisit, choice });
+      if (contextId) ui.context(contextId, snapshot());
+      break;
+    }
+    case 'home-reflect':
+      if (HOME_REFLECTIONS.some((id) => id === value)) {
+        await apply({ type: name, choice: value as (typeof HOME_REFLECTIONS)[number] });
+        await close();
+        ui.toast(
+          'This part of your journey is remembered. All paths and unfinished stories remain open.',
+        );
+      }
+      break;
+    case 'route-resume':
+      if (isPresenting(state)) await apply(leavePresentationEvent(state));
+      await close();
+      resumeRoute();
+      break;
+    case 'open-story':
+      if (STORY_TRACKS.some((id) => id === value)) {
+        pause();
+        menuRequest++;
+        contextId = null;
+        ui.journal(snapshot(), 'stories', value as (typeof STORY_TRACKS)[number], 'all');
+      }
+      break;
+    case 'journal-status':
+      if (ui.panel === 'journal' && STORY_STATUSES.some((id) => id === value)) {
+        ui.journal(snapshot(), 'stories', undefined, value as StoryStatusFilter);
+        requestAnimationFrame(() =>
+          document
+            .querySelector<HTMLElement>(
+              '[data-action="journal-status"][data-value="' + value + '"]',
+            )
+            ?.focus(),
+        );
+      }
+      break;
     case 'begin':
       await begin();
       break;
@@ -416,7 +508,8 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       menuRequest++;
       conversation = null;
       if (name === 'journal') {
-        if (value === 'memories' || value === 'stories') ui.journal(snapshot(), value, 'all');
+        if (value === 'memories' || value === 'stories')
+          ui.journal(snapshot(), value, 'all', 'all');
         else ui.journal(snapshot());
       }
       if (name === 'transcript') ui.transcript(state, value);
@@ -447,27 +540,30 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
         snapshot(),
         'stories',
         name === 'lake-guide' ? 'crossing' : name === 'road-guide' ? 'trail' : 'company',
+        'all',
       );
       if (name === 'lake-guide') ui.focusCrossing('review');
       break;
     case 'cancel-navigation':
+      if (state.connection.replay) await apply(leavePresentationEvent(state));
       world.cancelNavigation();
-      canvas.focus();
+      await apply({ type: 'route-cancel' });
+      if (ui.panel === 'recap') ui.recap(snapshot());
+      else canvas.focus();
       break;
     case 'navigate':
-      if (started && !ui.panel && value) world.navigate(localTarget(state, value));
+      if (started && !ui.panel && value) await navigateTo(value);
       break;
     case 'travel':
       if (value) {
-        if (regions[state.region].mode === 'presentation')
-          await apply(leavePresentationEvent(state));
+        if (isPresenting(state)) await apply(leavePresentationEvent(state));
         await close();
-        world.navigate(localTarget(state, value));
+        await navigateTo(value);
       }
       break;
     case 'nearest': {
       const p = world.nearest();
-      if (p) world.navigate(p.id);
+      if (p) await navigateTo(p.id);
       break;
     }
     case 'rotate-left':
@@ -498,8 +594,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     case 'journey':
       if (value) {
+        const before = state.region;
         await apply({ type: 'journey', gateway: value });
         await close();
+        if (state.region !== before) resumeRoute();
       }
       break;
     case 'quick-action': {
@@ -509,7 +607,12 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
         ui.toast(action?.blocker ?? 'This action is no longer available.');
         break;
       }
+      const before = displayRegion(state);
       await apply(action.event);
+      if (displayRegion(state) !== before) {
+        await close();
+        if (action.event.type === 'journey') resumeRoute();
+      }
       break;
     }
     case 'galilee-action':
@@ -570,8 +673,9 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (value) {
         await apply({ type: 'campaign-action', id: value });
         if (
-          regions[state.region].mode === 'presentation' ||
-          worldAction(value)?.verb === 'Accompany'
+          isPresenting(state) ||
+          worldAction(value)?.verb === 'Accompany' ||
+          !!(worldAction(value) && actionMotion(worldAction(value)!))
         )
           await close();
         else if (contextId) ui.context(contextId, snapshot());
@@ -600,7 +704,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (!allowed.some((id) => id === value)) break;
       await apply({ type: name, id: value } as RoadEvent);
       if (
-        regions[state.region].mode === 'presentation' ||
+        isPresenting(state) ||
         value === 'company-start' ||
         name === 'nain-reflect' ||
         name === 'road-ending'
@@ -612,7 +716,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'road-hint':
       await apply({ type: 'road-hint' });
       if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
-      else ui.journal(snapshot(), 'stories', 'trail');
+      else ui.journal(snapshot(), 'stories', 'trail', 'all');
       break;
     case 'lake-action':
     case 'lake-interpret':
@@ -630,7 +734,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (state.region === 'storm-account' || name === 'storm-reflect' || name === 'lake-ending')
         await close();
       else if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
-      else ui.journal(snapshot(), 'stories', 'crossing');
+      else ui.journal(snapshot(), 'stories', 'crossing', 'all');
       if (name === 'lake-hint') {
         const hints = document.querySelector<HTMLDetailsElement>('.crossing-hints');
         if (hints) hints.open = true;
@@ -696,7 +800,11 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       await close();
       break;
     case 'scene-summary':
-      if (regions[state.region].mode === 'presentation') {
+      if (state.connection.replay) {
+        ui.replayLibrary(snapshot());
+        break;
+      }
+      if (isPresenting(state)) {
         pause();
         ui.sceneSummary(state);
       }
@@ -798,7 +906,11 @@ async function boot(): Promise<void> {
   settings = saves.getSettings();
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) settings.reducedMotion = true;
   world = new GameRuntime(canvas, {
-    interact: openDialogue,
+    interact: (id) =>
+      runAction(async () => {
+        await apply({ type: 'route-arrive', target: id });
+        openDialogue(id);
+      }),
     walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
     roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
@@ -825,7 +937,7 @@ async function boot(): Promise<void> {
     return null;
   });
   ui.update(state);
-  ui.welcome(Boolean(autosave), saves.persistent);
+  ui.welcome(Boolean(autosave), saves.persistent, autosave?.state);
   loading.hidden = true;
   let ticks = 0;
   timer = setInterval(() => {
@@ -835,9 +947,10 @@ async function boot(): Promise<void> {
       ui.panel ||
       regionLoading ||
       graphicsLost ||
-      (regions[state.region].mode === 'presentation' && scenePaused)
+      (isPresenting(state) && scenePaused)
     )
       return;
+    if (state.connection.replay) return;
     state.playTime += 1;
     if (++ticks % 20 === 0) void enqueueSave();
   }, 1000);

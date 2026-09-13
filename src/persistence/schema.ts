@@ -1,3 +1,6 @@
+import { parseConnection } from './connection';
+import { newConnection } from '../game/connection/types';
+import { homeJournalIds } from '../game/connection/progress';
 import { newLake, isLakeRegion } from '../game/lake/types';
 import { lakeJournalIds } from '../game/lake/progress';
 import { parseLake } from './lake';
@@ -20,10 +23,10 @@ import { newRoad, isRoadRegion } from '../game/road/types';
 import { roadJournalIds } from '../game/road/progress';
 import { parseRoad } from './road';
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 9;
+  version: 10;
   region: RegionId;
   savedAt: string;
   state: GameState;
@@ -107,7 +110,8 @@ export function parseSave(raw: unknown): SaveFile {
       raw.version !== 6 &&
       raw.version !== 7 &&
       raw.version !== 8 &&
-      raw.version !== 9) ||
+      raw.version !== 9 &&
+      raw.version !== 10) ||
     !REGION_IDS.some((id) => id === raw.region) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
@@ -116,6 +120,7 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('The save format is damaged or unsupported.');
   const s: Record<string, unknown> = {
     ...raw.state,
+    ...(Number(raw.version) < 10 ? { connection: newConnection() } : {}),
     ...(raw.version === 5 ? { life: newLife() } : {}),
     ...(Number(raw.version) < 7 ? { road: newRoad() } : {}),
     ...(Number(raw.version) < 8 ? { galilee: newGalilee() } : {}),
@@ -142,6 +147,13 @@ export function parseSave(raw: unknown): SaveFile {
       ['storm', 'crossing'].includes(String(s.tracking)))
   )
     throw new SaveError('This older save contains unknown lake progress.');
+  if (
+    Number(raw.version) < 10 &&
+    (s.tracking === 'home' ||
+      (raw.state.connection &&
+        JSON.stringify(raw.state.connection) !== JSON.stringify(newConnection())))
+  )
+    throw new SaveError('This older save contains unknown connected-journey progress.');
   // Old saves cannot introduce newly earned stories, held items, or tracking.
   if (raw.version === 5) {
     if (
@@ -233,7 +245,17 @@ export function parseSave(raw: unknown): SaveFile {
       s.villageStory === 'not-started')
   )
     throw new SaveError('This save contains an invalid village memory.');
+  const connection = parseConnection(s.connection, {
+    ...s,
+    episode,
+    campaign,
+    life,
+    road,
+    galilee,
+    lake,
+  } as unknown as GameState);
   const expectedJournal = new Set([
+    ...homeJournalIds(connection.home),
     'arrival',
     ...s.discoveries,
     ...episodeJournalIds(episode),
@@ -262,11 +284,12 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 9,
+    version: 10,
     region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
       region: raw.region as RegionId,
+      connection,
       episode,
       campaign,
       life,

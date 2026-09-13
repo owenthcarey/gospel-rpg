@@ -1,3 +1,5 @@
+import { transitionConnection } from './connection/progress';
+import type { ConnectionEvent } from './connection/types';
 import { transitionLake, transitionBoat } from './lake/progress';
 import { lakeGateways } from '../content/lake/places';
 import { transitionGalilee } from './galilee/progress';
@@ -12,6 +14,9 @@ export const discoveryOrder: readonly DiscoveryId[] = ['well', 'olive', 'shore']
 
 /** The sole authority for story progression. Invalid/repeated actions are harmless. */
 export function transition(state: GameState, event: GameEvent): GameState {
+  if (['route-', 'replay-', 'home-'].some((prefix) => event.type.startsWith(prefix)))
+    return transitionConnection(state, event as ConnectionEvent);
+  if (state.connection.replay) return state;
   if (event.type.startsWith('lake-') || event.type.startsWith('storm-'))
     return transitionLake(state, event as import('./lake/types').LakeEvent);
   if (event.type === 'journey' && lakeGateways.some((g) => g.id === event.gateway))

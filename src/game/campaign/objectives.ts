@@ -1,3 +1,4 @@
+import { homeAvailable, homeReady, homeTarget } from '../../content/connection/home';
 import { lakeGoal } from '../lake/objectives';
 import { galileeGoal } from '../galilee/objectives';
 import type { GameState } from '../types';
@@ -8,6 +9,7 @@ export interface StoryGoal {
   title: string;
   text: string;
   target: string;
+  destination?: string;
   done: boolean;
   steps: string[];
 }
@@ -17,19 +19,36 @@ export function localTarget(s: GameState, target: string): string {
 }
 export function campaignGoal(s: GameState): StoryGoal | undefined {
   if (s.episode.stage !== 'complete' || s.tracking === 'village') return;
+  if (s.tracking === 'home' && homeAvailable(s))
+    return {
+      title: 'The way home',
+      text: s.connection.home.reflection
+        ? 'This part of your journey is remembered. All paths and unfinished stories remain open.'
+        : homeReady(s)
+          ? 'Return to the familiar landing and choose what to carry from this journey.'
+          : 'Visit Leah, Hannah and Miriam, in any order. There is time to return.',
+      target: localTarget(s, homeTarget(s)),
+      destination: homeTarget(s),
+      done: !!s.connection.home.reflection,
+      steps: [
+        'Return to three familiar faces',
+        'Remember each visit',
+        'Choose a closing reflection at the shore',
+      ],
+    };
   const lake = lakeGoal(s);
-  if (lake) return { ...lake, target: localTarget(s, lake.target) };
+  if (lake) return { ...lake, destination: lake.target, target: localTarget(s, lake.target) };
   const galilee = galileeGoal(s);
   if (galilee) {
     const goal = withHeldGuidance(s, galilee);
-    return { ...goal, target: localTarget(s, goal.target) };
+    return { ...goal, destination: goal.target, target: localTarget(s, goal.target) };
   }
   const road = roadGoal(s);
-  if (road) return { ...road, target: localTarget(s, road.target) };
+  if (road) return { ...road, destination: road.target, target: localTarget(s, road.target) };
   const life = lifeGoal(s);
   if (life) {
     const goal = withHeldGuidance(s, life);
-    return { ...goal, target: localTarget(s, goal.target) };
+    return { ...goal, destination: goal.target, target: localTarget(s, goal.target) };
   }
   const c = s.campaign;
   let goal: StoryGoal;
@@ -145,5 +164,5 @@ export function campaignGoal(s: GameState): StoryGoal | undefined {
     };
   }
   goal = withHeldGuidance(s, goal);
-  return { ...goal, target: localTarget(s, goal.target) };
+  return { ...goal, destination: goal.target, target: localTarget(s, goal.target) };
 }

@@ -1,3 +1,5 @@
+import { ConnectionActivity } from './actors/connection';
+import { passageObstacles } from '../content/connection/presentation';
 import { isLakeRegion } from '../game/lake/types';
 import { normalizeHeading } from '../game/lake/navigation';
 import { localLakePlaces, boatkeeper } from '../content/lake/places';
@@ -90,6 +92,7 @@ export class World {
   private neighborhood?: NeighborhoodActivity;
   private road?: RoadActivity;
   private life!: LifeActivity;
+  private connection!: ConnectionActivity;
   private seatedAction?: { time: number; x: number; z: number; started: boolean };
   private cutaways: { node: TransformNode; kind: string }[] = [];
   readonly engine: Engine;
@@ -376,6 +379,7 @@ export class World {
         this.people,
         this.boats,
       );
+    this.connection = new ConnectionActivity(this.library, this.state);
     this.life = new LifeActivity(
       this.library,
       this.actorPlayer,
@@ -606,6 +610,7 @@ export class World {
       [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
       [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
     ];
+    const paths: Mesh[] = [];
     segments.forEach(([a, b, width], i) => {
       const path = MeshBuilder.CreateGround(
         `footpath-${i}`,
@@ -617,8 +622,11 @@ export class World {
       path.material = pathMaterial;
       path.receiveShadows = true;
       path.metadata = { ground: true };
+      paths.push(path);
     });
+    this.mergeStatic(paths, 'village-footpaths').metadata = { ground: true };
     const pebbleMat = this.material('path-pebbles', '#b9ab83');
+    const pebbles: Mesh[] = [];
     for (let i = 0; i < 48; i++) {
       const x = -4 + this.random(i + 33) * 2.5,
         z = -22 + this.random(i + 61) * 43;
@@ -635,12 +643,27 @@ export class World {
       stone.rotation.y = i;
       stone.material = pebbleMat;
       stone.isPickable = false;
+      pebbles.push(stone);
     }
+    this.mergeStatic(pebbles, 'path-stones');
+  }
+
+  /** Preserve static same-material geometry in one submission. No actor or GLB source is instanced. */
+  private mergeStatic(meshes: Mesh[], name: string, shadow = false): Mesh {
+    const { receiveShadows, isPickable } = meshes[0]!;
+    const merged = Mesh.MergeMeshes(meshes, true, true)!;
+    merged.name = name;
+    merged.isPickable = isPickable;
+    merged.receiveShadows = receiveShadows;
+    if (shadow) this.shadow.addShadowCaster(merged);
+    return merged;
   }
 
   private makeDocks(): void {
     const wood = this.material('dock-wood', '#83694a'),
       dark = this.material('dock-posts', '#65553c');
+    const planks: Mesh[] = [],
+      posts: Mesh[] = [];
     for (let i = 0; i < 16; i++) {
       const plank = MeshBuilder.CreateBox(
         `jetty-plank-${i}`,
@@ -651,6 +674,7 @@ export class World {
       plank.material = wood;
       plank.isPickable = false;
       plank.receiveShadows = true;
+      planks.push(plank);
     }
     for (const x of [8.2, 10.3, 12.7])
       for (const z of [2, 3.6]) {
@@ -662,14 +686,17 @@ export class World {
         post.position.set(x, 0.15, z);
         post.material = dark;
         post.isPickable = false;
-        this.shadow.addShadowCaster(post);
+        posts.push(post);
       }
+    this.mergeStatic(planks, 'jetty-planks');
+    this.mergeStatic(posts, 'jetty-posts', true);
   }
 
   private makeDistantLandscape(): void {
     const materials = ['#a5b491', '#99ac8b', '#b1bc98'].map((c, i) =>
       this.material(`distant-hill-${i}`, c),
     );
+    const hills: Mesh[][] = [[], [], []];
     for (let i = 0; i < 17; i++) {
       const hill = MeshBuilder.CreateIcoSphere(
         `distant-hill-${i}`,
@@ -684,7 +711,9 @@ export class World {
       );
       hill.material = materials[i % 3]!;
       hill.isPickable = false;
+      hills[i % 3]!.push(hill);
     }
+    hills.forEach((meshes, i) => this.mergeStatic(meshes, 'distant-hills-' + i));
   }
 
   private bindInput(): void {
@@ -902,6 +931,7 @@ export class World {
     this.neighborhood?.settings(settings);
     this.road?.settings(settings);
     this.life?.settings(settings);
+    this.connection?.settings(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
       this.boats.forEach((boat) => {
@@ -927,6 +957,7 @@ export class World {
       this.neighborhood?.tick(dt, this.position);
       this.road?.tick(dt, this.position, this.destination === 'neri');
       this.life?.tick(dt);
+      this.connection?.tick(dt);
       this.galilee?.tick(dt);
       this.lakeCompany?.sample('Sit', dt, this.reducedMotion);
       for (const [id, actor] of this.actors)
@@ -1129,14 +1160,16 @@ export class World {
     this.activity?.update(state);
     if (this.layout)
       this.grid = new WalkGrid(
-        layoutObstacles(state),
+        [...layoutObstacles(state), ...passageObstacles(state)],
         this.layout.terrain,
         this.layout.bounds.min,
         this.layout.bounds.max,
       );
+    if (!this.layout) this.grid = new WalkGrid([...obstacles, ...passageObstacles(state)], isLand);
     this.neighborhood?.update(state);
     this.road?.update(state);
     this.life?.update(state);
+    this.connection?.update(state);
     this.galilee?.update(state);
     this.people.get('joel')?.setEnabled(state.road.chapter.stage === 'complete');
     this.mooredBoat?.setEnabled(

@@ -1,3 +1,4 @@
+import { homePlaces, homeAvailable } from '../connection/home';
 import {
   lakeGateways,
   lakePlaces,
@@ -253,6 +254,7 @@ export const WALK_ROUTES: Record<'passage' | 'outer', readonly Point[]> = {
   ],
 };
 export const allNeighborhoodPlaces: readonly Interactable[] = [
+  ...homePlaces,
   ...gateways,
   ...Object.values(neighborhoodPlaces).flat(),
   ...Object.values(lifePlaces).flat(),
@@ -264,12 +266,16 @@ export const allNeighborhoodPlaces: readonly Interactable[] = [
 ];
 export function localNeighborhoodPlaces(state: GameState): Interactable[] {
   if (state.episode.stage !== 'complete') return [];
-  const exits = gateways.filter(
-    (g) =>
-      g.from === state.region &&
-      (!roadGateways.includes(g) || state.campaign.roof.stage === 'complete') &&
-      (!lakeGateways.includes(g) || state.road.chapter.stage === 'complete'),
-  );
+  const home = homeAvailable(state) ? homePlaces.filter((p) => p.region === state.region) : [];
+  const exits = [
+    ...home,
+    ...gateways.filter(
+      (g) =>
+        g.from === state.region &&
+        (!roadGateways.includes(g) || state.campaign.roof.stage === 'complete') &&
+        (!lakeGateways.includes(g) || state.road.chapter.stage === 'complete'),
+    ),
+  ];
   if (isRoadRegion(state.region))
     return [...exits, ...localRoadPlaces(state), ...localGalileePlaces(state)];
   if (isLakeRegion(state.region)) return [...exits, ...localLakePlaces(state)];
@@ -291,6 +297,8 @@ export function localNeighborhoodPlaces(state: GameState): Interactable[] {
   ];
 }
 export function placeRegion(id: string, state?: GameState): RegionId | undefined {
+  const home = homePlaces.find((p) => p.id === id);
+  if (home) return home.region;
   const lake = lakePlaceRegion(id);
   if (lake) return lake;
   const galilee = galileePlaceRegion(id);

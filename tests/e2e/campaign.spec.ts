@@ -23,7 +23,8 @@ async function ready(page: Page, buffer?: Buffer): Promise<void> {
   await expect(page.locator('#hud')).toBeVisible();
 }
 async function close(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  const closeButton = page.getByRole('button', { name: 'Close menu', exact: true });
+  if (await closeButton.isVisible()) await closeButton.click();
 }
 async function visit(page: Page, id: string): Promise<void> {
   await page.locator('.toolbar [data-action="map"]').click();
@@ -108,7 +109,7 @@ test('a v4 traveler walks into Chapter II, resumes every scene and completes the
   await page.locator('[data-action="roof-reflect"][data-value="welcome"]').click();
   await expect(page.locator('#quest-card')).toContainText('COMPLETE');
   const save = await exported(page);
-  expect(save.version).toBe(9);
+  expect(save.version).toBe(10);
   expect(save.state.campaign.roof.stage).toBe('complete');
   expect(save.state.campaign.roof.reflection).toBe('welcome');
   expect(save.state.episode.stage).toBe('complete');
