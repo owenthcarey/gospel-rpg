@@ -250,6 +250,13 @@ test('a carried pouch has a usable return route while journal travel preserves a
   await expect(page.locator('[data-action="journey"][data-value="house-exit"]')).toBeVisible();
   await page.locator('[data-action="journey"][data-value="house-exit"]').click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', 'capernaum-lanes');
+  // The saved route continues to Ruth after the doorway; arrival opens her dialogue.
+  await expect(
+    page.getByRole('dialog').getByRole('heading', { name: 'Ruth', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('#game-canvas')).toHaveAttribute('data-carrying', 'sewing-pouch');
+  await close(page);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.locator('.toolbar [data-action="journal"]').click();
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.locator('[data-action="track-story"][data-value="rest"]').click();
@@ -260,8 +267,12 @@ test('a carried pouch has a usable return route while journal travel preserves a
   await expect(page.locator('[data-action="journey"][data-value="to-shore"]')).toBeVisible();
   await page.locator('[data-action="journey"][data-value="to-shore"]').click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', 'capernaum');
-  await visit(page, 'sewing-rest');
+  // Follow the return route to its destination without interrupting it with another map visit.
+  await expect(
+    page.getByRole('dialog').getByRole('heading', { name: 'A pouch by the shore', exact: true }),
+  ).toBeVisible();
   await close(page);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await practical(page, 'life-set-pouch');
   const save = await exported(page);
   expect(save.state.campaign.roof.checkpoint).toBe(checkpoint);
@@ -269,4 +280,5 @@ test('a carried pouch has a usable return route while journal travel preserves a
   expect(save.state.life.thread.stage).toBe('identified');
   expect(save.state.campaign.carrying).toBeNull();
   expect(save.state.tracking).toBe('rest');
+  expect(save.state.connection.route).toBeNull();
 });

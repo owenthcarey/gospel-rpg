@@ -13,6 +13,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: ci,
   retries: ci ? 1 : 0,
+  // Retain retries for diagnostics, but a recovered failure must still block CI.
+  failOnFlakyTests: ci,
   workers: 1,
   reporter: ci ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
   use: {
