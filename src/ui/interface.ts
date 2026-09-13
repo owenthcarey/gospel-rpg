@@ -1,3 +1,7 @@
+import { journeyOverview, workSurface } from './views/exploration';
+import { workTarget, type ScreenPreview } from '../content/exploration/work';
+import { trapFocus, restoreFocus } from './focus';
+import type { WorkRect } from '../scene/work';
 import { isPresenting, presentationState } from '../game/connection/accounts';
 import { routePlan, type RoutePlan } from '../game/connection/routes';
 import {
@@ -61,6 +65,7 @@ import type { ScreenLabel } from '../scene/world';
 import { escapeHtml as esc, icon } from './icons';
 
 export type Panel =
+  | 'work'
   | 'journal'
   | 'inventory'
   | 'map'
@@ -79,6 +84,7 @@ export interface UIActions {
   action: (name: string, value?: string) => void;
   setting: (key: keyof Settings, value: string | boolean) => void;
   importFile: (file: File) => void;
+  workLayout?: (rect?: WorkRect) => void;
 }
 
 export class Interface {
@@ -97,9 +103,11 @@ export class Interface {
   private sceneControls: HTMLElement;
   private lastNearest: string | null = null;
   private lastTray = '';
-  private journalCategory: JournalCategory = 'stories';
+  private journalCategory: JournalCategory = 'overview';
   private journalFilter: JournalFilter = 'all';
   private journalStatus: StoryStatusFilter = 'all';
+  private objectiveExpanded = false;
+  private workObserver?: ResizeObserver;
   private onClick: (e: MouseEvent) => void;
   private onChange: (e: Event) => void;
   private onKey: (e: KeyboardEvent) => void;
@@ -162,29 +170,11 @@ export class Interface {
         );
     };
     this.onKey = (e) => {
-      if (e.key !== 'Tab' || !this.panel) return;
-      const focusable = [
-        ...this.overlay.querySelectorAll<HTMLElement>(
-          'button:not([disabled]),a[href],input:not([type="file"]),select,[tabindex="0"]',
-        ),
-      ].filter((el) => !el.hidden);
-      const first = focusable[0],
-        last = focusable.at(-1);
-      if (!first) return;
-      if (
-        e.shiftKey &&
-        (document.activeElement === first || !this.overlay.contains(document.activeElement))
-      ) {
-        e.preventDefault();
-        last?.focus();
-      } else if (
-        !e.shiftKey &&
-        (document.activeElement === last || !this.overlay.contains(document.activeElement))
-      ) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (this.panel && this.panel !== 'work') trapFocus(e, this.overlay);
     };
+    this.workObserver = new ResizeObserver(() => this.measureWork());
+    this.workObserver.observe(root);
+    this.workObserver.observe(this.overlay);
     root.addEventListener('click', this.onClick);
     root.addEventListener('change', this.onChange);
     window.addEventListener('keydown', this.onKey);
@@ -213,7 +203,13 @@ export class Interface {
     this.root.querySelector('.control-hints span')!.innerHTML =
       icon('mouse') + (state.region === 'galilee-water' ? ' Click to steer' : ' Click to walk');
     const quest = questView(state);
-    if (this.quest.innerHTML !== quest) this.quest.innerHTML = quest;
+    if (this.quest.dataset.content !== quest) {
+      this.quest.dataset.content = quest;
+      this.quest.innerHTML =
+        quest +
+        '<button class="objective-toggle text-button" data-action="objective-toggle" aria-expanded="false">Show steps</button>';
+      this.renderObjective();
+    }
     this.root.querySelector('.time-of-day span')!.textContent =
       state.region === 'capernaum'
         ? 'A quiet morning'
@@ -366,26 +362,39 @@ export class Interface {
       toast.hidden = true;
     }, 4500);
   }
-  private show(panel: Panel, content: string): void {
+  private show(panel: Panel, content: string, initialFocus = true): void {
     if (!this.panel)
       this.focusBefore =
         document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
     this.panel = panel;
-    this.hud.inert = true;
+    this.root.classList.toggle('working', panel === 'work');
+    this.hud.inert = panel !== 'work';
     this.sceneControls.inert = true;
+    const previousWork = this.overlay.querySelector<HTMLElement>('.work-panel');
+    if (previousWork) this.workObserver?.unobserve(previousWork);
     this.overlay.innerHTML = content;
+    const workPanel = this.overlay.querySelector<HTMLElement>('.work-panel');
+    if (workPanel) this.workObserver?.observe(workPanel);
     this.overlay.className =
-      panel === 'dialogue'
-        ? 'dialogue-overlay'
-        : panel === 'welcome'
-          ? 'welcome-overlay'
-          : 'panel-overlay';
-    requestAnimationFrame(() =>
-      this.overlay.querySelector<HTMLElement>('button:not([disabled]),[tabindex="0"]')?.focus(),
-    );
+      panel === 'work'
+        ? 'work-overlay'
+        : panel === 'dialogue'
+          ? 'dialogue-overlay'
+          : panel === 'welcome'
+            ? 'welcome-overlay'
+            : 'panel-overlay';
+    const surface = this.overlay.firstElementChild;
+    if (initialFocus)
+      requestAnimationFrame(() => {
+        if (this.overlay.firstElementChild === surface)
+          this.overlay.querySelector<HTMLElement>('button:not([disabled]),[tabindex="0"]')?.focus();
+      });
   }
   close(): void {
+    this.root.classList.remove('working');
     this.panel = null;
+    const workPanel = this.overlay.querySelector<HTMLElement>('.work-panel');
+    if (workPanel) this.workObserver?.unobserve(workPanel);
     this.overlay.innerHTML = '';
     this.overlay.className = '';
     this.hud.inert = false;
@@ -422,15 +431,17 @@ export class Interface {
     this.journalFilter = filter;
     const matches = (id: string) => filter === 'all' || filter === id;
     const content =
-      category === 'people'
-        ? journalPeople(state)
-        : category === 'places'
-          ? journalPlaces(state)
-          : category === 'memories'
-            ? memoryEntries(state, filter)
-            : status !== 'all'
-              ? statusStories(state, status, filter)
-              : `${matches('home') ? homeSummary(state) : ''}${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(preludeObjective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${roadSummary(state, filter)}${galileeSummary(state, filter)}${lakeSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
+      category === 'overview'
+        ? journeyOverview(state)
+        : category === 'people'
+          ? journalPeople(state)
+          : category === 'places'
+            ? journalPlaces(state)
+            : category === 'memories'
+              ? memoryEntries(state, filter)
+              : status !== 'all'
+                ? statusStories(state, status, filter)
+                : `${matches('home') && (filter === 'home' || state.lake.chapter.stage === 'complete') ? homeSummary(state) : ''}${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(preludeObjective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${roadSummary(state, filter)}${galileeSummary(state, filter)}${lakeSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
     this.show(
       'journal',
       this.panelShell(
@@ -545,6 +556,85 @@ export class Interface {
         `<p class="panel-lead">Speak with Simon by the boats to begin. Follow the chapter card, or wander and discover the village. There is no combat or timer. An unsupported route interpretation explains the mismatch and lets you try again without losing evidence.</p><dl class="controls-list">${rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="content-note">Progress is stored in this browser. Export a save from Settings before clearing browser data or changing devices.</p>`,
       ),
     );
+  }
+  private measureWork(): void {
+    const panel = this.overlay.querySelector<HTMLElement>('.work-panel');
+    const bounds = panel?.getBoundingClientRect();
+    this.actions.workLayout?.(
+      bounds
+        ? { left: bounds.left, top: bounds.top, right: bounds.right, bottom: bounds.bottom }
+        : undefined,
+    );
+  }
+  toggleObjective(): void {
+    this.objectiveExpanded = !this.objectiveExpanded;
+    this.renderObjective();
+  }
+  private renderObjective(): void {
+    this.quest.classList.toggle('objective-expanded', this.objectiveExpanded);
+    this.quest
+      .querySelectorAll<HTMLElement>('.quest-details')
+      .forEach((el) => (el.hidden = !this.objectiveExpanded));
+    const toggle = this.quest.querySelector<HTMLButtonElement>('.objective-toggle');
+    if (toggle) {
+      toggle.textContent = this.objectiveExpanded ? 'Hide steps' : 'Show steps';
+      toggle.setAttribute('aria-expanded', String(this.objectiveExpanded));
+    }
+  }
+  work(state: GameState, target: string, feedback = '', preview?: ScreenPreview): boolean {
+    if (!workTarget(state, target)) return false;
+    const wasWork = this.panel === 'work';
+    const active =
+      document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
+    const restore = wasWork && !!active && this.overlay.contains(active);
+    const action = active?.dataset.action,
+      value = active?.dataset.value;
+    const open = [...this.overlay.querySelectorAll<HTMLDetailsElement>('details[open]')].map(
+      (node) => node.className,
+    );
+    const scroll = this.overlay.querySelector('.work-body')?.scrollTop ?? 0;
+    // Mount an empty live region before updating its text, so feedback is announced
+    // even when an action also replaces the list of available controls.
+    this.show('work', workSurface(state, target, '', preview), !wasWork);
+    const surface = this.overlay.firstElementChild;
+    if (wasWork) {
+      this.overlay.querySelectorAll<HTMLDetailsElement>('details').forEach((node) => {
+        if (open.includes(node.className)) node.open = true;
+      });
+      const body = this.overlay.querySelector('.work-body');
+      if (body) body.scrollTop = scroll;
+    }
+    requestAnimationFrame(() => {
+      if (this.overlay.firstElementChild !== surface) return;
+      this.measureWork();
+      if (restore) restoreFocus(this.overlay, action, value, active?.dataset.workId);
+      const result = this.overlay.querySelector('.work-result');
+      if (result) result.textContent = feedback;
+    });
+    return true;
+  }
+  addWorkReturn(target: string): void {
+    const entry = this.overlay.querySelector<HTMLElement>('[data-action="work-open"]');
+    if (entry) entry.textContent = 'Return to the work';
+    else
+      this.overlay
+        .querySelector('.panel-body,.dialogue-main')
+        ?.insertAdjacentHTML(
+          'beforeend',
+          '<button class="secondary-button return-to-work" data-action="work-open" data-value="' +
+            esc(target) +
+            '">Return to the work</button>',
+        );
+  }
+  addWorkEntry(target: string): void {
+    this.overlay
+      .querySelector('.dialogue-choices')
+      ?.insertAdjacentHTML(
+        'afterend',
+        '<button class="secondary-button" data-action="work-open" data-value="' +
+          esc(target) +
+          '">Work in the world</button>',
+      );
   }
   private regionBusy = false;
   private actionPending = false;
@@ -685,7 +775,18 @@ export class Interface {
   context(id: string, state: GameState): boolean {
     const view = homeContext(id, state) ?? contextView(id, state);
     if (!view) return false;
-    this.show('context', this.panelShell(esc(view.title), 'PEOPLE & PLACES', view.body));
+    this.show(
+      'context',
+      this.panelShell(
+        esc(view.title),
+        'PEOPLE & PLACES',
+        (workTarget(state, id)
+          ? '<button class="secondary-button" data-action="work-open" data-value="' +
+            esc(id) +
+            '">Work in the world</button>'
+          : '') + view.body,
+      ),
+    );
     return true;
   }
   private mapSvg(large: boolean, position?: Point, state?: GameState): string {
@@ -709,6 +810,7 @@ export class Interface {
       )}" fill="none" stroke="#ddd0a0" stroke-width="8"/><path d="m80 192 4-100 12-92M16 100h110M36 64h60" stroke="#dace9f" fill="none" stroke-width="7"/>${buildings.map((p) => `<rect x="${(p.x + 24) * 4 - 7}" y="${(24 - p.z) * 4 - 6}" width="14" height="12" fill="#81765a" stroke="#e1cf9c" stroke-width="1"/>`).join('')}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
   }
   dispose(): void {
+    this.workObserver?.disconnect();
     clearTimeout(this.toastTimer);
     this.root.removeEventListener('click', this.onClick);
     this.root.removeEventListener('change', this.onChange);

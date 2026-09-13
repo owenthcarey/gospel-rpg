@@ -1,3 +1,4 @@
+import { TapGesture } from '../game/gestures';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import type { Scene } from '@babylonjs/core/scene';
 import type { Point } from '../game/types';
@@ -10,17 +11,20 @@ export interface ExplorationInput {
   walk: (point: Point) => void;
   nearest: () => string | undefined;
   resetCamera: () => void;
+  manualMove?: () => void;
   notice: (message: string) => void;
 }
 /** Every listener/observer installed here has a matching region-disposal cleanup. */
 export function bindExplorationInput(input: ExplorationInput): () => void {
   const { keys, canvas, scene } = input;
+  const gesture = new TapGesture();
   const down = (event: KeyboardEvent) => {
     if (
       input.paused() ||
       event.target instanceof HTMLInputElement ||
       event.target instanceof HTMLSelectElement ||
       event.target instanceof HTMLTextAreaElement ||
+      (event.target instanceof HTMLElement && !!event.target.closest('button,a,summary')) ||
       event.ctrlKey ||
       event.metaKey ||
       event.altKey
@@ -43,6 +47,8 @@ export function bindExplorationInput(input: ExplorationInput): () => void {
       ].includes(key)
     )
       event.preventDefault();
+    if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key))
+      input.manualMove?.();
     keys.add(key);
     if (key === 'e' && !event.repeat) {
       const nearest = input.nearest();
@@ -55,15 +61,27 @@ export function bindExplorationInput(input: ExplorationInput): () => void {
     if (key === 'r' && !event.repeat) input.resetCamera();
   };
   const up = (event: KeyboardEvent) => keys.delete(event.key.toLowerCase());
-  const clear = () => keys.clear();
+  const clear = () => {
+    keys.clear();
+    gesture.clear();
+  };
   const context = (event: Event) => event.preventDefault();
   window.addEventListener('keydown', down);
   window.addEventListener('keyup', up);
   window.addEventListener('blur', clear);
   canvas.addEventListener('contextmenu', context);
+  const pointerDown = (e: PointerEvent) =>
+    gesture.down(e.pointerId, e.clientX, e.clientY, e.button);
+  const pointerMove = (e: PointerEvent) => gesture.move(e.pointerId, e.clientX, e.clientY);
+  const pointerUp = (e: PointerEvent) => gesture.up(e.pointerId, e.clientX, e.clientY);
+  canvas.addEventListener('pointerdown', pointerDown, true);
+  window.addEventListener('pointermove', pointerMove, true);
+  window.addEventListener('pointerup', pointerUp, true);
+  window.addEventListener('pointercancel', clear, true);
   const pointer = scene.onPointerObservable.add((info) => {
     if (input.paused() || info.type !== PointerEventTypes.POINTERTAP || info.event.button !== 0)
       return;
+    if (!gesture.consume((info.event as PointerEvent).pointerId)) return;
     const pick = info.pickInfo;
     if (!pick?.hit) return;
     const id = pick.pickedMesh?.metadata?.interactionId as string | undefined;
@@ -76,6 +94,10 @@ export function bindExplorationInput(input: ExplorationInput): () => void {
     window.removeEventListener('keyup', up);
     window.removeEventListener('blur', clear);
     canvas.removeEventListener('contextmenu', context);
+    canvas.removeEventListener('pointerdown', pointerDown, true);
+    window.removeEventListener('pointermove', pointerMove, true);
+    window.removeEventListener('pointerup', pointerUp, true);
+    window.removeEventListener('pointercancel', clear, true);
     scene.onPointerObservable.remove(pointer);
     clear();
   };

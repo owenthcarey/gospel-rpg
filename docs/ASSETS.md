@@ -137,3 +137,11 @@ Land gateways place the marker beside their approach, using a 0.60 × 0.56 m col
 For MCP inspection, first generate the pose JSON with `CONNECTION_REVIEW_OUTPUT=/absolute/path/poses.json npx vitest run tests/unit/connection-staging.test.ts`, set `GOSPEL_RPG_ROOT` and `GOSPEL_CONNECTION_POSES` in Blender, then execute `tools/blender/inspect_connection.py`. `GOSPEL_REVIEW_OUTPUT` can redirect evidence. Generation and inspection preserve unrelated open scenes and never save them into the workshop.
 
 The completed original shore exposed an existing cost from individually submitted procedural scenery. Its same-material footpaths, small path stones, jetty planks/posts and distant hills now merge into static scene-owned meshes. This retains their geometry and materials while reducing submissions in both quality modes. Actors and exported GLBs retain independent scene-owned clones; the earlier hardware-instance rendering correction remains intact.
+
+## RFC-008 interaction refinements
+
+Blender MCP rebuilt the isolated workshop and refined four existing props: `channel_straight`, `channel_bend`, `water_basin` and `reed_screen`. Inset bands mark actual channel openings without obstructing the water bed. A woven crest and unequal knots face the resting seat and make the screen's orientation visible. The other 81 shipped GLBs retain their previous bytes; no external assets or services were used.
+
+The 85-model kit now totals **5,161,668 bytes**, leaving **81,212 bytes** under the unchanged 5 MiB limit. The twelve-bone character rig, shared clips, triangle caps and explicit region inventories are unchanged. The browser draws the temporary proposal as a broken outline at the authoritative supply socket; it is not a new downloaded model and cannot change collision or saved placement.
+
+[Independent final GLB review](verification/rfc008/README.md) includes the channel composition, resting arrangement and asset-kit render. The JSON asset record hashes every shipped GLB. The actual Babylon geometry tests retain their port/solver, carrying-contact, footing, placement and collision assertions, with added viewport, preview isolation and resource-disposal coverage.

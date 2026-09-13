@@ -47,6 +47,7 @@ test('a traveler completes the chapter, saves, reloads, and exports', async ({ p
   await choice(page, 'Stay a moment and listen');
   await expect(page.locator('#quest-card')).toContainText('COMPLETE');
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'An invitation to trust' })).toBeVisible();
   await expect(page.locator('.content-note').last()).toContainText('original');
   await page.getByRole('button', { name: 'Close menu', exact: true }).click();
@@ -77,6 +78,7 @@ test('a traveler completes the chapter, saves, reloads, and exports', async ({ p
   await travel(page, 'shore');
   await choice(page, 'Remember this');
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'One lake, many names' })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -160,11 +162,13 @@ test('Ezra remembers earlier discoveries and the village story survives a reload
   await choice(page, 'I’ll bring back a few memories');
   for (const place of ['Olive grove', 'Sea of Galilee']) {
     await page.locator('.toolbar [data-action="journal"]').click();
+    await page.getByRole('button', { name: 'Stories', exact: true }).click();
     await expect(page.locator('.village-summary')).toContainText('An ordinary morning');
     await page.getByRole('button', { name: /Find the next memory/ }).click();
     await expect(page.locator('.dialogue-box')).toBeVisible();
     await choice(page, 'Remember this');
     await page.locator('.toolbar [data-action="journal"]').click();
+    await page.getByRole('button', { name: 'Stories', exact: true }).click();
     await expect(page.locator('.discovery-card').filter({ hasText: place })).toContainText(
       'Remembered',
     );
@@ -173,6 +177,7 @@ test('Ezra remembers earlier discoveries and the village story survives a reload
   await page.reload();
   await page.getByRole('button', { name: 'Continue your journey' }).click();
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.getByRole('button', { name: 'Return to Ezra', exact: true }).click();
   await expect(page.locator('.dialogue-box')).toBeVisible();
   await choice(page, 'The quiet beneath the olives');
@@ -181,6 +186,7 @@ test('Ezra remembers earlier discoveries and the village story survives a reload
   await expect(page.locator('#toast')).toContainText('Village story complete');
   await expect(page.locator('#quest-card')).toContainText('0 / 5');
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'A place among neighbors', exact: true }),
   ).toBeVisible();

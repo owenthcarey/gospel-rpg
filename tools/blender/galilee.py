@@ -24,6 +24,12 @@ for shape in ['straight', 'bend']:
         box('outer_south', (.325, .35, .17), (1.35, .12, .34), 'pale_stone')
         box('inner_north', (.35, -.645, .17), (.12, .71, .34), 'pale_stone')
         box('inner_east', (.705, -.35, .17), (.59, .12, .34), 'pale_stone')
+    # Ochre bands sit on the bed at each actual open end. They never span a
+    # wall or close a port; their silhouette and position rotate with the mesh.
+    for y in ([-.86, .86] if shape == 'straight' else [-.86]):
+        box('open_end_band', (0, y, .124), (.52, .09, .008), 'ochre_wrap')
+    if shape == 'bend':
+        box('open_end_band', (.86, 0, .124), (.09, .52, .008), 'ochre_wrap')
     export('channel_' + shape)
 
 box('basin_floor', (0, 0, .08), (1.35, 1.35, .16), 'sandstone')
@@ -33,6 +39,7 @@ for sign in [-1, 1]:
 box('basin_wall', (.70, 0, .24), (.16, 1.24, .48), 'pale_stone')
 # The connecting lip spans the .2m gap from the branch port.
 box('inlet_bed', (-.90, 0, .08), (.40, .58, .16), 'sandstone')
+box('inlet_band', (-.92, 0, .164), (.08, .52, .008), 'ochre_wrap')
 export('water_basin')
 
 box('scoop_bowl', (0, 0, .04), (.30, .43, .08), 'lightwood')
@@ -61,4 +68,9 @@ for z in [.30, 1.30]:
     beam('screen_binding', (-.76, -.05, z), (.76, -.05, z), .018, 'teal')
 for x in [-.75, .75]:
     box('screen_foot', (x, 0, .035), (.18, .55, .07), 'wood')
+# A narrow woven crest and two unequal knots show which face is toward the
+# seat, including the side-on view. Existing feet and carrying bounds stay put.
+box('screen_woven_crest', (0, .055, 1.47), (1.44, .035, .09), 'teal')
+box('screen_direction_knot', (-.52, .08, 1.35), (.09, .04, .18), 'ochre_wrap')
+box('screen_direction_knot', (.52, .08, 1.39), (.09, .04, .10), 'ochre_wrap')
 export('reed_screen')

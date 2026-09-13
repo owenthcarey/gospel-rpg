@@ -1,3 +1,10 @@
+import {
+  workTarget,
+  validPreview,
+  screenCanMove,
+  type ScreenPreview,
+} from './content/exploration/work';
+import { workCommand } from './ui/views/exploration';
 import './ui/connection.css';
 import { displayRegion, isPresenting } from './game/connection/accounts';
 import { routePlan } from './game/connection/routes';
@@ -20,6 +27,7 @@ import {
 import { normalizeHeading } from './game/lake/navigation';
 import { galileeActions } from './content/galilee/actions';
 import { practicalActions } from './content/practical';
+import { suggestStory } from './content/exploration/suggestions';
 import { CHANNEL_IDS, type ChannelId, type Direction } from './game/galilee/types';
 import { traceWater } from './game/galilee/channel';
 import { checkArrangement } from './game/galilee/arrangement';
@@ -31,6 +39,7 @@ import './ui/episode.css';
 import './ui/campaign.css';
 import './ui/life.css';
 import './ui/road.css';
+import './ui/exploration.css';
 import {
   ROAD_ACTIONS,
   TRAIL_EVIDENCE,
@@ -71,6 +80,8 @@ let graphicsLost = false;
 let started = false;
 let conversation: Dialogue | null = null;
 let contextId: string | null = null;
+let working: { target: string; feedback: string; preview?: ScreenPreview } | undefined;
+let inspectionWork: string | undefined;
 let saveQueue: Promise<unknown> = Promise.resolve();
 let menuRequest = 0;
 let disposed = false;
@@ -85,6 +96,7 @@ const ui = new Interface(document.querySelector('#ui')!, {
   setting: (key, value) => {
     runAction(() => updateSetting(key, value));
   },
+  workLayout: (rect) => world?.setWorkBounds(rect),
   importFile: (file) => {
     runAction(() => loadFile(file));
   },
@@ -101,6 +113,9 @@ function runAction(action: () => Promise<void>): void {
 }
 async function changeRegion(next: GameState): Promise<void> {
   if (!world) return;
+  const workBefore = working;
+  clearWorking();
+  inspectionWork = undefined;
   regionLoading = true;
   syncPause();
   loading.hidden = false;
@@ -110,6 +125,17 @@ async function changeRegion(next: GameState): Promise<void> {
     await world.load(next, (message) => {
       loadingMessage.textContent = message;
     });
+  } catch (error) {
+    // A failed transactional replacement keeps the old region usable, including
+    // the focused controls that requested boarding. Temporary proposals are discarded.
+    if (workBefore && ui.panel === 'work') {
+      working = {
+        target: workBefore.target,
+        feedback: 'The journey could not open. Your work is kept; you can try again.',
+      };
+      refreshWork();
+    }
+    throw error;
   } finally {
     regionLoading = false;
     loading.hidden = true;
@@ -121,14 +147,48 @@ function reportError(error: unknown): void {
   console.error(error);
   ui.toast(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
 }
+function clearWorking(): void {
+  working = undefined;
+  world?.setWorkFocus();
+}
+function openWork(id: string): boolean {
+  const target = workTarget(snapshot(), id);
+  if (!target?.near) return false;
+  world?.cancelNavigation();
+  conversation = null;
+  contextId = id;
+  inspectionWork = undefined;
+  working = { target: id, feedback: '' };
+  ui.work(snapshot(), id);
+  world?.setWorkFocus(target);
+  syncPause();
+  return true;
+}
+function refreshWork(): void {
+  if (!working || ui.panel !== 'work') return;
+  const current = snapshot(),
+    target = workTarget(current, working.target);
+  if (!target?.near) {
+    clearWorking();
+    ui.close();
+    syncPause();
+    return;
+  }
+  if (working.preview && !validPreview(current, working.target, working.preview))
+    working.preview = undefined;
+  ui.work(current, working.target, working.feedback, working.preview);
+  world?.setWorkFocus(target, working.preview);
+}
 function pause(): void {
+  clearWorking();
+  inspectionWork = undefined;
   world?.setPaused(true);
   if (started && !regionLoading) void enqueueSave();
 }
 function syncPause(): void {
   world?.setPaused(
     !started ||
-      ui.panel !== null ||
+      (ui.panel !== null && ui.panel !== 'work') ||
       document.hidden ||
       regionLoading ||
       graphicsLost ||
@@ -310,6 +370,9 @@ async function apply(event: GameEvent): Promise<void> {
   await enqueueSave();
 }
 function openDialogue(id: string): void {
+  // Physical Galilee tasks open beside the world; conversations retain their reading surface.
+  const target = workTarget(snapshot(), id);
+  if (target && target.family !== 'ordinary' && openWork(id)) return;
   if (id === 'neri-meeting') {
     ui.toast(
       'Stay near Neri at this stop. At a doorway, wait until you are together before continuing.',
@@ -330,6 +393,7 @@ function openDialogue(id: string): void {
   contextId = null;
   conversation = dialogueFor(id, current);
   ui.dialogue(conversation);
+  if (target) ui.addWorkEntry(id);
 }
 async function showSettings(): Promise<void> {
   pause();
@@ -338,6 +402,10 @@ async function showSettings(): Promise<void> {
   if (request === menuRequest && !disposed) ui.settings(settings, slots, saves.persistent, started);
 }
 async function close(): Promise<void> {
+  const returnTo = inspectionWork;
+  inspectionWork = undefined;
+  if (returnTo && openWork(returnTo)) return;
+  clearWorking();
   menuRequest++;
   conversation = null;
   contextId = null;
@@ -405,6 +473,11 @@ function resumeRoute(): void {
   else ui.toast(plan.message);
 }
 async function navigateTo(target: string): Promise<void> {
+  if (ui.panel === 'work') {
+    clearWorking();
+    ui.close();
+    syncPause();
+  }
   await apply({ type: 'route-select', target });
   const plan = routePlan(snapshot(), target);
   if (plan?.available && plan.leg) world?.navigate(plan.leg);
@@ -412,7 +485,132 @@ async function navigateTo(target: string): Promise<void> {
 }
 async function handleAction(name: string, value?: string, chosen?: Choice): Promise<void> {
   if (!world) return;
+  if (ui.panel === 'work' && working) {
+    const target = workTarget(snapshot(), working.target);
+    const action = target?.actions.find((a) => {
+      const command = workCommand(a);
+      return command.name === name && command.value === (value ?? '');
+    });
+    if (action) {
+      if (action.blocker) {
+        ui.toast(action.blocker);
+        return;
+      }
+      const oldState = state;
+      working.preview = undefined;
+      await apply(action.event);
+      if (working && state !== oldState) {
+        const event = action.event;
+        working.feedback =
+          event.type === 'galilee-action' && event.id === 'spring-test'
+            ? traceWater(state.galilee.spring.turns).message
+            : event.type === 'galilee-action' && event.id.startsWith('shelter-check-')
+              ? checkArrangement(state.galilee.shelter).message
+              : event.type === 'galilee-turn'
+                ? (workTarget(snapshot(), working.target)?.status ?? 'Section turned.')
+                : event.type === 'galilee-screen'
+                  ? 'Screen moved. Check the approach when you are ready.'
+                  : (action.notice ?? 'Your work is saved.');
+      }
+      refreshWork();
+      if (action.event.type === 'journey') {
+        await close();
+        resumeRoute();
+      }
+      return;
+    }
+    if (name === 'galilee-hint' && target?.family === 'spring') {
+      await apply({ type: 'galilee-hint' });
+      refreshWork();
+      return;
+    }
+    // Stale commands from an earlier work surface cannot fall through to unrelated handlers.
+    if (
+      [
+        'galilee-action',
+        'galilee-turn',
+        'galilee-screen',
+        'campaign-action',
+        'lake-action',
+        'journey',
+        'work-act',
+      ].includes(name)
+    )
+      return;
+  }
   switch (name) {
+    case 'follow-story': {
+      if (!STORY_TRACKS.includes(value as (typeof STORY_TRACKS)[number])) break;
+      const story = value as (typeof STORY_TRACKS)[number];
+      const suggestion = suggestStory(snapshot(), story);
+      if (!suggestion?.available) break;
+      await apply({ type: 'track-story', story });
+      inspectionWork = undefined;
+      await close();
+      await navigateTo(suggestion.target);
+      break;
+    }
+    case 'objective-toggle':
+      ui.toggleObjective();
+      break;
+    case 'work-open':
+      if (value && !openWork(value)) {
+        await close();
+        await navigateTo(value);
+      }
+      break;
+    case 'work-visit':
+      if (value) {
+        await close();
+        await navigateTo(value);
+      }
+      break;
+    case 'work-frame':
+      world.frameWork();
+      break;
+    case 'work-inspect': {
+      const id = working?.target;
+      if (id) {
+        pause();
+        if (ui.context(id, snapshot())) {
+          inspectionWork = id;
+          ui.addWorkReturn(id);
+        } else {
+          openDialogue(id);
+          inspectionWork = id;
+          ui.addWorkReturn(id);
+        }
+      }
+      break;
+    }
+    case 'work-preview':
+      if (working && /^[0-3]$/.test(value ?? '') && screenCanMove(snapshot(), working.target)) {
+        working.preview = {
+          site: state.galilee.shelter.site!,
+          expected: state.galilee.shelter.screen,
+          direction: Number(value) as Direction,
+        };
+        refreshWork();
+      }
+      break;
+    case 'work-preview-cancel':
+      if (working) {
+        working.preview = undefined;
+        refreshWork();
+      }
+      break;
+    case 'work-preview-apply':
+      if (working?.preview && validPreview(snapshot(), working.target, working.preview)) {
+        const session = working;
+        const { expected, direction } = working.preview;
+        working.preview = undefined;
+        await apply({ type: 'galilee-screen', expected, direction });
+        if (working === session) {
+          working.feedback = 'Screen placed. ' + checkArrangement(state.galilee.shelter).message;
+          refreshWork();
+        }
+      }
+      break;
     case 'recap':
       pause();
       menuRequest++;
@@ -552,9 +750,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       else canvas.focus();
       break;
     case 'navigate':
-      if (started && !ui.panel && value) await navigateTo(value);
+      if (started && (!ui.panel || ui.panel === 'work') && value) await navigateTo(value);
       break;
     case 'travel':
+      inspectionWork = undefined;
       if (value) {
         if (isPresenting(state)) await apply(leavePresentationEvent(state));
         await close();
@@ -601,7 +800,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       }
       break;
     case 'quick-action': {
-      if (ui.panel) break;
+      if (ui.panel && ui.panel !== 'work') break;
       const action = practicalActions(snapshot()).find((a) => a.id === value);
       if (!action || action.blocker) {
         ui.toast(action?.blocker ?? 'This action is no longer available.');
@@ -906,6 +1105,15 @@ async function boot(): Promise<void> {
   settings = saves.getSettings();
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) settings.reducedMotion = true;
   world = new GameRuntime(canvas, {
+    requestNavigate: (id) => runAction(() => navigateTo(id)),
+    manualMove: () => {
+      if (ui.panel === 'work') {
+        clearWorking();
+        contextId = null;
+        ui.close();
+        syncPause();
+      }
+    },
     interact: (id) =>
       runAction(async () => {
         await apply({ type: 'route-arrive', target: id });
@@ -944,7 +1152,7 @@ async function boot(): Promise<void> {
     if (
       !started ||
       document.hidden ||
-      ui.panel ||
+      (ui.panel && ui.panel !== 'work') ||
       regionLoading ||
       graphicsLost ||
       (isPresenting(state) && scenePaused)

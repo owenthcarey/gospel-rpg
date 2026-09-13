@@ -63,6 +63,7 @@ export async function exported(page: Page) {
 export async function journal(page: Page) {
   await dismiss(page);
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
 }
 export async function library(page: Page) {
   await journal(page);

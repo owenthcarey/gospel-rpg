@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Keep the desktop/phone cases to 3–4 per shard. Six long software-WebGL
+        # Keep the desktop/phone cases to roughly 4–5 per shard. Six long software-WebGL
         # journeys exhausted the 15-minute suite limit despite passing assertions.
         shard:
           [
@@ -124,10 +124,36 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+  compatibility:
+    needs: build
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: game-build
+          path: dist/
+      - run: npx playwright install firefox webkit
+      - run: npm run test:compat
+      - name: Keep compatibility report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-report
+          path: test-results-compat/
+          retention-days: 7
   # Preserve the required check as a gate over build, every shard and the continuous journey.
   verify:
     if: ${{ always() }}
-    needs: [build, browser, continuous]
+    needs: [build, browser, continuous, compatibility]
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
@@ -136,4 +162,5 @@ jobs:
           BUILD_RESULT: ${{ needs.build.result }}
           BROWSER_RESULT: ${{ needs.browser.result }}
           CONTINUOUS_RESULT: ${{ needs.continuous.result }}
-        run: test "$BUILD_RESULT" = success && test "$BROWSER_RESULT" = success && test "$CONTINUOUS_RESULT" = success
+          COMPATIBILITY_RESULT: ${{ needs.compatibility.result }}
+        run: test "$BUILD_RESULT" = success && test "$BROWSER_RESULT" = success && test "$CONTINUOUS_RESULT" = success && test "$COMPATIBILITY_RESULT" = success

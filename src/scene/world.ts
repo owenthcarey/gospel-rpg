@@ -1,3 +1,5 @@
+import { WorkPresentation, type WorkRect } from './work';
+import type { WorkTarget, ScreenPreview } from '../content/exploration/work';
 import { ConnectionActivity } from './actors/connection';
 import { passageObstacles } from '../content/connection/presentation';
 import { isLakeRegion } from '../game/lake/types';
@@ -64,6 +66,8 @@ import { distance, findPath, WalkGrid } from '../game/pathfinding';
 import { newGame, type GameState, type Point, type Settings } from '../game/types';
 
 export interface WorldCallbacks {
+  requestNavigate?: (id: string) => void;
+  manualMove?: () => void;
   walkCheckpoint: () => void;
   roadCheckpoint: (step: number) => void;
   interact: (id: string) => void;
@@ -86,6 +90,7 @@ export interface ScreenLabel {
 export class World {
   grid: WalkGrid;
   private layout?: ExplorationLayout;
+  private workView?: WorkPresentation;
   private travelerBoat?: TravelerBoat;
   private mooredBoat?: TransformNode;
   private lakeCompany?: Actor;
@@ -341,6 +346,7 @@ export class World {
         scale: 0.45 + (i % 4) * 0.16,
       });
     }
+    this.workView = new WorkPresentation(this.scene, this.camera, this.canvas);
     this.player = new TransformNode('player', this.scene);
     const playerModel = this.library.instantiate('traveler', 'traveler');
     this.actorPlayer = new Actor(playerModel, true);
@@ -723,8 +729,11 @@ export class World {
         canvas: this.canvas,
         keys: this.keys,
         paused: () => this.paused,
-        navigate: (id) => this.navigate(id),
+        navigate: (id) =>
+          this.callbacks.requestNavigate ? this.callbacks.requestNavigate(id) : this.navigate(id),
+        manualMove: this.callbacks.manualMove,
         walk: (point) => {
+          this.callbacks.manualMove?.();
           this.walkTo(point);
         },
         nearest: () => this.nearest()?.id,
@@ -885,7 +894,7 @@ export class World {
     return { ...this.position };
   }
   private fitCamera(): void {
-    if (!this.layout) return;
+    if (!this.layout || this.workView?.active) return;
     const scale = Math.max(
       1,
       0.9 / (this.canvas.clientWidth / Math.max(1, this.canvas.clientHeight)),
@@ -897,6 +906,7 @@ export class World {
     this.cameraAspectScale = scale;
   }
   private cameraTarget(): Vector3 {
+    if (this.workView?.focusPoint) return this.workView.focusPoint;
     if (this.state.region === 'galilee-water')
       return new Vector3(this.position.x * 0.65, 0, this.position.z * 0.65 + 2);
     if (this.layout?.inside) return new Vector3(0, 0, 0);
@@ -909,6 +919,10 @@ export class World {
     return new Vector3(this.position.x, 0, this.position.z + 2);
   }
   resetCamera(): void {
+    if (this.workView?.active) {
+      this.workView.frame();
+      return;
+    }
     this.camera.alpha = -Math.PI / 2 - 0.45;
     this.camera.beta = this.layout?.camera.beta ?? 0.78;
     this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
@@ -1034,6 +1048,7 @@ export class World {
     if (document.hidden || (this.paused && now - this.lastRender < 100)) return;
     const elapsed = this.lastRender ? (now - this.lastRender) / 1000 : 0;
     this.lastRender = now;
+    this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
     // Consume slow frames in collision-safe steps; discard only long suspension gaps.
     let remaining = Math.min(elapsed, 0.25);
     while (remaining > 0.00001) {
@@ -1186,6 +1201,18 @@ export class World {
     // Cancel approaches when an actor departs or a carried object disappears.
     if (this.destination && !this.destinations.some((p) => p.id === this.destination)) this.stop();
   }
+  setWorkFocus(target?: WorkTarget, preview?: ScreenPreview): void {
+    if (target) this.stop();
+    this.workView?.select(target, this.state, preview);
+    this.canvas.dataset.workTarget = target?.id ?? '';
+    this.canvas.dataset.workPreview = preview ? String(preview.direction) : '';
+  }
+  setWorkBounds(rect?: WorkRect): void {
+    this.workView?.setBounds(rect);
+  }
+  frameWork(): void {
+    this.workView?.frame();
+  }
   getCompanionPosition(): Point | undefined {
     return this.neighborhood?.position();
   }
@@ -1212,6 +1239,7 @@ export class World {
     }
   }
   dispose(): void {
+    this.workView?.dispose();
     this.deactivate();
     this.cleanup.forEach((fn) => fn());
     this.activity?.dispose();

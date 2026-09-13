@@ -14,6 +14,12 @@ export interface RegionView {
 }
 
 export interface ExplorationView extends RegionView {
+  setWorkFocus(
+    target?: import('../../content/exploration/work').WorkTarget,
+    preview?: import('../../content/exploration/work').ScreenPreview,
+  ): void;
+  setWorkBounds(rect?: import('../work').WorkRect): void;
+  frameWork(): void;
   setPosition(point: Point, snap?: boolean): void;
   navigate(id: string): void;
   stop(): void;

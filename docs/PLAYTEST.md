@@ -2,7 +2,7 @@
 
 Run `npm ci` and `npm run dev`, then open the printed local URL. A fresh journey begins on the shore. Complete the net-and-bread prelude, return to Simon, prepare the landing and gathering, witness Into the Deep, and finish its aftermath with a reflection. The next chapter appears in the journal and on the road into Capernaum.
 
-For a focused Chapter II review, choose **Saves & settings → Import** and select `tests/fixtures/saves/v4-complete-episode.json`. Importing replaces the current autosave, so export a journey you want to keep first. The supplied save contains completed Chapter I progress and automatically migrates to v7.
+For a focused Chapter II review, choose **Saves & settings → Import** and select `tests/fixtures/saves/v4-complete-episode.json`. Importing replaces the current autosave, so export a journey you want to keep first. The supplied save contains completed Chapter I progress and automatically migrates to v10.
 
 ## Through the Roof
 
@@ -170,3 +170,9 @@ Visit the three new return destinations in every order across separate journeys.
 Open Replay Gospel scenes from the journal. Uncompleted accounts are unavailable. Revisit each completed account, select any scene, move backward/forward, read its transcript, pause, reload and return. The last replay scene returns directly to exploration. Earlier reflections, journals, held supplies, boat heading/berth, waiting companions and the traveler’s exact saved position must remain unchanged. A first-time Gospel scene must be left before opening replay. Test failed startup and failed return with retry.
 
 Inspect passage-marker footing/collision, pier edge and post silhouettes, grounded return neighbors, supported seated neighbors, carried-object hand contact and visible physical work after its panel closes. Review High/Low and reduced motion in the actual browser. Automated desktop/phone emulation and Blender checks do not establish physical mobile performance, screen-reader usability or human pacing; record those separately with device/browser and participant context.
+
+## The Journey in Your Hands
+
+Use the [RFC-008 practical review guide](verification/rfc008/README.md) for new overview, work, preview, camera, focus and gesture checks. The complete Stories category, all transcripts, recap and replay library remain accessible from the journal. **Your journey** restores the overview after choosing another category.
+
+Review the same cases on a physical touchscreen and with a screen reader. Browser emulation and DOM focus assertions do not establish touch comfort, reading order or announcement quality with assistive technology. Record the device, browser, graphics setting, viewport and the step where an issue occurs.

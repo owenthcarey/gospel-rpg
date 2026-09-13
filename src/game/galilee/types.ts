@@ -34,7 +34,7 @@ export interface GalileeState {
 export type GalileeEvent =
   | { type: 'galilee-action'; id: string }
   | { type: 'galilee-turn'; id: ChannelId; expected: Direction }
-  | { type: 'galilee-screen'; expected: Direction }
+  | { type: 'galilee-screen'; expected: Direction; direction?: Direction }
   | { type: 'galilee-hint' };
 export function newGalilee(): GalileeState {
   return {

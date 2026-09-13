@@ -58,6 +58,7 @@ test('the road opens after Chapter II; Tamar’s investigation supports observat
   const mobile = info.project.name === 'mobile-chromium';
   await ready(page, completedRoof());
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(page.locator('.journal-summary')).toContainText('The prelude is complete');
   await expect(page.locator('.road-stories')).toContainText('At the gate');
   await close(page);
@@ -184,6 +185,7 @@ for (const route of ['shade', 'terrace'] as const)
         await importState(page, save.state);
         await door(page, 'to-road', 'galilean-road');
         await page.locator('.toolbar [data-action="journal"]').click();
+        await page.getByRole('button', { name: 'Stories', exact: true }).click();
         await expect(page.locator('.company-overview')).toContainText('The Galilean road');
         await page.locator('.company-overview [data-value="neri"]').click();
         await expect(page.getByRole('dialog')).toBeVisible();
@@ -294,6 +296,7 @@ test('an imported waiting companion stays put through Gospel reading, reload and
   await page.getByRole('button', { name: 'Continue your journey' }).click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-checkpoint', 'procession');
   await page.locator('.toolbar [data-action="journal"]').click();
+  await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await page.locator('.company-overview [data-value="neri"]').click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await act(page, 'nain-exit', 'journey');
