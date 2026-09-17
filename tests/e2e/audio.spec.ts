@@ -50,6 +50,66 @@ const level = (page: Page) =>
   });
 const state = (page: Page) =>
   page.evaluate(() => window.__audioProbe.contexts[0]?.state ?? 'locked');
+
+/** Retain short bursts on the audio thread, even while software WebGL blocks page.evaluate. */
+async function capturePeak(page: Page) {
+  const meter = await page.evaluateHandle(async () => {
+    const analyser = window.__audioProbe.analyser!;
+    const context = analyser.context as AudioContext;
+    const module = URL.createObjectURL(
+      new Blob(
+        [
+          `class PeakMeter extends AudioWorkletProcessor {
+            constructor() {
+              super();
+              this.peak = 0;
+              this.port.onmessage = () => this.port.postMessage(this.peak);
+            }
+            process(inputs) {
+              let sum = 0, count = 0;
+              for (const channel of inputs[0]) {
+                for (const value of channel) sum += value * value;
+                count += channel.length;
+              }
+              if (count) this.peak = Math.max(this.peak, Math.sqrt(sum / count));
+              return true;
+            }
+          }
+          registerProcessor('test-peak-meter', PeakMeter);`,
+        ],
+        { type: 'text/javascript' },
+      ),
+    );
+    try {
+      await context.audioWorklet.addModule(module);
+    } finally {
+      URL.revokeObjectURL(module);
+    }
+    const node = new AudioWorkletNode(context, 'test-peak-meter');
+    // Its output remains silent: this branch measures the mix without doubling playback.
+    analyser.connect(node).connect(context.destination);
+    return node;
+  });
+  return {
+    read: () =>
+      meter.evaluate(
+        (node) =>
+          new Promise<number>((resolve) => {
+            node.port.onmessage = ({ data }) => resolve(data);
+            node.port.postMessage('read');
+          }),
+      ),
+    dispose: async () => {
+      await meter.evaluate((node) => {
+        window.__audioProbe.analyser!.disconnect(node);
+        node.disconnect();
+        node.port.close();
+      });
+      await meter.dispose();
+    },
+  };
+}
+
 async function slider(page: Page, name: string, value: number): Promise<void> {
   await page.getByRole('slider', { name, exact: true }).fill(String(value));
   await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
@@ -153,11 +213,16 @@ test('walking produces effects with music and ambience silenced', async ({ page 
   await slider(page, 'Master volume', 1);
   await page.getByRole('button', { name: 'Close menu', exact: true }).click();
   await expect.poll(() => level(page)).toBeLessThan(0.0001);
-  await page.keyboard.down('s');
+  const peak = await capturePeak(page);
   try {
-    await expect.poll(() => level(page), { intervals: [30, 40, 50] }).toBeGreaterThan(0.0003);
+    expect(await peak.read()).toBeLessThan(0.0001);
+    const position = await page.locator('#minimap-player').getAttribute('transform');
+    await page.keyboard.down('s');
+    await expect(page.locator('#minimap-player')).not.toHaveAttribute('transform', position!);
+    await expect.poll(() => peak.read()).toBeGreaterThan(0.0003);
   } finally {
     await page.keyboard.up('s');
+    await peak.dispose();
   }
   await expect.poll(() => level(page)).toBeLessThan(0.0001);
 });
