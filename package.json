@@ -30,7 +30,8 @@
     "assets:inspect:connection": "python3 tools/build_assets.py --inspect-connection",
     "test:compat": "playwright test --config=playwright.compat.config.ts",
     "fixtures:exploration": "node tools/generate_exploration_fixtures.mjs",
-    "audio:render": "node tools/render_audio.mjs"
+    "audio:render": "node tools/render_audio.mjs",
+    "test:e2e:plan": "node --experimental-strip-types tools/ci/plan-browser-tests.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

@@ -9,3 +9,5 @@ public/assets
 
 .compat-dist/
 test-results-compat/
+
+/artifacts/browser-plan/
