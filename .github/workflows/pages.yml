@@ -35,4 +35,4 @@ jobs:
           path: dist
       - name: Publish
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
