@@ -17,3 +17,5 @@ __pycache__/
 /.compat-dist/
 
 /artifacts/audio/
+
+/artifacts/browser-plan/

@@ -10,6 +10,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      browser-shards: ${{ steps.browser-plan.outputs.shards }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -21,6 +23,16 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
+      - name: Plan browser groups from recorded runtimes
+        id: browser-plan
+        run: npm run test:e2e:plan
+      - name: Keep browser plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-plan
+          path: artifacts/browser-plan/
+          if-no-files-found: error
+          retention-days: 7
       - name: Keep production build
         uses: actions/upload-artifact@v4
         with:
@@ -30,47 +42,12 @@ jobs:
   browser:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        # Keep the desktop/phone cases to roughly 4–5 per shard. Six long software-WebGL
-        # journeys exhausted the 15-minute suite limit despite passing assertions.
-        shard:
-          [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20,
-            21,
-            22,
-            23,
-            24,
-            25,
-            26,
-            27,
-            28,
-            29,
-            30,
-            31,
-            32,
-          ]
+        # Keep long journeys apart and grow the matrix as the suite grows.
+        shard: ${{ fromJSON(needs.build.outputs.browser-shards) }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -85,7 +62,11 @@ jobs:
           name: game-build
           path: dist/
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --grep-invert "one fresh traveler"
+      - uses: actions/download-artifact@v4
+        with:
+          name: browser-plan
+          path: artifacts/browser-plan/
+      - run: npm run test:e2e -- --test-list=artifacts/browser-plan/${{ matrix.shard }}.txt
       - name: Keep browser reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

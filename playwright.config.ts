@@ -9,7 +9,7 @@ export default defineConfig({
   timeout: ci ? 180_000 : 90_000,
   expect: { timeout: ci ? 60_000 : 20_000 },
   // Leave time for report generation and upload before the workflow's job deadline.
-  globalTimeout: ci ? 15 * 60_000 : 0,
+  globalTimeout: ci ? 20 * 60_000 : 0,
   fullyParallel: true,
   forbidOnly: ci,
   retries: ci ? 1 : 0,

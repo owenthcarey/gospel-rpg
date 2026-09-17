@@ -11,6 +11,7 @@ export default tseslint.config(
       'playwright-report/**',
       'test-results/**',
       'test-results-compat/**',
+      'artifacts/browser-plan/**',
     ],
   },
   js.configs.recommended,
