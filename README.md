@@ -67,7 +67,7 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 - Autosave, three manual slots, JSON export/import and **v10 migration from v1–v9 saves**, including interrupted scenes, routes, return encounters and replay cursors.
 - Persistent destinations across land and lake: menus retain your route, manual movement leaves it resumable, and each gateway, boarding and docking action remains deliberate.
 - Replay all **31 scenes** from completed Gospel accounts, with previous/next, transcript, pause, scene selection and exact return to your saved traveler, supplies, companions and boat.
-- Compact phone objectives, standard/large reading sizes, readable captions, keyboard focus management, reduced motion, lower graphics settings and optional ambience.
+- Compact phone objectives, standard/large reading sizes, readable captions, keyboard focus management, reduced motion, lower graphics settings and an original nine-track regional soundtrack.
 - Welcome and save controls open before any models download; continue/import load the saved region directly with retry.
 - Saved full/restrained exploration guidance, explicit walk cancellation, placement guides, and camera cutaways for obstructing trees.
 - Transactional region loading with retry, explicit regional asset inventories and a local F3 rendering snapshot with object visibility counts.
@@ -89,6 +89,12 @@ Use **Journal → Replay Gospel scenes** to revisit a completed account. Replay 
 This delivers four bounded Gospel chapters, ten optional stories and an optional closing interlude. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/008-the-journey-in-your-hands.md), and [verification record](docs/VERIFICATION.md).
 
 For a guided review and portable example saves, see the [playtest guide](docs/PLAYTEST.md).
+
+## Music and sound
+
+Nine original scores (about 16 minutes) follow the village, homes, roads, lake, and Gospel scenes, with flute, reeds, lute, harp, bells, strings, and light percussion. Scene changes crossfade; storm and restoration cues follow the story, including replay. Footsteps, rowing, practical work, discoveries, and memories have their own sounds.
+
+Music begins after **Begin your journey** or **Continue**. Use **Settings → Music & sound** for master, music, ambience, and effects levels. Existing muted preferences stay muted. See the [audio guide](docs/AUDIO.md) to add tracks, effects, or instruments, or render the compositions as WAV files with `npm run audio:render`.
 
 ## Develop and verify
 
