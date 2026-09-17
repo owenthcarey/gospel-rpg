@@ -58,7 +58,9 @@ import { newGame, type GameEvent, type GameState, type Settings } from './game/t
 import { importSave, makeSave, MAX_SAVE_BYTES } from './persistence/schema';
 import { SaveRepository, SLOT_IDS, type SlotId } from './persistence/saves';
 import { ActionQueue } from './game/action-queue';
-import { Ambience } from './scene/audio';
+import { GameAudio } from './scene/audio';
+import { feedbackForEvent } from './content/audio/feedback';
+import type { ActionMotion } from './content/campaign/actions';
 import { GameRuntime } from './scene/runtime';
 import { SCENE_IDS } from './game/episode/types';
 import { actionFor } from './content/episode/interactions';
@@ -70,7 +72,7 @@ const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas')!;
 const loading = document.querySelector<HTMLElement>('#loading')!;
 const loadingMessage = document.querySelector<HTMLElement>('#loading-message')!;
 const saves = new SaveRepository();
-const audio = new Ambience();
+const audio = new GameAudio();
 let state: GameState = newGame();
 let settings: Settings;
 let world: GameRuntime | undefined;
@@ -90,14 +92,19 @@ let timer: ReturnType<typeof setInterval> | undefined;
 
 const ui = new Interface(document.querySelector('#ui')!, {
   action: (name, value) => {
+    if (started || ['begin', 'continue', 'confirm-new', 'load-slot'].includes(name)) audio.unlock();
+    if (started && ['journal', 'inventory', 'map', 'settings'].includes(name)) audio.play('page');
     const choice = name === 'choice' ? conversation?.choices[Number(value)] : undefined;
     runAction(() => handleAction(name, value, choice));
   },
   setting: (key, value) => {
+    if (key === 'sound') audio.set({ ...settings, sound: Boolean(value) });
+    audio.unlock();
     runAction(() => updateSetting(key, value));
   },
   workLayout: (rect) => world?.setWorkBounds(rect),
   importFile: (file) => {
+    audio.unlock();
     runAction(() => loadFile(file));
   },
 });
@@ -180,12 +187,14 @@ function refreshWork(): void {
   world?.setWorkFocus(target, working.preview);
 }
 function pause(): void {
+  audio.duck(true);
   clearWorking();
   inspectionWork = undefined;
   world?.setPaused(true);
   if (started && !regionLoading) void enqueueSave();
 }
 function syncPause(): void {
+  audio.duck(ui.panel !== null && ui.panel !== 'work');
   world?.setPaused(
     !started ||
       (ui.panel !== null && ui.panel !== 'work') ||
@@ -244,6 +253,10 @@ function enqueueSave(slot: SlotId = 'auto', notify = false): Promise<void> {
     if (notify) throw new Error('The save could not be written. Try exporting a file instead.');
   });
 }
+function performInteraction(motion?: ActionMotion, target?: string): void {
+  world?.performInteraction(motion, target);
+  audio.motion(motion);
+}
 async function apply(event: GameEvent): Promise<void> {
   const previous = state;
   const current = snapshot();
@@ -253,10 +266,12 @@ async function apply(event: GameEvent): Promise<void> {
   state = next;
   world?.update(state);
   ui.update(state);
-  audio.region(displayRegion(state));
+  audio.update(state);
+  const feedback = feedbackForEvent(event);
+  if (feedback) audio.play(feedback);
   if (event.type === 'galilee-action') {
     const action = galileeActions.find((a) => a.id === event.id)!;
-    world?.performInteraction(action.motion, action.target);
+    performInteraction(action.motion, action.target);
     ui.toast(
       event.id === 'spring-test'
         ? traceWater(state.galilee.spring.turns).message
@@ -266,14 +281,13 @@ async function apply(event: GameEvent): Promise<void> {
     );
   }
   if (event.type === 'galilee-turn' || event.type === 'galilee-screen')
-    world?.performInteraction(
+    performInteraction(
       'Repair',
       event.type === 'galilee-turn' ? 'channel-' + event.id : 'rest-' + state.galilee.shelter.site,
     );
   if (event.type === 'journey' && event.gateway.startsWith('board-'))
     ui.toast('Steer with arrows or WASD, or choose a map destination. Approach a landing to dock.');
   if (event.type === 'lake-action' && event.id !== 'enter') {
-    audio.chime();
     ui.toast(
       event.id.startsWith('evidence-')
         ? 'Observation recorded. Compare your clues in A sheltered way in the journal.'
@@ -285,7 +299,6 @@ async function apply(event: GameEvent): Promise<void> {
     );
   }
   if (event.type === 'storm-reflect' || event.type === 'lake-ending') {
-    audio.chime();
     ui.toast(
       event.type === 'storm-reflect'
         ? 'Peace, be still complete · The way home is now available in your journal.'
@@ -293,7 +306,6 @@ async function apply(event: GameEvent): Promise<void> {
     );
   }
   if (event.type === 'road-action') {
-    audio.chime();
     ui.toast(roadActions.find((a) => a.id === event.id)?.notice ?? 'Remembered.');
   }
   if (event.type === 'road-evidence')
@@ -301,22 +313,17 @@ async function apply(event: GameEvent): Promise<void> {
   if (event.type === 'road-step' && state.road.company.stage === 'arrived')
     ui.toast('You have arrived together. Speak with Neri beside the bench.');
   if (event.type === 'nain-reflect') {
-    audio.chime();
     ui.toast('At the gate complete · Your reflection is remembered.');
   }
   if (event.type === 'road-ending') {
-    audio.chime();
     ui.toast('A way remembered complete · Your shared memory is in the journal.');
   }
   if (event.type === 'campaign-action') {
     const action = worldAction(event.id);
-    if (action && actionMotion(action))
-      world?.performInteraction(actionMotion(action), action.target);
-    audio.chime();
+    if (action && actionMotion(action)) performInteraction(actionMotion(action), action.target);
     ui.toast(worldAction(event.id)?.notice ?? 'Remembered.');
   }
   if (event.type === 'roof-reflect') {
-    audio.chime();
     ui.toast('Through the Roof complete · Your reflection is remembered.');
   }
   if (event.type === 'walk-step' && state.campaign.walk.stage === 'arrived')
@@ -325,14 +332,12 @@ async function apply(event: GameEvent): Promise<void> {
     ui.toast('A neighborhood memory has been added to your journal.');
   if (event.type === 'episode-action') {
     const action = actionFor(event.id);
-    if (action.motion) world?.performInteraction(action.motion, action.destination);
-    audio.chime();
+    if (action.motion) performInteraction(action.motion, action.destination);
     ui.toast(action.notice);
   }
   if (event.type === 'start-episode') ui.toast('Into the Deep · Make room on the shore.');
   if (event.type === 'episode-note') ui.toast('An observation has been added to your journal.');
   if (event.type === 'reflect') {
-    audio.chime();
     ui.toast('Into the Deep complete · Your reflection is in the journal.');
   }
   if (event.type === 'leave-scene')
@@ -344,7 +349,6 @@ async function apply(event: GameEvent): Promise<void> {
     ui.toast('Back on shore · Help at the landing, then visit Miriam and Ezra.');
   if (event.type === 'track-story') ui.toast('Your selected story is now tracked.');
   if (event.type === 'collect' && !previous.inventory.includes(event.item)) {
-    audio.chime();
     ui.toast(
       `${event.item === 'net' ? 'Mended fishing net' : 'Barley loaves'} added to your satchel.`,
     );
@@ -354,17 +358,14 @@ async function apply(event: GameEvent): Promise<void> {
   if (event.type === 'deliver' && state.quest === 'delivered')
     ui.toast('Supplies delivered · Jesus is waiting by the water.');
   if (event.type === 'discover' && !previous.discoveries.includes(event.id)) {
-    audio.chime();
     ui.toast('A new memory has been added to your journal.');
   }
   if (event.type === 'listen' && previous.quest === 'delivered') {
-    audio.chime();
     ui.toast('Prelude complete · Speak with Simon to continue Into the Deep.');
   }
   if (event.type === 'accept-village-story')
     ui.toast('Village story begun · An ordinary morning. Find your next stop in the journal.');
   if (event.type === 'finish-village-story') {
-    audio.chime();
     ui.toast('Village story complete · A place among neighbors. A new memory is in your journal.');
   }
   await enqueueSave();
@@ -436,7 +437,7 @@ async function begin(saved?: GameState): Promise<void> {
   world?.update(state);
   ui.update(state);
   syncPause();
-  audio.region(displayRegion(state));
+  audio.update(state);
   audio.set(settings);
   if (isPresenting(state)) ui.focusScene();
   else canvas.focus();
@@ -445,7 +446,10 @@ async function begin(saved?: GameState): Promise<void> {
 }
 async function updateSetting(key: keyof Settings, value: string | boolean): Promise<void> {
   if (key === 'sound' || key === 'reducedMotion') settings = { ...settings, [key]: Boolean(value) };
-  if (key === 'volume') settings = { ...settings, volume: Math.max(0, Math.min(1, Number(value))) };
+  if (['volume', 'musicVolume', 'ambienceVolume', 'effectsVolume'].includes(key)) {
+    const level = Number(value);
+    if (Number.isFinite(level)) settings = { ...settings, [key]: Math.max(0, Math.min(1, level)) };
+  }
   if (key === 'textSize')
     settings = { ...settings, textSize: value === 'large' ? 'large' : 'standard' };
   if (key === 'guidance')
@@ -1093,6 +1097,11 @@ const visibility = () => {
     void enqueueSave();
   } else audio.resume();
 };
+const unlockAudio = () => {
+  if (started) audio.unlock();
+};
+window.addEventListener('pointerdown', unlockAudio, { capture: true });
+window.addEventListener('keydown', unlockAudio, { capture: true });
 window.addEventListener('keydown', keydown);
 document.addEventListener('visibilitychange', visibility);
 const pagehide = () => {
@@ -1103,6 +1112,8 @@ window.addEventListener('pagehide', pagehide);
 async function boot(): Promise<void> {
   await saves.init();
   settings = saves.getSettings();
+  audio.set(settings);
+  if (document.hidden) audio.pause();
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) settings.reducedMotion = true;
   world = new GameRuntime(canvas, {
     requestNavigate: (id) => runAction(() => navigateTo(id)),
@@ -1123,6 +1134,15 @@ async function boot(): Promise<void> {
     roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
     frame: (position, labels, heading, nearest, destination) => {
+      audio.movement(
+        position,
+        started &&
+          !regionLoading &&
+          !graphicsLost &&
+          !document.hidden &&
+          (!ui.panel || ui.panel === 'work') &&
+          !isPresenting(state),
+      );
       state.position = { ...position };
       ui.frame(position, labels, heading, nearest, destination);
     },
@@ -1180,6 +1200,8 @@ if (import.meta.hot)
     world?.dispose();
     audio.dispose();
     saves.close();
+    window.removeEventListener('pointerdown', unlockAudio, { capture: true });
+    window.removeEventListener('keydown', unlockAudio, { capture: true });
     window.removeEventListener('keydown', keydown);
     document.removeEventListener('visibilitychange', visibility);
     window.removeEventListener('pagehide', pagehide);

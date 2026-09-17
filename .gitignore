@@ -15,3 +15,5 @@ __pycache__/
 
 /test-results-compat/
 /.compat-dist/
+
+/artifacts/audio/

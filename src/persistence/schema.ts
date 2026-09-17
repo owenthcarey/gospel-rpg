@@ -328,6 +328,15 @@ export function parseSettings(raw: unknown): Settings {
     textSize: raw.textSize === 'large' ? 'large' : 'standard',
     sound: typeof raw.sound === 'boolean' ? raw.sound : DEFAULT_SETTINGS.sound,
     volume: finite(raw.volume) ? Math.max(0, Math.min(1, raw.volume)) : DEFAULT_SETTINGS.volume,
+    musicVolume: finite(raw.musicVolume)
+      ? Math.max(0, Math.min(1, raw.musicVolume))
+      : DEFAULT_SETTINGS.musicVolume,
+    ambienceVolume: finite(raw.ambienceVolume)
+      ? Math.max(0, Math.min(1, raw.ambienceVolume))
+      : DEFAULT_SETTINGS.ambienceVolume,
+    effectsVolume: finite(raw.effectsVolume)
+      ? Math.max(0, Math.min(1, raw.effectsVolume))
+      : DEFAULT_SETTINGS.effectsVolume,
     quality: raw.quality === 'low' ? 'low' : 'high',
     reducedMotion:
       typeof raw.reducedMotion === 'boolean' ? raw.reducedMotion : DEFAULT_SETTINGS.reducedMotion,

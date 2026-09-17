@@ -59,14 +59,20 @@ export interface Settings {
   textSize: 'standard' | 'large';
   sound: boolean;
   volume: number;
+  musicVolume: number;
+  ambienceVolume: number;
+  effectsVolume: number;
   quality: 'low' | 'high';
   reducedMotion: boolean;
 }
 export const DEFAULT_SETTINGS: Settings = {
   guidance: 'full',
   textSize: 'standard',
-  sound: false,
+  sound: true,
   volume: 0.35,
+  musicVolume: 0.7,
+  ambienceVolume: 0.5,
+  effectsVolume: 0.65,
   quality: 'high',
   reducedMotion: false,
 };

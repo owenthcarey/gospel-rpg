@@ -54,7 +54,10 @@ describe('save safety', () => {
       textSize: 'standard',
       volume: 1,
       quality: 'high',
-      sound: false,
+      sound: true,
+      musicVolume: 0.7,
+      ambienceVolume: 0.5,
+      effectsVolume: 0.65,
       reducedMotion: false,
     });
   });
@@ -117,6 +120,9 @@ describe('IndexedDB save slots', () => {
     await a.saveSettings({
       sound: true,
       volume: 0.2,
+      musicVolume: 0.7,
+      ambienceVolume: 0.5,
+      effectsVolume: 0.65,
       quality: 'low',
       guidance: 'full',
       textSize: 'standard',

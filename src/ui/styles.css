@@ -1665,3 +1665,30 @@ kbd {
     bottom: 105px;
   }
 }
+
+.audio-settings {
+  margin-bottom: 1.8rem;
+}
+.soundtrack-note {
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid #c6b78b55;
+  border-radius: 8px;
+  background: #b6a1670a;
+}
+.soundtrack-note strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: Georgia, serif;
+  font-size: 1.05rem;
+}
+.soundtrack-note p {
+  margin: 0.45rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.soundtrack-note small {
+  display: block;
+  opacity: 0.75;
+  line-height: 1.5;
+}
