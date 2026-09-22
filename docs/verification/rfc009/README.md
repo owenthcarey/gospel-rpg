@@ -19,16 +19,16 @@ Use **Settings and saves → Import** to open a review save:
 
 ## Browser compositions
 
-The before captures use baseline `fb39e3b`. Each after capture uses the same region, traveler position and High/reduced-motion settings, with the new landing completed. The selected-story HUD consequently differs. These are production browser renders.
+The before captures use baseline `fb39e3b`. Each after capture uses the same region, traveler position and High/reduced-motion settings, with the new landing completed. The selected-story HUD consequently differs. These are production browser renders. The permanent gallery retains one before/after pair per space; the complete High/Low desktop/phone measurements remain in the JSON records below.
 
-| Space             | Before                               | Delivered                                                                         |
-| ----------------- | ------------------------------------ | --------------------------------------------------------------------------------- |
-| Shore             | [Before](before-capernaum.png)       | [High](capernaum-high-desktop.png) / [Low](capernaum-low-desktop.png)             |
-| Residential lanes | [Before](before-capernaum-lanes.png) | [High](capernaum-lanes-high-desktop.png) / [Low](capernaum-lanes-low-desktop.png) |
-| Gathering house   | [Before](before-gathering-house.png) | [High](gathering-house-high-desktop.png) / [Low](gathering-house-low-desktop.png) |
-| Bakehouse         | [Before](before-bakehouse.png)       | [High](bakehouse-high-desktop.png) / [Low](bakehouse-low-desktop.png)             |
+| Space             | Before                               | Delivered                                |
+| ----------------- | ------------------------------------ | ---------------------------------------- |
+| Shore             | [Before](before-capernaum.png)       | [High](capernaum-high-desktop.png)       |
+| Residential lanes | [Before](before-capernaum-lanes.png) | [High](capernaum-lanes-high-desktop.png) |
+| Gathering house   | [Before](before-gathering-house.png) | [High](gathering-house-high-desktop.png) |
+| Bakehouse         | [Before](before-bakehouse.png)       | [High](bakehouse-high-desktop.png)       |
 
-The [tested north passage](north-passage-tested-desktop.png) shows the physical crossing beside its readable work plan. The village review includes both graphics settings; Low keeps the working arrangement and essential people while reducing optional company.
+The village review includes both graphics settings; Low keeps the working arrangement and essential people while reducing optional company.
 
 | Desktop 1440×900  | High / Low draw calls | High / Low median interval | High / Low p95 interval |
 | ----------------- | --------------------: | -------------------------: | ----------------------: |
@@ -41,30 +41,33 @@ The [tested north passage](north-passage-tested-desktop.png) shows the physical 
 
 Phone work remains scrollable between its fixed title and inspection/framing controls. The [north portrait view](north-passage-tested-phone.png) and [south large-text landscape view](south-short-landscape-phone.png) preserve the visible physical crossing and its textual result. Their captured scroll positions follow the tested action; scroll upward to inspect the complete plan.
 
-| Phone 390×844     | High / Low draw calls | High / Low median interval | High / Low p95 interval | Views                                                                         |
-| ----------------- | --------------------: | -------------------------: | ----------------------: | ----------------------------------------------------------------------------- |
-| Shore             |              176 / 79 |             16.7 / 16.7 ms |          17.3 / 16.8 ms | [High](capernaum-high-phone.png) / [Low](capernaum-low-phone.png)             |
-| Residential lanes |              172 / 79 |             16.7 / 16.7 ms |          17.3 / 17.2 ms | [High](capernaum-lanes-high-phone.png) / [Low](capernaum-lanes-low-phone.png) |
-| Gathering house   |               71 / 37 |             16.7 / 16.7 ms |          17.3 / 17.3 ms | [High](gathering-house-high-phone.png) / [Low](gathering-house-low-phone.png) |
-| Bakehouse         |              103 / 53 |             16.7 / 16.7 ms |          17.2 / 17.3 ms | [High](bakehouse-high-phone.png) / [Low](bakehouse-low-phone.png)             |
+| Phone 390×844     | High / Low draw calls | High / Low median interval | High / Low p95 interval |
+| ----------------- | --------------------: | -------------------------: | ----------------------: |
+| Shore             |              176 / 79 |             16.7 / 16.7 ms |          17.3 / 16.8 ms |
+| Residential lanes |              172 / 79 |             16.7 / 16.7 ms |          17.3 / 17.2 ms |
+| Gathering house   |               71 / 37 |             16.7 / 16.7 ms |          17.3 / 17.3 ms |
+| Bakehouse         |              103 / 53 |             16.7 / 16.7 ms |          17.2 / 17.3 ms |
 
 [The phone record](rendering-phone.json) uses the same desktop Metal renderer, with an emulated phone viewport and 120 intervals per sample. Every sample reports one settled scene. These are bounded browser observations, not physical-device or sustained-play benchmarks.
 
-Both existing fixed software-rendered image references passed unchanged through quality changes, scene replacement and reload. Deliberately removing [bakehouse static geometry](deliberately-missing-static-geometry.png) or [Nain gate geometry](deliberately-missing-nain-geometry.png) still breaks the respective image contract, confirming that aggregate scene/mesh counts alone cannot satisfy those checks.
+Both existing fixed software-rendered image references passed unchanged through quality changes, scene replacement and reload. Deliberately removing bakehouse static geometry or Nain gate geometry still breaks the respective image contract, confirming that aggregate scene/mesh counts alone cannot satisfy those checks. The [rendering tests](../../../tests/e2e/static-render.spec.ts) save these diagnostic captures to `test-results/`; the two reference images remain committed under `tests/e2e/screenshots/`.
 
 ## Blender MCP review
 
 The connected Blender 5.2.1 LTS addon generated the kit in an isolated workshop. The final inspection imported the shipped GLBs independently and included geometry posed through the real Babylon importer. Both scripts restore the previously selected Blender scene in a `finally` block.
 
-| Review                           | Evidence                                                              |
-| -------------------------------- | --------------------------------------------------------------------- |
-| Nine original props              | [Kit](blender-kit.png)                                                |
-| Supported working hands          | [Net work](blender-net-work.png), [bread work](blender-bakehouse.png) |
-| Both physical solutions          | [North](blender-north.png), [south](blender-south.png)                |
-| Interior company                 | [Gathering house](blender-gathering-house.png)                        |
-| Doorway shade and lanes activity | [Residential lanes](blender-capernaum-lanes.png)                      |
+| Review                  | Evidence                         |
+| ----------------------- | -------------------------------- |
+| Nine original props     | [Kit](blender-kit.png)           |
+| Supported working hands | [Net work](blender-net-work.png) |
 
-[The Blender record](blender-review.json) identifies the exact imported GLB hashes and preserved scene. The original recipe and workshop are `tools/blender/capernaum.py` and `assets/source/capernaum-kit.blend`; `tools/blender/inspect_capernaum.py` reproduces the review. Run `npm run assets:inspect:capernaum` with Blender available to regenerate actual posed-geometry evidence.
+[The Blender record](blender-review.json) identifies the exact imported GLB hashes and preserved scene. The original inspection produced seven views, including both physical solutions, bread work, interior company and residential lanes; these two representative views are retained in Git. The original recipe and workshop are `tools/blender/capernaum.py` and `assets/source/capernaum-kit.blend`; `tools/blender/inspect_capernaum.py` reproduces the review. Run `npm run assets:inspect:capernaum` with Blender available to regenerate all seven views and their report into ignored `artifacts/capernaum-review/`. `GOSPEL_REVIEW_OUTPUT` overrides the destination.
+
+## Evidence retention
+
+Keep the game assets, Blender source, automated image references, structured results and this curated 12-image gallery in Git. Full screenshot matrices, diagnostic captures and raw command logs are generated review outputs. The [browser tests](../../../tests/e2e/harbor.spec.ts) regenerate the desktop/phone matrix with `npm run test:e2e -- tests/e2e/harbor.spec.ts tests/e2e/static-render.spec.ts`; outputs go to ignored `test-results/`. [CI](../../../.github/workflows/ci.yml) already uploads browser reports and captures with seven-day retention. Blender reviews are generated locally with the command above; CI does not run Blender.
+
+The [delivery record](delivery.json) anchors the original validation and source/production hashes to implementation commit `f845223ca5a890a70b606c44f512ad847999392e`. Its evidence manifest lists only the retained, committed files. Raw local logs were never tracked and are not required to follow the case-level outcomes. The curation metadata records the image reduction separately from the original test results.
 
 ## Asset and download accounting
 
@@ -81,7 +84,7 @@ The gathering house reuses the existing villager, accounting for most of its add
 
 ## Verification and review limits
 
-The complete production Chromium matrix passes **149 tests with eleven intentional skips and no failures in 44.4 minutes**. This is one uninterrupted desktop/phone run against the final implementation, with one worker and retries disabled. It includes the continuous fresh-save four-chapter journey, all replay accounts, both landing solutions, legacy progression, carried supplies, companions, route recovery, keyboard/focus behavior and rendering contracts. [The delivery record](delivery.json) preserves all 160 case outcomes, earlier corrections, measured budgets and hashes. The [browser log](browser-delivery.log), [compatibility log](compatibility-delivery.log) and [local check log](check-delivery.log) preserve the command results.
+The complete production Chromium matrix passes **149 tests with eleven intentional skips and no failures in 44.4 minutes**. This is one uninterrupted desktop/phone run against the final implementation, with one worker and retries disabled. It includes the continuous fresh-save four-chapter journey, all replay accounts, both landing solutions, legacy progression, carried supplies, companions, route recovery, keyboard/focus behavior and rendering contracts. [The delivery record](delivery.json) preserves all 160 case outcomes, command summaries, earlier corrections, measured budgets and hashes.
 
 The final `npm run check` passes types, lint, **538 unit checks across 27 files** and the production build. The independent Firefox/WebKit smoke passes all four scenarios. Tests exercise every arrangement, both routes/reflections, guarded actions, interruption, migrations, forged saves, imported geometry, working hands, grounded feet, actual actor facing and bounded village inventories. A deterministic browser regression verifies that deferred initial focus cannot steal focus already chosen inside a newly opened dialog. The malformed-save regression first failed against coercible array values; explicit string validation now rejects them.
 

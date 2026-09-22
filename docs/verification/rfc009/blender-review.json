@@ -1,14 +1,6 @@
 {
   "blender": "5.2.1 LTS",
-  "images": [
-    "blender-net-work.png",
-    "blender-kit.png",
-    "blender-north.png",
-    "blender-south.png",
-    "blender-bakehouse.png",
-    "blender-gathering-house.png",
-    "blender-capernaum-lanes.png"
-  ],
+  "images": ["blender-net-work.png", "blender-kit.png"],
   "inputs": {
     "quay_stones": "bfa7179d7a396286a328927a416b9709635eeff452a49b67ad44920ea59cc588",
     "crossing_plank": "ffdde52365de26ac63436d7b0a7d2b1cea7cba0681de3631aa62447e50f0600e",
@@ -21,5 +13,7 @@
     "wall_footing": "f00c67f38613bbc6639b3c265c2b99c74973bdc71b5d448231ef43629498bd0b"
   },
   "poses": "Actual imported Babylon geometry, sampled in reduced-motion poses; independent final GLB kit import.",
-  "preservedScene": "The Way - exported Living Galilee review.001"
+  "preservedScene": "The Way - exported Living Galilee review.001",
+  "originalImageCount": 7,
+  "retention": "Two representative views retained in Git. Regenerate all seven views with npm run assets:inspect:capernaum into artifacts/capernaum-review/."
 }

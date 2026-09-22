@@ -155,7 +155,7 @@ npm run assets:build:capernaum
 npm run assets:inspect:capernaum
 ```
 
-MCP generation and independent shipped-export review used Blender 5.2.1 LTS. Set `GOSPEL_MODEL_OUTPUT` explicitly when using an existing Blender process: a previous review session may have set a temporary output directory. The review script also imports actual Babylon posed geometry for both crossing arrangements and ordinary work. Its outputs and SHA-256 hashes are in `verification/rfc009/`. No historical GLB was changed.
+MCP generation and independent shipped-export review used Blender 5.2.1 LTS. Set `GOSPEL_MODEL_OUTPUT` explicitly when using an existing Blender process: a previous review session may have set a temporary output directory. The review script also imports actual Babylon posed geometry for both crossing arrangements and ordinary work. [Selected delivery images and SHA-256 hashes](verification/rfc009/README.md) are committed for review. Regenerating the full seven-image review writes to ignored `artifacts/capernaum-review/`; set `GOSPEL_REVIEW_OUTPUT` to override that destination. Copy only selected, reviewed evidence into the delivery directory and update its manifest. No historical GLB was changed.
 
 The nine models add **228,424 bytes**, bringing 94 GLBs to **5,390,092 bytes** (about 5.14 MiB), below the explicit 5.5 MiB catalog cap. Per-region increases are 159,504 bytes at the shore, 116,116 in the lanes, 188,696 in the gathering house and 120,976 in the bakehouse. Each is below 192 KiB. Other region inventories and download bytes are unchanged. The gathering house's increase includes the existing ordinary-neighbor actor; it does not use a departed Gospel figure as ambient company.
 

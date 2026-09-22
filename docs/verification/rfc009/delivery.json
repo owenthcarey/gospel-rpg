@@ -1657,15 +1657,7 @@
   },
   "blender": {
     "blender": "5.2.1 LTS",
-    "images": [
-      "blender-net-work.png",
-      "blender-kit.png",
-      "blender-north.png",
-      "blender-south.png",
-      "blender-bakehouse.png",
-      "blender-gathering-house.png",
-      "blender-capernaum-lanes.png"
-    ],
+    "images": ["blender-net-work.png", "blender-kit.png"],
     "inputs": {
       "quay_stones": "bfa7179d7a396286a328927a416b9709635eeff452a49b67ad44920ea59cc588",
       "crossing_plank": "ffdde52365de26ac63436d7b0a7d2b1cea7cba0681de3631aa62447e50f0600e",
@@ -1678,7 +1670,9 @@
       "wall_footing": "f00c67f38613bbc6639b3c265c2b99c74973bdc71b5d448231ef43629498bd0b"
     },
     "poses": "Actual imported Babylon geometry, sampled in reduced-motion poses; independent final GLB kit import.",
-    "preservedScene": "The Way - exported Living Galilee review.001"
+    "preservedScene": "The Way - exported Living Galilee review.001",
+    "originalImageCount": 7,
+    "retention": "Two representative views retained in Git. Regenerate all seven views with npm run assets:inspect:capernaum into artifacts/capernaum-review/."
   },
   "reviewLimits": [
     "Desktop and phone browser emulation, not physical device testing",
@@ -1775,48 +1769,22 @@
     "docs/verification/rfc009/asset-baseline.json": "d5949f7220ef6510a03da7fe50617c3b6a77643b3949daaac39547a60f30c595",
     "docs/verification/rfc009/asset-delivery.json": "ef0f574a4d072863643f1328a1e1da0ada32fd10fcb2dc3960b3664bb3dd219e",
     "docs/verification/rfc009/bakehouse-high-desktop.png": "cf066da350114b2b2d600d32fef8b9e7d574ba27bf575a3c03569b3b94e7dc4b",
-    "docs/verification/rfc009/bakehouse-high-phone.png": "95724e589230f89a8109a1b2c803bec0287fd2f5c09a77708ca1442e0cd56faf",
-    "docs/verification/rfc009/bakehouse-low-desktop.png": "7baca8e6df835b1e883281016e29eff0618f9c3c57b4341d99bd85a0eaa3de6e",
-    "docs/verification/rfc009/bakehouse-low-phone.png": "bf9ea25a74d13c998cc645f34303e13e8744dae6bf715b02997381092099c882",
-    "docs/verification/rfc009/baseline-capture.log": "24acec1e05359b595ea3b64a195ebabb0290d0d16bef6749a3736791d2baa55c",
     "docs/verification/rfc009/before-bakehouse.png": "7e2ef3211c1acc950c9dd6b2e6716791987d405bb04ead0821f1c01006bdb0be",
     "docs/verification/rfc009/before-capernaum-lanes.png": "f7de6c4cd25bf2235e9c6ff55e19d6b154775e4d30457d4b2960226759010306",
     "docs/verification/rfc009/before-capernaum.png": "a5e894215efb4654d45777650f57a5118b86b46a388158cd834e99370a9cf2d1",
     "docs/verification/rfc009/before-gathering-house.png": "22660444a95a7eb19f70433bd35dfc7a9329692158cd44d8a3df20c55a209fd2",
-    "docs/verification/rfc009/blender-bakehouse.png": "72201a0a68eb08f8af664e3ab43d0e69eb1a7b52712da49df26a5800ffa6fe82",
-    "docs/verification/rfc009/blender-capernaum-lanes.png": "ae1799427f94edd254bd87b1f1a856d8410935ba50604b020e04f1ce38820824",
-    "docs/verification/rfc009/blender-gathering-house.png": "f1716373b7d3c994f528d85d80ae37c45b48107a355013215c2f7e10ba7b7cda",
     "docs/verification/rfc009/blender-kit.png": "1df32ced33c764ab9589c629419d7ed1e501c9cedd7365844fd06db58be291d9",
     "docs/verification/rfc009/blender-net-work.png": "aeb403167b160b48f8172961031f8d96f520e02b0146dab48aba04265b5e298f",
-    "docs/verification/rfc009/blender-north.png": "13014d5472b4d9a8c084518d98ed7046d8c0a4690b2081483f66ba2580ca4967",
-    "docs/verification/rfc009/blender-review.json": "c305037ac47aa29c8edf09022658814563e53a6545838577266e829622f06449",
-    "docs/verification/rfc009/blender-south.png": "47c0e7d7fa8b1f27da224baca3ac1cc72f7dc489b13552fd9272180b5eb163da",
-    "docs/verification/rfc009/browser-delivery.log": "f327bd5f2d00fc6661480f7c157dab2ec88232d5e33bfa1157286d1949e573b0",
+    "docs/verification/rfc009/blender-review.json": "4e1f5f74ffd2b75e412c1b08faf79dc304b6718d55a06173584a59126d1d3aa6",
     "docs/verification/rfc009/capernaum-high-desktop.png": "74a7d4faff535580bd9a3680564f8d88161f701b010da14d13c20a15f47c0f53",
-    "docs/verification/rfc009/capernaum-high-phone.png": "2689bd2dc2e821cda77957bb666a44b1c569399cd5c1b4f9e0ae0452aba65b72",
     "docs/verification/rfc009/capernaum-lanes-high-desktop.png": "11ca120edab2e80341e87cc2d6c2d5b639876b129d1c8c6f1e7dfff38c745662",
-    "docs/verification/rfc009/capernaum-lanes-high-phone.png": "0f63c05ad162649633e04d48293faee83483a1fa2724cb1dc4d050384e39afae",
-    "docs/verification/rfc009/capernaum-lanes-low-desktop.png": "8516b3dcbc88b9e6f2d97027bc3916e4531ca224fb4f266cdebe06c559ccc292",
-    "docs/verification/rfc009/capernaum-lanes-low-phone.png": "7e275b7fda443cc8eec715113cf1ad9109bac76031cfec49a1b8236f75f27a45",
-    "docs/verification/rfc009/capernaum-low-desktop.png": "441594626d990b190863977aacada8a45d3d016bf8e7db1473b996ae9922cbba",
-    "docs/verification/rfc009/capernaum-low-phone.png": "f7fcefdc1e24b3ed66526cd0a02898fa5730fe7d29e2b25a9fd9da2754f5b685",
     "docs/verification/rfc009/catalog.json": "d110f2c90c3cfefd5a7adb4d1498425f0a9ebcf502f7a30c070efdaff19cf237",
-    "docs/verification/rfc009/check-delivery.log": "5f6b6f5d41794d2d6bdb02016e97b904246af1ee34f5029d1b236780c21eedca",
-    "docs/verification/rfc009/compatibility-delivery.log": "e5bba01408c34cd1fe66bf9a8c57a7acf8456e3aeef3f88574ce7687888ebff8",
-    "docs/verification/rfc009/deliberately-missing-nain-geometry.png": "53ab7eb253a14023649fdf571ef00509bd1586bd7e9b64184cdcc7126b45d223",
-    "docs/verification/rfc009/deliberately-missing-static-geometry.png": "ef12ce7dee4bca611ed136ca0a87351225ecbeed2f18b263ceb96db834916f60",
     "docs/verification/rfc009/gathering-house-high-desktop.png": "8d116db2c2fecbd5a2c4eb9df4e194ab4007ae989ef90c9502fb71adf993c2d1",
-    "docs/verification/rfc009/gathering-house-high-phone.png": "6ab24644760be3980573745c3f374613aa2c37288c346544150ac232a6229cc3",
-    "docs/verification/rfc009/gathering-house-low-desktop.png": "0e50a3700350c95983ad656bf788aeff59c89dd521923a9c214cdda8db133ada",
-    "docs/verification/rfc009/gathering-house-low-phone.png": "7cd731e6fc4b5754dec8ebde4d740a159751595eb621944a3c2610aadef6747f",
     "docs/verification/rfc009/kit-generation.json": "9eb0f7d4cac644301053eca5d7609c4373e4baba3de66b2b51aaa4573c1fc095",
-    "docs/verification/rfc009/north-passage-tested-desktop.png": "58853c1e3e1924b324d0b303b759cf049be3f91e233114fec3bb13b4ed5fc1ea",
     "docs/verification/rfc009/north-passage-tested-phone.png": "a21d5963ebceffcd7007d806e9dd6c0c9f1e9bd0e5ec56fa775cfda3fa546bce",
     "docs/verification/rfc009/rendering-desktop.json": "648b6ff79342b5bc0022204a45d0b653fb8f765b8e300f7638ee1c0afb8d9e29",
     "docs/verification/rfc009/rendering-phone.json": "39bb3db3cf3178f03400bb140930f5026e6b247e654cf5b6ed7344f8c049bb41",
-    "docs/verification/rfc009/save-validation-negative-control.log": "1d688b964ef65796efac322afda0616d44ad8da1602a047872371ec10ba3ceaa",
-    "docs/verification/rfc009/south-short-landscape-phone.png": "508edfe8cd3f87e247c15d1fc13e565cd192b062ac7502033c97446ad6248075",
-    "docs/verification/rfc009/format-delivery.log": "c6aa7849a5af041f11cf9cfad768761dc7aa74b679ff2b26e6330ba33fff3302"
+    "docs/verification/rfc009/south-short-landscape-phone.png": "508edfe8cd3f87e247c15d1fc13e565cd192b062ac7502033c97446ad6248075"
   },
   "format": {
     "command": "npm run format:check",
@@ -1825,5 +1793,15 @@
   "pythonRecipes": {
     "command": "python3 -m py_compile tools/blender/capernaum.py tools/blender/inspect_capernaum.py tools/build_assets.py",
     "result": "passed"
+  },
+  "verifiedCommit": "f845223ca5a890a70b606c44f512ad847999392e",
+  "evidenceRetention": {
+    "originalPngCount": 32,
+    "originalPngBytes": 17159349,
+    "retainedPngCount": 12,
+    "retainedPngBytes": 5628929,
+    "policy": "Keep representative images and structured results in Git; generate full browser matrices and diagnostic captures in test-results/, and Blender reviews in artifacts/capernaum-review/. Raw command logs remain untracked.",
+    "browserCiRetentionDays": 7,
+    "sourceHashScope": "changedSourceSha256 and productionSha256 describe the original validation at verifiedCommit; evidenceSha256 describes the curated committed evidence."
   }
 }
