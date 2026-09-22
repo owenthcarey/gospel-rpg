@@ -61,7 +61,7 @@ The connected Blender 5.2.1 LTS addon generated the kit in an isolated workshop.
 | Nine original props     | [Kit](blender-kit.png)           |
 | Supported working hands | [Net work](blender-net-work.png) |
 
-[The Blender record](blender-review.json) identifies the exact imported GLB hashes and preserved scene. The original inspection produced seven views, including both physical solutions, bread work, interior company and residential lanes; these two representative views are retained in Git. The original recipe and workshop are `tools/blender/capernaum.py` and `assets/source/capernaum-kit.blend`; `tools/blender/inspect_capernaum.py` reproduces the review. Run `npm run assets:inspect:capernaum` with Blender available to regenerate all seven views and their report into ignored `artifacts/capernaum-review/`. `GOSPEL_REVIEW_OUTPUT` overrides the destination.
+[The Blender record](blender-review.json) identifies the exact imported GLB hashes and preserved scene. The original inspection produced seven views, including both physical solutions, bread work, interior company and residential lanes; these two representative views are retained in Git. The original recipe and workshop are `tools/blender/capernaum.py` and `assets/source/capernaum-kit.blend`; `tools/blender/inspect_capernaum.py` reproduces the review. Run `npm run assets:inspect:capernaum` with Blender available to regenerate all seven views and their report into ignored `artifacts/reviews/capernaum/`. `GOSPEL_REVIEW_OUTPUT` overrides the destination.
 
 ## Evidence retention
 

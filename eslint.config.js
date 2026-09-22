@@ -12,6 +12,7 @@ export default tseslint.config(
       'test-results/**',
       'test-results-compat/**',
       'artifacts/browser-plan/**',
+      'artifacts/reviews/**',
     ],
   },
   js.configs.recommended,

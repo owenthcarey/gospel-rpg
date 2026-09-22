@@ -15,5 +15,5 @@
   "poses": "Actual imported Babylon geometry, sampled in reduced-motion poses; independent final GLB kit import.",
   "preservedScene": "The Way - exported Living Galilee review.001",
   "originalImageCount": 7,
-  "retention": "Two representative views retained in Git. Regenerate all seven views with npm run assets:inspect:capernaum into artifacts/capernaum-review/."
+  "retention": "Two representative views retained in Git. Regenerate all seven views with npm run assets:inspect:capernaum into artifacts/reviews/capernaum/."
 }

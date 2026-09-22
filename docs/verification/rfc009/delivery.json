@@ -1672,7 +1672,7 @@
     "poses": "Actual imported Babylon geometry, sampled in reduced-motion poses; independent final GLB kit import.",
     "preservedScene": "The Way - exported Living Galilee review.001",
     "originalImageCount": 7,
-    "retention": "Two representative views retained in Git. Regenerate all seven views with npm run assets:inspect:capernaum into artifacts/capernaum-review/."
+    "retention": "Two representative views retained in Git. Regenerate all seven views with npm run assets:inspect:capernaum into artifacts/reviews/capernaum/."
   },
   "reviewLimits": [
     "Desktop and phone browser emulation, not physical device testing",
@@ -1775,7 +1775,7 @@
     "docs/verification/rfc009/before-gathering-house.png": "22660444a95a7eb19f70433bd35dfc7a9329692158cd44d8a3df20c55a209fd2",
     "docs/verification/rfc009/blender-kit.png": "1df32ced33c764ab9589c629419d7ed1e501c9cedd7365844fd06db58be291d9",
     "docs/verification/rfc009/blender-net-work.png": "aeb403167b160b48f8172961031f8d96f520e02b0146dab48aba04265b5e298f",
-    "docs/verification/rfc009/blender-review.json": "4e1f5f74ffd2b75e412c1b08faf79dc304b6718d55a06173584a59126d1d3aa6",
+    "docs/verification/rfc009/blender-review.json": "a99f45f7d1564982a456dcf87ea54f0036cf510e8cc397a7dc3bc13bcfe1d73b",
     "docs/verification/rfc009/capernaum-high-desktop.png": "74a7d4faff535580bd9a3680564f8d88161f701b010da14d13c20a15f47c0f53",
     "docs/verification/rfc009/capernaum-lanes-high-desktop.png": "11ca120edab2e80341e87cc2d6c2d5b639876b129d1c8c6f1e7dfff38c745662",
     "docs/verification/rfc009/catalog.json": "d110f2c90c3cfefd5a7adb4d1498425f0a9ebcf502f7a30c070efdaff19cf237",
@@ -1800,7 +1800,7 @@
     "originalPngBytes": 17159349,
     "retainedPngCount": 12,
     "retainedPngBytes": 5628929,
-    "policy": "Keep representative images and structured results in Git; generate full browser matrices and diagnostic captures in test-results/, and Blender reviews in artifacts/capernaum-review/. Raw command logs remain untracked.",
+    "policy": "Keep representative images and structured results in Git; generate full browser matrices and diagnostic captures in test-results/, and Blender reviews in artifacts/reviews/capernaum/. Raw command logs remain untracked.",
     "browserCiRetentionDays": 7,
     "sourceHashScope": "changedSourceSha256 and productionSha256 describe the original validation at verifiedCommit; evidenceSha256 describes the curated committed evidence."
   }

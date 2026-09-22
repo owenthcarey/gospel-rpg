@@ -16,8 +16,7 @@
   },
   "images": {
     "across-the-lake-kit.png": "fc8245d9ce638ef324f87b364fcf12f8905768135f8e2ec4f344363620eb7946",
-    "across-the-lake-rower.png": "9a838b70943d425ff14a2ac37f87b1977755bb7b1d210372cd62b606ff9beb99",
-    "across-the-lake-stern.png": "bb9f58fb4aacb8364f89bfa7d00320a443048e354513e95c649d7632b2ce0d04"
+    "across-the-lake-rower.png": "9a838b70943d425ff14a2ac37f87b1977755bb7b1d210372cd62b606ff9beb99"
   },
   "files": {
     "amos.glb": {
@@ -356,5 +355,9 @@
       "bytes": 179208,
       "sha256": "29981504dc6afd3c3ad96625a47009b6b6ed9ea7463f962dfaf686ccfab2b59e"
     }
+  },
+  "imageRetention": {
+    "originalImageCount": 3,
+    "policy": "Only selected review images remain in the checkout. Original measurements and source hashes describe the historical run; see README.md and manifest.json for the current gallery."
   }
 }

@@ -13,7 +13,7 @@ from pathlib import Path
 from mathutils import Vector
 
 ROOT = Path(os.environ.get('GOSPEL_RPG_ROOT') or Path(__file__).resolve().parents[2])
-OUTPUT = Path(os.environ.get('GOSPEL_REVIEW_OUTPUT', ROOT / 'docs/verification'))
+OUTPUT = Path(os.environ.get('GOSPEL_REVIEW_OUTPUT', ROOT / 'artifacts/reviews/connected-journey'))
 OUTPUT.mkdir(parents=True, exist_ok=True)
 scene = bpy.data.scenes.new('The Way - exported Connected Journey review')
 bpy.context.window.scene = scene

@@ -1,0 +1,338 @@
+{
+  "version": 1,
+  "maxTotalBytes": 31457280,
+  "collections": {
+    "living-capernaum": {
+      "title": "Living Capernaum",
+      "maxFiles": 4,
+      "maxBytes": 3145728
+    },
+    "road-to-nain": {
+      "title": "Road to Nain",
+      "maxFiles": 6,
+      "maxBytes": 6291456
+    },
+    "living-galilee": {
+      "title": "Living Galilee",
+      "maxFiles": 4,
+      "maxBytes": 3145728
+    },
+    "across-the-lake": {
+      "title": "Across the Lake",
+      "maxFiles": 6,
+      "maxBytes": 4194304
+    },
+    "connected-journey": {
+      "title": "Connected Journey",
+      "maxFiles": 6,
+      "maxBytes": 5242880
+    },
+    "rfc008": {
+      "title": "The Journey in Your Hands",
+      "maxFiles": 6,
+      "maxBytes": 6291456
+    },
+    "rfc009": {
+      "title": "Capernaum, Fully Realized",
+      "maxFiles": 12,
+      "maxBytes": 6291456,
+      "exceptionReason": "Four spaces each need a baseline/delivered pair, plus two phone solutions and two independent Blender reviews."
+    }
+  },
+  "files": [
+    {
+      "path": "docs/verification/across-the-lake-cargo.png",
+      "collection": "across-the-lake",
+      "purpose": "Carried farm screen stowed in the boat.",
+      "bytes": 296148,
+      "sha256": "711945f145c9b2201dd4191ded094f36229bfa48af395231761d32a3c0051ed4"
+    },
+    {
+      "path": "docs/verification/across-the-lake-evidence-phone.png",
+      "collection": "across-the-lake",
+      "purpose": "Investigation evidence at phone width.",
+      "bytes": 274461,
+      "sha256": "e79cff3f6bdfcb9f3b4ddd75e82561eb7c03aca6e667aa793e1ccf26ffe50683"
+    },
+    {
+      "path": "docs/verification/across-the-lake-kit.png",
+      "collection": "across-the-lake",
+      "purpose": "Original lake kit independently imported from exports.",
+      "bytes": 1032131,
+      "sha256": "fc8245d9ce638ef324f87b364fcf12f8905768135f8e2ec4f344363620eb7946"
+    },
+    {
+      "path": "docs/verification/across-the-lake-rower.png",
+      "collection": "across-the-lake",
+      "purpose": "Rowing pose using actual imported Babylon geometry.",
+      "bytes": 1020347,
+      "sha256": "9a838b70943d425ff14a2ac37f87b1977755bb7b1d210372cd62b606ff9beb99"
+    },
+    {
+      "path": "docs/verification/across-the-lake-storm-landscape.png",
+      "collection": "across-the-lake",
+      "purpose": "Large-text storm presentation in phone landscape.",
+      "bytes": 314490,
+      "sha256": "3459177784f28b932f5b332f8a077bfb9c3cfa76f66010a13c73a6a6e1661226"
+    },
+    {
+      "path": "docs/verification/across-the-lake-water-desktop.png",
+      "collection": "across-the-lake",
+      "purpose": "Boat and water composition on desktop.",
+      "bytes": 271550,
+      "sha256": "f3040e851591dd897e4179ea2b3b7ed63a526796cb4923fbc60394e61beb4218"
+    },
+    {
+      "path": "docs/verification/connected-journey-holding.png",
+      "collection": "connected-journey",
+      "purpose": "Carried pouch and hand contact.",
+      "bytes": 978038,
+      "sha256": "406b3ebf04a472cd6d17ccfa2711dfbaaaa170ebae8153f57f463bac8602359d"
+    },
+    {
+      "path": "docs/verification/connected-journey-home-phone.png",
+      "collection": "connected-journey",
+      "purpose": "Homecoming dialogue at phone width.",
+      "bytes": 303937,
+      "sha256": "c63fb3b07e14cefbb6f6979ee07fe1599c2a52fc888fd36245879bc3bc737a91"
+    },
+    {
+      "path": "docs/verification/connected-journey-kit.png",
+      "collection": "connected-journey",
+      "purpose": "Passage marker and revised pier silhouette.",
+      "bytes": 1026204,
+      "sha256": "843433f81b0d36fc180cf5b3c061cf68c60036cfe1081dc1ae04dca1dcc6c227"
+    },
+    {
+      "path": "docs/verification/connected-journey-replay-landscape.png",
+      "collection": "connected-journey",
+      "purpose": "Large-text replay in landscape.",
+      "bytes": 316704,
+      "sha256": "28782b7a20ef3275795c0e8398c13ee41779e60f46c24a460186fde50a0d460a"
+    },
+    {
+      "path": "docs/verification/connected-journey-seated.png",
+      "collection": "connected-journey",
+      "purpose": "Seated neighbor and foot support.",
+      "bytes": 1035754,
+      "sha256": "892ab7a9aed0a7c175010cc78b855609f0da23f93f6f74c3f902765a83839c82"
+    },
+    {
+      "path": "docs/verification/connected-journey-shore-desktop.png",
+      "collection": "connected-journey",
+      "purpose": "Completed shore and company on desktop.",
+      "bytes": 573175,
+      "sha256": "8e6f97bbd71c55a5a6265d528866832c9717a6fdf14d1165dfcdc3bb76952741"
+    },
+    {
+      "path": "docs/verification/living-capernaum-bench.png",
+      "collection": "living-capernaum",
+      "purpose": "Completed bench arrangement in the game.",
+      "bytes": 490479,
+      "sha256": "610c17e7981d9949cdbed55bdb52f5d51087efc1b2ad1873598d7c22f5d4257e"
+    },
+    {
+      "path": "docs/verification/living-capernaum-kit.png",
+      "collection": "living-capernaum",
+      "purpose": "Original village props, clue details and sitting poses.",
+      "bytes": 1577944,
+      "sha256": "fe94196028fc28012bae2f470ab59958f2d249629585fa77cbc81c8a049118c7"
+    },
+    {
+      "path": "docs/verification/living-capernaum-pouch-phone.png",
+      "collection": "living-capernaum",
+      "purpose": "Pouch controls at phone width.",
+      "bytes": 642866,
+      "sha256": "38b3850199437ec853f8a0cfeb2e31e31a930728ff358dc076ca547b181b28bc"
+    },
+    {
+      "path": "docs/verification/living-galilee-channel.png",
+      "collection": "living-galilee",
+      "purpose": "Original channel geometry before the later refinements.",
+      "bytes": 1570927,
+      "sha256": "5c63e242f84b5ce2199e403671fccd4e9802a21e1d5c4c8e25cde32423e27153"
+    },
+    {
+      "path": "docs/verification/living-galilee-shelter-phone.png",
+      "collection": "living-galilee",
+      "purpose": "Completed resting place at phone width.",
+      "bytes": 535395,
+      "sha256": "e36d1c035d6fd427c081661c58c6cc09fa0b176312d5a4949e8dbec507a76593"
+    },
+    {
+      "path": "docs/verification/living-galilee-spring-desktop.png",
+      "collection": "living-galilee",
+      "purpose": "Completed spring in the actual desktop game.",
+      "bytes": 404700,
+      "sha256": "8de7968630593026669bdd393b1a0632bc3909317361a1598c704cc2e58c674d"
+    },
+    {
+      "path": "docs/verification/rfc008/channel-work-phone.png",
+      "collection": "rfc008",
+      "purpose": "Nonmodal channel controls at phone width.",
+      "bytes": 268942,
+      "sha256": "2414c72856c1b862e4da1151f6b924c634da5af530c0dbc62c031eb35c8cf46a"
+    },
+    {
+      "path": "docs/verification/rfc008/fresh-journey-overview-desktop.png",
+      "collection": "rfc008",
+      "purpose": "Focused journal overview on desktop.",
+      "bytes": 226789,
+      "sha256": "f43c9f4e93c69d0f0e71e0cddc0e5c868c7afc69ed1153a2f908cb20c2e0cd11"
+    },
+    {
+      "path": "docs/verification/rfc008/living-galilee-channel.png",
+      "collection": "rfc008",
+      "purpose": "Refined open channel ports and receiving basins.",
+      "bytes": 1576945,
+      "sha256": "5a5342fc2caa319a846f4bd358ba8e11c2f565f467a730b5398a4a97a16bd068"
+    },
+    {
+      "path": "docs/verification/rfc008/living-galilee-kit.png",
+      "collection": "rfc008",
+      "purpose": "Refined channel, basin and screen kit.",
+      "bytes": 1585898,
+      "sha256": "4b3ff1908411afd7187612fb24e2dae067a3e2da8d8ad512ba951f5bd4f39030"
+    },
+    {
+      "path": "docs/verification/rfc008/living-galilee-rest.png",
+      "collection": "rfc008",
+      "purpose": "Screen crest, seat facing and open approach.",
+      "bytes": 1647242,
+      "sha256": "f02906c3276f070e97e21d8a80ba0b6eacfd724487f02d6542d5d093866f17bb"
+    },
+    {
+      "path": "docs/verification/rfc008/screen-preview-844-phone.png",
+      "collection": "rfc008",
+      "purpose": "Screen proposal in short landscape viewport.",
+      "bytes": 263661,
+      "sha256": "c9bc419c2d49f7e86613b883f316a0bd9ff1f2d6ea67763c876d7edc34b0f5c2"
+    },
+    {
+      "path": "docs/verification/rfc009/bakehouse-high-desktop.png",
+      "collection": "rfc009",
+      "purpose": "Delivered bakehouse composition for before/after comparison.",
+      "bytes": 307848,
+      "sha256": "cf066da350114b2b2d600d32fef8b9e7d574ba27bf575a3c03569b3b94e7dc4b"
+    },
+    {
+      "path": "docs/verification/rfc009/before-bakehouse.png",
+      "collection": "rfc009",
+      "purpose": "Baseline bakehouse composition for before/after comparison.",
+      "bytes": 293579,
+      "sha256": "7e2ef3211c1acc950c9dd6b2e6716791987d405bb04ead0821f1c01006bdb0be"
+    },
+    {
+      "path": "docs/verification/rfc009/before-capernaum-lanes.png",
+      "collection": "rfc009",
+      "purpose": "Baseline capernaum lanes composition for before/after comparison.",
+      "bytes": 447216,
+      "sha256": "f7de6c4cd25bf2235e9c6ff55e19d6b154775e4d30457d4b2960226759010306"
+    },
+    {
+      "path": "docs/verification/rfc009/before-capernaum.png",
+      "collection": "rfc009",
+      "purpose": "Baseline capernaum composition for before/after comparison.",
+      "bytes": 476767,
+      "sha256": "a5e894215efb4654d45777650f57a5118b86b46a388158cd834e99370a9cf2d1"
+    },
+    {
+      "path": "docs/verification/rfc009/before-gathering-house.png",
+      "collection": "rfc009",
+      "purpose": "Baseline gathering house composition for before/after comparison.",
+      "bytes": 246526,
+      "sha256": "22660444a95a7eb19f70433bd35dfc7a9329692158cd44d8a3df20c55a209fd2"
+    },
+    {
+      "path": "docs/verification/rfc009/blender-kit.png",
+      "collection": "rfc009",
+      "purpose": "Nine original Capernaum props imported from final GLBs.",
+      "bytes": 915997,
+      "sha256": "1df32ced33c764ab9589c629419d7ed1e501c9cedd7365844fd06db58be291d9"
+    },
+    {
+      "path": "docs/verification/rfc009/blender-net-work.png",
+      "collection": "rfc009",
+      "purpose": "Supported hands at the net workbench.",
+      "bytes": 936436,
+      "sha256": "aeb403167b160b48f8172961031f8d96f520e02b0146dab48aba04265b5e298f"
+    },
+    {
+      "path": "docs/verification/rfc009/capernaum-high-desktop.png",
+      "collection": "rfc009",
+      "purpose": "Delivered capernaum composition for before/after comparison.",
+      "bytes": 528350,
+      "sha256": "74a7d4faff535580bd9a3680564f8d88161f701b010da14d13c20a15f47c0f53"
+    },
+    {
+      "path": "docs/verification/rfc009/capernaum-lanes-high-desktop.png",
+      "collection": "rfc009",
+      "purpose": "Delivered capernaum lanes composition for before/after comparison.",
+      "bytes": 453784,
+      "sha256": "11ca120edab2e80341e87cc2d6c2d5b639876b129d1c8c6f1e7dfff38c745662"
+    },
+    {
+      "path": "docs/verification/rfc009/gathering-house-high-desktop.png",
+      "collection": "rfc009",
+      "purpose": "Delivered gathering house composition for before/after comparison.",
+      "bytes": 246081,
+      "sha256": "8d116db2c2fecbd5a2c4eb9df4e194ab4007ae989ef90c9502fb71adf993c2d1"
+    },
+    {
+      "path": "docs/verification/rfc009/north-passage-tested-phone.png",
+      "collection": "rfc009",
+      "purpose": "Tested north passage and plan at phone width.",
+      "bytes": 388928,
+      "sha256": "a21d5963ebceffcd7007d806e9dd6c0c9f1e9bd0e5ec56fa775cfda3fa546bce"
+    },
+    {
+      "path": "docs/verification/rfc009/south-short-landscape-phone.png",
+      "collection": "rfc009",
+      "purpose": "South solution with large text in short landscape.",
+      "bytes": 387417,
+      "sha256": "508edfe8cd3f87e247c15d1fc13e565cd192b062ac7502033c97446ad6248075"
+    },
+    {
+      "path": "docs/verification/road-to-nain-command-desktop.png",
+      "collection": "road-to-nain",
+      "purpose": "Gospel command and scene on desktop.",
+      "bytes": 331693,
+      "sha256": "63b0d1a2e298c7a06e78f5ae311e56e93fc1a57bde02349e7e38050ab6b740ad"
+    },
+    {
+      "path": "docs/verification/road-to-nain-contact.png",
+      "collection": "road-to-nain",
+      "purpose": "Bearer hands and supported procession frame.",
+      "bytes": 1620759,
+      "sha256": "5148285bde015bf6be4fe954a8811e62d8bc361b48418b9988f5884635cc9740"
+    },
+    {
+      "path": "docs/verification/road-to-nain-kit.png",
+      "collection": "road-to-nain",
+      "purpose": "Original road architecture, props and characters.",
+      "bytes": 1633346,
+      "sha256": "aeee9347fd27ac69808ebbcf8cfe9a022e2f4a7ca0ccd0105fc035b853db8e50"
+    },
+    {
+      "path": "docs/verification/road-to-nain-landscape.png",
+      "collection": "road-to-nain",
+      "purpose": "Large-text phone landscape presentation.",
+      "bytes": 467297,
+      "sha256": "7f9d580dd9e03efd1fa33444f8e78156689ce4bd0d55ea27720f4d26f03cc9d3"
+    },
+    {
+      "path": "docs/verification/road-to-nain-poses.png",
+      "collection": "road-to-nain",
+      "purpose": "Three stages of the sitting-up animation.",
+      "bytes": 1537706,
+      "sha256": "5c81a46db28edcfdc5b3ce52b5b841ba7b331755b1c03a91df22cdf0df548664"
+    },
+    {
+      "path": "docs/verification/road-to-nain-restored.png",
+      "collection": "road-to-nain",
+      "purpose": "Restored mother and son together.",
+      "bytes": 314593,
+      "sha256": "5ac25488574a673769f8b36a8f33bffcbdcd7e9bc6a946522137a3f2e04c6e7b"
+    }
+  ]
+}

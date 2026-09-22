@@ -1,7 +1,7 @@
 """Independent shipped-GLB and Babylon-pose review for RFC-009.
 
 Generate HARBOR_REVIEW_OUTPUT with harbor-staging.test.ts first. Run via MCP or
-assets:inspect:capernaum. Generated reviews default to artifacts/capernaum-review/;
+assets:inspect:capernaum. Generated reviews default to artifacts/reviews/capernaum/;
 copy selected evidence into docs only after review. No source model is used to
 stand in for shipped bytes.
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 from mathutils import Vector
 
 ROOT = Path(os.environ.get('GOSPEL_RPG_ROOT') or Path(__file__).resolve().parents[2])
-OUTPUT = Path(os.environ.get('GOSPEL_REVIEW_OUTPUT', ROOT / 'artifacts/capernaum-review'))
+OUTPUT = Path(os.environ.get('GOSPEL_REVIEW_OUTPUT', ROOT / 'artifacts/reviews/capernaum'))
 OUTPUT.mkdir(parents=True, exist_ok=True)
 prior = bpy.context.window.scene
 try:

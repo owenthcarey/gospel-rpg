@@ -22,7 +22,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run format:check
-      - run: npm run check
+      - name: Check evidence, types, lint, tests and build
+        run: npm run check
       - name: Plan browser groups from recorded runtimes
         id: browser-plan
         run: npm run test:e2e:plan
