@@ -77,3 +77,25 @@ test('WebGL startup, keyboard exploration, journal and a saved practical action'
   expect(Number(diagnostics.scenes)).toBe(1);
   expect(errors).toEqual([]);
 });
+
+test('the early landing loads its kit and preserves a keyboard arrangement', async ({ page }) => {
+  const { preparedHarbor } = await import('../helpers/harbor');
+  await ready(page, preparedHarbor());
+  await visit(page, 'harbor-plank');
+  const north = page.locator('[data-work-id="plank-north"]');
+  await north.focus();
+  await north.press('Enter');
+  await settled(page);
+  const turn = page.locator('[data-work-id="turn"]');
+  await turn.focus();
+  await turn.press('Enter');
+  await settled(page);
+  await expect(page.locator('.harbor-plan figcaption')).toContainText('north crossing · east–west');
+  const state = await exported(page);
+  expect(state.harbor).toMatchObject({ stage: 'working', plank: 'north', turn: 0, tested: false });
+  await page.reload();
+  await page.getByRole('button', { name: 'Continue your journey' }).click();
+  await settled(page);
+  await visit(page, 'harbor-plank');
+  await expect(page.locator('.harbor-plan figcaption')).toContainText('north crossing · east–west');
+});

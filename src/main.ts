@@ -1,3 +1,5 @@
+import './ui/harbor.css';
+import { harborActions, harborNotice } from './content/harbor/actions';
 import {
   workTarget,
   validPreview,
@@ -269,6 +271,11 @@ async function apply(event: GameEvent): Promise<void> {
   audio.update(state);
   const feedback = feedbackForEvent(event);
   if (feedback) audio.play(feedback);
+  if (event.type === 'harbor-action') {
+    const action = harborActions(previous).find((a) => a.id === event.id);
+    if (action?.motion) performInteraction(action.motion, action.target);
+    ui.toast(harborNotice(state, event));
+  }
   if (event.type === 'galilee-action') {
     const action = galileeActions.find((a) => a.id === event.id)!;
     performInteraction(action.motion, action.target);
@@ -506,21 +513,28 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (working && state !== oldState) {
         const event = action.event;
         working.feedback =
-          event.type === 'galilee-action' && event.id === 'spring-test'
-            ? traceWater(state.galilee.spring.turns).message
-            : event.type === 'galilee-action' && event.id.startsWith('shelter-check-')
-              ? checkArrangement(state.galilee.shelter).message
-              : event.type === 'galilee-turn'
-                ? (workTarget(snapshot(), working.target)?.status ?? 'Section turned.')
-                : event.type === 'galilee-screen'
-                  ? 'Screen moved. Check the approach when you are ready.'
-                  : (action.notice ?? 'Your work is saved.');
+          event.type === 'harbor-action'
+            ? harborNotice(state, event)
+            : event.type === 'galilee-action' && event.id === 'spring-test'
+              ? traceWater(state.galilee.spring.turns).message
+              : event.type === 'galilee-action' && event.id.startsWith('shelter-check-')
+                ? checkArrangement(state.galilee.shelter).message
+                : event.type === 'galilee-turn'
+                  ? (workTarget(snapshot(), working.target)?.status ?? 'Section turned.')
+                  : event.type === 'galilee-screen'
+                    ? 'Screen moved. Check the approach when you are ready.'
+                    : (action.notice ?? 'Your work is saved.');
       }
       refreshWork();
       if (action.event.type === 'journey') {
         await close();
         resumeRoute();
       }
+      return;
+    }
+    if (name === 'harbor-action' && value === 'hint' && target?.family === 'harbor') {
+      await apply({ type: 'harbor-action', id: 'hint' });
+      refreshWork();
       return;
     }
     if (name === 'galilee-hint' && target?.family === 'spring') {
@@ -531,6 +545,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     // Stale commands from an earlier work surface cannot fall through to unrelated handlers.
     if (
       [
+        'harbor-action',
         'galilee-action',
         'galilee-turn',
         'galilee-screen',
@@ -543,6 +558,13 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       return;
   }
   switch (name) {
+    case 'harbor-action': {
+      const [id, expected] = (value ?? '').split('|');
+      if (!id) break;
+      await apply({ type: 'harbor-action', id, expected });
+      if (contextId) ui.context(contextId, snapshot());
+      break;
+    }
     case 'follow-story': {
       if (!STORY_TRACKS.includes(value as (typeof STORY_TRACKS)[number])) break;
       const story = value as (typeof STORY_TRACKS)[number];

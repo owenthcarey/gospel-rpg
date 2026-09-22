@@ -1,6 +1,6 @@
 # Asset production
 
-The 85 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
+The 94 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -42,7 +42,7 @@ exec(compile(open(recipe).read(), recipe, 'exec'))
 npm run test -- tests/unit/assets.test.ts
 ```
 
-Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all sixteen shared clips, each actor’s declared specialized clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under 5 MiB, actors under 5,000 triangles each and props under 10,000.
+Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all sixteen shared clips, each actor’s declared specialized clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under the RFC-009 allowance of 5.5 MiB, actors under 5,000 triangles each and props under 10,000.
 
 Inspect the Blender viewport and the actual Babylon view. Check front direction, feet, seated/kneeling height, carried basket, readable net silhouettes, both graphics settings and reduced motion. Phone captions must leave the action visible. Screenshot fixtures exercise lowering, abundance, partners, astonishment and calling on desktop and phone layouts.
 
@@ -145,3 +145,20 @@ Blender MCP rebuilt the isolated workshop and refined four existing props: `chan
 The 85-model kit now totals **5,161,668 bytes**, leaving **81,212 bytes** under the unchanged 5 MiB limit. The twelve-bone character rig, shared clips, triangle caps and explicit region inventories are unchanged. The browser draws the temporary proposal as a broken outline at the authoritative supply socket; it is not a new downloaded model and cannot change collision or saved placement.
 
 [Independent final GLB review](verification/rfc008/README.md) includes the channel composition, resting arrangement and asset-kit render. The JSON asset record hashes every shipped GLB. The actual Babylon geometry tests retain their port/solver, carrying-contact, footing, placement and collision assertions, with added viewport, preview isolation and resource-disposal coverage.
+
+## Capernaum craft kit · RFC-009
+
+Nine original static exports add worn quay stones, a crossing plank, net-working trestle, doorway awning, herb planter, bread board, stone threshold, mooring bollard and wall footing. `tools/blender/capernaum.py` owns an isolated workshop saved in `assets/source/capernaum-kit.blend`. It restores the previous Blender scene even after a failed export. The complete build includes this recipe; a focused rebuild touches only its nine exports:
+
+```sh
+npm run assets:build:capernaum
+npm run assets:inspect:capernaum
+```
+
+MCP generation and independent shipped-export review used Blender 5.2.1 LTS. Set `GOSPEL_MODEL_OUTPUT` explicitly when using an existing Blender process: a previous review session may have set a temporary output directory. The review script also imports actual Babylon posed geometry for both crossing arrangements and ordinary work. Its outputs and SHA-256 hashes are in `verification/rfc009/`. No historical GLB was changed.
+
+The nine models add **228,424 bytes**, bringing 94 GLBs to **5,390,092 bytes** (about 5.14 MiB), below the explicit 5.5 MiB catalog cap. Per-region increases are 159,504 bytes at the shore, 116,116 in the lanes, 188,696 in the gathering house and 120,976 in the bakehouse. Each is below 192 KiB. Other region inventories and download bytes are unchanged. The gathering house's increase includes the existing ordinary-neighbor actor; it does not use a departed Gospel figure as ambient company.
+
+Static batching is opt-in, per asset and limited to unpickable, unanimated opaque decorations. Shore rocks and repeated new stonework use it. Dynamic cargo, actors, boats and cutaway objects retain independent roots. Draw callbacks remain attached to merged meshes, so diagnostics still distinguish enabled geometry from actual draws. The clone-based loader and four-request limit remain.
+
+The visible front of the final imported actor wrapper is **−Z**. `Actor.face` and walking use the corresponding half-turn; the traveler uses the same convention. Previously compensating Road/Nain callers no longer apply a second correction. Fixed authored presentation rotations and all exported rigs remain unchanged. Actual posed-hand projection tests cover four directions; seated neighbors use a 0.14 m lift and imported geometry checks cover feet and working-hand contact.

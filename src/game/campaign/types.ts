@@ -25,6 +25,7 @@ export const STORY_TRACKS = [
   'home',
   'main',
   'village',
+  'harbor',
   'roof',
   'neighbors',
   'table',

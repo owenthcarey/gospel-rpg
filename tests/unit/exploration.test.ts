@@ -30,7 +30,7 @@ describe('journey suggestions', () => {
       before = structuredClone(state);
     const result = journeySuggestions(state);
     expect(result.current).toMatchObject({ id: 'main', target: 'simon', available: true });
-    expect(result.nearby.map((s) => s.id)).toEqual(['village']);
+    expect(result.nearby.map((s) => s.id)).toEqual(['village', 'harbor']);
     expect(result.elsewhere).toEqual([]);
     expect(result.completed).toBe(0);
     expect(state).toEqual(before);

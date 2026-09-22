@@ -1,0 +1,80 @@
+{
+  "capernaum": {
+    "models": 48,
+    "bytes": 2699000,
+    "baselineBytes": 2539496,
+    "addedBytes": 159504,
+    "addedAssets": [
+      "net_workbench",
+      "door_awning",
+      "stone_threshold",
+      "wall_footing",
+      "harbor_bollard",
+      "quay_stones",
+      "crossing_plank"
+    ]
+  },
+  "capernaum-lanes": {
+    "models": 35,
+    "bytes": 1563144,
+    "baselineBytes": 1447028,
+    "addedBytes": 116116,
+    "addedAssets": ["door_awning", "stone_threshold", "courtyard_planter", "wall_footing"]
+  },
+  "gathering-house": {
+    "models": 20,
+    "bytes": 763308,
+    "baselineBytes": 574612,
+    "addedBytes": 188696,
+    "addedAssets": ["stone_threshold", "villager"]
+  },
+  "bakehouse": {
+    "models": 27,
+    "bytes": 1087336,
+    "baselineBytes": 966360,
+    "addedBytes": 120976,
+    "addedAssets": ["stone_threshold", "bread_board", "courtyard_planter", "wall_footing"]
+  },
+  "galilean-road": {
+    "models": 24,
+    "bytes": 1270016,
+    "baselineBytes": 1270016,
+    "addedBytes": 0,
+    "addedAssets": []
+  },
+  "roadside-farm": {
+    "models": 25,
+    "bytes": 1317276,
+    "baselineBytes": 1317276,
+    "addedBytes": 0,
+    "addedAssets": []
+  },
+  "nain-gate": {
+    "models": 19,
+    "bytes": 1190972,
+    "baselineBytes": 1190972,
+    "addedBytes": 0,
+    "addedAssets": []
+  },
+  "galilee-water": {
+    "models": 22,
+    "bytes": 974360,
+    "baselineBytes": 974360,
+    "addedBytes": 0,
+    "addedAssets": []
+  },
+  "reed-landing": {
+    "models": 20,
+    "bytes": 842860,
+    "baselineBytes": 842860,
+    "addedBytes": 0,
+    "addedAssets": []
+  },
+  "sheltered-cove": {
+    "models": 23,
+    "bytes": 1095340,
+    "baselineBytes": 1095340,
+    "addedBytes": 0,
+    "addedAssets": []
+  }
+}

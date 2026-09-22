@@ -1,3 +1,7 @@
+import { harborActions } from '../harbor/actions';
+import { harborPlaces } from '../harbor/places';
+import { harborText } from '../harbor/conversations';
+import { HARBOR_CENTER, traceHarbor } from '../../game/harbor/arrangement';
 import type { GameState, Point } from '../../game/types';
 import { isPresenting } from '../../game/connection/accounts';
 import { activeInteractables } from '../region';
@@ -27,7 +31,7 @@ export interface WorkTarget {
   near: boolean;
   point: Point;
   focus: { center: Point; radius: number };
-  family: 'spring' | 'shelter' | 'ordinary';
+  family: 'spring' | 'shelter' | 'ordinary' | 'harbor';
   actions: WorkAction[];
   related: { id: string; title: string; status?: string }[];
   channel?: ChannelId;
@@ -69,6 +73,19 @@ export function workTarget(s: GameState, id: string): WorkTarget | undefined {
   if (isPresenting(s)) return;
   const p = activeInteractables(s).find((p) => p.id === id);
   if (!p || p.kind === 'person') return;
+  if (harborPlaces.some((place) => place.id === id) && s.harbor.stage !== 'not-started')
+    return {
+      id,
+      title: p.name,
+      text: harborText(id, s),
+      status: s.harbor.tested ? traceHarbor(s.harbor).message : p.role,
+      near: distance(s.position, p) < 2.8,
+      point: { x: p.x, z: p.z },
+      focus: { center: HARBOR_CENTER, radius: 5.4 },
+      family: 'harbor',
+      actions: harborActions(s).filter((a) => a.target === id),
+      related: harborPlaces.map((p) => ({ id: p.id, title: p.name })),
+    };
   const galilee = allGalileePlaces.some((p) => p.id === id);
   const family = galilee
     ? id.startsWith('spring-') || id.startsWith('channel-')

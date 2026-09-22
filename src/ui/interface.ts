@@ -1,3 +1,4 @@
+import { harborContext, harborSummary } from './views/harbor';
 import { audioSettings } from './views/audio';
 import { journeyOverview, workSurface } from './views/exploration';
 import { workTarget, type ScreenPreview } from '../content/exploration/work';
@@ -387,7 +388,10 @@ export class Interface {
     const surface = this.overlay.firstElementChild;
     if (initialFocus)
       requestAnimationFrame(() => {
-        if (this.overlay.firstElementChild === surface)
+        if (
+          this.overlay.firstElementChild === surface &&
+          !this.overlay.contains(document.activeElement)
+        )
           this.overlay.querySelector<HTMLElement>('button:not([disabled]),[tabindex="0"]')?.focus();
       });
   }
@@ -442,7 +446,7 @@ export class Interface {
               ? memoryEntries(state, filter)
               : status !== 'all'
                 ? statusStories(state, status, filter)
-                : `${matches('home') && (filter === 'home' || state.lake.chapter.stage === 'complete') ? homeSummary(state) : ''}${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(preludeObjective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${roadSummary(state, filter)}${galileeSummary(state, filter)}${lakeSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
+                : `${matches('home') && (filter === 'home' || state.lake.chapter.stage === 'complete') ? homeSummary(state) : ''}${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(preludeObjective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${roadSummary(state, filter)}${harborSummary(state, filter)}${galileeSummary(state, filter)}${lakeSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
     this.show(
       'journal',
       this.panelShell(
@@ -774,7 +778,7 @@ export class Interface {
     );
   }
   context(id: string, state: GameState): boolean {
-    const view = homeContext(id, state) ?? contextView(id, state);
+    const view = harborContext(id, state) ?? homeContext(id, state) ?? contextView(id, state);
     if (!view) return false;
     this.show(
       'context',

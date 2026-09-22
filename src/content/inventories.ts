@@ -8,10 +8,12 @@ import { heldAssets, lifeRegionAssets } from './life/presentation';
 import type { ExplorationRegion } from '../game/campaign/types';
 import { isRoadRegion } from '../game/road/types';
 import { roadPlaces } from './road/places';
+import { villageAssets } from './harbor/scenery';
 
 /** Interiors only load their own architecture, actors and activity props. */
 export function explorationAssets(region: ExplorationRegion): AssetId[] {
   const shared = [
+    ...villageAssets(region),
     'traveler' as const,
     'passage_marker' as const,
     ...Object.values(heldAssets),

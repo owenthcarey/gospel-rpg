@@ -129,9 +129,6 @@ export class NainRegion implements RegionView {
   }
   private face(actor: Actor, target: Point): void {
     actor.face(target);
-    // The imported skins' visible front is -Z after the existing model wrapper.
-    // Calibrate the tableau to the actual mesh; reclining root poses are separate.
-    actor.root.rotation.y += Math.PI;
   }
   private stage(): void {
     if (!this.frame) return;

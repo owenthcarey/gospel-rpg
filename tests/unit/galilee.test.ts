@@ -202,7 +202,7 @@ describe('v8 validation and regional contracts', () => {
       const raw = JSON.parse(readFileSync('tests/fixtures/saves/' + file, 'utf8')),
         before = structuredClone(raw),
         saved = parseSave(raw);
-      expect(saved.version).toBe(10);
+      expect(saved.version).toBe(11);
       expect(saved.state.galilee).toEqual(newGalilee());
       expect(raw).toEqual(before);
       for (const [key, value] of Object.entries(raw.state))

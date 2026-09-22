@@ -1,3 +1,4 @@
+import { villageObstacles } from '../harbor/scenery';
 import { lakeLayouts } from '../lake/layouts';
 import { supplyPosition, REST_LAYOUTS } from '../../game/galilee/arrangement';
 import type { Point, GameState } from '../../game/types';
@@ -181,6 +182,7 @@ export function layoutObstacles(s: GameState): Obstacle[] {
   if (!layout) return [];
   return [
     ...layout.obstacles,
+    ...(villageObstacles[s.region] ?? []),
     // New furniture is resolved by the runtime grid; the historical save terrain stays valid.
     ...(s.region === 'galilean-road'
       ? [wall(8, -5, 1.6, 1.6), wall(8, -9, 1.6, 1.6), wall(4, -11, 1.5, 0.8)]

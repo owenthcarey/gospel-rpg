@@ -1,3 +1,4 @@
+import { newHarbor, type HarborState, type HarborEvent } from './harbor/types';
 import { newConnection, type ConnectionState, type ConnectionEvent } from './connection/types';
 import { newLake, type LakeState, type LakeEvent } from './lake/types';
 import { newGalilee, type GalileeState, type GalileeEvent } from './galilee/types';
@@ -21,6 +22,7 @@ export type ItemId = 'net' | 'bread';
 export type DiscoveryId = 'shore' | 'well' | 'olive';
 export type VillageStoryStage = 'not-started' | 'exploring' | 'complete';
 export interface GameState {
+  harbor: HarborState;
   connection: ConnectionState;
   lake: LakeState;
   galilee: GalileeState;
@@ -40,6 +42,7 @@ export interface GameState {
   playTime: number;
 }
 export type GameEvent =
+  | HarborEvent
   | ConnectionEvent
   | LakeEvent
   | GalileeEvent
@@ -78,6 +81,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 export function newGame(): GameState {
   return {
+    harbor: newHarbor(),
     connection: newConnection(),
     lake: newLake(),
     galilee: newGalilee(),

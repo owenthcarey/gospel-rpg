@@ -112,7 +112,7 @@ export class NeighborhoodActivity {
       if (moving) {
         const t = phase < 0.25 ? phase * 4 : 2 - phase * 4;
         c.actor.root.position.z = c.a.z + (c.b.z - c.a.z) * t;
-        c.actor.root.rotation.y = phase < 0.25 ? 0 : Math.PI;
+        c.actor.root.rotation.y = phase < 0.25 ? Math.PI : 0;
       }
       c.actor.sample(moving ? 'Walk' : 'Idle', dt, this.still);
     }

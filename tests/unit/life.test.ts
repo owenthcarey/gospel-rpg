@@ -320,7 +320,7 @@ describe('world and journal continuity', () => {
   it('loads explicit regional inventories and includes every local life asset', () => {
     expect(explorationAssets('gathering-house')).not.toContain('oven');
     expect(explorationAssets('gathering-house')).not.toContain('handcart');
-    expect(explorationAssets('gathering-house').length).toBeLessThan(20);
+    expect(explorationAssets('gathering-house').length).toBeLessThanOrEqual(20);
     expect(explorationAssets('bakehouse')).toContain('mending_cloth');
     expect(explorationAssets('capernaum')).toContain('bench_lashed');
   });

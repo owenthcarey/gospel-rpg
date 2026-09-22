@@ -1,3 +1,4 @@
+import { harborGoal } from '../harbor/objectives';
 import { homeAvailable, homeReady, homeTarget } from '../../content/connection/home';
 import { lakeGoal } from '../lake/objectives';
 import { galileeGoal } from '../galilee/objectives';
@@ -18,6 +19,11 @@ export function localTarget(s: GameState, target: string): string {
   return region === s.region ? target : (nextGateway(s.region, region) ?? target);
 }
 export function campaignGoal(s: GameState): StoryGoal | undefined {
+  const harbor = harborGoal(s);
+  if (harbor) {
+    const goal = withHeldGuidance(s, harbor);
+    return { ...goal, destination: goal.target, target: localTarget(s, goal.target) };
+  }
   if (s.episode.stage !== 'complete' || s.tracking === 'village') return;
   if (s.tracking === 'home' && homeAvailable(s))
     return {

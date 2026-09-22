@@ -12,3 +12,5 @@ The narrated episode quotes Luke 5:1–11 from the public-domain [World English 
 | idb                             | ISC        | IndexedDB wrapper         |
 
 Development tools retain the licenses supplied with their distributions. Exact JavaScript dependency versions are in `package-lock.json`.
+
+RFC-009 adds nine original procedural Capernaum props and an isolated workshop, generated and independently inspected through Blender MCP in Blender 5.2.1 LTS. Eliab, the landing puzzle, its two memories, and all associated dialogue and journal prose are original fiction. No external asset, texture, likeness, generated service or additional scripture text was introduced.

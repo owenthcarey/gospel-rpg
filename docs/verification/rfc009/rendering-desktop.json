@@ -1,0 +1,154 @@
+{
+  "capernaum-high": {
+    "region": "capernaum",
+    "meshes": "396",
+    "materials": "100",
+    "textures": "27",
+    "activeMeshes": "183",
+    "fps": "60",
+    "drawCalls": "217",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2010.5",
+      "median": "16.7",
+      "p95": "17.7",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "capernaum-low": {
+    "region": "capernaum",
+    "meshes": "396",
+    "materials": "100",
+    "textures": "27",
+    "activeMeshes": "183",
+    "fps": "60",
+    "drawCalls": "120",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2010.8",
+      "median": "16.7",
+      "p95": "18.3",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "capernaum-lanes-high": {
+    "region": "capernaum-lanes",
+    "meshes": "249",
+    "materials": "63",
+    "textures": "16",
+    "activeMeshes": "112",
+    "fps": "60",
+    "drawCalls": "160",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2009.9",
+      "median": "16.7",
+      "p95": "17.9",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "capernaum-lanes-low": {
+    "region": "capernaum-lanes",
+    "meshes": "249",
+    "materials": "63",
+    "textures": "16",
+    "activeMeshes": "106",
+    "fps": "60",
+    "drawCalls": "67",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2008.6",
+      "median": "16.7",
+      "p95": "18.3",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "gathering-house-high": {
+    "region": "gathering-house",
+    "meshes": "144",
+    "materials": "40",
+    "textures": "6",
+    "activeMeshes": "61",
+    "fps": "60",
+    "drawCalls": "71",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2009.7",
+      "median": "16.7",
+      "p95": "18.4",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "gathering-house-low": {
+    "region": "gathering-house",
+    "meshes": "144",
+    "materials": "40",
+    "textures": "6",
+    "activeMeshes": "61",
+    "fps": "60",
+    "drawCalls": "37",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2007.1",
+      "median": "16.7",
+      "p95": "18.2",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "bakehouse-high": {
+    "region": "bakehouse",
+    "meshes": "184",
+    "materials": "51",
+    "textures": "10",
+    "activeMeshes": "89",
+    "fps": "60",
+    "drawCalls": "103",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2008.5",
+      "median": "16.7",
+      "p95": "17.9",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  },
+  "bakehouse-low": {
+    "region": "bakehouse",
+    "meshes": "184",
+    "materials": "51",
+    "textures": "10",
+    "activeMeshes": "89",
+    "fps": "60",
+    "drawCalls": "53",
+    "scenes": "1",
+    "cadence": {
+      "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      "samples": "120",
+      "elapsedMs": "2007.3",
+      "median": "16.7",
+      "p95": "18.2",
+      "viewport": "1440×900"
+    },
+    "physicalDevice": false
+  }
+}

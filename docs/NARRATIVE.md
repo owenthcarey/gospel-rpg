@@ -100,3 +100,11 @@ Leah recognizes the chosen shade/breeze site and restored spring only when earne
 All dialogue, narration and eight possible new memory entries in `content/connection/home.ts` are original. Leah, Hannah and Miriam are fictional neighbors. These visits add no Gospel event, Jesus quotation, spiritual score or preferred ending. Replaying a Gospel account creates no new memory or reflection and does not change the traveler’s remembered interpretation. The original full transcripts and source labels remain available.
 
 Editorial review should check the naturally ordered return conversations, repeated-visit acknowledgements, both closing reflections, conditional claims and the clarity of the boundary between an original traveler interlude and scripture. Automated branch checks establish state consistency; human pacing, theological and historical review remain separate work.
+
+## A clear way to the water
+
+Eliab is an original dock worker, available on the southern Capernaum shore from the beginning. A wet strip, loose rope, plank and two cargo stacks create a small spatial problem. The traveler observes the water marks and western passage, chooses a supported north or south crossing, clears its approach, and tests actual connectivity. Hints progress from observation to an explicit example without changing progress. Failed tests consume nothing.
+
+The endings remember **patience** or **making room** with equal standing. Both routes and both reflections remain in the journal. Eliab works at his net trestle only after the landing is complete; Miriam's later original return conversation acknowledges the exact route and reflection only when earned. No dialogue or task is attributed to Jesus, no Gospel account changes, and this invitation never gates a chapter.
+
+The three-by-three arrangement is an accessible gameplay abstraction, not an archaeological reconstruction. Its readable plan names wet cells, cargo, orientation and the entrance rope; the player can solve it without distinguishing colors. The ordinary activities are bounded visual compositions, not a village economy or a historical work simulation.

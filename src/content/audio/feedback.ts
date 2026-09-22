@@ -9,6 +9,14 @@ export function feedbackForEvent(event: GameEvent): SoundEffect | undefined {
     )
   )
     return 'complete';
+  if (event.type === 'harbor-action')
+    return event.id.startsWith('remember-')
+      ? 'complete'
+      : event.id.startsWith('observe-')
+        ? 'discovery'
+        : event.id === 'test'
+          ? 'place'
+          : undefined;
   if (event.type === 'journey') return 'travel';
   if (event.type === 'collect') return 'pickup';
   if (event.type === 'deliver') return 'place';
