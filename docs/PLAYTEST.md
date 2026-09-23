@@ -176,3 +176,24 @@ Inspect passage-marker footing/collision, pier edge and post silhouettes, ground
 Use the [RFC-008 practical review guide](verification/rfc008/README.md) for new overview, work, preview, camera, focus and gesture checks. The complete Stories category, all transcripts, recap and replay library remain accessible from the journal. **Your journey** restores the overview after choosing another category.
 
 Review the same cases on a physical touchscreen and with a screen reader. Browser emulation and DOM focus assertions do not establish touch comfort, reading order or announcement quality with assistive technology. Record the device, browser, graphics setting, viewport and the step where an issue occurs.
+
+## Capernaum, Fully Realized
+
+Read [RFC-009](rfcs/009-capernaum-fully-realized.md) for the scope. Start a fresh traveler, open Journal → nearby invitations, and follow **A clear way to the water** to Eliab. It is available before Chapter I preparation and remains optional.
+
+1. Accept the invitation. Inspect the western passage and water marks in either order. Try a physical action while carrying the chapter's basket; return guidance should remain available.
+2. Test before clearing the rope. Read the specific failure. Coil the rope and place the plank north; test while it runs north–south, then turn it east–west. The remaining failure should identify the net cargo. Store that cargo, retest and choose patient work with Eliab.
+3. Try the other solution: clear the rope, store jar cargo, put the plank south and turn it east–west. The net cargo may remain where it was. Choose making room. Both solutions should remain visible after reloading.
+4. Before completion, return cargo or move the plank to its rack. The previous test must clear. Leave, save, change regions or replay an earned Gospel account, then return. No arrangement or existing story progress should disappear.
+5. Compare clicking the world, the map and the work target list. Use Tab/Enter, full inspection, Return to the work, Escape and walking away. Ask for each hint; it should describe rather than perform the solution. Try large text, phone portrait and short landscape.
+6. Compare High/Low and reduced motion in the four village spaces. Observe water tending in the lanes, bread work at its own table, and earned company in the gathering house. Menus and hidden pages should pause activity; important actors and companions must remain reachable. Check feet, working hands and facing while turning the camera.
+7. Finish an older story, cross regions with Amos/Neri, carry and return supplies, and revisit all four Gospel accounts. The landing must not become a new prerequisite.
+
+Portable v11 saves in `tests/fixtures/saves/`:
+
+- `v11-landing-observed.json`: both observations, no arrangement changes.
+- `v11-landing-interrupted.json`: cleared entrance and south placement, wrong orientation, cargo still blocking.
+- `v11-landing-north.json`: north crossing, patient-work reflection.
+- `v11-landing-south.json`: south crossing, making-room reflection.
+
+Regenerate only these examples with `npm run fixtures:harbor`. Historical v1–v10 files remain migration evidence. Record human play duration, confusing choices, missed visual cues, physical touch behavior and screen-reader experience separately; automated completion times are not reading-time estimates.

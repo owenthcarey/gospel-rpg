@@ -1,3 +1,4 @@
+import { harborPlan, harborHints } from './harbor';
 import type { GameState } from '../../game/types';
 import { journeySuggestions, type StorySuggestion } from '../../content/exploration/suggestions';
 import {
@@ -26,6 +27,7 @@ export function journeyOverview(s: GameState): string {
 /** Keep stable authored command names for readable and focused alternatives. */
 export function workCommand(action: WorkAction): { name: string; value: string } {
   const e = action.event;
+  if (e.type === 'harbor-action') return { name: e.type, value: e.id + '|' + (e.expected ?? '') };
   if (e.type === 'galilee-turn') return { name: e.type, value: e.id + ':' + e.expected };
   if (e.type === 'galilee-screen') return { name: e.type, value: String(e.expected) };
   if (e.type === 'galilee-action' || e.type === 'campaign-action' || e.type === 'lake-action')
@@ -63,5 +65,5 @@ export function workSurface(
   const related = target.related.length
     ? `<details class="work-targets"><summary>Choose a nearby work target</summary><p>Select a target to approach it. Actions become available within reach.</p><div class="work-target-list">${target.related.map((p) => button(p.title + (p.status ? ' · ' + p.status : ''), 'work-visit', p.id, p.id === targetId)).join('')}</div></details>`
     : '';
-  return `<section class="work-panel" role="dialog" aria-modal="false" aria-labelledby="work-title" data-work-target="${esc(target.id)}"><header class="work-header"><div><p class="eyebrow">${target.family === 'spring' ? 'A SPRING FOR TRAVELERS' : target.family === 'shelter' ? 'ROOM UNDER THE OLIVES' : 'WITHIN REACH'}</p><h2 id="work-title">${esc(target.title)}</h2></div><button class="icon-button" data-action="close" aria-label="Close menu">${icon('close')}</button></header><div class="work-body"><p class="work-state">${esc(target.status)}</p>${supplies}<div class="work-actions">${actionButtons || '<p>The work here is remembered. You can look closely or continue exploring.</p>'}</div><p class="work-result" role="status" aria-live="polite">${esc(feedback)}</p>${screen}${hint}${related}</div><footer class="work-footer">${button('Read the full inspection', 'work-inspect', target.id)}${button('Frame the work', 'work-frame', target.id)}<span>Walk away or press Escape to leave. Progress is saved.</span></footer></section>`;
+  return `<section class="work-panel" role="dialog" aria-modal="false" aria-labelledby="work-title" data-work-target="${esc(target.id)}"><header class="work-header"><div><p class="eyebrow">${target.family === 'harbor' ? 'A CLEAR WAY TO THE WATER' : target.family === 'spring' ? 'A SPRING FOR TRAVELERS' : target.family === 'shelter' ? 'ROOM UNDER THE OLIVES' : 'WITHIN REACH'}</p><h2 id="work-title">${esc(target.title)}</h2></div><button class="icon-button" data-action="close" aria-label="Close menu">${icon('close')}</button></header><div class="work-body"><p class="work-state">${esc(target.status)}</p>${supplies}${target.family === 'harbor' ? harborPlan(s) : ''}<div class="work-actions">${actionButtons || '<p>The work here is remembered. You can look closely or continue exploring.</p>'}</div><p class="work-result" role="status" aria-live="polite">${esc(feedback)}</p>${screen}${hint}${target.family === 'harbor' ? harborHints(s) : ''}${related}</div><footer class="work-footer">${button('Read the full inspection', 'work-inspect', target.id)}${button('Frame the work', 'work-frame', target.id)}<span>Walk away or press Escape to leave. Progress is saved.</span></footer></section>`;
 }

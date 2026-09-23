@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "check": "npm run evidence:check && npm run typecheck && npm run lint && npm run test && npm run build",
+    "evidence:check": "node --experimental-strip-types tools/ci/check-evidence.ts",
     "assets:build": "python3 tools/build_assets.py",
     "assets:inspect:road": "python3 tools/build_assets.py --inspect-road",
     "fixtures:road": "node tools/generate_road_fixtures.mjs",
@@ -31,7 +32,10 @@
     "test:compat": "playwright test --config=playwright.compat.config.ts",
     "fixtures:exploration": "node tools/generate_exploration_fixtures.mjs",
     "audio:render": "node tools/render_audio.mjs",
-    "test:e2e:plan": "node --experimental-strip-types tools/ci/plan-browser-tests.ts"
+    "test:e2e:plan": "node --experimental-strip-types tools/ci/plan-browser-tests.ts",
+    "assets:build:capernaum": "python3 tools/build_assets.py --capernaum",
+    "assets:inspect:capernaum": "python3 tools/build_assets.py --inspect-capernaum",
+    "fixtures:harbor": "node tools/generate_harbor_fixtures.mjs"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

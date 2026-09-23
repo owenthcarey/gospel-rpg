@@ -25,7 +25,7 @@ test('the journey overview prioritizes local play and deliberately follows the c
     page.locator('[data-action="journal-category"][data-value="overview"]'),
   ).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.current-opportunity')).toContainText('Into the Deep');
-  await expect(page.locator('.opportunity')).toHaveCount(2);
+  await expect(page.locator('.opportunity')).toHaveCount(3);
   await expect(page.locator('.journey-overview')).not.toContainText('Room under the olives');
   await readableContrast(page, '.opportunity p');
   await page.screenshot({ path: info.outputPath('fresh-journey-overview.png') });

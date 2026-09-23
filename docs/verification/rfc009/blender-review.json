@@ -1,0 +1,19 @@
+{
+  "blender": "5.2.1 LTS",
+  "images": ["blender-net-work.png", "blender-kit.png"],
+  "inputs": {
+    "quay_stones": "bfa7179d7a396286a328927a416b9709635eeff452a49b67ad44920ea59cc588",
+    "crossing_plank": "ffdde52365de26ac63436d7b0a7d2b1cea7cba0681de3631aa62447e50f0600e",
+    "net_workbench": "aa78ed7afcaa629c0eb7af272fbbd63d963834c99b013a6e4db82458b3c1e3d3",
+    "door_awning": "d5af65ff58e78b032b15521f06be858a9eea8557509dff96c1e4ab2a8c0d2010",
+    "courtyard_planter": "138191d7fe0eb53a06dde49f8f639cad1c982ed2f55e7c41891ed9de250842c7",
+    "bread_board": "db68c385823bc1f6b7cf5797d42ddc2ef7d5e3c6cb22be7a1121686d23dbdf4b",
+    "stone_threshold": "0eb3c177be84b54f2809309a526e4057e3e3b054358d189f570fec054e61b18e",
+    "harbor_bollard": "f05e8dba65da06a57de10cfbdb9baa5616efe21b426a834f610f8e468aa31597",
+    "wall_footing": "f00c67f38613bbc6639b3c265c2b99c74973bdc71b5d448231ef43629498bd0b"
+  },
+  "poses": "Actual imported Babylon geometry, sampled in reduced-motion poses; independent final GLB kit import.",
+  "preservedScene": "The Way - exported Living Galilee review.001",
+  "originalImageCount": 7,
+  "retention": "Two representative views retained in Git. Regenerate all seven views with npm run assets:inspect:capernaum into artifacts/reviews/capernaum/."
+}

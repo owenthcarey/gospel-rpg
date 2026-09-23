@@ -1,5 +1,7 @@
 # Completed milestone and next steps
 
+RFC-009 delivers **Capernaum, Fully Realized**: an early optional landing arrangement, original village craft kit, state-aware ordinary activity and v11 continuity. See [RFC-009](rfcs/009-capernaum-fully-realized.md) and its [playtest guide](PLAYTEST.md#capernaum-fully-realized).
+
 ## Implemented: Into the Deep
 
 The first Gospel episode now continues the existing village prelude through shoreline preparation, ten narrated catch-and-calling scenes, a changed shore, aftermath conversations and a remembered reflection. The traveler remains an original shore-side helper.
@@ -10,7 +12,7 @@ The prelude, three discoveries and Ezra's independent story remain playable. See
 
 ## Next priorities
 
-1. Playtest all four chapters and ten optional stories for pacing, navigation clarity and visual legibility. Review the source, historical framing and original connective narrative with a human editor or specialist.
+1. Playtest all four chapters and eleven optional stories for pacing, navigation clarity and visual legibility. Review the source, historical framing and original connective narrative with a human editor or specialist.
 2. Profile real mobile GPUs and test Safari/iOS, Android, Firefox and Edge, including storage limits and eviction. Use the diagnostics and model budgets before increasing crowd or region size.
 3. Broaden accessibility review with screen readers and touch hardware, including destination-list navigation, caption focus and small landscape layouts.
 4. Use playtest findings to select the next bounded Gospel episode or region, reusing the terrain, cross-region companion, source, caption and save contracts.
@@ -50,7 +52,7 @@ The next decision should follow human playtesting of the now twelve story tracks
 
 [RFC-006](rfcs/006-across-the-lake.md) adds an ordinary controllable boat, two revisitable shores, Joel's optional landmark-navigation adventure and Chapter IV, Peace, be still. Seven Mark 4:35–41 scenes, three aftermath visits and equal reflections retain the shared reading controls. Explicit boarding/docking, map routes, saved heading/position, clues, retry and hints support the crossing. V9 preserves all earlier journeys, supplies and both companions. The 84-model kit stays below the unchanged 5 MiB cap through verified lossless compaction.
 
-The build now has four bounded Gospel chapters and ten optional stories. The next expansion should follow playtesting of the complete journey, especially repeated travel, landmark clarity, boat handling and the difference between exploration and Gospel staging. Broader Galilee/Judea travel, unrestricted sailing, offline updates and larger world systems remain future work; the human and physical-device review priorities above still apply.
+That milestone delivered four bounded Gospel chapters and ten optional stories. Further expansion should follow playtesting of the complete journey, especially repeated travel, landmark clarity, boat handling and the difference between exploration and Gospel staging. Broader Galilee/Judea travel, unrestricted sailing, offline updates and larger world systems remain future work; the human and physical-device review priorities above still apply.
 
 ## Implemented: A Connected Journey
 

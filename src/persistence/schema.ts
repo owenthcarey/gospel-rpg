@@ -1,3 +1,6 @@
+import { newHarbor } from '../game/harbor/types';
+import { parseHarbor } from './harbor';
+import { harborJournalIds } from '../game/harbor/progress';
 import { parseConnection } from './connection';
 import { newConnection } from '../game/connection/types';
 import { homeJournalIds } from '../game/connection/progress';
@@ -23,10 +26,10 @@ import { newRoad, isRoadRegion } from '../game/road/types';
 import { roadJournalIds } from '../game/road/progress';
 import { parseRoad } from './road';
 
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 export const MAX_SAVE_BYTES = 128 * 1024;
 export interface SaveFile {
-  version: 10;
+  version: 11;
   region: RegionId;
   savedAt: string;
   state: GameState;
@@ -111,7 +114,8 @@ export function parseSave(raw: unknown): SaveFile {
       raw.version !== 7 &&
       raw.version !== 8 &&
       raw.version !== 9 &&
-      raw.version !== 10) ||
+      raw.version !== 10 &&
+      raw.version !== 11) ||
     !REGION_IDS.some((id) => id === raw.region) ||
     typeof raw.savedAt !== 'string' ||
     !Number.isFinite(Date.parse(raw.savedAt)) ||
@@ -120,6 +124,7 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('The save format is damaged or unsupported.');
   const s: Record<string, unknown> = {
     ...raw.state,
+    ...(Number(raw.version) < 11 ? { harbor: newHarbor() } : {}),
     ...(Number(raw.version) < 10 ? { connection: newConnection() } : {}),
     ...(raw.version === 5 ? { life: newLife() } : {}),
     ...(Number(raw.version) < 7 ? { road: newRoad() } : {}),
@@ -207,6 +212,9 @@ export function parseSave(raw: unknown): SaveFile {
   const lake = parseLake(s.lake, road.chapter.stage, raw.region as RegionId, s.position);
   if (['storm', 'crossing'].includes(String(s.tracking)) && road.chapter.stage !== 'complete')
     throw new SaveError('The tracked lake story is not available.');
+  const harbor = parseHarbor(s.harbor);
+  if (Number(raw.version) < 11 && s.tracking === 'harbor')
+    throw new SaveError('This older save contains unknown landing progress.');
   const galilee = parseGalilee(s.galilee, campaign);
   if (['spring', 'shelter'].includes(String(s.tracking)) && campaign.roof.stage !== 'complete')
     throw new SaveError('The tracked Galilee story is not available.');
@@ -247,6 +255,7 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save contains an invalid village memory.');
   const connection = parseConnection(s.connection, {
     ...s,
+    harbor,
     episode,
     campaign,
     life,
@@ -255,6 +264,7 @@ export function parseSave(raw: unknown): SaveFile {
     lake,
   } as unknown as GameState);
   const expectedJournal = new Set([
+    ...harborJournalIds(harbor),
     ...homeJournalIds(connection.home),
     'arrival',
     ...s.discoveries,
@@ -284,12 +294,13 @@ export function parseSave(raw: unknown): SaveFile {
     throw new SaveError('This save has inconsistent journal progress.');
   }
   return {
-    version: 10,
+    version: 11,
     region: raw.region as RegionId,
     savedAt: raw.savedAt,
     state: {
       region: raw.region as RegionId,
       connection,
+      harbor,
       episode,
       campaign,
       life,

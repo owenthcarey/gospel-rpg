@@ -81,7 +81,6 @@ export class RoadActivity {
       );
       if (step.facing) {
         this.actor.face(step.facing);
-        this.actor.root.rotation.y += Math.PI;
       }
     }
     this.actor.sample(c.stage === 'complete' ? 'Sit' : moving ? 'Walk' : 'Idle', dt, this.still);

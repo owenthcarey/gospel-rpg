@@ -54,7 +54,7 @@ Temporary work selection, previews, camera changes and expanded objectives are n
 
 ## Assets and reproducibility
 
-The original Blender workshop and recipe accompany the four refined GLBs. A separate Blender MCP scene imported the shipped exports for these reviews; unrelated scenes were preserved. The final [asset record](living-galilee-assets.json) hashes all 85 models, totaling 5,161,668 bytes under the original 5 MiB limit. The current screenshot and source hashes are recorded in `delivery.json`.
+The original Blender workshop and recipe accompany the four refined GLBs. A separate Blender MCP scene imported the shipped exports for these reviews; unrelated scenes were preserved. The final [asset record](living-galilee-assets.json) hashes all 85 models, totaling 5,161,668 bytes under the original 5 MiB limit. Historical screenshot and source hashes are recorded in `delivery.json`. The [current gallery manifest](../manifest.json) lists the six retained images; duplicate viewport and compatibility captures have been retired while all structured test outcomes remain.
 
 ![Original props and materials after the bounded refinements](living-galilee-kit.png)
 

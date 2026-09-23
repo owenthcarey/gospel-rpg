@@ -5,7 +5,8 @@ Describe the player-visible change and why it is needed.
 ## Validation
 
 - [ ] `npm run check` and `npm run format:check`
-- [ ] Relevant browser checks; screenshots for visual changes
+- [ ] Relevant browser checks; link CI artifacts for full visual captures
+- [ ] Permanent review images are selected, documented and listed in `docs/verification/manifest.json`; `npm run evidence:check` passes
 - [ ] Narrative provenance and references reviewed, if content changed
 - [ ] Save compatibility reviewed, if state changed
 

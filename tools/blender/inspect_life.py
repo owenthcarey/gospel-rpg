@@ -10,7 +10,7 @@ from pathlib import Path
 from mathutils import Vector
 
 ROOT = Path(os.environ.get('GOSPEL_RPG_ROOT', Path(__file__).resolve().parents[2]))
-OUTPUT = Path(os.environ.get('GOSPEL_REVIEW_OUTPUT', '/private/tmp/gospel-rpg-blender-review'))
+OUTPUT = Path(os.environ.get('GOSPEL_REVIEW_OUTPUT', ROOT / 'artifacts/reviews/living-capernaum'))
 OUTPUT.mkdir(parents=True, exist_ok=True)
 scene = bpy.data.scenes.new('The Way - exported Living Capernaum review')
 bpy.context.window.scene = scene

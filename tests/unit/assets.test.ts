@@ -50,7 +50,7 @@ describe('the complete original asset manifest', () => {
       .map((name) => name.slice(0, -4));
     expect(files.sort()).toEqual(assets.map((asset) => asset.id).sort());
     expect(assets.reduce((total, asset) => total + model(asset.id).bytes.length, 0)).toBeLessThan(
-      5 * 1024 * 1024,
+      5.5 * 1024 * 1024,
     );
   });
   it.each(assets)('$id is self-contained, bounded and contains the required structure', (asset) => {

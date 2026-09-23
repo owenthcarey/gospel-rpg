@@ -1,0 +1,17 @@
+{
+  "blender": "5.2.1 LTS",
+  "assets": [
+    "quay_stones",
+    "crossing_plank",
+    "net_workbench",
+    "door_awning",
+    "courtyard_planter",
+    "bread_board",
+    "stone_threshold",
+    "harbor_bollard",
+    "wall_footing"
+  ],
+  "bytes": 228424,
+  "source": "assets/source/capernaum-kit.blend",
+  "preservedScene": "The Way - exported Living Galilee review.001"
+}

@@ -1,0 +1,139 @@
+{
+  "version": 11,
+  "region": "capernaum",
+  "savedAt": "2026-09-21T00:00:00.000Z",
+  "state": {
+    "region": "capernaum",
+    "connection": {
+      "route": null,
+      "replay": null,
+      "home": { "visits": {}, "reflection": null }
+    },
+    "harbor": {
+      "stage": "complete",
+      "notes": ["water", "passage"],
+      "cleared": true,
+      "plank": "north",
+      "turn": 0,
+      "cargo": { "nets": true, "jars": false },
+      "tested": true,
+      "hint": 0,
+      "ending": "patience"
+    },
+    "episode": {
+      "stage": "not-started",
+      "preparations": [],
+      "carrying": null,
+      "checkpoint": null,
+      "aftermath": [],
+      "reflection": null,
+      "notes": []
+    },
+    "campaign": {
+      "roof": {
+        "stage": "not-started",
+        "checkpoint": null,
+        "aftermath": [],
+        "reflection": null
+      },
+      "walk": {
+        "stage": "not-started",
+        "route": null,
+        "gateOpen": false,
+        "step": 0,
+        "position": { "x": -9, "z": -5 }
+      },
+      "table": { "stage": "not-started", "location": null, "delivered": [] },
+      "carrying": null,
+      "notes": [],
+      "visited": {}
+    },
+    "life": {
+      "thread": { "stage": "not-started", "clues": [], "ending": null },
+      "bench": { "stage": "not-started", "method": null, "cleared": false }
+    },
+    "road": {
+      "chapter": {
+        "stage": "not-started",
+        "checkpoint": null,
+        "aftermath": [],
+        "reflection": null
+      },
+      "trail": {
+        "stage": "not-started",
+        "evidence": [],
+        "interpretation": null,
+        "ending": null,
+        "hint": 0
+      },
+      "company": {
+        "stage": "not-started",
+        "route": null,
+        "step": 0,
+        "region": "roadside-farm",
+        "position": { "x": -4, "z": 3 }
+      },
+      "visited": {}
+    },
+    "galilee": {
+      "spring": {
+        "stage": "not-started",
+        "notes": [],
+        "cleared": [],
+        "turns": { "entry": 0, "turn": 0, "north": 0, "south": 2 },
+        "tested": false,
+        "hint": 0,
+        "ending": null
+      },
+      "shelter": {
+        "stage": "not-started",
+        "inspected": [],
+        "site": null,
+        "placed": [],
+        "screen": 2,
+        "checked": false,
+        "ending": null
+      }
+    },
+    "lake": {
+      "boat": {
+        "mode": "ashore",
+        "berth": "capernaum",
+        "position": { "x": -17, "z": -13 },
+        "heading": 0
+      },
+      "trail": {
+        "stage": "not-started",
+        "evidence": [],
+        "interpretation": null,
+        "hint": 0,
+        "ending": null
+      },
+      "chapter": {
+        "stage": "not-started",
+        "checkpoint": null,
+        "aftermath": [],
+        "reflection": null
+      },
+      "notes": [],
+      "visited": {}
+    },
+    "tracking": "harbor",
+    "villageMemory": null,
+    "position": { "x": 0, "z": -8 },
+    "quest": "not-started",
+    "inventory": [],
+    "discoveries": [],
+    "villageStory": "not-started",
+    "journal": [
+      "arrival",
+      "harbor-start",
+      "harbor-note-water",
+      "harbor-note-passage",
+      "harbor-cleared",
+      "harbor-patience",
+      "harbor-route-north"
+    ],
+    "playTime": 0
+  }
+}

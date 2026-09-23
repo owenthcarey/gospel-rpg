@@ -151,7 +151,7 @@ export class Actor {
       const point = this.route[0]!;
       const current = { x: this.root.position.x, z: this.root.position.z };
       const d = distance(current, point);
-      this.root.rotation.y = Math.atan2(point.x - current.x, point.z - current.z);
+      this.root.rotation.y = Math.PI + Math.atan2(point.x - current.x, point.z - current.z);
       this.moving = true;
       if (d <= remaining) {
         this.root.position.x = point.x;
@@ -167,10 +167,8 @@ export class Actor {
     this.sample(this.moving ? 'Walk' : this.idle, dt, still);
   }
   face(point: Point): void {
-    this.root.rotation.y = Math.atan2(
-      point.x - this.root.position.x,
-      point.z - this.root.position.z,
-    );
+    this.root.rotation.y =
+      Math.PI + Math.atan2(point.x - this.root.position.x, point.z - this.root.position.z);
   }
   attach(model: Model, socket = 'carry_socket'): void {
     model.root.parent = this.model.socket(socket);

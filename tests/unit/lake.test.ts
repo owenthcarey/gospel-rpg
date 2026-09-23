@@ -241,7 +241,7 @@ describe('v9 imports and navigation contracts', () => {
       const original = structuredClone(raw),
         saved = parseSave(raw);
       expect(raw, name).toEqual(original);
-      expect(saved.version).toBe(10);
+      expect(saved.version).toBe(11);
       expect(saved.state.lake, name).toEqual(newLake());
       for (const [key, value] of Object.entries(raw.state))
         expect(saved.state[key as keyof GameState], name + '/' + key).toEqual(value);

@@ -76,7 +76,8 @@ export class AssetLibrary {
     const root = new TransformNode(name, this.scene);
     const visual = new TransformNode(name + ':visual', this.scene);
     visual.parent = root;
-    // Blender faces -Y; after glTF's handedness conversion, turn actors toward +Z.
+    // Preserve the established authored presentation orientation. In the final imported
+    // geometry the face points toward -Z; Actor.face owns that heading correction.
     if (isActorAsset(id)) visual.rotation.y = Math.PI;
     for (const node of instance.rootNodes) node.parent = visual;
     for (const group of instance.animationGroups) group.stop();
@@ -110,6 +111,31 @@ export class AssetLibrary {
     this.disposed = true;
     for (const container of this.containers.values()) container.dispose();
     this.containers.clear();
+  }
+  /** Merge only explicitly supplied static, unpickable placements with one shared material. */
+  batch(id: AssetId, models: readonly Model[]): void {
+    if (models.length < 2) return;
+    const meshes = models
+      .flatMap((m) => m.root.getChildMeshes())
+      .filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
+    if (meshes.some((m) => m.isPickable || m.skeleton) || models.some((m) => m.animations.length))
+      throw new Error('Only static scenery may be batched.');
+    for (const mesh of meshes) {
+      mesh.computeWorldMatrix(true);
+      this.shadow?.removeShadowCaster(mesh);
+    }
+    const merged = Mesh.MergeMeshes(meshes, true, true, undefined, false, false);
+    if (!merged) throw new Error('Could not batch scenery: ' + id);
+    merged.name = 'scenery-batch:' + id;
+    merged.isPickable = false;
+    merged.receiveShadows = true;
+    const metadata = { assetId: id, placement: merged.name, renderedFrame: -1 };
+    merged.metadata = metadata;
+    merged.onAfterRenderObservable.add(() => {
+      metadata.renderedFrame = this.scene.getFrameId();
+    });
+    this.shadow?.addShadowCaster(merged);
+    models.forEach((m) => m.root.dispose());
   }
 }
 

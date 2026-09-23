@@ -161,6 +161,11 @@ export function homeConversation(
             `The landing bench is still secured with the ${s.life.bench.method === 'lashing' ? 'lashing' : 'brace'} you fitted.`,
           ]
         : []),
+      ...(s.harbor.stage === 'complete'
+        ? [
+            `The ${s.harbor.plank} crossing at Eliab’s working landing is still clear. You remember ${s.harbor.ending === 'patience' ? 'taking time to understand the work' : 'making room for another person’s passage'}.`,
+          ]
+        : []),
       'Beyond the landing lies the lake you crossed. Your reflection after Peace, be still remains yours; returning here does not replace it.',
       '“A familiar place can teach us to look closely. It can also give us somewhere to begin again. Which thought will you carry from the shore?”',
     ],

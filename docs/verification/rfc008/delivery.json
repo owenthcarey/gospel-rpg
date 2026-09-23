@@ -1477,10 +1477,6 @@
         "bytes": 9261,
         "sha256": "36b4f43974c62194ce920b70e798f9fc93da9bc216cb195741bd58e2d9488b8b"
       },
-      "docs/verification/rfc008/channel-work-desktop.png": {
-        "bytes": 191578,
-        "sha256": "7e3c94ce2092c36061159676c855344b85807bca2888f2602414f1cc4aa4c1b6"
-      },
       "docs/verification/rfc008/channel-work-phone.png": {
         "bytes": 268942,
         "sha256": "2414c72856c1b862e4da1151f6b924c634da5af530c0dbc62c031eb35c8cf46a"
@@ -1493,21 +1489,9 @@
         "bytes": 935,
         "sha256": "494d88232a5483b29e5f4ed61b9c28a52b490014bfa180b2f5a378f3e7196fb3"
       },
-      "docs/verification/rfc008/focused-work-firefox.png": {
-        "bytes": 213806,
-        "sha256": "73df7afcccd6770d4a1b0e80c4f58247bfb78fe513d6f2ca18d4c50753f52bde"
-      },
-      "docs/verification/rfc008/focused-work-webkit.png": {
-        "bytes": 541571,
-        "sha256": "7b0ee3fb96edc7b0afa96b4cf63931bdcf681e3f9315fc4c596759320be214ba"
-      },
       "docs/verification/rfc008/fresh-journey-overview-desktop.png": {
         "bytes": 226789,
         "sha256": "f43c9f4e93c69d0f0e71e0cddc0e5c868c7afc69ed1153a2f908cb20c2e0cd11"
-      },
-      "docs/verification/rfc008/fresh-journey-overview-phone.png": {
-        "bytes": 218445,
-        "sha256": "510536c08a56e7086b1c664306bbc6d526f636de8be832e07e214ab1361b32ae"
       },
       "docs/verification/rfc008/living-galilee-assets.json": {
         "bytes": 11665,
@@ -1544,14 +1528,6 @@
       "docs/verification/rfc008/saves/shade-blocked-approach.json": {
         "bytes": 4362,
         "sha256": "8999a87eeb91cf991b1d157b49e00bf61a33cf06f168eda8c35686aafe2bbf35"
-      },
-      "docs/verification/rfc008/screen-preview-1440-desktop.png": {
-        "bytes": 236593,
-        "sha256": "15d60b609f1e6fd22b35dac3cca0d16265ad356137e9bf44b9dc8d9e5d4bbb53"
-      },
-      "docs/verification/rfc008/screen-preview-390-phone.png": {
-        "bytes": 285742,
-        "sha256": "d4aefa313830dc51eef9f52ef15284c498eaff438f120b1e7c10e028deb35343"
       },
       "docs/verification/rfc008/screen-preview-844-phone.png": {
         "bytes": 263661,
@@ -1720,5 +1696,10 @@
     "level": 9,
     "mtime": 0,
     "note": "Byte counts use Python gzip at level 9; Vite console estimates use its own compression defaults."
+  },
+  "imageRetention": {
+    "originalImageCount": 12,
+    "retainedImageCount": 6,
+    "policy": "Removed redundant browser captures from the current gallery. Historical results and remaining source hashes are unchanged; see ../manifest.json for retained images."
   }
 }

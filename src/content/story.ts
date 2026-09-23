@@ -1,3 +1,6 @@
+import { harborPlace } from './harbor/places';
+import { harborText } from './harbor/conversations';
+import { harborJournal } from './harbor/journal';
 import { homeJournal } from './connection/home';
 import { lakeJournal } from './lake/journal';
 import { galileeAcknowledgement } from './galilee/conversations';
@@ -37,6 +40,7 @@ export const items: Record<ItemId, { name: string; description: string; icon: st
   },
 };
 export const journalEntries: Record<string, { title: string; text: string; reference?: string }> = {
+  ...harborJournal,
   ...homeJournal,
   ...galileeJournal,
   ...lifeJournal,
@@ -95,6 +99,15 @@ export const journalEntries: Record<string, { title: string; text: string; refer
 
 const goodbye: Choice = { label: 'Until we speak again', close: true };
 export function dialogueFor(id: string, state: GameState): Dialogue {
+  const harbor = harborPlace(id);
+  if (harbor)
+    return {
+      speaker: harbor.name,
+      subtitle: harbor.role,
+      text: harborText(id, state),
+      provenance: harbor.kind === 'person' ? 'Original dialogue' : 'Original narration',
+      choices: [{ label: 'Return to the landing', close: true }],
+    };
   if (id === 'ezra-village') id = 'ezra';
   else {
     const episode = episodeDialogue(id, state);

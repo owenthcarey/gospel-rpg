@@ -228,7 +228,7 @@ describe('v10 validation and journey surfaces', () => {
   it('migrates all historical fixtures with no invented new progress', () => {
     for (const name of readdirSync('tests/fixtures/saves').filter((n) => /^v[1-9]-/.test(n))) {
       const save = parseSave(JSON.parse(readFileSync('tests/fixtures/saves/' + name, 'utf8')));
-      expect(save.version, name).toBe(10);
+      expect(save.version, name).toBe(11);
       expect(save.state.connection, name).toEqual(newConnection());
       expect(roundTrip(save.state), name).toEqual(save.state);
     }

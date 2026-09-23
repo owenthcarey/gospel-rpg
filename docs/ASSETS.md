@@ -1,6 +1,6 @@
 # Asset production
 
-The 85 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
+The 94 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -42,7 +42,7 @@ exec(compile(open(recipe).read(), recipe, 'exec'))
 npm run test -- tests/unit/assets.test.ts
 ```
 
-Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all sixteen shared clips, each actor’s declared specialized clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under 5 MiB, actors under 5,000 triangles each and props under 10,000.
+Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all sixteen shared clips, each actor’s declared specialized clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under the RFC-009 allowance of 5.5 MiB, actors under 5,000 triangles each and props under 10,000.
 
 Inspect the Blender viewport and the actual Babylon view. Check front direction, feet, seated/kneeling height, carried basket, readable net silhouettes, both graphics settings and reduced motion. Phone captions must leave the action visible. Screenshot fixtures exercise lowering, abundance, partners, astonishment and calling on desktop and phone layouts.
 
@@ -105,7 +105,7 @@ npm run assets:inspect:galilee
 npm run test -- tests/unit/assets.test.ts tests/unit/galilee-staging.test.ts
 ```
 
-`inspect_galilee.py` independently imports the shipped GLBs, preserves unrelated scenes, and produces a [kit sheet](verification/living-galilee-kit.png), [connected-channel sheet](verification/living-galilee-channel.png), [resting-place sheet](verification/living-galilee-rest.png) and [hashed byte inventory](verification/living-galilee-assets.json). The same script can run through Blender MCP with `GOSPEL_RPG_ROOT` set. `GOSPEL_REVIEW_OUTPUT` selects another output directory.
+`inspect_galilee.py` independently imports the shipped GLBs, preserves unrelated scenes, and produces kit, connected-channel and resting-place sheets and a hashed byte inventory. The [original channel](verification/living-galilee-channel.png), [historical inventory](verification/living-galilee-assets.json) and [later refined sheets](verification/rfc008/README.md#assets-and-reproducibility) remain in the selected gallery. The same script can run through Blender MCP with `GOSPEL_RPG_ROOT` set. `GOSPEL_REVIEW_OUTPUT` selects another output directory.
 
 The functional channel basis is north/east in game coordinates. Babylon reflects the static import's X axis: bent pieces receive a quarter-turn basis correction before applying the saved turn, and receiving basins face west after a half-turn. Every rendered opening is measured against the solver in tests. Water follows only tested ports and connects through the basin's low inlet. The screen uses authored north/east/south/west sockets; its footprint updates navigation. Mat, jar and screen previews disappear as supplies are placed. Completed travelers use the existing seated/kneeling clips, leaving real companions untouched.
 
@@ -122,7 +122,7 @@ npm run assets:inspect:lake
 npm run test -- tests/unit/lake-staging.test.ts tests/unit/lake.test.ts tests/unit/assets.test.ts
 ```
 
-The inspection command first imports the actual GLBs through Babylon's loader in geometry tests, then passes the posed meshes to Blender for a matching coordinate review. `inspect_crossing.py` separately imports the five shipped kit GLBs and renders the [kit](verification/across-the-lake-kit.png), [rower](verification/across-the-lake-rower.png) and [stern](verification/across-the-lake-stern.png). It preserves unrelated scenes. For MCP execution, set `GOSPEL_RPG_ROOT` and `GOSPEL_LAKE_POSES`; generate the latter with `LAKE_REVIEW_OUTPUT=/private/tmp/lake-poses.json npm run test -- tests/unit/lake-staging.test.ts`. `GOSPEL_REVIEW_OUTPUT` can redirect the images. The [inventory](verification/across-the-lake-assets.json) and [contact measurements](verification/across-the-lake-contact.json) accompany the review.
+The inspection command first imports the actual GLBs through Babylon's loader in geometry tests, then passes the posed meshes to Blender for a matching coordinate review. `inspect_crossing.py` separately imports the five shipped kit GLBs and renders kit, rower and stern views; the [kit](verification/across-the-lake-kit.png) and [rower](verification/across-the-lake-rower.png) are retained. It preserves unrelated scenes. For MCP execution, set `GOSPEL_RPG_ROOT` and `GOSPEL_LAKE_POSES`; generate the latter with `LAKE_REVIEW_OUTPUT=/private/tmp/lake-poses.json npm run test -- tests/unit/lake-staging.test.ts`. `GOSPEL_REVIEW_OUTPUT` can redirect the images. The [inventory](verification/across-the-lake-assets.json) and [contact measurements](verification/across-the-lake-contact.json) accompany the review.
 
 The first review found detached oar grips and a sleeping figure facing away from the cushion in Babylon. Oars now follow the actual exported forearm tips throughout the stroke. The ordinary rower's pelvis meets a fitted seat, with soles at the hull floor. Its waterline keeps the flat exploration water below the interior floor, including while berthed. A corrected stern orientation, platform and scaled cushion support the sleeping figure, while the disciples remain clear of the reclining body. Boat clearance around rocks was enlarged to account for the hull, and visible banks sit beyond the navigable center boundary. These are deliberate staged contacts, not a rigid-body or cloth simulation.
 
@@ -132,7 +132,7 @@ RFC-007 adds `passage_marker` and refines `landing_pier` with shallow side strip
 
 Land gateways place the marker beside their approach, using a 0.60 × 0.56 m collision footprint checked against imported geometry. Markers become visible with their passages and are included in the local inventory. They are an original game wayfinding convention, without claims about historical sign systems. No markers are placed in navigable water. The return gathering reuses village actors; existing bench seating remains conditional on its separate repair story.
 
-`npm run assets:inspect:connection` runs contact/placement tests, bakes actual Babylon poses and imports them alongside the final marker/pier GLBs in a separate Blender review scene. The implementation used the connected Blender MCP addon for both workshop generation and independent inspection. [Review evidence](verification/connected-journey-assets.json) records source, recipe, model and image hashes. The [kit](verification/connected-journey-kit.png), [holding](verification/connected-journey-holding.png), [seated neighbor](verification/connected-journey-seated.png), [working pose](verification/connected-journey-working.png) and [return company](verification/connected-journey-company.png) are review renders; browser images in the verification record show the actual gameplay composition.
+`npm run assets:inspect:connection` runs contact/placement tests, bakes actual Babylon poses and imports them alongside the final marker/pier GLBs in a separate Blender review scene. The implementation used the connected Blender MCP addon for both workshop generation and independent inspection. [Review evidence](verification/connected-journey-assets.json) records source, recipe, model and image hashes. The selected [kit](verification/connected-journey-kit.png), [holding](verification/connected-journey-holding.png) and [seated neighbor](verification/connected-journey-seated.png) renders remain committed. The command also generates working-pose and return-company reviews; browser images in the verification record show the actual gameplay composition.
 
 For MCP inspection, first generate the pose JSON with `CONNECTION_REVIEW_OUTPUT=/absolute/path/poses.json npx vitest run tests/unit/connection-staging.test.ts`, set `GOSPEL_RPG_ROOT` and `GOSPEL_CONNECTION_POSES` in Blender, then execute `tools/blender/inspect_connection.py`. `GOSPEL_REVIEW_OUTPUT` can redirect evidence. Generation and inspection preserve unrelated open scenes and never save them into the workshop.
 
@@ -145,3 +145,26 @@ Blender MCP rebuilt the isolated workshop and refined four existing props: `chan
 The 85-model kit now totals **5,161,668 bytes**, leaving **81,212 bytes** under the unchanged 5 MiB limit. The twelve-bone character rig, shared clips, triangle caps and explicit region inventories are unchanged. The browser draws the temporary proposal as a broken outline at the authoritative supply socket; it is not a new downloaded model and cannot change collision or saved placement.
 
 [Independent final GLB review](verification/rfc008/README.md) includes the channel composition, resting arrangement and asset-kit render. The JSON asset record hashes every shipped GLB. The actual Babylon geometry tests retain their port/solver, carrying-contact, footing, placement and collision assertions, with added viewport, preview isolation and resource-disposal coverage.
+
+## Capernaum craft kit · RFC-009
+
+Nine original static exports add worn quay stones, a crossing plank, net-working trestle, doorway awning, herb planter, bread board, stone threshold, mooring bollard and wall footing. `tools/blender/capernaum.py` owns an isolated workshop saved in `assets/source/capernaum-kit.blend`. It restores the previous Blender scene even after a failed export. The complete build includes this recipe; a focused rebuild touches only its nine exports:
+
+```sh
+npm run assets:build:capernaum
+npm run assets:inspect:capernaum
+```
+
+MCP generation and independent shipped-export review used Blender 5.2.1 LTS. Set `GOSPEL_MODEL_OUTPUT` explicitly when using an existing Blender process: a previous review session may have set a temporary output directory. The review script also imports actual Babylon posed geometry for both crossing arrangements and ordinary work. [Selected delivery images and SHA-256 hashes](verification/rfc009/README.md) are committed for review. Regenerating the full seven-image review writes to ignored `artifacts/reviews/capernaum/`; set `GOSPEL_REVIEW_OUTPUT` to override that destination. Copy only selected, reviewed evidence into the delivery directory and update its manifest. No historical GLB was changed.
+
+The nine models add **228,424 bytes**, bringing 94 GLBs to **5,390,092 bytes** (about 5.14 MiB), below the explicit 5.5 MiB catalog cap. Per-region increases are 159,504 bytes at the shore, 116,116 in the lanes, 188,696 in the gathering house and 120,976 in the bakehouse. Each is below 192 KiB. Other region inventories and download bytes are unchanged. The gathering house's increase includes the existing ordinary-neighbor actor; it does not use a departed Gospel figure as ambient company.
+
+Static batching is opt-in, per asset and limited to unpickable, unanimated opaque decorations. Shore rocks and repeated new stonework use it. Dynamic cargo, actors, boats and cutaway objects retain independent roots. Draw callbacks remain attached to merged meshes, so diagnostics still distinguish enabled geometry from actual draws. The clone-based loader and four-request limit remain.
+
+The visible front of the final imported actor wrapper is **−Z**. `Actor.face` and walking use the corresponding half-turn; the traveler uses the same convention. Previously compensating Road/Nain callers no longer apply a second correction. Fixed authored presentation rotations and all exported rigs remain unchanged. Actual posed-hand projection tests cover four directions; seated neighbors use a 0.14 m lift and imported geometry checks cover feet and working-hand contact.
+
+## Review output retention
+
+All inspection scripts default to ignored `artifacts/reviews/<collection>/` folders: `living-capernaum`, `road-to-nain`, `living-galilee`, `across-the-lake`, `connected-journey` and `capernaum`. `GOSPEL_REVIEW_OUTPUT` overrides this for CLI or Blender MCP runs; clear any stale override before using the defaults. Generated images and reports do not overwrite historical delivery records. Regeneration uses the current shipped models; reproducing an older milestone requires its historical checkout.
+
+Keep source workshops and shipped GLBs in Git. Promote only selected review images into `docs/verification/`, describe their purpose and record their exact bytes and SHA-256 in [the evidence manifest](verification/manifest.json). Follow [the retention policy](verification/README.md) and run `npm run evidence:check` before committing.

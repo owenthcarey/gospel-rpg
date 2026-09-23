@@ -18,6 +18,17 @@ export interface ChapterDefinition {
 const afterLake = (s: GameState) => s.episode.stage === 'complete';
 const afterRoof = (s: GameState) => s.campaign.roof.stage === 'complete';
 export const chapters: Record<StoryTrack, ChapterDefinition> = {
+  harbor: {
+    id: 'harbor',
+    title: 'A clear way to the water',
+    label: 'Optional · Reopen a working landing',
+    region: 'capernaum',
+    optional: true,
+    source: null,
+    available: () => true,
+    started: (s) => s.harbor.stage !== 'not-started',
+    complete: (s) => s.harbor.stage === 'complete',
+  },
   home: {
     id: 'home',
     title: 'The way home',

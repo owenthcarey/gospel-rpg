@@ -1,0 +1,67 @@
+.harbor-plan {
+  margin: 1rem 0;
+}
+.harbor-plan svg {
+  width: 100%;
+  max-width: 28rem;
+  display: block;
+  margin: auto;
+  background: #f2ecd4;
+  border-radius: 0.6rem;
+}
+.harbor-plan text {
+  font:
+    12px system-ui,
+    sans-serif;
+  fill: #263d34;
+}
+.harbor-plan rect {
+  stroke: #7d795f;
+  stroke-width: 1.5;
+}
+.harbor-plan .dry {
+  fill: #d9cc9c;
+}
+.harbor-plan .blocked {
+  fill: #afc3bf;
+  stroke-dasharray: 4 3;
+}
+.harbor-plan .traced {
+  fill: #b8d7a7;
+  stroke: #2b523d;
+  stroke-width: 3;
+}
+.harbor-plan circle {
+  fill: #244837;
+}
+.harbor-plan figcaption {
+  line-height: 1.6;
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+}
+.harbor-inspection .context-actions {
+  display: grid;
+  gap: 0.7rem;
+}
+.harbor-inspection .context-actions button {
+  width: 100%;
+}
+.harbor-test-result {
+  border-left: 3px solid #bcac69;
+  padding: 0.7rem 1rem;
+  line-height: 1.6;
+}
+.work-panel .harbor-plan {
+  margin: 0.6rem 0;
+}
+.work-panel .harbor-plan svg {
+  max-width: 21rem;
+}
+.work-panel .harbor-plan figcaption {
+  color: #e8e3cb;
+}
+@media (max-height: 500px) {
+  .work-panel .harbor-plan svg {
+    max-width: 16rem;
+  }
+}

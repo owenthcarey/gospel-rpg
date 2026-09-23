@@ -1,3 +1,6 @@
+import { villageObstacles } from './harbor/scenery';
+import { harborPlaces } from './harbor/places';
+import { HARBOR_FOOTPRINT } from '../game/harbor/arrangement';
 import { localNeighborhoodPlaces, allNeighborhoodPlaces } from './campaign/places';
 import type { Obstacle } from '../game/pathfinding';
 import type { GameState, Point } from '../game/types';
@@ -163,11 +166,19 @@ export const episodePlaces: Interactable[] = [
     z: -9,
   },
 ];
-export const allInteractables = [...interactables, ...episodePlaces, ...allNeighborhoodPlaces];
+export const allInteractables = [
+  ...interactables,
+  ...episodePlaces,
+  ...allNeighborhoodPlaces,
+  ...harborPlaces,
+];
 export function activeInteractables(state: GameState): Interactable[] {
   if (state.region !== 'capernaum') return localNeighborhoodPlaces(state);
   const returned = hasReturned(state.episode);
-  const base = interactables.filter((p) => !returned || !['simon', 'jesus'].includes(p.id));
+  const base = [
+    ...interactables,
+    ...harborPlaces.filter((p) => p.id === 'eliab' || state.harbor.stage !== 'not-started'),
+  ].filter((p) => !returned || !['simon', 'jesus'].includes(p.id));
   if (state.episode.stage === 'not-started') return base;
   return [
     ...base,
@@ -182,6 +193,8 @@ export function activeInteractables(state: GameState): Interactable[] {
 }
 
 export const obstacles: Obstacle[] = [
+  HARBOR_FOOTPRINT,
+  ...villageObstacles.capernaum!,
   BENCH_FOOTPRINT,
   ...buildings.map((p) => ({
     x: p.x,

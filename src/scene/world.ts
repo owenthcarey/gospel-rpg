@@ -1,3 +1,6 @@
+import { harborPlaces } from '../content/harbor/places';
+import { HarborPresentation, dressVillage } from './harbor';
+import { EverydayActivity } from './actors/everyday';
 import { WorkPresentation, type WorkRect } from './work';
 import type { WorkTarget, ScreenPreview } from '../content/exploration/work';
 import { ConnectionActivity } from './actors/connection';
@@ -117,6 +120,8 @@ export class World {
   }[] = [];
   private actors = new Map<string, Actor>();
   private activity!: VillageActivity;
+  private harbor?: HarborPresentation;
+  private everyday?: EverydayActivity;
   private state: GameState = newGame();
   private destinations: Interactable[] = activeInteractables(this.state);
   private player!: TransformNode;
@@ -326,7 +331,7 @@ export class World {
               ...localGalileePlaces(this.state),
             ]
           : (neighborhoodPlaces[this.state.region as keyof typeof neighborhoodPlaces] ?? [])
-      : [...interactables, ...episodePlaces, boatkeeper].filter(
+      : [...interactables, ...episodePlaces, ...harborPlaces, boatkeeper].filter(
           (p) => !['james', 'john'].includes(p.id),
         )) {
       if (!person.asset) continue;
@@ -336,16 +341,20 @@ export class World {
         this.people.set(person.id, node);
       }
     }
+    const shoreRocks = [];
     for (let i = 0; i < (this.layout ? 0 : 30); i++) {
       const z = -24 + i * 1.7;
       const x = shoreline(z);
-      this.place({
-        asset: i % 3 === 0 ? 'reeds' : 'rock',
-        x: x - 0.1 + Math.sin(i * 3) * 0.45,
-        z,
-        scale: 0.45 + (i % 4) * 0.16,
-      });
+      const model = this.library.instantiate(i % 3 === 0 ? 'reeds' : 'rock', 'shore-detail-' + i);
+      model.root.position.set(x - 0.1 + Math.sin(i * 3) * 0.45, 0, z);
+      model.root.scaling.setAll(0.45 + (i % 4) * 0.16);
+      if (i % 3 !== 0) shoreRocks.push(model);
     }
+    this.library.batch('rock', shoreRocks);
+    dressVillage(this.scene, this.library, this.state.region);
+    if (this.state.region === 'capernaum')
+      this.harbor = new HarborPresentation(this.scene, this.library);
+    this.everyday = new EverydayActivity(this.library, this.actors, this.state);
     this.workView = new WorkPresentation(this.scene, this.camera, this.canvas);
     this.player = new TransformNode('player', this.scene);
     const playerModel = this.library.instantiate('traveler', 'traveler');
@@ -793,10 +802,8 @@ export class World {
       return;
     }
     if (this.playerModel)
-      this.playerModel.rotation.y = Math.atan2(
-        target.x - this.position.x,
-        target.z - this.position.z,
-      );
+      this.playerModel.rotation.y =
+        Math.PI + Math.atan2(target.x - this.position.x, target.z - this.position.z);
   }
   nearest(): Interactable | undefined {
     return [...this.destinations]
@@ -946,6 +953,7 @@ export class World {
     this.road?.settings(settings);
     this.life?.settings(settings);
     this.connection?.settings(settings);
+    this.everyday?.settings(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
       this.boats.forEach((boat) => {
@@ -975,7 +983,9 @@ export class World {
       this.galilee?.tick(dt);
       this.lakeCompany?.sample('Sit', dt, this.reducedMotion);
       for (const [id, actor] of this.actors)
-        if (id !== 'amos' || !this.neighborhood) actor.tick(dt, this.reducedMotion);
+        if ((id !== 'amos' || !this.neighborhood) && !this.everyday?.owns(id))
+          actor.tick(dt, this.reducedMotion);
+      this.everyday?.tick(dt, this.position);
       const dx =
         Number(this.keys.has('d') || this.keys.has('arrowright')) -
         Number(this.keys.has('a') || this.keys.has('arrowleft'));
@@ -1186,6 +1196,8 @@ export class World {
     this.life?.update(state);
     this.connection?.update(state);
     this.galilee?.update(state);
+    this.harbor?.update(state.harbor);
+    this.everyday?.update(state);
     this.people.get('joel')?.setEnabled(state.road.chapter.stage === 'complete');
     this.mooredBoat?.setEnabled(
       state.road.chapter.stage === 'complete' && state.lake.boat.berth === state.region,
@@ -1233,7 +1245,10 @@ export class World {
         };
         return;
       }
-      if (place) this.face(place);
+      if (place) {
+        this.face(place);
+        this.actors.get(place.id)?.face(this.position);
+      }
       this.actorPlayer.playOnce(motion);
       if (this.reducedMotion) this.poseTraveler(false, 0);
     }
@@ -1244,6 +1259,7 @@ export class World {
     this.cleanup.forEach((fn) => fn());
     this.activity?.dispose();
     this.neighborhood?.dispose();
+    this.everyday?.dispose();
     this.library.dispose();
     this.scene.dispose();
   }

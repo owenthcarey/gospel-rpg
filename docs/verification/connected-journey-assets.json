@@ -16,10 +16,8 @@
   },
   "images": {
     "connected-journey-kit.png": "843433f81b0d36fc180cf5b3c061cf68c60036cfe1081dc1ae04dca1dcc6c227",
-    "connected-journey-company.png": "42922a86ed981cf49344a16e7368473c39557b5da8bed56da1fc2e209aa11f30",
     "connected-journey-holding.png": "406b3ebf04a472cd6d17ccfa2711dfbaaaa170ebae8153f57f463bac8602359d",
-    "connected-journey-seated.png": "892ab7a9aed0a7c175010cc78b855609f0da23f93f6f74c3f902765a83839c82",
-    "connected-journey-working.png": "d0eee5d6f6755ee95ac378961ac2b9b119e990d13873fd61111b447706a3d42a"
+    "connected-journey-seated.png": "892ab7a9aed0a7c175010cc78b855609f0da23f93f6f74c3f902765a83839c82"
   },
   "files": {
     "amos.glb": {
@@ -362,5 +360,9 @@
       "bytes": 179208,
       "sha256": "29981504dc6afd3c3ad96625a47009b6b6ed9ea7463f962dfaf686ccfab2b59e"
     }
+  },
+  "imageRetention": {
+    "originalImageCount": 5,
+    "policy": "Only selected review images remain in the checkout. Original measurements and source hashes describe the historical run; see README.md and manifest.json for the current gallery."
   }
 }
