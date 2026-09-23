@@ -1,0 +1,139 @@
+{
+  "blender": "5.2.1 LTS",
+  "exports": [
+    {
+      "id": "traveler",
+      "sha256": "2716ae695d3d794cc87f9486b14273d26f502d7bbaa7a42691317344df173cbe",
+      "triangles": 1236,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "simon",
+      "sha256": "c2b3f4f2de9702b36c1f95f76631258a80a84e4e65ad07aae3898c52deb11c69",
+      "triangles": 1104,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "miriam",
+      "sha256": "065a999162c0fa4f8d97c7ebe54ad4829a540a37d920881db287a25240278ac1",
+      "triangles": 1340,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "jesus",
+      "sha256": "a368272d7df51a8be50b9261d9bcd30901710c4da633094aa3d9d88bc64221fa",
+      "triangles": 1148,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "villager",
+      "sha256": "25fc2c5a2070e55d7d4cabff42c082c0447d1d75cc3b01bdd9318ff726b0449f",
+      "triangles": 1104,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "james",
+      "sha256": "3695471d8e8276cf9be97ce21ac8f31237a93eb179436aa8810b782bdaab3d8e",
+      "triangles": 1104,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "john",
+      "sha256": "9ba1bf5e3259d730122905368d4000b8d9865c76aea5af76589da98cfc33a514",
+      "triangles": 1128,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "hannah",
+      "sha256": "a74e0b9531b5f974dd7569fe6c27e102c37e29ff17b9d22ae660ad8eeb563212",
+      "triangles": 1340,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "amos",
+      "sha256": "8e0b361d41cfd558f69c25b1ef59c8eafc03a96820baa7dc0c9c69e0202e47bb",
+      "triangles": 1104,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "ruth",
+      "sha256": "d145472c506de976b3bd94f25e515a3465f1b6a7cc4519e1a04c00fe0ecebae1",
+      "triangles": 1128,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "bearer",
+      "sha256": "cb682c600ba9d7ac356ae8b865ac15a67c9c671a2410de2667e08d0b1ce22ef7",
+      "triangles": 1104,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "healed_man",
+      "sha256": "26e95cd6ac4635d62eec45753f3f78c4d50254722e91e2c7c5892b796904c664",
+      "triangles": 1104,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "widow",
+      "sha256": "273ebe1d0f6606a45a551992e0f988f7b67fc97699d3b663951ae1bb0b8e1f8d",
+      "triangles": 1340,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "young_man",
+      "sha256": "1dce4889e3e9f3e133320a1990882da9b670786fb7c61ef6e561090d956690b4",
+      "triangles": 1128,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "leah",
+      "sha256": "cf310b617b3969077aec113089078c1e9a3792dfa1ce82cce44a50f5be102c5d",
+      "triangles": 1172,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "house",
+      "sha256": "322d119bdfff8981abe949e179d4dd3072099033c88375c08ac70f3f9859ee75",
+      "triangles": 2804,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "house_large",
+      "sha256": "55dd526d8dc0cc755c07fac41108e54def86a8d324ceb880e79d61640ce62705",
+      "triangles": 3596,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "olive",
+      "sha256": "ed7467fe5872a3e033e1ed33f7edf7203d641f95d44242a083986cac08cf763b",
+      "triangles": 740,
+      "meshCount": 1,
+      "materials": 1
+    },
+    {
+      "id": "room_wall",
+      "sha256": "732933abaf8ac341e71830e6ebc1b34b9371a1fef2340aa74bac941b527118c2",
+      "triangles": 632,
+      "meshCount": 1,
+      "materials": 1
+    }
+  ],
+  "preservedScene": "Scene"
+}

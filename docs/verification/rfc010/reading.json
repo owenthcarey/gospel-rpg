@@ -1,0 +1,417 @@
+{
+  "desktop": [
+    {
+      "id": "gathering",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 276.75,
+        "width": 560,
+        "height": 595.25
+      }
+    },
+    {
+      "id": "teaching",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 281.4375,
+        "width": 560,
+        "height": 590.5625
+      }
+    },
+    {
+      "id": "invitation",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 335.625,
+        "width": 560,
+        "height": 536.375
+      }
+    },
+    {
+      "id": "answer",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 310.875,
+        "width": 560,
+        "height": 561.125
+      }
+    },
+    {
+      "id": "lowering",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 335.625,
+        "width": 560,
+        "height": 536.375
+      }
+    },
+    {
+      "id": "abundance",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 247.3125,
+        "width": 560,
+        "height": 624.6875
+      }
+    },
+    {
+      "id": "partners",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 306.1875,
+        "width": 560,
+        "height": 565.8125
+      }
+    },
+    {
+      "id": "astonishment",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 276.75,
+        "width": 560,
+        "height": 595.25
+      }
+    },
+    {
+      "id": "calling",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 330.9375,
+        "width": 560,
+        "height": 541.0625
+      }
+    },
+    {
+      "id": "return",
+      "width": 1440,
+      "height": 900,
+      "panel": {
+        "x": 852,
+        "y": 310.875,
+        "width": 560,
+        "height": 561.125
+      }
+    }
+  ],
+  "phone": [
+    {
+      "id": "gathering",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "teaching",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "invitation",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "answer",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "lowering",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "abundance",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "partners",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "astonishment",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "calling",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    },
+    {
+      "id": "return",
+      "width": 390,
+      "height": 844,
+      "panel": {
+        "x": 10,
+        "y": 369.8125,
+        "width": 370,
+        "height": 464.1875
+      }
+    }
+  ],
+  "landscapeImageTextReview": {
+    "method": "macOS Vision accurate OCR with language correction disabled, cross-checked against DOM character bounds.",
+    "scenes": [
+      {
+        "scene": "abundance",
+        "captureSha256": "3507008f38c08bf791958cb215b61c65b9b9ccb2b1f12c3c54b0390e9a4165b7",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 6 OF 10",
+          "More than the net can hold",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:6-7",
+          "When they had done this, they caught a great",
+          "multitude of fish, and their net was breaking.",
+          "Follow the partners' boat",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "answer",
+        "captureSha256": "db24c5520932289f5b86a812dc584ac2148f7c6b0289e96a776e4658479ef7ac",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 4 OF 10",
+          "After an empty night",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:5",
+          "Simon answered him, \"Master, we worked all",
+          "night and caught nothing; but at your word I",
+          "Watch the net being lowered",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "astonishment",
+        "captureSha256": "e0eb616484cf8d5cdabf96394a52e2619e2c78354e8e1623fa293359f936be19",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 8 OF 10",
+          "Before Jesus",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:8-9",
+          "But Simon Peter, when he saw it, fell down at",
+          "Jesus' knees, saying, \"Depart from me, for I",
+          "Hear the calling",
+          "→",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "calling",
+        "captureSha256": "d5a2f211915e6a92fc361799ad81969f121683b7c97d6db2b3ff9b732ee05f47",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 9 OF 10",
+          "Don't be afraid",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:10",
+          "and so also were James and John, sons of",
+          "Zebedee, who were partners with Simon.",
+          "Return with the boats",
+          "→",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "gathering",
+        "captureSha256": "7aa91e293e8070d771f9cc6672b87dea2c114fad0e46a1cd23bcc8403a3fc6e6",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 1 OF 10",
+          "A shore full of expectation",
+          "Pause motion",
+          "A view across the water - Original narration",
+          "Your traveler stays on shore as this narrated dramatization",
+          "takes a closer view of the boats. Read Luke's account at",
+          "Looktoward Simon's boat",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "invitation",
+        "captureSha256": "c8469a7d1f60a122fcb46d361e805734d37ff98c8a6fcca543f2323b21b2b510",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 3 OF 10",
+          "Into the deep",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:4",
+          "When he had finished speaking, he said to",
+          "Simon, \"Put out into the deep and let down",
+          "Hear Simon's answer",
+          "→",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "lowering",
+        "captureSha256": "208a1ba95a56932b5fe9744b9422331dac6152efe0326f6c00847bf8ff627d8e",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 5 OF 10",
+          "The net goes down",
+          "Pause motion",
+          "A view across the water - Original narration",
+          "The fishermen lower the net. Cord slips over the side, and",
+          "the water closes aroundit.",
+          "See the catch",
+          "→",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "partners",
+        "captureSha256": "91255c1a69ff8fe6385c12ef40d2b26eb00c56d3b883c1e0840400f78d2c26de",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 7 OF 10",
+          "The other boat draws near",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:7",
+          "They beckoned to their partners in the other",
+          "boat, that they should come and help them.",
+          "Hear Simon's response",
+          "→",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "return",
+        "captureSha256": "b1864e3c0353e00b0762c42d29349e3cfe8cbeb807b3a03414e815d85dfc96d0",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 10 OF 10",
+          "Boats brought to land",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:11",
+          "When they had brought their boats to land,",
+          "they left everything, and followed him.",
+          "Return to your traveler",
+          "→",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      },
+      {
+        "scene": "teaching",
+        "captureSha256": "10777c71ab206137ce30a24852cf69788737b428051ecf0d90df39118b07b7c6",
+        "recognizedText": [
+          "The Way",
+          "A JOURNEY THROUGH GALILEE",
+          "INTO THE DEEP • SCENE 2 OF 10",
+          "A little way from land",
+          "Pause motion",
+          "The Gospel according to Luke • Scripture • WEB • Luke 5:3",
+          "He entered into one of the boats, which was",
+          "Simon's, and asked him to put out a little from",
+          "When he has finished speaking",
+          "Read all scenes",
+          "Finish with summary",
+          "Return to village"
+        ]
+      }
+    ]
+  }
+}

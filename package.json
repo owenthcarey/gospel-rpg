@@ -35,7 +35,9 @@
     "test:e2e:plan": "node --experimental-strip-types tools/ci/plan-browser-tests.ts",
     "assets:build:capernaum": "python3 tools/build_assets.py --capernaum",
     "assets:inspect:capernaum": "python3 tools/build_assets.py --inspect-capernaum",
-    "fixtures:harbor": "node tools/generate_harbor_fixtures.mjs"
+    "fixtures:harbor": "node tools/generate_harbor_fixtures.mjs",
+    "assets:build:presence": "python3 tools/build_assets.py --presence",
+    "assets:inspect:presence": "python3 tools/build_assets.py --inspect-presence"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

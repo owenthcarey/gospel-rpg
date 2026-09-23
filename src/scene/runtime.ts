@@ -32,6 +32,7 @@ export class GameRuntime {
   private region?: RegionId;
   private settings?: Settings;
   private paused = true;
+  private graphicsReady = true;
   private disposed = false;
   private switching = false;
   private diagnosticTimer = 0;
@@ -53,9 +54,16 @@ export class GameRuntime {
       );
     }
     this.engine.renderEvenInBackground = false;
+    this.engine.onContextLostObservable.add(() => {
+      this.graphicsReady = false;
+    });
+    this.engine.onContextRestoredObservable.add(() => {
+      this.graphicsReady = true;
+    });
     this.resize = () => this.engine.resize();
     window.addEventListener('resize', this.resize);
     this.engine.runRenderLoop(() => {
+      if (!this.graphicsReady) return;
       this.view?.renderFrame();
       if (import.meta.env.DEV && performance.now() - this.diagnosticTimer > 1000) {
         this.diagnosticTimer = performance.now();
@@ -184,6 +192,12 @@ export class GameRuntime {
   }
   frameWork(): void {
     if (isExplorationView(this.view)) this.view.frameWork();
+  }
+  setConversation(id?: string, rect?: import('../game/presence').ScreenRect, paused = false): void {
+    if (this.view instanceof World) this.view.setConversation(id, rect, paused);
+  }
+  setReadingBounds(rect?: import('../game/presence').ScreenRect): void {
+    this.view?.setReadingBounds?.(rect);
   }
   cancelNavigation(): void {
     if (isExplorationView(this.view)) this.view.stop();

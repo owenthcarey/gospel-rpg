@@ -1,3 +1,6 @@
+import type { ScreenRect } from '../../game/presence';
+import { applyCameraPose, frameSubject } from '../presentation/framing';
+import { WaterPresentation } from '../presentation/water';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
@@ -37,10 +40,11 @@ export class StormRegion implements RegionView {
   private others: Model[] = [];
   private actors: Actor[] = [];
   private oars: TransformNode[] = [];
-  private waves: Mesh[] = [];
+  private water: WaterPresentation;
   private flood: Mesh;
   private sea: StandardMaterial;
   private time = 0;
+  private readingBounds?: ScreenRect;
   private last = 0;
   private paused = true;
   private reduced = false;
@@ -72,22 +76,13 @@ export class StormRegion implements RegionView {
     shadows.normalBias = 0.04;
     this.library = new AssetLibrary(this.scene, shadows);
     this.sea = this.material('storm-sea', '#6098a5');
-    const water = MeshBuilder.CreateGround('storm-water', { width: 150, height: 150 }, this.scene);
-    water.material = this.sea;
-    water.position.y = -0.2;
-    const foam = this.material('wave-foam', '#c1d4d5');
-    for (let i = 0; i < 24; i++) {
-      const wave = MeshBuilder.CreateBox(
-        'storm-wave-' + i,
-        { width: 1.4 + (i % 3), height: 0.04, depth: 0.12 },
-        this.scene,
-      );
-      wave.position.set(-11 + (i % 6) * 4, 0, -9 + Math.floor(i / 6) * 6);
-      wave.rotation.y = -0.3;
-      wave.material = foam;
-      wave.isPickable = false;
-      this.waves.push(wave);
-    }
+    this.water = new WaterPresentation(this.scene, {
+      name: 'storm-water',
+      width: 150,
+      depth: 150,
+      y: -0.2,
+      storm: true,
+    });
     this.flood = MeshBuilder.CreateGround(
       'water-inside-hull',
       { width: 0.85, height: 2.2 },
@@ -195,34 +190,27 @@ export class StormRegion implements RegionView {
       a.root.rotation.y = i === 0 && !sleeping ? Math.PI : 0;
       a.sampleAt(clip, this.reduced || sleeping || clip === 'Sit' ? 0 : (this.time % 2) / 2);
     });
-    this.waves.forEach((wave, i) => {
-      wave.setEnabled(!this.low || i % 2 === 0);
-      wave.position.y = 0.01 + (this.reduced ? 0.12 : Math.sin(this.time * 1.7 + i) * 0.14) * rough;
-      wave.scaling.z = 1 + rough * 3;
-      wave.scaling.y = 1 + rough * 2;
-    });
+    this.water.setStorm(rough);
+    this.water.quality(this.low);
+    this.water.tick(this.time, this.reduced);
     this.others.forEach((b) => b.root.setEnabled(id !== 'waking'));
     const alpha = id === 'waking' ? -1.5 : -1.05,
       beta = 0.9;
-    this.camera.alpha = alpha;
-    this.camera.beta = beta;
-    const canvas = this.engine.getRenderingCanvas()!,
-      below = canvas.clientWidth <= 900 && canvas.clientHeight > 540;
-    const radius =
-      (id === 'waking' ? 11 : id === 'command' ? 13 : id === 'question' ? 20 : 17) *
-      (below ? Math.max(1, 0.9 / (canvas.clientWidth / canvas.clientHeight)) : 1);
-    this.camera.radius = radius;
-    this.camera.target.set(0, 0.7, 0);
-    if (below)
-      this.camera.target.addInPlace(
-        new Vector3(
-          Math.cos(alpha) * Math.cos(beta),
-          -Math.sin(beta),
-          Math.sin(alpha) * Math.cos(beta),
-        ).scale(radius * Math.tan(this.camera.fov / 2) * 0.48),
-      );
-    else
-      this.camera.target.addInPlace(new Vector3(-Math.sin(alpha), 0, Math.cos(alpha)).scale(3.2));
+    const canvas = this.engine.getRenderingCanvas()!;
+    const extent = id === 'waking' ? 2.45 : id === 'command' ? 3 : id === 'question' ? 5 : 4.2;
+    applyCameraPose(
+      this.camera,
+      frameSubject(
+        this.camera,
+        canvas.clientWidth,
+        canvas.clientHeight,
+        new Vector3(0, 0.7, 0),
+        extent,
+        alpha,
+        beta,
+        this.readingBounds,
+      ),
+    );
     this.scene.metadata = {
       ...this.scene.metadata,
       storm: { checkpoint: id, rough, time: this.time },
@@ -232,6 +220,9 @@ export class StormRegion implements RegionView {
     if (this.state.lake.chapter.checkpoint !== state.lake.chapter.checkpoint) this.time = 0;
     this.state = structuredClone(state);
     this.stage();
+  }
+  setReadingBounds(rect?: ScreenRect): void {
+    this.readingBounds = rect;
   }
   renderFrame(): void {
     const now = performance.now();
@@ -268,6 +259,7 @@ export class StormRegion implements RegionView {
     this.paused = true;
   }
   dispose(): void {
+    this.water.dispose();
     this.library.dispose();
     this.scene.dispose();
   }

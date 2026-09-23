@@ -1,6 +1,6 @@
 # Asset production
 
-The 94 checked-in GLBs are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
+The 94 checked-in GLBs and fifteen matching WebP portraits are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -29,7 +29,7 @@ exec(compile(open(recipe).read(), recipe, 'exec'))
 ## Model contracts
 
 - Fifteen skinned actors: traveler, Simon, Miriam, Jesus, village neighbor, James, John, Hannah, Amos, Ruth, a bearer, the healed man, a widow, a young man and Leah. Ezra uses the neighbor model; Tamar, Neri and Adina reuse Ruth, Amos and Hannah.
-- Shared twelve-bone rig, with rigid per-part weights that preserve the chunky silhouettes. Named clips: `Idle`, `Walk`, `Carry`, `Gesture`, `Sit`, `Row`, `Haul`, `Kneel`, `Recline`, `Rise`, `MatCarry`, `Use`, `PickUp`, `PutDown`, `Repair`, `SitDown`. Blender NLA tracks export each clip; Babylon samples them independently per actor. This is skeletal animation with deliberately restrained deformation, not cloth simulation.
+- Shared twelve-bone rig, with rigid per-part weights that preserve the chunky silhouettes. Named clips: `Idle`, `Walk`, `Carry`, `Gesture`, `Sit`, `Row`, `Haul`, `Kneel`, `Recline`, `Rise`, `MatCarry`, `Use`, `PickUp`, `PutDown`, `Repair`, `SitDown`, `Greet`, `Listen`, `Respond`. Blender NLA tracks export each clip; Babylon samples them independently per actor. This is skeletal animation with deliberately restrained deformation, not cloth simulation.
 - Every actor exports `carry_socket`; the traveler uses it for baskets, jugs, tools and the sewing pouch. The boat exports `seat_front`, `seat_middle`, `seat_back`, `net_socket`, `oar_left`, and `oar_right` attachment transforms.
 - Separate oar, empty/full basket, folded/cast/full net, bread bundle, mooring coil and landing mat models support persistent interactions and staged scenes.
 - The original houses, market, three tree types, boat, net rack, crate, amphora, reeds, rock and well remain in the kit.
@@ -42,7 +42,7 @@ exec(compile(open(recipe).read(), recipe, 'exec'))
 npm run test -- tests/unit/assets.test.ts
 ```
 
-Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all sixteen shared clips, each actor’s declared specialized clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under the RFC-009 allowance of 5.5 MiB, actors under 5,000 triangles each and props under 10,000.
+Tests inspect every GLB for local buffers, expected model structure, bounds and geometry budgets. Actor checks cover skins, joints/weights, all nineteen shared clips, each actor’s declared specialized clips and their animated values; attachment names are checked on actors and boats. The full kit must stay under the RFC-010 allowance of 7.5 MiB, actors under 5,000 triangles each and props under 10,000.
 
 Inspect the Blender viewport and the actual Babylon view. Check front direction, feet, seated/kneeling height, carried basket, readable net silhouettes, both graphics settings and reduced motion. Phone captions must leave the action visible. Screenshot fixtures exercise lowering, abundance, partners, astonishment and calling on desktop and phone layouts.
 
@@ -165,6 +165,26 @@ The visible front of the final imported actor wrapper is **−Z**. `Actor.face` 
 
 ## Review output retention
 
-All inspection scripts default to ignored `artifacts/reviews/<collection>/` folders: `living-capernaum`, `road-to-nain`, `living-galilee`, `across-the-lake`, `connected-journey` and `capernaum`. `GOSPEL_REVIEW_OUTPUT` overrides this for CLI or Blender MCP runs; clear any stale override before using the defaults. Generated images and reports do not overwrite historical delivery records. Regeneration uses the current shipped models; reproducing an older milestone requires its historical checkout.
+The earlier inspection scripts default to ignored `artifacts/reviews/<collection>/` folders: `living-capernaum`, `road-to-nain`, `living-galilee`, `across-the-lake`, `connected-journey` and `capernaum`. The presence inspection defaults to `artifacts/rfc010/blender/`. `GOSPEL_REVIEW_OUTPUT` overrides these for CLI or Blender MCP runs; clear any stale override before using the defaults. Generated images and reports do not overwrite historical delivery records. Regeneration uses the current shipped models; reproducing an older milestone requires its historical checkout.
 
 Keep source workshops and shipped GLBs in Git. Promote only selected review images into `docs/verification/`, describe their purpose and record their exact bytes and SHA-256 in [the evidence manifest](verification/manifest.json). Follow [the retention policy](verification/README.md) and run `npm run evidence:check` before committing.
+
+## The Way, Brought to Life · RFC-010
+
+`presence.py` refines all fifteen character variants, both plaster houses, the olive tree and modular room wall. Faces gain eyes, brows, ears, lips and hair details; hems, folds, wraps, belts and the traveler's satchel distinguish the silhouettes. Houses retain their footprints and entrances while adding stone courses, roof reeds, parapets and timber. The shared rig adds `Greet`, `Listen` and `Respond`; the three specialist Nain clips retain their owners. Each skin now uses one white material and a vertex palette, leaving rendering headroom for the environment.
+
+```sh
+npm run assets:build:presence
+npm run assets:inspect:presence
+PRESENCE_REVIEW_OUTPUT=/absolute/path/asset-delivery.json npm run test -- tests/unit/presence.test.ts
+```
+
+The full `assets:build` runs the base, craft and presence recipes in order. A focused presence rebuild touches its nineteen model exports, fifteen portraits and `assets/source/presence-kit.blend`. The source workshop, generator, shared rig and exported files ship together. `GOSPEL_RPG_ROOT` selects the checkout. Generation explicitly writes its production models, portraits and source there, restoring any previous model-output environment value afterward. Inspection accepts `GOSPEL_REVIEW_OUTPUT` and needs no prior generated report. Use the same Python execution pattern above with `presence.py` or `inspect_presence.py`. Both restore the previously selected scene in `finally` blocks.
+
+Production used the native Blender MCP connection with Blender 5.2.1 LTS, addon 1.6 / protocol 5. The server's protocol-7 warning did not prevent generation, export, independent import or rendering. The original scene with its cube, camera and light was preserved. No addon upgrade, external models or remote generation services were needed.
+
+The resulting **94 models total 6,706,812 bytes (6.40 MiB)** against the explicit **7.5 MiB** ceiling. Only nineteen GLBs changed. The fifteen **192 × 224** transparent portraits total **50,576 bytes**, below their **384 KiB** allowance; the interface requests a portrait only when its recognized speaker is displayed. The largest regional increase is **715,700 bytes** at Capernaum, below **768 KiB**. The [delivery inventory](verification/rfc010/asset-delivery.json) records every model, portrait and regional download with exact hashes and baseline comparisons.
+
+`pack_palette.py` uses core glTF component types: normalized byte colors (maximum channel error 1/510), exactly preserved rigid 0/1 skin weights, and removal of unused UV data from these untextured exports. It does not quantize positions, normals or animation. It requires a single local buffer, untextured materials and non-interleaved supported attributes; it is a recipe for this kit, not a general glTF optimizer. No runtime decoder or compression extension is introduced. Asset, skin, attachment and existing solver/contact tests run against the final packed files.
+
+`inspect_presence.py` independently imports all nineteen shipped GLBs in a separate review scene, renders the kit and featured people, and records hashes and imported mesh/material/triangle counts. `presence.py` also renders portraits from independently imported exports, so the portrait identity is tied to the actual game model. Browser checks remain necessary for lighting, wrapper orientation, camera composition and model-to-world contact. The [review guide](verification/rfc010/README.md) distinguishes Blender inspection, runtime evidence and outstanding human/device review.

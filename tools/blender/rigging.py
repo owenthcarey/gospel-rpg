@@ -12,6 +12,7 @@ CLIPS = {
     "Sit": 60, "Row": 36, "Haul": 40, "Kneel": 60, "Recline": 60, "Rise": 60, "MatCarry": 24, "Use": 60,
     "PickUp": 36, "PutDown": 36, "Repair": 60, "SitDown": 72,
     "SitUp": 60, "FrameCarry": 60, "TouchFrame": 60,
+    "Greet": 42, "Listen": 96, "Respond": 72,
 }
 
 def export_character(name, parts, scene, output, grid_index):
@@ -76,6 +77,25 @@ def export_character(name, parts, scene, output, grid_index):
     skin.name = name + "_skin"
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     skin.parent = rig
+    # One palette primitive per skin keeps crowds affordable. Preserve all
+    # corner colors before collapsing material slots, including facial accents.
+    colors = skin.data.color_attributes.new(name="Color", type="FLOAT_COLOR", domain="CORNER")
+    for poly in skin.data.polygons:
+        color = skin.data.materials[poly.material_index].diffuse_color
+        for loop in poly.loop_indices:
+            colors.data[loop].color = color
+        poly.material_index = 0
+    skin.data.materials.clear()
+    palette = bpy.data.materials.get("Way character palette")
+    if palette is None:
+        palette = bpy.data.materials.new("Way character palette")
+        palette.use_nodes = True
+        shader = next(n for n in palette.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+        shader.inputs["Roughness"].default_value = .95
+        vertex = palette.node_tree.nodes.new("ShaderNodeVertexColor")
+        vertex.layer_name = "Color"
+        palette.node_tree.links.new(vertex.outputs["Color"], shader.inputs["Base Color"])
+    skin.data.materials.append(palette)
     modifier = skin.modifiers.new("Shared character skeleton", "ARMATURE")
     modifier.object = rig
     # Carry point is a deliberately stable root-space grip for two-handed baskets.
@@ -110,6 +130,23 @@ def export_character(name, parts, scene, output, grid_index):
             p["arm_right"].rotation_euler.x = -.6 - .12*wave
             p["forearm_right"].rotation_euler.x = -.65
             p["head"].rotation_euler.z = .06
+        if clip == "Greet":
+            reach = math.sin(math.pi * phase) ** 2
+            p["arm_right"].rotation_euler.x = -.82 * reach
+            p["arm_right"].rotation_euler.z = -.18 * reach
+            p["forearm_right"].rotation_euler.x = -.75 * reach
+            p["head"].rotation_euler.x = -.08 * reach
+        if clip == "Listen":
+            p["head"].rotation_euler.x = -.04 + .035 * wave
+            p["head"].rotation_euler.z = .025 * math.sin(phase * math.tau)
+            p["body"].rotation_euler.x = -.015 + .008 * wave
+        if clip == "Respond":
+            reach = math.sin(math.pi * phase) ** 2
+            p["arm_left"].rotation_euler.x = -.48 * reach
+            p["forearm_left"].rotation_euler.x = -.56 * reach
+            p["arm_left"].rotation_euler.z = .18 * reach
+            p["head"].rotation_euler.z = -.07 * reach
+            p["body"].rotation_euler.z = -.025 * reach
         if clip in ("Sit", "Row"):
             for side in ("left", "right"):
                 p["thigh_" + side].rotation_euler.x = -1.25

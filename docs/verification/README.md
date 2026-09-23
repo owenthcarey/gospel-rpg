@@ -4,25 +4,25 @@ Keep a small, useful gallery in Git alongside compact measurements and test outc
 
 ## What belongs in Git
 
-- Game models in `public/assets/models/` and their Blender sources in `assets/source/` remain versioned together. Existing asset tests enforce the model contracts and download budgets.
+- Game models in `public/assets/models/`, production portraits in `public/assets/portraits/` and their Blender sources in `assets/source/` remain versioned together. Existing asset tests enforce the model contracts and download budgets.
 - Automated screenshot references in `tests/e2e/screenshots/` remain versioned because the rendering tests depend on them.
 - Keep selected review images that establish distinct behavior, geometry, accessibility layouts or meaningful before/after comparisons. Usually four to six images suffice for a milestone.
 - Keep structured verification records, measurements and portable save fixtures. Historical source/model hashes describe the original run; they are not promises that today's files still have those bytes.
 
-The current gallery contains **42 images / 28.4 MiB**. Its total budget is **30 MiB**. Each collection has its own count and byte budget in the manifest, with defaults capped at six files and 6 MiB. A larger collection requires an `exceptionReason`; the twelve-image Capernaum gallery preserves four before/after pairs, two phone solutions and two independent Blender reviews. Budget changes require an explicit, explained manifest edit.
+The current gallery contains **48 images / 29.97 MiB**. Its total budget is **30 MiB**. Each collection has its own count and byte budget in the manifest, with defaults capped at six files and 6 MiB. A larger collection requires an `exceptionReason`; the twelve-image Capernaum gallery preserves four before/after pairs, two phone solutions and two independent Blender reviews. Budget changes require an explicit, explained manifest edit.
 
 ## Generate, review, select
 
 1. Generate browser captures in ignored `test-results/` or `test-results-compat/`. [CI](../../.github/workflows/ci.yml) uploads browser reports and captures with seven-day retention. They can expire without breaking permanent documentation.
-2. Generate Blender reviews in ignored `artifacts/reviews/<collection>/`. Every inspection script uses this default. `GOSPEL_REVIEW_OUTPUT` overrides it for CLI or MCP runs; clear stale overrides before relying on the default. CI does not run Blender.
+2. Generate Blender reviews in ignored `artifacts/reviews/<collection>/`. The presence inspection uses `artifacts/rfc010/blender/`; earlier inspections use the reviews directory. `GOSPEL_REVIEW_OUTPUT` overrides it for CLI or MCP runs; clear stale overrides before relying on the default. CI does not run Blender.
 3. Inspect the results and copy only the selected images into this directory. Regeneration uses the current models; reproduce an older milestone from its historical checkout.
 4. Add or update each selected file in `manifest.json`: `path`, `collection`, `purpose`, `bytes` and `sha256`. For an intentionally changed file, compute its bytes and digest after review, for example with `wc -c` and `shasum -a 256`. Update any delivery record that also lists that image. Do not change historical test outcomes or source hashes to imply a new validation run.
 5. Link the retained images from the relevant review guide. When retiring an image, remove its manifest entry and update documentation links and image inventories in the same change. Preserve the original measurements and case outcomes.
 6. Run `npm run evidence:check` and `npm run format:check`. The evidence check is also the first step of `npm run check`, including in CI. It includes non-ignored untracked files locally so accidental captures fail before staging.
 
-The check rejects unlisted binaries outside the game-model, Blender-source and automated-baseline directories; missing or ignored declared images; duplicate entries; changed bytes or checksums; exceeded budgets; broken local Markdown file links; and missing media references in verification JSON. It checks file targets, not Markdown heading fragments or external URLs. It never regenerates the manifest automatically.
+The check rejects unlisted binaries outside the game-model, production-portrait, Blender-source and automated-baseline directories; missing or ignored declared images; duplicate entries; changed bytes or checksums; exceeded budgets; broken local Markdown file links; and missing media references in verification JSON. It checks file targets, not Markdown heading fragments or external URLs. It never regenerates the manifest automatically.
 
-The gallery was curated from 83 to 42 images in this maintenance pass. Removed captures remain available in Git history; this cleanup reduces the current checkout and limits future growth without rewriting published history.
+The earlier maintenance pass curated the gallery from 83 to 42 images; RFC-010 adds six selected images within the same total ceiling. Removed captures remain available in Git history; this cleanup reduces the current checkout and limits future growth without rewriting published history.
 
 ## Selected galleries
 
@@ -104,3 +104,16 @@ The following images are retained for distinct review purposes. Full generation 
 | [gathering-house-high-desktop.png](rfc009/gathering-house-high-desktop.png) | Delivered gathering house composition for before/after comparison. |
 | [north-passage-tested-phone.png](rfc009/north-passage-tested-phone.png)     | Tested north passage and plan at phone width.                      |
 | [south-short-landscape-phone.png](rfc009/south-short-landscape-phone.png)   | South solution with large text in short landscape.                 |
+
+### The Way, Brought to Life
+
+The [presentation review](rfc010/README.md) connects final-export Blender inspections with the actual game and the preceding Capernaum references.
+
+| Evidence                                                      | Purpose                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------ |
+| [shore-desktop.png](rfc010/shore-desktop.png)                 | Refined paths, architecture, olive trees and water edge.     |
+| [bakehouse-desktop.png](rfc010/bakehouse-desktop.png)         | Inhabited interior and supported work.                       |
+| [conversation-phone.png](rfc010/conversation-phone.png)       | Nearby people and identity portrait with large reading size. |
+| [lake-partners-desktop.png](rfc010/lake-partners-desktop.png) | Both loaded boats, working net and unobscured reading.       |
+| [kit.webp](rfc010/kit.webp)                                   | Independently imported architecture and principal people.    |
+| [people.webp](rfc010/people.webp)                             | Distinct faces, garments and silhouettes.                    |

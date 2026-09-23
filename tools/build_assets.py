@@ -13,9 +13,15 @@ if not blender and sys.platform == "darwin":
 if not blender or not pathlib.Path(blender).exists():
     sys.exit("Set BLENDER_BIN to your Blender 4.2+ executable.")
 env = dict(os.environ, GOSPEL_RPG_ROOT=str(root))
-if sys.argv[1:] not in ([], ['--inspect-road'], ['--inspect-galilee'], ['--inspect-lake'], ['--inspect-connection'], ['--capernaum'], ['--inspect-capernaum']):
-    sys.exit('Usage: build_assets.py [--inspect-road | --inspect-galilee | --inspect-lake | --inspect-connection | --capernaum | --inspect-capernaum]')
-script = 'capernaum.py' if '--capernaum' in sys.argv else 'inspect_capernaum.py' if '--inspect-capernaum' in sys.argv else 'inspect_connection.py' if '--inspect-connection' in sys.argv else 'inspect_crossing.py' if '--inspect-lake' in sys.argv else 'inspect_galilee.py' if '--inspect-galilee' in sys.argv else 'inspect_road.py' if '--inspect-road' in sys.argv else 'generate_kit.py'
+scripts = {
+    '--inspect-road': 'inspect_road.py', '--inspect-galilee': 'inspect_galilee.py',
+    '--inspect-lake': 'inspect_crossing.py', '--inspect-connection': 'inspect_connection.py',
+    '--capernaum': 'capernaum.py', '--inspect-capernaum': 'inspect_capernaum.py',
+    '--presence': 'presence.py', '--inspect-presence': 'inspect_presence.py',
+}
+if len(sys.argv) > 2 or (len(sys.argv) == 2 and sys.argv[1] not in scripts):
+    sys.exit('Usage: build_assets.py ['+' | '.join(scripts)+']')
+script = scripts[sys.argv[1]] if len(sys.argv) == 2 else 'generate_kit.py'
 with tempfile.TemporaryDirectory(prefix='the-way-lake-review-') as output:
     if '--inspect-capernaum' in sys.argv:
         poses=str(pathlib.Path(output)/'capernaum-poses.json')
@@ -33,3 +39,5 @@ with tempfile.TemporaryDirectory(prefix='the-way-lake-review-') as output:
 
 if not sys.argv[1:]:
     subprocess.run([blender, '--background', '--python', str(root / 'tools/blender/capernaum.py')], env=env, check=True)
+
+    subprocess.run([blender, '--background', '--python', str(root / 'tools/blender/presence.py')], env=env, check=True)

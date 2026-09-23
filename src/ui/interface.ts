@@ -65,6 +65,7 @@ import type { GameState, Point, Settings } from '../game/types';
 import type { SlotSummary } from '../persistence/saves';
 import type { ScreenLabel } from '../scene/world';
 import { escapeHtml as esc, icon } from './icons';
+import { openingGuidance, personIdentity, portraitUrl } from '../content/presence';
 
 export type Panel =
   | 'work'
@@ -87,6 +88,8 @@ export interface UIActions {
   setting: (key: keyof Settings, value: string | boolean) => void;
   importFile: (file: File) => void;
   workLayout?: (rect?: WorkRect) => void;
+  presentationLayout?: (id?: string, rect?: WorkRect, paused?: boolean) => void;
+  readingLayout?: (rect?: WorkRect) => void;
 }
 
 export class Interface {
@@ -109,6 +112,7 @@ export class Interface {
   private journalFilter: JournalFilter = 'all';
   private journalStatus: StoryStatusFilter = 'all';
   private objectiveExpanded = false;
+  private conversationPaused = false;
   private workObserver?: ResizeObserver;
   private onClick: (e: MouseEvent) => void;
   private onChange: (e: Event) => void;
@@ -153,6 +157,13 @@ export class Interface {
     }
     this.onClick = (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+      if (button?.dataset.action === 'conversation-pause') {
+        this.conversationPaused = !this.conversationPaused;
+        button.setAttribute('aria-pressed', String(this.conversationPaused));
+        button.textContent = this.conversationPaused ? 'Resume motion' : 'Pause motion';
+        this.measureWork();
+        return;
+      }
       if (button && !button.hasAttribute('disabled'))
         this.actions.action(button.dataset.action!, button.dataset.value);
     };
@@ -177,6 +188,7 @@ export class Interface {
     this.workObserver = new ResizeObserver(() => this.measureWork());
     this.workObserver.observe(root);
     this.workObserver.observe(this.overlay);
+    this.workObserver.observe(this.sceneControls);
     root.addEventListener('click', this.onClick);
     root.addEventListener('change', this.onChange);
     window.addEventListener('keydown', this.onKey);
@@ -203,7 +215,12 @@ export class Interface {
             : sceneControls(view, this.scenePaused)
       : '';
     this.root.querySelector('.control-hints span')!.innerHTML =
-      icon('mouse') + (state.region === 'galilee-water' ? ' Click to steer' : ' Click to walk');
+      icon('mouse') +
+      ' ' +
+      esc(
+        openingGuidance(state) ??
+          (state.region === 'galilee-water' ? 'Click to steer' : 'Click to walk'),
+      );
     const quest = questView(state);
     if (this.quest.dataset.content !== quest) {
       this.quest.dataset.content = quest;
@@ -369,13 +386,22 @@ export class Interface {
       this.focusBefore =
         document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
     this.panel = panel;
+    this.root.classList.remove('conversing');
+    if (panel !== 'dialogue' && panel !== 'context') {
+      this.actions.presentationLayout?.();
+      this.conversationPaused = false;
+    }
     this.root.classList.toggle('working', panel === 'work');
     this.hud.inert = panel !== 'work';
     this.sceneControls.inert = true;
-    const previousWork = this.overlay.querySelector<HTMLElement>('.work-panel');
+    const previousWork = this.overlay.querySelector<HTMLElement>(
+      '.work-panel,[data-conversation-person]',
+    );
     if (previousWork) this.workObserver?.unobserve(previousWork);
     this.overlay.innerHTML = content;
-    const workPanel = this.overlay.querySelector<HTMLElement>('.work-panel');
+    const workPanel = this.overlay.querySelector<HTMLElement>(
+      '.work-panel,[data-conversation-person]',
+    );
     if (workPanel) this.workObserver?.observe(workPanel);
     this.overlay.className =
       panel === 'work'
@@ -396,9 +422,14 @@ export class Interface {
       });
   }
   close(): void {
+    this.actions.presentationLayout?.();
+    this.root.classList.remove('conversing');
+    this.conversationPaused = false;
     this.root.classList.remove('working');
     this.panel = null;
-    const workPanel = this.overlay.querySelector<HTMLElement>('.work-panel');
+    const workPanel = this.overlay.querySelector<HTMLElement>(
+      '.work-panel,[data-conversation-person]',
+    );
     if (workPanel) this.workObserver?.unobserve(workPanel);
     this.overlay.innerHTML = '';
     this.overlay.className = '';
@@ -563,6 +594,14 @@ export class Interface {
     );
   }
   private measureWork(): void {
+    const reading = this.sceneControls.hidden
+      ? undefined
+      : this.sceneControls.getBoundingClientRect();
+    this.actions.readingLayout?.(
+      reading
+        ? { left: reading.left, top: reading.top, right: reading.right, bottom: reading.bottom }
+        : undefined,
+    );
     const panel = this.overlay.querySelector<HTMLElement>('.work-panel');
     const bounds = panel?.getBoundingClientRect();
     this.actions.workLayout?.(
@@ -570,6 +609,38 @@ export class Interface {
         ? { left: bounds.left, top: bounds.top, right: bounds.right, bottom: bounds.bottom }
         : undefined,
     );
+    const conversation = this.overlay.querySelector<HTMLElement>('[data-conversation-person]');
+    if (conversation) {
+      const r = conversation.getBoundingClientRect();
+      this.actions.presentationLayout?.(
+        conversation.dataset.conversationPerson,
+        { left: r.left, top: r.top, right: r.right, bottom: r.bottom },
+        this.conversationPaused,
+      );
+    } else this.actions.presentationLayout?.();
+  }
+  private decorateConversation(idOrName: string): void {
+    const person = personIdentity(idOrName);
+    const surface = this.overlay.querySelector<HTMLElement>('[role="dialog"]');
+    if (!person || !surface) return;
+    surface.dataset.conversationPerson = person.id;
+    this.workObserver?.observe(surface);
+    this.root.classList.add('conversing');
+    this.overlay.classList.add('conversation-overlay');
+    if (this.panel === 'context') surface.classList.add('conversation-context');
+    const portrait = this.overlay.querySelector('.dialogue-portrait');
+    const art = `<img src="${esc(portraitUrl(person.asset))}" width="192" height="224" alt="" decoding="async" class="speaker-portrait"/>`;
+    if (portrait) portrait.innerHTML = art;
+    else
+      surface
+        .querySelector('.panel-header')
+        ?.insertAdjacentHTML('afterbegin', `<div class="context-portrait">${art}</div>`);
+    const header = surface.querySelector('header');
+    header?.insertAdjacentHTML(
+      'beforeend',
+      `<button class="conversation-motion text-button" data-action="conversation-pause" aria-pressed="${this.conversationPaused}">${this.conversationPaused ? 'Resume motion' : 'Pause motion'}</button>`,
+    );
+    this.measureWork();
   }
   toggleObjective(): void {
     this.objectiveExpanded = !this.objectiveExpanded;
@@ -763,6 +834,7 @@ export class Interface {
       'dialogue',
       `<section class="dialogue-box" role="dialog" aria-modal="true" aria-labelledby="dialogue-speaker"><div class="dialogue-portrait">${icon(dialogue.provenance === 'Original narration' ? 'leaf' : 'person')}<span>✦</span></div><div class="dialogue-main"><header><div><h2 id="dialogue-speaker">${dialogue.speaker}</h2><p>${dialogue.subtitle}</p></div><button class="icon-button" data-action="close" aria-label="Leave conversation">${icon('close')}</button></header><p class="dialogue-text ${dialogue.provenance === 'Scripture · WEB' ? 'scripture' : ''}">${dialogue.text}</p><div class="dialogue-choices">${dialogue.choices.map((choice, index) => `<button data-action="choice" data-value="${index}"><span class="choice-index">${index + 1}</span>${choice.label}${icon('arrow')}</button>`).join('')}</div><div class="dialogue-source">${dialogue.provenance}${dialogue.reference ? ` <span>·</span> ${dialogue.reference}` : ''}</div></div></section>`,
     );
+    if (dialogue.provenance !== 'Original narration') this.decorateConversation(dialogue.speaker);
     requestAnimationFrame(() =>
       this.overlay.querySelector<HTMLElement>('[data-action="choice"]')?.focus(),
     );
@@ -792,6 +864,7 @@ export class Interface {
           : '') + view.body,
       ),
     );
+    this.decorateConversation(id);
     return true;
   }
   private mapSvg(large: boolean, position?: Point, state?: GameState): string {

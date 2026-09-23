@@ -18,6 +18,8 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **Capernaum, Fully Realized** adds an early optional shore adventure, **A clear way to the water**. Meet Eliab, study a small working landing, and arrange either of two dry crossings. An original Blender kit dresses the shore, lanes and interiors; neighbors tend water, work nets, bake bread and sit together when the relevant work is complete. Your arrangements and chosen reflection persist in save v11. See [RFC-009](docs/rfcs/009-capernaum-fully-realized.md) and the [landing playtest](docs/PLAYTEST.md#capernaum-fully-realized).
 
+**The Way, Brought to Life** gives Capernaum worn paths, a softer shoreline, detailed houses and inhabited interiors. Refined characters turn toward one another, greet and listen, with matching portraits and a camera that makes room for the reading panel. All ten Into the Deep scenes have complete, responsive compositions, supported boats and clearer net work; shared water and framing improvements extend through the later chapters. Progress remains compatible with save v11. See [RFC-010](docs/rfcs/010-the-way-brought-to-life.md) and the [presentation review guide](docs/verification/rfc010/README.md).
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -60,7 +62,7 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 - **Through the Roof:** eight narrated Gospel scenes, three aftermath visits and a chosen reflection; explorable lanes and two enterable buildings.
 - **Four independent neighborhood stories:** investigate Ruth’s missing sewing pouch, repair the landing bench with cord or a brace, choose a walking route with Amos, or a table location with Hannah; carry bread and water, clear a passage, and return to visible results.
 - **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
-- **94 original Blender assets**, fifteen skinned character variants, sixteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling. Passage markers and refined landing edges help identify deliberate crossings.
+- **94 original Blender assets**, fifteen skinned character variants, nineteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling. Passage markers and refined landing edges help identify deliberate crossings.
 - A compact nearby-action tray for practical tasks, distinct pick-up/put-down/repair/sit motions, stationary holding, persistent repaired benches and seated table company.
 - A journal organized into **Stories, People, Places, and Memories**, with story/status filters, investigation evidence, destinations, a journey recap and a completed-account replay library.
 - A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.
@@ -69,6 +71,7 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 - Autosave, three manual slots, JSON export/import and **v11 migration from v1–v10 saves**, including interrupted scenes, routes, return encounters and replay cursors.
 - Persistent destinations across land and lake: menus retain your route, manual movement leaves it resumable, and each gateway, boarding and docking action remains deliberate.
 - Replay all **31 scenes** from completed Gospel accounts, with previous/next, transcript, pause, scene selection and exact return to your saved traveler, supplies, companions and boat.
+- Nearby conversations with identity portraits, greeting/listening poses, camera recovery and an independent **Pause motion** control.
 - Compact phone objectives, standard/large reading sizes, readable captions, keyboard focus management, reduced motion, lower graphics settings and an original nine-track regional soundtrack.
 - Welcome and save controls open before any models download; continue/import load the saved region directly with retry.
 - Saved full/restrained exploration guidance, explicit walk cancellation, placement guides, and camera cutaways for obstructing trees.
@@ -88,7 +91,7 @@ After your Chapter IV reflection, open **Journal → The way home**. Visit **Roo
 
 Use **Journal → Replay Gospel scenes** to revisit a completed account. Replay has its own saved reading place; it leaves the ordinary journey unchanged. **Journey recap** gathers your last memory, unfinished stories, carried object, waiting companions and saved route. Continue shows a compact recap before loading. A restored route waits for **Resume route**; it never moves the traveler on its own.
 
-This delivers four bounded Gospel chapters, eleven optional stories and an optional closing interlude. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/009-capernaum-fully-realized.md), and [verification record](docs/VERIFICATION.md).
+This delivers four bounded Gospel chapters, eleven optional stories and an optional closing interlude. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/010-the-way-brought-to-life.md), and [verification record](docs/VERIFICATION.md).
 
 For a guided review and portable example saves, see the [playtest guide](docs/PLAYTEST.md).
 

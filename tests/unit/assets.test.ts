@@ -50,7 +50,7 @@ describe('the complete original asset manifest', () => {
       .map((name) => name.slice(0, -4));
     expect(files.sort()).toEqual(assets.map((asset) => asset.id).sort());
     expect(assets.reduce((total, asset) => total + model(asset.id).bytes.length, 0)).toBeLessThan(
-      5.5 * 1024 * 1024,
+      7.5 * 1024 * 1024,
     );
   });
   it.each(assets)('$id is self-contained, bounded and contains the required structure', (asset) => {
@@ -86,6 +86,8 @@ describe('the complete original asset manifest', () => {
       expect(gltf.animations!.map((clip) => clip.name).sort()).toEqual([...asset.clips].sort());
       expect(asset.clips).toEqual(expect.arrayContaining([...ANIMATION_CLIPS]));
       expect(gltf.meshes).toHaveLength(1);
+      expect(primitives).toHaveLength(1);
+      expect(primitives[0]!.attributes.COLOR_0).toBeDefined();
       for (const primitive of primitives) {
         expect(primitive.attributes.JOINTS_0).toBeDefined();
         expect(primitive.attributes.WEIGHTS_0).toBeDefined();

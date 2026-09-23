@@ -9,6 +9,7 @@ export interface RegionView {
   update(state: GameState): void;
   applySettings(settings: Settings): void;
   setPaused(paused: boolean): void;
+  setReadingBounds?(rect?: import('../../game/presence').ScreenRect): void;
   getPosition(): Point;
   dispose(): void;
 }
