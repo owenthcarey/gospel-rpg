@@ -51,6 +51,7 @@ import type { ActionMotion } from './content/campaign/actions';
 import { GameRuntime } from './scene/runtime';
 import { SCENE_IDS } from './game/episode/types';
 import { Interface } from './ui/interface';
+import { focusLost } from './ui/focus';
 import { JOURNAL_CATEGORIES, type JournalCategory, type JournalFilter } from './ui/views/journal';
 import { escapeHtml } from './ui/icons';
 import { ColdOpen, ChapterCard, Veil } from './ui/cinematic';
@@ -812,6 +813,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
         const body = document.querySelector('.panel-body');
         if (body) body.scrollTop = workScroll;
         requestAnimationFrame(() => {
+          if (!focusLost()) return;
           if (name === 'galilee-hint') {
             (
               document.querySelector<HTMLElement>('[data-action="galilee-hint"]') ??

@@ -2,7 +2,7 @@ import { harborContext, harborSummary } from './views/harbor';
 import { audioSettings } from './views/audio';
 import { journeyOverview, workSurface } from './views/exploration';
 import { workTarget, type ScreenPreview } from '../content/exploration/work';
-import { trapFocus, restoreFocus } from './focus';
+import { trapFocus, restoreFocus, focusLost } from './focus';
 import type { WorkRect } from '../scene/work';
 import { isPresenting, presentationState } from '../game/connection/accounts';
 import { routePlan, type RoutePlan } from '../game/connection/routes';
@@ -776,7 +776,8 @@ export class Interface {
     requestAnimationFrame(() => {
       if (this.overlay.firstElementChild !== surface) return;
       this.measureWork();
-      if (restore) restoreFocus(this.overlay, action, value, active?.dataset.workId);
+      // Restore only focus the re-render dropped; a control focused since then keeps it.
+      if (restore && focusLost()) restoreFocus(this.overlay, action, value, active?.dataset.workId);
       const result = this.overlay.querySelector('.work-result');
       if (result) result.textContent = feedback;
     });

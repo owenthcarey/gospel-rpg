@@ -26,6 +26,11 @@ export function trapFocus(event: KeyboardEvent, root: HTMLElement): void {
     first.focus();
   }
 }
+/** True when a re-render removed the focused control, so nothing (or only the page) has focus. */
+export function focusLost(): boolean {
+  const active = document.activeElement;
+  return !active || active === document.body || !active.isConnected;
+}
 export function restoreFocus(
   root: HTMLElement,
   action?: string,
