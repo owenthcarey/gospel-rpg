@@ -347,8 +347,15 @@ export function backdropTerrain(
       const c = groundColor(p, options.style, hills);
       colors.push(c.r, c.g, c.b, 1);
     }
+  // Quads well inside the reserve lie under the region's own ground: skip them so they cost
+  // neither vertices nor (unsorted, overdrawn) fragments.
+  const hidden = (x: number, z: number) =>
+    Math.min(x - reserve.minX, reserve.maxX - x, z - reserve.minZ, reserve.maxZ - z) >= step;
   for (let j = 0; j < n; j++)
     for (let i = 0; i < n; i++) {
+      const x = -half + i * step,
+        z = -half + j * step;
+      if (hidden(x, z) && hidden(x + step, z + step)) continue;
       const a = j * (n + 1) + i;
       // Babylon's left-handed front faces wind clockwise when viewed from above.
       indices.push(a, a + 1, a + n + 1, a + 1, a + n + 2, a + n + 1);
