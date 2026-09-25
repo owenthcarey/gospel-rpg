@@ -99,6 +99,12 @@ export interface WorldCallbacks {
     destination?: string,
   ) => void;
 }
+/** The shared lifecycle of optional exploration controllers. Ticks keep their own inputs. */
+interface WorldActivity {
+  settings?(settings: Settings): void;
+  update?(state: GameState): void;
+  dispose?(): void;
+}
 export interface ScreenLabel {
   id: string;
   x: number;
@@ -198,6 +204,7 @@ export class World {
   private strideTime = 0;
   private walkRamp = 0;
   private pendingRotation = 0;
+  private dataCache = new Map<string, string>();
   private cameraReturn?: { from: CameraPose; to: CameraPose; t: number };
   private lastPace = 1;
   private path: Point[] = [];
@@ -667,6 +674,27 @@ export class World {
       [this.camera.upperRadiusLimit, this.camera.upperBetaLimit] = a.limits;
       this.arrival = undefined;
     }
+  }
+  /** Test-facing canvas attributes, written only when their value changes. */
+  private setData(key: string, value: string): void {
+    if (this.dataCache.get(key) === value) return;
+    this.dataCache.set(key, value);
+    this.canvas.dataset[key] = value;
+  }
+  /** Every optional scene controller, registered once for settings, state and disposal. */
+  private activities(): WorldActivity[] {
+    const harbor = this.harbor;
+    const all: (WorldActivity | undefined)[] = [
+      this.activity,
+      this.neighborhood,
+      this.road,
+      this.life,
+      this.connection,
+      this.galilee,
+      this.everyday,
+      harbor && { update: (state: GameState) => harbor.update(state.harbor) },
+    ];
+    return all.filter((a): a is WorldActivity => Boolean(a));
   }
   get atmosphere(): string {
     return this.stage.label;
@@ -1145,14 +1173,8 @@ export class World {
   applySettings(settings: Settings): void {
     this.guidance = settings.guidance ?? 'full';
     this.showRoute();
-    this.galilee?.settings(settings);
     this.reducedMotion = settings.reducedMotion;
-    this.activity?.settings(settings);
-    this.neighborhood?.settings(settings);
-    this.road?.settings(settings);
-    this.life?.settings(settings);
-    this.connection?.settings(settings);
-    this.everyday?.settings(settings);
+    for (const activity of this.activities()) activity.settings?.(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
       this.boats.forEach((boat) => {
@@ -1364,24 +1386,27 @@ export class World {
         p.id === 'amos' ? { ...p, ...companion } : p,
       );
     const neri = this.road?.position();
-    this.canvas.dataset.roadCompanion = neri
-      ? JSON.stringify({
-          ...neri,
-          region: this.state.region,
-          step: this.state.road.company.step,
-          stage: this.state.road.company.stage,
-        })
-      : '';
+    this.setData(
+      'roadCompanion',
+      neri
+        ? JSON.stringify({
+            ...neri,
+            region: this.state.region,
+            step: this.state.road.company.step,
+            stage: this.state.road.company.stage,
+          })
+        : '',
+    );
     if (neri)
       this.destinations = this.destinations.map((p) => (p.id === 'neri' ? { ...p, ...neri } : p));
     this.stage.setView(this.camera.target);
     this.stage.tick(Math.min(elapsed, 0.1), this.active && !this.paused);
     this.scene.render();
     const playback = this.actorPlayer.playback;
-    this.canvas.dataset.boatHeading = String(this.getBoatHeading() ?? '');
-    this.canvas.dataset.actorPose = playback.clip;
-    this.canvas.dataset.actorFrame = playback.frame.toFixed(2);
-    this.canvas.dataset.actionMotion = this.seatedAction ? 'SitDown' : playback.action;
+    this.setData('boatHeading', String(this.getBoatHeading() ?? ''));
+    this.setData('actorPose', playback.clip);
+    this.setData('actorFrame', playback.frame.toFixed(2));
+    this.setData('actionMotion', this.seatedAction ? 'SitDown' : playback.action);
     if (performance.now() - this.lastFrame > 45) {
       this.lastFrame = performance.now();
       const width = this.engine.getRenderWidth(),
@@ -1450,13 +1475,8 @@ export class World {
         this.layout.bounds.max,
       );
     if (!this.layout) this.grid = new WalkGrid([...obstacles, ...passageObstacles(state)], isLand);
-    this.neighborhood?.update(state);
-    this.road?.update(state);
-    this.life?.update(state);
-    this.connection?.update(state);
-    this.galilee?.update(state);
-    this.harbor?.update(state.harbor);
-    this.everyday?.update(state);
+    for (const activity of this.activities())
+      if (activity !== this.activity) activity.update?.(state);
     this.people.get('joel')?.setEnabled(state.road.chapter.stage === 'complete');
     this.mooredBoat?.setEnabled(
       state.road.chapter.stage === 'complete' && state.lake.boat.berth === state.region,
@@ -1554,9 +1574,7 @@ export class World {
     this.workView?.dispose();
     this.deactivate();
     this.cleanup.forEach((fn) => fn());
-    this.activity?.dispose();
-    this.neighborhood?.dispose();
-    this.everyday?.dispose();
+    for (const activity of this.activities()) activity.dispose?.();
     this.cover?.dispose();
     this.library.dispose();
     this.stage.dispose();

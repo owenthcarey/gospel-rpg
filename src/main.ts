@@ -19,22 +19,15 @@ import {
 } from './game/connection/types';
 import { STORY_STATUSES, type StoryStatusFilter } from './ui/views/connection';
 import './ui/lake.css';
-import {
-  STORM_SCENES,
-  STORM_REFLECTIONS,
-  LAKE_INTERPRETATIONS,
-  LAKE_ENDINGS,
-  type LakeEvent,
-} from './game/lake/types';
 import { normalizeHeading } from './game/lake/navigation';
 import { galileeActions } from './content/galilee/actions';
 import { practicalActions } from './content/practical';
 import { suggestStory } from './content/exploration/suggestions';
-import { CHANNEL_IDS, type ChannelId, type Direction } from './game/galilee/types';
+import type { Direction } from './game/galilee/types';
 import { traceWater } from './game/galilee/channel';
 import { checkArrangement } from './game/galilee/arrangement';
 import './ui/galilee.css';
-import { STORY_TRACKS, ROOF_SCENES, ROOF_REFLECTIONS, NEIGHBOR_NOTES } from './game/campaign/types';
+import { STORY_TRACKS } from './game/campaign/types';
 import { worldAction, actionMotion } from './content/campaign/actions';
 import './ui/styles.css';
 import './ui/episode.css';
@@ -43,18 +36,9 @@ import './ui/life.css';
 import './ui/road.css';
 import './ui/exploration.css';
 import './ui/presence.css';
-import {
-  ROAD_ACTIONS,
-  TRAIL_EVIDENCE,
-  TRAIL_INTERPRETATIONS,
-  TRAIL_ENDINGS,
-  COMPANY_ROUTES,
-  NAIN_SCENES,
-  NAIN_REFLECTIONS,
-  type RoadEvent,
-} from './game/road/types';
-import { roadActions } from './content/road/actions';
 import { leavePresentationEvent } from './game/presentation';
+import { parseStoryCommand } from './game/commands';
+import { motionFor, noticeFor } from './content/notices';
 import { dialogueFor, type Dialogue, type Choice } from './content/story';
 import { transition } from './game/quest';
 import { newGame, type GameEvent, type GameState, type Settings } from './game/types';
@@ -66,7 +50,6 @@ import { feedbackForEvent } from './content/audio/feedback';
 import type { ActionMotion } from './content/campaign/actions';
 import { GameRuntime } from './scene/runtime';
 import { SCENE_IDS } from './game/episode/types';
-import { actionFor } from './content/episode/interactions';
 import { Interface } from './ui/interface';
 import { JOURNAL_CATEGORIES, type JournalCategory, type JournalFilter } from './ui/views/journal';
 import { escapeHtml } from './ui/icons';
@@ -320,110 +303,10 @@ async function apply(event: GameEvent): Promise<void> {
   presentArrival();
   const feedback = feedbackForEvent(event);
   if (feedback) audio.play(feedback);
-  if (event.type === 'harbor-action') {
-    const action = harborActions(previous).find((a) => a.id === event.id);
-    if (action?.motion) performInteraction(action.motion, action.target);
-    ui.toast(harborNotice(state, event));
-  }
-  if (event.type === 'galilee-action') {
-    const action = galileeActions.find((a) => a.id === event.id)!;
-    performInteraction(action.motion, action.target);
-    ui.toast(
-      event.id === 'spring-test'
-        ? traceWater(state.galilee.spring.turns).message
-        : event.id.startsWith('shelter-check-')
-          ? checkArrangement(state.galilee.shelter).message
-          : action.notice,
-    );
-  }
-  if (event.type === 'galilee-turn' || event.type === 'galilee-screen')
-    performInteraction(
-      'Repair',
-      event.type === 'galilee-turn' ? 'channel-' + event.id : 'rest-' + state.galilee.shelter.site,
-    );
-  if (event.type === 'journey' && event.gateway.startsWith('board-'))
-    ui.toast('Steer with arrows or WASD, or choose a map destination. Approach a landing to dock.');
-  if (event.type === 'lake-action' && event.id !== 'enter') {
-    ui.toast(
-      event.id.startsWith('evidence-')
-        ? 'Observation recorded. Compare your clues in A sheltered way in the journal.'
-        : event.id === 'accept'
-          ? 'Joel’s recollection is in your journal. Both shores are open to explore.'
-          : event.id === 'arrive'
-            ? 'The sheltered landing fits both clues. Return to Joel when you are ready.'
-            : 'Your lake memory is recorded.',
-    );
-  }
-  if (event.type === 'storm-reflect' || event.type === 'lake-ending') {
-    ui.toast(
-      event.type === 'storm-reflect'
-        ? 'Peace, be still complete · The way home is now available in your journal.'
-        : 'A sheltered way complete · Your memory is in the journal.',
-    );
-  }
-  if (event.type === 'road-action') {
-    ui.toast(roadActions.find((a) => a.id === event.id)?.notice ?? 'Remembered.');
-  }
-  if (event.type === 'road-evidence')
-    ui.toast('Observation recorded. The other marker may be inspected in either order.');
-  if (event.type === 'road-step' && state.road.company.stage === 'arrived')
-    ui.toast('You have arrived together. Speak with Neri beside the bench.');
-  if (event.type === 'nain-reflect') {
-    ui.toast('At the gate complete · Your reflection is remembered.');
-  }
-  if (event.type === 'road-ending') {
-    ui.toast('A way remembered complete · Your shared memory is in the journal.');
-  }
-  if (event.type === 'campaign-action') {
-    const action = worldAction(event.id);
-    if (action && actionMotion(action)) performInteraction(actionMotion(action), action.target);
-    ui.toast(worldAction(event.id)?.notice ?? 'Remembered.');
-  }
-  if (event.type === 'roof-reflect') {
-    ui.toast('Through the Roof complete · Your reflection is remembered.');
-  }
-  if (event.type === 'walk-step' && state.campaign.walk.stage === 'arrived')
-    ui.toast('You have arrived together. Speak with Amos.');
-  if (event.type === 'neighbor-note')
-    ui.toast('A neighborhood memory has been added to your journal.');
-  if (event.type === 'episode-action') {
-    const action = actionFor(event.id);
-    if (action.motion) performInteraction(action.motion, action.destination);
-    ui.toast(action.notice);
-  }
-  if (event.type === 'start-episode') ui.toast('Into the Deep · Make room on the shore.');
-  if (event.type === 'episode-note') ui.toast('An observation has been added to your journal.');
-  if (event.type === 'reflect') {
-    ui.toast('Into the Deep complete · Your reflection is in the journal.');
-  }
-  if (event.type === 'leave-scene')
-    ui.toast('Your place on the lake is kept. Resume at the shoreline viewpoint.');
-  if (
-    (event.type === 'advance-scene' || event.type === 'skip-scene') &&
-    state.region === 'capernaum'
-  )
-    ui.toast('Back on shore · Help at the landing, then visit Miriam and Ezra.');
-  if (event.type === 'track-story') ui.toast('Your selected story is now tracked.');
-  if (event.type === 'collect' && !previous.inventory.includes(event.item)) {
-    ui.toast(
-      `${event.item === 'net' ? 'Mended fishing net' : 'Barley loaves'} added to your satchel.`,
-    );
-  }
-  if (event.type === 'accept-quest' && previous.quest === 'not-started')
-    ui.toast('Chapter begun · A place by the water');
-  if (event.type === 'deliver' && state.quest === 'delivered')
-    ui.toast('Supplies delivered · Jesus is waiting by the water.');
-  if (event.type === 'discover' && !previous.discoveries.includes(event.id)) {
-    ui.toast('A new memory has been added to your journal.');
-  }
-  if (event.type === 'listen' && previous.quest === 'delivered') {
-    ui.toast('Prelude complete · Speak with Simon to continue Into the Deep.');
-  }
-  if (event.type === 'accept-village-story')
-    ui.toast('Village story begun · An ordinary morning. Find your next stop in the journal.');
-  if (event.type === 'finish-village-story') {
-    ui.toast('Village story complete · A place among neighbors. A new memory is in your journal.');
-  }
+  const motion = motionFor(event, previous, state);
+  if (motion) performInteraction(motion.motion, motion.target);
+  const notice = noticeFor(event, previous, state);
+  if (notice) ui.toast(notice);
   await enqueueSave();
 }
 function openDialogue(id: string): void {
@@ -912,15 +795,8 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
         document.activeElement instanceof HTMLElement
           ? document.activeElement.dataset.value
           : undefined;
-      if (name === 'galilee-action' && value) await apply({ type: name, id: value });
-      if (name === 'galilee-turn' && value) {
-        const [id, expected] = value.split(':');
-        if (CHANNEL_IDS.includes(id as ChannelId) && /^[0-3]$/.test(expected ?? ''))
-          await apply({ type: name, id: id as ChannelId, expected: Number(expected) as Direction });
-      }
-      if (name === 'galilee-screen' && /^[0-3]$/.test(value ?? ''))
-        await apply({ type: name, expected: Number(value) as Direction });
-      if (name === 'galilee-hint') await apply({ type: name });
+      const event = parseStoryCommand(name, value);
+      if (event) await apply(event);
       const action =
         name === 'galilee-action' ? galileeActions.find((a) => a.id === value) : undefined;
       if (
@@ -958,7 +834,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     }
     case 'campaign-action':
       if (value) {
-        await apply({ type: 'campaign-action', id: value });
+        await apply(parseStoryCommand(name, value)!);
         if (
           isPresenting(state) ||
           worldAction(value)?.verb === 'Accompany' ||
@@ -969,8 +845,8 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       }
       break;
     case 'neighbor-note':
-      if (NEIGHBOR_NOTES.some((id) => id === value)) {
-        await apply({ type: 'neighbor-note', id: value as (typeof NEIGHBOR_NOTES)[number] });
+      if (parseStoryCommand(name, value)) {
+        await apply(parseStoryCommand(name, value)!);
         if (contextId) ui.context(contextId, snapshot());
       }
       break;
@@ -980,16 +856,9 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'road-ending':
     case 'road-route':
     case 'nain-reflect': {
-      const allowed = {
-        'road-action': ROAD_ACTIONS,
-        'road-evidence': TRAIL_EVIDENCE,
-        'road-interpret': TRAIL_INTERPRETATIONS,
-        'road-ending': TRAIL_ENDINGS,
-        'road-route': COMPANY_ROUTES,
-        'nain-reflect': NAIN_REFLECTIONS,
-      }[name];
-      if (!allowed.some((id) => id === value)) break;
-      await apply({ type: name, id: value } as RoadEvent);
+      const event = parseStoryCommand(name, value);
+      if (!event) break;
+      await apply(event);
       if (
         isPresenting(state) ||
         value === 'company-start' ||
@@ -1001,7 +870,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     }
     case 'road-hint':
-      await apply({ type: 'road-hint' });
+      await apply(parseStoryCommand(name)!);
       if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
       else ui.journal(snapshot(), 'stories', 'trail', 'all');
       break;
@@ -1010,14 +879,8 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'lake-ending':
     case 'lake-hint':
     case 'storm-reflect': {
-      if (name === 'lake-action' && value) await apply({ type: name, id: value });
-      if (name === 'lake-hint') await apply({ type: name });
-      if (name === 'lake-interpret' && LAKE_INTERPRETATIONS.some((id) => id === value))
-        await apply({ type: name, id: value } as LakeEvent);
-      if (name === 'lake-ending' && LAKE_ENDINGS.some((id) => id === value))
-        await apply({ type: name, id: value } as LakeEvent);
-      if (name === 'storm-reflect' && STORM_REFLECTIONS.some((id) => id === value))
-        await apply({ type: name, id: value } as LakeEvent);
+      const event = parseStoryCommand(name, value);
+      if (event) await apply(event);
       if (state.region === 'storm-account' || name === 'storm-reflect' || name === 'lake-ending')
         await close();
       else if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
@@ -1032,31 +895,19 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     }
     case 'storm-next':
     case 'storm-summary':
-      if (STORM_SCENES.some((id) => id === value)) {
-        await apply({ type: name, checkpoint: value } as LakeEvent);
-        await close();
-      }
-      break;
     case 'nain-next':
     case 'nain-summary':
-      if (NAIN_SCENES.some((id) => id === value)) {
-        await apply({ type: name, checkpoint: value } as RoadEvent);
-        await close();
-      }
-      break;
     case 'roof-reflect':
-      if (ROOF_REFLECTIONS.some((id) => id === value)) {
-        await apply({ type: 'roof-reflect', id: value as (typeof ROOF_REFLECTIONS)[number] });
-        await close();
-      }
-      break;
     case 'roof-next':
-    case 'roof-summary':
-      if (ROOF_SCENES.some((id) => id === value)) {
-        await apply({ type: name, checkpoint: value as (typeof ROOF_SCENES)[number] });
+    case 'roof-summary': {
+      const event = parseStoryCommand(name, value);
+      if (event) {
+        await apply(event);
         await close();
       }
       break;
+    }
+
     case 'journal-category':
       if (ui.panel === 'journal' && JOURNAL_CATEGORIES.some((id) => id === value))
         ui.journal(snapshot(), value as JournalCategory);
