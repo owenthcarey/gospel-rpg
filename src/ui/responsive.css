@@ -356,7 +356,8 @@
   }
   :root .toast {
     font-size: 14px;
-    bottom: 170px;
+    /* Clear the minimap and its two-row camera cluster in the lower right. */
+    bottom: 236px;
     width: max-content;
     max-width: calc(100vw - 24px);
     padding: 9px 16px 9px 10px;
