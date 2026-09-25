@@ -5,10 +5,11 @@
   margin: 20px 0;
 }
 .campaign-stories article {
-  border: 1px solid #b6af91;
+  border: 1px solid var(--line-strong);
   padding: 18px;
-  border-radius: 8px;
-  background: #2a4034;
+  border-radius: var(--radius);
+  background: var(--parch-50);
+  box-shadow: inset 0 0 0 3px rgba(242, 232, 208, 0.7);
 }
 .campaign-stories h3 {
   margin: 10px 0;
@@ -27,14 +28,17 @@
   white-space: normal;
 }
 .context-note {
-  border-top: 1px solid #c4bba0;
+  border-top: 1px solid var(--line);
   padding-top: 16px;
   line-height: 1.7;
+  color: var(--fg-2);
 }
 .held-notice {
-  padding: 12px;
-  background: #2a4034;
-  border-radius: 6px;
+  padding: 12px 14px;
+  background: rgba(255, 252, 243, 0.6);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold-500);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 .scene-scripture cite {
   display: block;
@@ -58,16 +62,15 @@
   padding: 8px 0;
 }
 .transcript-beat {
-  border-bottom: 1px solid #c7bfa6;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
   line-height: 1.7;
 }
 .transcript-beat blockquote {
   margin: 18px 0;
   padding-left: 18px;
-  border-left: 2px solid #a4935d;
-  font-family: Georgia, serif;
+  border-left: 2px solid var(--gold-500);
+  font-family: var(--font-serif);
+  font-size: 1.1em;
+  color: #283823;
 }
 [data-text-size='large'] .panel-body,
 [data-text-size='large'] .dialogue-text,
@@ -138,7 +141,6 @@
   top: 92px;
   bottom: auto;
   height: max-content;
-  animation: life-notice-in 0.2s ease;
   pointer-events: none;
 }
 @media (max-width: 640px) {

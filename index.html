@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#252d28" />
+    <meta name="theme-color" content="#131d18" />
     <meta
       name="description"
       content="An unhurried adventure through first-century Galilee. Explore Capernaum, meet its people, and discover the stories of the Gospels."
@@ -20,8 +20,36 @@
       ></canvas>
       <div id="ui"></div>
       <div id="loading" role="status">
-        <div class="loading-mark">✦</div>
-        <p class="eyebrow">A JOURNEY THROUGH GALILEE</p>
+        <div class="loading-mark" aria-hidden="true">
+          <svg
+            viewBox="0 0 48 48"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            focusable="false"
+          >
+            <circle cx="24" cy="24" r="21.2" />
+            <circle cx="24" cy="24" r="18" stroke-width="0.8" opacity=".55" />
+            <path d="M9.6 25.4h28.8" />
+            <path d="M17.4 25.4a6.6 6.6 0 0 1 13.2 0" />
+            <path d="M24 12.6v2.8M16.2 16.2l1.9 1.9M31.8 16.2l-1.9 1.9M12.6 21.6h2.4M33 21.6h2.4" />
+            <path
+              d="M17 41c2.8-3.6 6.6-4.6 7-7 .3-2.1-.7-4.6-.6-6.4M27.4 41c.2-2.6.9-4.8.6-7-.3-2.4-2.8-4.6-3.4-6.4"
+            />
+            <path d="M12.2 29.6h4.2M31.4 29.6h4.6M14.2 33.4h3M31.2 33.4h2.8" />
+            <circle
+              class="loading-ring"
+              cx="24"
+              cy="24"
+              r="23.6"
+              stroke-width="0.8"
+              pathLength="100"
+            />
+          </svg>
+        </div>
+        <p class="eyebrow">A journey through Galilee</p>
         <h1>The Way</h1>
         <p id="loading-message">Preparing the shores of Galilee…</p>
         <div class="loading-line"></div>
