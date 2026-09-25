@@ -108,6 +108,9 @@ export class GameRuntime {
         'roof-account': () => new RoofRegion(this.engine, state),
       };
       candidate = factories[state.region]();
+      // Materials compile while loading; match the selected quality's shadows from the start so
+      // no shader built for High is drawn once at Low without its shadow map.
+      if (this.settings) candidate.scene.shadowsEnabled = this.settings.quality !== 'low';
       await candidate.load(progress);
       if (this.disposed) throw new Error('Region loading was cancelled.');
       candidate.update(state);
