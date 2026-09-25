@@ -52,6 +52,7 @@ uniform float strength;
 uniform float storm;
 uniform float linearOutput;
 uniform float still;
+uniform float lowDetail;
 uniform vec4 land[${MAX_LAND}];
 uniform float landCount;
 uniform vec2 wobble;
@@ -85,14 +86,17 @@ void main(void) {
   vec2 p = vWater.xz;
   float t = still > 0.5 ? 0.0 : time;
   // Fine moving ripples perturb the broad wave normal.
-  // Irregular drifting ripples (noise, not sines) so glints scatter instead of tiling.
-  vec2 q1 = p * 1.3 + vec2(t * 0.35, -t * 0.22);
-  vec2 q2 = p * 2.9 + vec2(-t * 0.5, t * 0.41) + 11.0;
-  vec2 r1 = vec2(noise(q1) - noise(q1 + vec2(0.35, 0.0)), noise(q1) - noise(q1 + vec2(0.0, 0.35))) * 3.2;
-  vec2 r2 = vec2(noise(q2) - noise(q2 + vec2(0.3, 0.0)), noise(q2) - noise(q2 + vec2(0.0, 0.3))) * 2.6;
   float eye = length(cameraPosition - vWater);
   // Fine ripples fade with distance so far water keeps one coherent sun path instead of aliasing.
-  float detail = 1.0 - smoothstep(18.0, 70.0, eye);
+  float detail = (1.0 - smoothstep(18.0, 70.0, eye)) * (1.0 - lowDetail);
+  // Irregular drifting ripples (noise, not sines) so glints scatter instead of tiling.
+  vec2 r1 = vec2(0.0), r2 = vec2(0.0);
+  if (detail > 0.001) {
+    vec2 q1 = p * 1.3 + vec2(t * 0.35, -t * 0.22);
+    vec2 q2 = p * 2.9 + vec2(-t * 0.5, t * 0.41) + 11.0;
+    r1 = vec2(noise(q1) - noise(q1 + vec2(0.35, 0.0)), noise(q1) - noise(q1 + vec2(0.0, 0.35))) * 3.2;
+    r2 = vec2(noise(q2) - noise(q2 + vec2(0.3, 0.0)), noise(q2) - noise(q2 + vec2(0.0, 0.3))) * 2.6;
+  }
   vec3 n = normalize(vNormal + vec3(r1 * 0.045 + r2 * 0.025, 0.0).xzy * (1.0 + storm) * detail);
   vec3 view = normalize(cameraPosition - vWater);
   float d = shoreDistance(p);
@@ -115,7 +119,7 @@ void main(void) {
   float foam = edge * smoothstep(0.25, 0.6, grain + edge * 0.45);
   // Rings around hulls and wading people.
   for (int i = 0; i < ${MAX_RIPPLES}; i++) {
-    if (float(i) >= rippleCount) break;
+    if (float(i) >= rippleCount || lowDetail > 0.5) break;
     float rd = length(p - ripples[i].xy) - ripples[i].z;
     if (rd > 0.0 && rd < 2.4)
       foam += ripples[i].w * smoothstep(0.8, 1.0, sin(rd * 5.0 - t * 2.6 + grain * 2.5)) * (1.0 - rd / 2.4) * 0.35;
@@ -192,6 +196,7 @@ export class WaterPresentation {
           'strength',
           'storm',
           'still',
+          'lowDetail',
           'deepColor',
           'shallowColor',
           'foamColor',
@@ -229,6 +234,7 @@ export class WaterPresentation {
     );
     this.material.setFloat('coast', options.coast ?? 0);
     this.setRipples([]);
+    this.material.setFloat('lowDetail', 0);
     this.stormy = options.storm ?? false;
     this.material.setVector3('cameraPosition', Vector3.Zero());
     this.applyEnvironment(undefined, new Vector3(0.3, 0.8, 0.4), false);
@@ -282,6 +288,7 @@ export class WaterPresentation {
   }
   quality(low: boolean): void {
     this.low = low;
+    this.material.setFloat('lowDetail', low ? 1 : 0);
   }
   tick(time: number, reduced: boolean): void {
     this.material.setFloat('time', reduced ? 0 : time);

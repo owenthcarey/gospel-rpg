@@ -25,7 +25,7 @@ const WEIGHTS: Record<(typeof GROUND_COVER)[number], number> = {
   shrub: 0.06,
   pebbles: 0.08,
 };
-const CAPS = { high: 2600, low: 800 };
+const CAPS = { high: 2600, low: 420 };
 
 function hash(x: number, z: number, seed: number): number {
   const n = Math.sin(x * 127.1 + z * 311.7 + seed * 74.7) * 43758.5453;
@@ -42,7 +42,7 @@ export function coverPlacements(
     Matrix[]
   >;
   const seed = options.seed ?? 1;
-  const density = (options.density ?? 1) * (quality === 'low' ? 0.45 : 1);
+  const density = (options.density ?? 1) * (quality === 'low' ? 0.3 : 1);
   const step = 1.15;
   const center = options.center ?? { x: 0, z: 0 };
   const cap = CAPS[quality];

@@ -76,7 +76,7 @@ export class StageEnvironment {
     this.sun.shadowMaxZ = 160;
     this.sun.autoUpdateExtends = false;
     this.sun.autoCalcShadowZBounds = false;
-    this.shadow = new ShadowGenerator(2048, this.sun);
+    this.shadow = new ShadowGenerator(this.software() ? 1024 : 2048, this.sun);
     this.shadow.usePercentageCloserFiltering = true;
     this.shadow.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
     this.shadow.bias = 0.0015;
@@ -219,12 +219,12 @@ export class StageEnvironment {
         [this.camera],
         true,
       );
-      const engine = this.scene.getEngine() as { getGlInfo?: () => { renderer: string } };
-      const software = /swiftshader|llvmpipe|software/i.test(engine.getGlInfo?.().renderer ?? '');
+      const software = this.software();
       this.pipeline.samples = software ? 1 : 4;
       this.pipeline.fxaaEnabled = true;
       this.pipeline.imageProcessingEnabled = true;
-      this.pipeline.bloomEnabled = true;
+      // CPU rasterizers keep the grade and anti-aliasing but skip the blur passes.
+      this.pipeline.bloomEnabled = !software;
       this.pipeline.bloomThreshold = 0.82;
       this.pipeline.bloomKernel = 48;
       this.pipeline.bloomScale = 0.5;
@@ -234,6 +234,11 @@ export class StageEnvironment {
     }
     this.high = high;
     this.apply(this.current);
+  }
+  /** True on CPU rasterizers (for example SwiftShader), where fill rate is scarce. */
+  private software(): boolean {
+    const engine = this.scene.getEngine() as { getGlInfo?: () => { renderer: string } };
+    return /swiftshader|llvmpipe|software/i.test(engine.getGlInfo?.().renderer ?? '');
   }
   get quality(): 'high' | 'low' {
     return this.high ? 'high' : 'low';
