@@ -115,6 +115,7 @@ Motion is cosmetic, deterministic, owned by the scene and bounded by region disp
   - pollen and insects in the fields.
 
   Each emitter has a hard particle cap per quality level.
+
 - **Animals.**
   - Gulls wheel over the lake and shore, and small birds rise from olive trees.
   - They are procedural low-poly flocks with wing-flap vertex animation, merged into one draw per flock.
@@ -296,6 +297,7 @@ To make the above one change instead of five:
    - the new presentation journeys.
 
    Changed image baselines are reviewed before acceptance, then rerun without updates, and the missing-geometry negative controls must still fail. Failures and reruns are recorded accurately.
+
 8. **Budgets.** Measure catalog, portrait, font and regional bytes, draw calls at High/Low in every reference region, and representative render cadence.
 9. **Human review.** Document the remaining playtest, device and accessibility checks. Record human, device and editorial results only when actually performed.
 

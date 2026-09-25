@@ -52,7 +52,7 @@ with tempfile.TemporaryDirectory(prefix='the-way-lake-review-') as output:
 
 if not sys.argv[1:] or sys.argv[1] == '--rfc011':
     # Order matters: later passes replace earlier exports with the same name.
-    for recipe in ['capernaum.py', 'presence.py', 'characters.py', 'vegetation.py']:
+    for recipe in ['capernaum.py', 'presence.py', 'characters.py', 'vegetation.py', 'architecture.py']:
         if sys.argv[1:] and recipe == 'capernaum.py':
             continue
         subprocess.run([blender, '--background', '--python', str(root / 'tools/blender' / recipe)],

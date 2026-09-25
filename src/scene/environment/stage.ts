@@ -152,6 +152,19 @@ export class StageEnvironment {
     this.atmosphere?.setProfile(p);
     this.placeSun();
   }
+  /**
+   * A soft, slow brightening of the sky light (0–1), for distant storm lightning. It is never a
+   * rapid flash; the caller keeps it off under reduced motion.
+   */
+  illuminate(amount: number): void {
+    const a = Math.max(0, Math.min(1, amount));
+    this.fill.intensity = this.current.fill.intensity * (1 + a * 0.9);
+    this.fill.diffuse = Color3.Lerp(
+      Color3.FromHexString(this.current.fill.sky),
+      new Color3(0.86, 0.9, 1),
+      a * 0.6,
+    );
+  }
   /** Water shares the stage's sky, sun, fog and output color space. */
   attachWater(water: WaterPresentation): void {
     this.waters.push(water);
