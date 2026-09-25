@@ -289,10 +289,12 @@ export class LakeRegion implements RegionView {
       this.camera.alpha = this.startCamera.alpha + (c.alpha - this.startCamera.alpha) * t;
       this.camera.beta = this.startCamera.beta + (c.beta - this.startCamera.beta) * t;
     } else {
+      // Held compositions breathe very slightly, like the other Gospel accounts' shots.
+      const drift = this.reduced ? 0 : 0.012;
       this.camera.target.copyFrom(cameraTarget);
-      this.camera.radius = radius;
-      this.camera.alpha = c.alpha;
-      this.camera.beta = c.beta;
+      this.camera.radius = radius * (1 + Math.sin(this.time * 0.13) * drift * 0.6);
+      this.camera.alpha = c.alpha + Math.sin(this.time * 0.21) * drift;
+      this.camera.beta = c.beta + Math.sin(this.time * 0.17 + 1.3) * drift * 0.5;
     }
     this.stagePeople(t);
     const net = this.nets.get(c.net);

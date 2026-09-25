@@ -84,6 +84,63 @@ try:
             box('gate_door_strap', (side * 1.37, -.62, z), (.03, 1.12, .1), 'dark')
     kit_common.export_static('town_gate', str(OUT), report=shaded)
 
+    # The fishing boat: the verified hull, floor, seats, sockets and extents are unchanged
+    # (contact and clearance tests measure them); plank seams, ribs and raised posts are added
+    # strictly inside that envelope.
+    from kit_common import beam, finish, STATE
+    from mathutils import Vector
+    outline = [(0, -2), (.64, -1.15), (.73, .9), (.40, 1.65), (0, 1.94), (-.40, 1.65), (-.73, .9), (-.64, -1.15)]
+    bottom = [Vector((x * .68, y * .86, .10)) for x, y in outline]
+    top = [Vector((x, y, .65)) for x, y in outline]
+    verts = [tuple(v) for v in bottom] + [tuple(v) for v in top]
+    faces = [tuple(range(7, -1, -1))] + [(i, (i + 1) % 8, (i + 1) % 8 + 8, i + 8) for i in range(8)]
+    mesh = bpy.data.meshes.new('boat_hull')
+    mesh.from_pydata(verts, [], faces)
+    hull = bpy.data.objects.new('hull', mesh)
+    STATE['scene'].collection.objects.link(hull)
+    finish(hull, 'hull', 'wood')
+    solid = hull.modifiers.new('plank_thickness', 'SOLIDIFY')
+    solid.thickness = .07
+    bpy.ops.object.select_all(action='DESELECT')
+    bpy.context.view_layer.objects.active = hull
+    hull.select_set(True)
+    bpy.ops.object.modifier_apply(modifier=solid.name)
+    for i, (x, y) in enumerate(outline):
+        xx, yy = outline[(i + 1) % 8]
+        beam('gunwale', (x, y, .66), (xx, yy, .66), .06, 'lightwood')
+    for y in [-.8, .45, 1.05]:
+        box('seat', (0, y, .44), (1.15, .25, .08), 'lightwood')
+    centre = Vector((0, 0, .38))
+    # Plank seams: three strakes on the outer hull, just proud of the planking.
+    for t in [.3, .52, .74]:
+        ring = [b.lerp(u, t) for b, u in zip(bottom, top)]
+        for i in range(8):
+            a, b = ring[i], ring[(i + 1) % 8]
+            mid = (a + b) / 2
+            push = Vector((mid.x, mid.y * .15, 0)).normalized() * .012 if mid.length else Vector()
+            beam('hull_strake', a + push, b + push, .011, 'wood', 4, 1)
+    # Interior ribs following the hull section at several stations.
+    def half_width(poly, y):
+        for i in range(8):
+            a, b = poly[i], poly[(i + 1) % 8]
+            if a.x >= 0 and b.x >= 0 and min(a.y, b.y) <= y <= max(a.y, b.y) and a.y != b.y:
+                return a.x + (b.x - a.x) * (y - a.y) / (b.y - a.y)
+        return 0
+    for y in [-1.25, -.35, .2, .8, 1.35]:
+        wb, wt = half_width(bottom, y), half_width(top, y)
+        for side in [-1, 1]:
+            beam('hull_rib', (side * wb * .9, y, .12), (side * wt * .9, y, .6), .032, 'wood', 5, 1)
+        beam('hull_floor_frame', (-wb * .88, y, .125), (wb * .88, y, .125), .024, 'wood', 4, 1)
+    # Raised stem and sternpost, inside the hull's plan extents.
+    beam('stem_post', (0, -1.7, .12), (0, -1.97, .8), .05, 'wood', 6, .8)
+    beam('stern_post', (0, 1.66, .12), (0, 1.92, .74), .05, 'wood', 6, .8)
+    box('bow_cap', (0, -1.9, .66), (.14, .2, .05), 'lightwood', .01)
+    kit_common.export_static('boat', str(OUT), [
+        ('seat_front', (0, -1.15, .46)), ('seat_middle', (0, 0, .46)),
+        ('seat_back', (0, 1.05, .46)), ('net_socket', (.8, .2, .5)),
+        ('oar_left', (-.72, -.2, .66)), ('oar_right', (.72, -.2, .66)),
+    ], report=shaded)
+
     bpy.data.libraries.write(str(ROOT / 'assets/source/architecture-kit.blend'), {scene}, fake_user=True, compress=True)
     exports = kit_common.STATE['exports'][:]
     report = {
