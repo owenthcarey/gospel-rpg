@@ -1,5 +1,5 @@
 .galilee-work {
-  color: #e6e0c7;
+  color: var(--fg);
 }
 .galilee-work .panel-lead {
   max-width: 65ch;
@@ -7,8 +7,9 @@
 .channel-plan {
   margin: 1.1rem 0;
   padding: 1rem;
-  border-radius: 16px;
-  background: #f0e8d0;
+  border-radius: var(--radius);
+  background: var(--parch-0);
+  border: 1px solid var(--line-strong);
   color: #32443c;
 }
 .channel-plan svg {
@@ -37,9 +38,9 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.35rem;
-  padding: 0.5rem;
-  border: 1px solid #71816c;
-  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
 }
 .channel-directions button {
   margin-left: auto;
@@ -62,19 +63,19 @@
 }
 .work-result {
   padding: 1rem;
-  border: 1px solid #9dbdb3;
-  border-left: 4px solid #adcebd;
-  background: #274c43;
-  color: #f5efd8;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--moss);
+  background: #e3e6d0;
+  color: #22301f;
+  border-radius: 0 var(--radius) var(--radius) 0;
   line-height: 1.6;
 }
 .work-hints {
   margin: 1rem 0;
-  padding: 1rem;
-  background: #30483b;
-  border: 1px solid #8b9a78;
-  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 252, 243, 0.55);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 .work-hints summary {
   cursor: pointer;
@@ -86,9 +87,9 @@
 .rest-plan {
   padding: 1rem;
   margin: 1rem 0;
-  border: 1px solid #7e8a70;
-  background: #2d4439;
-  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 252, 243, 0.55);
+  border-radius: var(--radius);
 }
 .rest-sockets {
   display: grid;
@@ -99,8 +100,8 @@
   display: grid;
   gap: 0.3rem;
   text-align: center;
-  border: 2px dashed #899780;
-  border-radius: 10px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
   padding: 0.8rem 0.3rem;
 }
 .rest-socket > span {
@@ -108,7 +109,8 @@
 }
 .rest-socket.filled {
   border-style: solid;
-  background: #496252;
+  border-color: var(--moss);
+  background: #e3e6d0;
 }
 .rest-socket small {
   font-size: 0.75rem;
@@ -118,31 +120,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 0.5rem 0.7rem;
-  background: #243b32ed;
-  color: #f4e7bd;
-  border: 1px solid #bca66b;
-  border-radius: 8px;
-  font-size: 0.8rem;
   max-width: min(430px, calc(100vw - 24px));
 }
 .travel-status[hidden] {
   display: none;
 }
-.travel-status button {
-  min-height: 36px;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #c0c4a3;
-  border-radius: 6px;
-  color: inherit;
-}
-.world-label.selected-destination {
-  outline: 2px solid #f1da90;
-  outline-offset: 3px;
-}
-body:has(#overlay .welcome-screen) #game-canvas {
-  background: radial-gradient(ellipse at 70% 30%, #77885a, #273c32 70%);
-}
+
 @media (max-width: 600px) {
   .channel-directions {
     grid-template-columns: 1fr;
@@ -169,6 +152,7 @@ body:has(#overlay .welcome-screen) #game-canvas {
   }
 }
 
+/* Before a region or the title view renders, the canvas shows #app's dawn fallback. */
 #game-canvas:not([data-region]) {
-  background: radial-gradient(ellipse at 65% 30%, #7d9064, #233c34 72%);
+  background: transparent;
 }

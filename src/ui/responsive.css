@@ -1,23 +1,20 @@
 /* Loaded as a layer-free stylesheet; responsive overrides use :root specificity. */
 @media (max-width: 1200px) {
-  :root .brand {
-    font-size: 26px;
-  }
-  :root .brand small {
-    font-size: 7px;
+  :root .logo-word {
+    font-size: 23px;
   }
   :root .toolbar button {
-    padding: 10px 7px;
+    padding: 8px 10px;
   }
   :root .toolbar kbd {
     display: none;
   }
   :root .region-title {
     left: 47%;
-    font-size: 10px;
+    font-size: 11px;
   }
   :root .quest-card {
-    width: 222px;
+    width: 232px;
     left: 20px;
     padding: 16px 17px;
   }
@@ -25,29 +22,25 @@
     font-size: 25px;
   }
   :root .control-hints {
-    gap: 10px;
-    font-size: 8px;
+    gap: 12px;
+    font-size: 12px;
   }
   :root .control-hints > span:nth-child(3) {
     display: none;
   }
   :root .traveler-card p {
-    font-size: 13px;
-  }
-  :root .traveler-seal {
-    width: 40px;
-    height: 49px;
+    font-size: 14px;
   }
   :root .minimap-wrap {
-    width: 140px;
-    right: 20px;
+    width: 144px;
+    right: 22px;
   }
   :root .minimap {
-    width: 140px;
-    height: 140px;
+    width: 144px;
+    height: 144px;
   }
   :root .topbar {
-    padding: 0 22px;
+    padding: 0 22px 6px;
   }
   :root .traveler-card {
     left: 22px;
@@ -55,20 +48,21 @@
 }
 @media (max-height: 750px) {
   :root .welcome-card h1 {
-    font-size: 43px;
-    max-width: 340px;
+    font-size: 44px;
+    max-width: 380px;
   }
   :root .welcome-brand {
-    margin-bottom: 25px;
+    margin-bottom: 24px;
   }
   :root .welcome-copy {
-    margin-top: 17px;
+    margin-top: 14px;
+    font-size: 16px;
   }
   :root .welcome-card .primary-button {
     margin-top: 20px;
   }
   :root .welcome-note {
-    margin-top: 18px;
+    margin-top: 16px;
   }
   :root .quest-card {
     top: 100px;
@@ -85,9 +79,9 @@
     padding: 22px 25px;
   }
   :root .dialogue-text {
-    font-size: 13px;
-    line-height: 1.7;
-    margin: 13px 0;
+    font-size: 17px;
+    line-height: 1.55;
+    margin: 12px 0;
   }
   :root .time-of-day {
     top: 97px;
@@ -101,14 +95,14 @@
     display: none;
   }
   :root .toolbar button {
-    padding: 10px;
+    padding: 9px;
   }
   :root .topbar {
     height: 80px;
   }
   :root .quest-card {
-    top: 98px;
-    width: 199px;
+    top: 96px;
+    width: 210px;
     padding: 14px 15px;
   }
   :root .quest-card h1 {
@@ -121,20 +115,17 @@
     gap: 10px;
   }
   :root .quest-steps li {
-    font-size: 9px;
-  }
-  :root .quest-reference {
-    font-size: 7px;
+    font-size: 12px;
   }
   :root .traveler-card {
     bottom: 23px;
   }
   :root .traveler-card p {
-    font-size: 12px;
+    font-size: 13px;
   }
   :root .traveler-card small {
-    max-width: 125px;
-    font-size: 7px;
+    max-width: 150px;
+    font-size: 10.5px;
   }
   :root .traveler-seal {
     display: none;
@@ -144,28 +135,22 @@
   }
   :root .minimap-wrap {
     bottom: 20px;
-    width: 117px;
+    width: 120px;
   }
   :root .minimap {
-    width: 117px;
-    height: 117px;
+    width: 120px;
+    height: 120px;
   }
   :root .minimap-name {
-    font-size: 6px;
-    letter-spacing: 0.8px;
-  }
-  :root .camera-controls {
-    gap: 2px;
+    font-size: 7.5px;
+    letter-spacing: 0.1em;
   }
   :root .camera-controls button {
-    width: 21px;
-    height: 23px;
-  }
-  :root .camera-controls span {
-    width: 2px;
+    width: 24px;
+    height: 26px;
   }
   :root .control-hints {
-    gap: 9px;
+    gap: 10px;
   }
   :root .control-hints > span:nth-child(2) {
     display: none;
@@ -178,18 +163,18 @@
   }
   :root .welcome-card {
     left: 7%;
-    max-width: 360px;
+    max-width: 380px;
   }
   :root .welcome-card h1 {
-    font-size: 47px;
-    max-width: 360px;
+    font-size: 46px;
+    max-width: 380px;
   }
   :root .welcome-location {
     right: 5%;
     bottom: 8%;
   }
   :root .welcome-location small {
-    font-size: 14px;
+    font-size: 16px;
   }
   :root .time-of-day {
     top: 90px;
@@ -198,20 +183,20 @@
 }
 @media (max-width: 640px) {
   :root .village-shortcut {
-    font-size: 9px;
+    font-size: 13px;
     gap: 7px;
     margin-top: 10px;
     padding-top: 10px;
   }
   :root .village-shortcut small {
-    font-size: 8px;
+    font-size: 12px;
     line-height: 1.4;
   }
   :root .village-shortcut > .icon:last-child {
     display: none;
   }
   :root .exploration-intro {
-    font-size: 10px;
+    font-size: 13px;
   }
   :root .village-summary {
     padding: 15px;
@@ -220,11 +205,11 @@
     gap: 10px;
   }
   :root .village-summary-heading .eyebrow {
-    font-size: 7px;
-    letter-spacing: 1px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
   }
   :root .village-summary-heading h3 {
-    font-size: 20px;
+    font-size: 21px;
   }
   :root .discovery-cards {
     grid-template-columns: 1fr;
@@ -233,87 +218,90 @@
     padding: 11px;
   }
   :root .topbar {
-    padding: 0 15px;
-    height: 76px;
-    gap: 10px;
+    padding: 0 12px 4px;
+    height: 72px;
+    gap: 8px;
   }
-  :root .brand {
-    font-size: 24px;
-    gap: 7px;
+  :root .logo {
+    gap: 8px;
   }
-  :root .brand-mark {
-    font-size: 37px;
+  :root .logo-hud .logo-mark {
+    width: 34px;
+    height: 34px;
   }
-  :root .brand small {
-    font-size: 5.5px;
-    letter-spacing: 1.1px;
+  :root .logo-hud .logo-word {
+    font-size: 19px;
+  }
+  :root .logo-hud .logo-tag {
+    display: none;
   }
   :root .toolbar {
     gap: 0;
+    padding: 2px;
   }
   :root .toolbar button {
     padding: 9px;
   }
   :root .toolbar .icon {
-    width: 17px;
+    width: 18px;
   }
   :root .toolbar-divider {
     margin: 0 2px;
     height: 18px;
   }
   :root .toolbar .icon-button {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
   :root .quest-card {
     left: 14px;
-    top: 91px;
-    width: 170px;
+    top: 88px;
+    width: 176px;
     padding: 13px;
   }
   :root .quest-card h1 {
     font-size: 21px;
     line-height: 1.1;
-    margin-top: 9px;
+    margin-top: 8px;
   }
   :root .quest-eyebrow {
-    font-size: 7px;
+    font-size: 9.5px;
     gap: 6px;
-    letter-spacing: 1.4px;
+    letter-spacing: 0.12em;
   }
   :root .quest-count {
-    font-size: 7px;
+    font-size: 10px;
   }
   :root .quest-steps {
     gap: 10px;
     margin-top: 12px;
   }
   :root .quest-steps li {
-    font-size: 8px;
-    gap: 7px;
+    font-size: 12px;
+    gap: 8px;
   }
   :root .step-mark {
-    width: 10px;
-    height: 10px;
+    width: 11px;
+    height: 11px;
   }
   :root .quest-track {
-    font-size: 9px;
+    font-size: 13px;
     gap: 6px;
   }
   :root .quest-track .icon {
-    width: 13px;
+    width: 14px;
   }
   :root .quest-reference {
-    font-size: 6.5px;
+    font-size: 12px;
   }
   :root .time-of-day {
     right: 16px;
-    top: 93px;
-    font-size: 8px;
+    top: 90px;
+    font-size: 13px;
     gap: 5px;
   }
   :root .time-of-day .icon {
-    width: 14px;
+    width: 15px;
   }
   :root .traveler-card {
     display: none;
@@ -326,6 +314,13 @@
   :root .minimap {
     width: 108px;
     height: 108px;
+    box-shadow:
+      0 0 0 3px rgba(17, 27, 22, 0.88),
+      0 0 0 4px rgba(224, 194, 131, 0.45),
+      var(--shadow-hud);
+  }
+  :root .minimap-name {
+    padding: 12px 0 10px;
   }
   :root .bottom-center {
     left: 15px;
@@ -335,12 +330,12 @@
     max-width: calc(100vw - 145px);
   }
   :root .control-hints {
-    padding: 9px;
+    padding: 6px 6px 6px 12px;
     gap: 10px;
   }
   :root .nearby-action {
-    padding: 9px;
-    font-size: 9px;
+    padding: 9px 12px;
+    font-size: 13px;
     gap: 6px;
     max-width: 100%;
     text-align: left;
@@ -350,55 +345,71 @@
   }
   :root .nearby-action kbd {
     height: 18px;
-    font-size: 9px;
+    font-size: 9.5px;
   }
   :root .label-name {
-    font-size: 9px;
-    padding: 4px 7px;
+    font-size: 12px;
+    padding: 4px 9px;
   }
   :root .world-label.place .label-name {
-    font-size: 8px;
-  }
-  :root .world-label.quest-target .label-symbol:before {
-    width: 21px;
-    height: 21px;
-    font-size: 12px;
+    font-size: 11.5px;
   }
   :root .toast {
-    font-size: 11px;
+    font-size: 14px;
     bottom: 170px;
     width: max-content;
-    max-width: 90vw;
+    max-width: calc(100vw - 24px);
+    padding: 9px 16px 9px 10px;
+    gap: 10px;
+  }
+  :root .toast-icon {
+    width: 26px;
+    height: 26px;
   }
   :root .welcome-shade {
-    background: linear-gradient(90deg, #22382af2, #243a30c9 60%, #243a3080);
+    background:
+      linear-gradient(
+        90deg,
+        rgba(10, 17, 14, 0.9),
+        rgba(12, 20, 16, 0.72) 70%,
+        rgba(12, 20, 16, 0.45)
+      ),
+      linear-gradient(0deg, rgba(10, 17, 14, 0.6), transparent 40%);
   }
   :root .welcome-card {
-    left: 8%;
-    right: 8%;
+    left: 7%;
+    right: 7%;
     max-width: none;
   }
+  :root .welcome-brand .logo-mark {
+    width: 52px;
+    height: 52px;
+  }
+  :root .welcome-brand .logo-word {
+    font-size: 28px;
+  }
   :root .welcome-card h1 {
-    font-size: 45px;
+    font-size: 42px;
     max-width: 350px;
   }
   :root .welcome-brand {
-    margin-bottom: 28px;
+    margin-bottom: 26px;
   }
   :root .welcome-copy {
-    font-size: 12px;
-    max-width: 300px;
+    font-size: 16px;
+    max-width: 330px;
   }
   :root .welcome-location {
     display: none;
   }
   :root .welcome-note {
-    font-size: 8px;
-    max-width: 300px;
+    font-size: 12px;
+    max-width: 330px;
   }
   :root .welcome-card .primary-button {
     width: 100%;
-    max-width: 325px;
+    min-width: 0;
+    max-width: 340px;
   }
   :root .panel-overlay {
     padding: 12px;
@@ -407,20 +418,24 @@
     max-height: calc(100dvh - 24px);
   }
   :root .panel-header {
-    padding: 19px 20px 16px;
+    padding: 20px 20px 16px;
+  }
+  :root .panel-header::after {
+    left: 20px;
+    right: 20px;
   }
   :root .panel-header h2 {
     font-size: 27px;
   }
   :root .panel-header .eyebrow {
-    font-size: 7px;
-    letter-spacing: 1.4px;
+    font-size: 9px;
+    letter-spacing: 0.14em;
   }
   :root .panel-body {
-    padding: 20px;
+    padding: 18px 20px;
   }
   :root .panel-footer {
-    padding: 10px 20px;
+    padding: 8px 20px 10px;
   }
   :root .panel-footer > span {
     display: none;
@@ -429,7 +444,7 @@
     margin-left: auto;
   }
   :root .panel-lead {
-    font-size: 11px;
+    font-size: 16px;
   }
   :root .settings-grid,
   :root .map-layout {
@@ -446,22 +461,27 @@
     grid-template-columns: 1fr 1fr;
   }
   :root .map-destinations button {
-    padding: 8px 3px;
-    gap: 7px;
+    padding: 8px 4px;
+    gap: 8px;
+  }
+  :root .map-destinations button > .icon:first-child {
+    width: 26px;
+    height: 26px;
+    padding: 5px;
   }
   :root .map-destinations button > .icon:last-child {
     display: none;
   }
   :root .map-destinations small {
-    font-size: 8px;
+    font-size: 12px;
   }
   :root .map-destinations span {
-    font-size: 10px;
+    font-size: 15px;
   }
   :root .map-legend {
     gap: 12px;
     flex-wrap: wrap;
-    font-size: 9px;
+    font-size: 12px;
   }
   :root .map-legend span:last-child {
     margin-left: 0;
@@ -471,14 +491,14 @@
     padding: 13px;
   }
   :root .journal-summary h3 {
-    font-size: 17px;
+    font-size: 19px;
   }
   :root .journal-summary p {
-    font-size: 10px;
+    font-size: 14px;
   }
   :root .chapter-icon {
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
   }
   :root .status-pill {
     display: none;
@@ -487,7 +507,7 @@
     gap: 12px;
   }
   :root .journal-entry p {
-    font-size: 11px;
+    font-size: 15px;
   }
   :root .inventory-grid {
     gap: 10px;
@@ -496,15 +516,15 @@
     padding: 14px;
   }
   :root .inventory-item h3 {
-    font-size: 16px;
+    font-size: 18px;
   }
   :root .inventory-item p {
-    font-size: 10px;
+    font-size: 13px;
   }
   :root .dialogue-box {
     bottom: 12px;
     max-width: calc(100% - 24px);
-    padding: 21px 19px 16px;
+    padding: 20px 18px 14px;
     gap: 12px;
     max-height: calc(100dvh - 88px);
   }
@@ -512,22 +532,22 @@
     display: none;
   }
   :root .dialogue-main h2 {
-    font-size: 25px;
+    font-size: 26px;
   }
   :root .dialogue-text {
-    font-size: 13px;
-    line-height: 1.75;
+    font-size: 17px;
+    line-height: 1.55;
   }
   :root .dialogue-choices button {
     padding: 12px 10px;
-    font-size: 11px;
+    font-size: 15px;
   }
   :root .dialogue-text.scripture {
-    font-size: 24px;
+    font-size: 22px;
   }
   :root .controls-list > div {
     gap: 16px;
-    font-size: 10px;
+    font-size: 13px;
   }
   :root .controls-list dt {
     max-width: 45%;
@@ -538,33 +558,41 @@
     display: none;
   }
   :root .welcome-card {
-    top: 25px;
+    top: 20px;
     transform: none;
-    bottom: 25px;
+    bottom: 20px;
     overflow: auto;
   }
   :root .welcome-brand {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+  }
+  :root .welcome-brand .logo-mark {
+    width: 42px;
+    height: 42px;
+  }
+  :root .welcome-brand .logo-word {
+    font-size: 24px;
   }
   :root .welcome-card h1 {
-    font-size: 35px;
-    max-width: 400px;
+    font-size: 34px;
+    max-width: 420px;
   }
   :root .welcome-copy.secondary,
   :root .welcome-note {
     display: none;
   }
   :root .welcome-copy {
-    margin-top: 13px;
+    margin-top: 10px;
+    font-size: 15px;
   }
   :root .welcome-card .primary-button {
-    margin-top: 17px;
+    margin-top: 16px;
   }
   :root .welcome-meta {
-    margin-top: 12px;
+    margin-top: 10px;
   }
   :root .quest-card {
-    top: 85px;
+    top: 80px;
   }
   :root .quest-card h1 {
     font-size: 20px;
@@ -593,14 +621,19 @@
   }
   :root .camera-controls {
     clear: both;
-    padding-top: 8px;
+    margin-top: 8px;
   }
   :root .time-of-day {
     display: none;
   }
+  :root .topbar {
+    height: 64px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  :root * {
+  :root *,
+  :root *::before,
+  :root *::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;

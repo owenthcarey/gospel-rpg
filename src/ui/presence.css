@@ -1,15 +1,9 @@
 /* Presentation surfaces deliberately leave space for people and physical work. */
-:root {
-  --paper: #f1e6cd;
-  --panel: rgba(25, 44, 39, 0.94);
-  --gold: #e1c38a;
-}
 .world-vignette {
-  opacity: 0.42;
+  opacity: 0.6;
 }
 :root .quest-card:not(.objective-expanded) {
   width: min(300px, calc(100vw - 32px));
-  border-left: 2px solid #d6b879;
   padding: 16px 18px 10px;
 }
 :root .quest-card:not(.objective-expanded) h1 {
@@ -43,20 +37,15 @@
   max-height: min(48dvh, 440px);
   padding: 23px 26px;
   gap: 22px;
-  border-radius: 12px;
-  background: linear-gradient(115deg, #f5ebd5, #e7dabd);
-  box-shadow:
-    0 16px 60px #0a211c70,
-    inset 0 1px #fff7e4;
+  border-radius: var(--radius-lg);
 }
 :root .conversation-overlay .dialogue-portrait {
   display: block;
-  width: 100px;
-  height: 116px;
-  border: 0;
-  border-radius: 48px 48px 8px 8px;
+  width: 104px;
+  height: 120px;
+  border-radius: 52px 52px 8px 8px;
   overflow: hidden;
-  background: #a0afa0;
+  background: radial-gradient(circle at 50% 30%, #c9c6a2, #8f9a78);
 }
 .speaker-portrait {
   width: 100%;
@@ -78,41 +67,48 @@
 }
 :root .conversation-motion {
   margin: 0;
-  font-size: 11px;
-  color: #465b4f;
-  min-height: 30px;
-  padding: 4px 7px;
-  border: 1px solid #697b6055;
-  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--btn-fg);
+  background: var(--btn-bg);
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--btn-line);
+  border-radius: 999px;
+}
+:root .conversation-motion[aria-pressed='true'] {
+  background: var(--moss);
+  border-color: var(--moss);
+  color: var(--gold-100);
 }
 :root .conversation-overlay .dialogue-main h2 {
   font-size: 28px;
 }
 :root .conversation-overlay .dialogue-main header p {
-  font-size: 11px;
-  color: #596752;
+  font-size: 15px;
+  color: var(--fg-2);
 }
 :root .conversation-overlay .dialogue-text {
-  font-size: 15px;
-  line-height: 1.65;
-  color: #35483c;
-  margin: 15px 0;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--fg);
+  margin: 14px 0;
 }
 :root .conversation-overlay .dialogue-choices button {
-  font-size: 13px;
-  padding: 11px 13px;
-  min-height: 42px;
-  border-radius: 5px;
-  background: #fcf8ec65;
+  font-size: 15px;
+  padding: 10px 13px;
+  min-height: 44px;
+  border-radius: 6px;
 }
 :root .conversation-overlay .dialogue-choices button:hover {
-  background: #fff9e9;
-  border-color: #8c825c;
+  background: var(--parch-0);
+  border-color: var(--accent);
   transform: translateX(2px);
 }
 .conversation-overlay .dialogue-source {
-  font-size: 10px;
-  color: #60674e;
+  font-size: 12.5px;
+  color: var(--fg-2);
 }
 :root .conversation-context {
   position: absolute;
@@ -129,9 +125,12 @@
   width: 66px;
   height: 77px;
   flex: 0 0 66px;
-  border-radius: 32px 32px 5px 5px;
+  border-radius: 33px 33px 6px 6px;
   overflow: hidden;
-  background: #a0afa0;
+  background: radial-gradient(circle at 50% 30%, #c9c6a2, #8f9a78);
+  box-shadow:
+    0 0 0 3px var(--parch-100),
+    0 0 0 4px rgba(109, 82, 34, 0.4);
 }
 .conversation-context .panel-header {
   flex-wrap: wrap;
@@ -147,8 +146,8 @@
   font-size: 25px;
 }
 :root .conversation-context .conversation-motion {
-  color: #efe6cd;
-  border-color: #c6c5a577;
+  color: var(--btn-fg);
+  border-color: var(--btn-line);
 }
 .conversation-context .panel-body {
   padding: 18px 22px;
@@ -159,24 +158,11 @@
 .conversation-context .panel-footer > span {
   display: none;
 }
-.scene-controls {
-  border-radius: 12px;
-  box-shadow: 0 15px 60px #10292160;
-}
-.scene-mode .topbar {
-  background: linear-gradient(#17332fd9, #17332f00);
-}
-.scene-caption + .scene-caption {
-  border-top-color: #a28e6440;
-}
-.scene-reading {
-  scrollbar-color: #998c6c transparent;
-}
 :root[data-text-size='large'] .conversation-overlay .dialogue-text {
-  font-size: 19px;
+  font-size: 21px;
 }
 :root[data-text-size='large'] .conversation-overlay .dialogue-choices button {
-  font-size: 16px;
+  font-size: 17px;
 }
 @media (max-width: 699px) {
   :root .quest-card:not(.objective-expanded) {
