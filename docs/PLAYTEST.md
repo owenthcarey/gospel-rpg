@@ -197,3 +197,17 @@ Portable v11 saves in `tests/fixtures/saves/`:
 - `v11-landing-south.json`: south crossing, making-room reflection.
 
 Regenerate only these examples with `npm run fixtures:harbor`. Historical v1–v10 files remain migration evidence. Record human play duration, confusing choices, missed visual cues, physical touch behavior and screen-reader experience separately; automated completion times are not reading-time estimates.
+
+## The Way, Brought to Life
+
+Use the [focused presentation guide](verification/rfc010/README.md) alongside the existing portable story saves. This review evaluates how the existing game feels, without requiring a new story or resetting a valued save.
+
+1. Begin a fresh journey. Before using the map, find Simon, Miriam and Eliab from their names and surroundings. Note whether the first guidance explains approaching and speaking without crowding the scene. Observe walking speed, turns and stopping.
+2. Speak to Simon and Miriam, then visit Hannah in the bakehouse and a later companion. Compare each portrait with the world figure. Watch greeting/listening, pause motion, change reading size, rotate the device, close and reopen. Confirm people remain visible and the exploration camera returns comfortably. Try keyboard-only choices.
+3. Work on either landing crossing, deliver a basket, repair the bench and adjust a spring/resting arrangement. Watch the accepted physical result, interrupted action, unsuccessful test and recovery. Record whether the action is clear without relying on an animation or toast.
+4. Compare the shore, lanes, gathering house and bakehouse at High and Low. Check paths, water edges, entrances, roof/wall cutaways, nearby faces and floor textiles. Look for floating feet, clipped hands, hidden supplies or decoration that appears to block a walkable route.
+5. Read every Into the Deep scene without rushing. Compare the opening fishermen, teaching, rowing invitation, response, net lowering, catch, partners, astonishment, calling and return. Test pause, leave/resume, transcript and replay with standard/large text at desktop, portrait and short landscape sizes. Continue must stay available; loaded boat interiors should remain dry.
+6. Revisit the roof, Nain and storm accounts. Check camera/reading balance, frame contacts, the sleeping figure and coherent storm-to-calm water. Turn reduced motion on and off and verify that the still composition communicates each event.
+7. Return after a reload with a carried object, a waiting companion and an unfinished route. Check that presentation has changed no durable progress. Export a save and verify the expected story, companion and boat state.
+
+Record task completion, points of confusion, discomfort, perceived pacing and any visual defect with the scene, device, browser, graphics setting and text size. Physical touch, screen-reader, human pacing, historical/editorial and sustained GPU reviews are still external acceptance work. Automated browser viewports and geometry measurements do not substitute for those results.

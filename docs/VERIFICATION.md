@@ -2,6 +2,31 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## The Way, Brought to Life · 2026-09-22
+
+[RFC-010](rfcs/010-the-way-brought-to-life.md) was drafted before implementation. This milestone refines Capernaum, shared characters, conversations, practical-action feedback, water and all ten **Into the Deep** scenes. Four chapters, 31 replay scenes, eleven optional stories, save v11 and the authored scripture remain intact. The [delivery guide](verification/rfc010/README.md) provides review entry points and six selected images.
+
+The final `npm run check` passes evidence validation, types, ESLint, **562 unit checks across 29 files** and production build. Formatting and whitespace checks pass. Actual Babylon imports verify character facing, supported seating/standing, oar-to-hand contact, cargo clearance, new clips and every existing contact/solver contract. New presentation checks cover shortest-path turning, bounded clocks, pause/reduced motion, exact actor/camera recovery, action cleanup, scene disposal and framing at four viewport sizes.
+
+The complete Chromium desktop/phone matrix passes **155 cases**, with **eleven intentional skips and zero failures**, in **46.1 minutes**, using one worker and no retries. This includes an uninterrupted fresh-save journey through all four chapters, existing save/load/recovery and practical-story regressions, all 31 replay scenes, conversation lifecycle cases, and all ten Chapter I compositions at desktop, portrait and short landscape sizes. The production build and assets served throughout this run remained unchanged. A final six-case presentation selection also passed in **1.6 minutes**, verifying a later screenshot-only helper that waits for paused rendering before capture; scenario assertions were unchanged. Firefox/WebKit passed all four startup, keyboard, practical-action and saved-state compatibility checks in **31.9 seconds**. That compatibility smoke is narrower than the Chromium matrix.
+
+The [case-level delivery record](verification/rfc010/delivery.json) retains source/build hashes and exploratory outcomes. An initial full-suite attempt was intentionally interrupted after six passes to correct a visible button-contrast issue and Chapter I boat/cargo support. Initial asset checks rejected oversized exports; palette packing brought the catalog under the declared ceiling. The revised matte surfaces required a stricter image-difference threshold, from 0.20 to 0.12, while the allowed differing-pixel ratio stayed 0.02. Both reviewed static baselines then passed without updates, including their deliberate missing-geometry negative controls, and passed again in the full run. Apparent label truncation in image previews was checked against original-capture OCR with language correction disabled and DOM character bounds; the complete labels were present, and experimental CSS was reverted.
+
+Blender MCP produced **nineteen revised GLBs**, fifteen matching WebP portraits and the reproducible `presence-kit.blend` workshop using Blender 5.2.1 LTS. Independent final-file imports checked geometry, rigged silhouettes, vertex colors and architecture while preserving the original Scene, Camera, Cube and Light. The [import record](verification/rfc010/independent-imports.json) records each export's hash and mesh/material/triangle counts. All **75 other GLBs remain byte-identical** to `d388fec`.
+
+The [asset inventory](verification/rfc010/asset-delivery.json) records **94 GLBs totaling 6,706,812 bytes**, below RFC-010's explicit **7.5 MiB** ceiling. Fifteen portraits total **50,576 bytes**, below **384 KiB**. The largest regional addition is **715,700 bytes**, below **768 KiB** over the captured baseline. Actors remain below 5,000 triangles and props below 10,000; model-request concurrency remains four. The production application is **508,011 bytes**, CSS **65,974 bytes**, and the separate Babylon bundle **2,990,989 bytes**. Vite's existing large-chunk advisory remains.
+
+| Reference space   | Desktop High / Low draw calls | Phone High / Low draw calls |
+| ----------------- | ----------------------------- | --------------------------- |
+| Capernaum shore   | 166 / 90                      | 140 / 64                    |
+| Residential lanes | 112 / 52                      | 112 / 52                    |
+| Gathering house   | 55 / 30                       | 55 / 30                     |
+| Bakehouse         | 79 / 42                       | 79 / 42                     |
+
+All samples report one settled scene within the unchanged **300 High / 130 Low** ceilings. The desktop shore previously measured 217/120, lanes 160/67, gathering house 71/37 and bakehouse 103/53. The [rendering record](verification/rfc010/rendering.json) includes all captured region/account observations and identifies viewport emulation. The sixteen Capernaum samples collected 120 intervals each on ANGLE Metal/Apple M3, with 16.7 ms medians and 17.8–18.5 ms p95; these bounded samples are not sustained physical-phone benchmarks.
+
+Browser compositions and native Blender imports were visually reviewed, including all four Capernaum spaces, all ten Chapter I scenes, phone conversation layouts and storm water. [Reading measurements](verification/rfc010/reading.json) preserve panel bounds and the landscape-label check. The curated repository gallery contains **48 images totaling 31,425,699 bytes**, within its unchanged 30 MiB ceiling. Human discovery/pacing, historical/editorial review, screen-reader/touch usability and sustained physical-device performance remain outstanding in the [focused playtest](PLAYTEST.md#the-way-brought-to-life). No deployment or remote CI run is claimed.
+
 ## Capernaum, Fully Realized · 2026-09-21
 
 [RFC-009](rfcs/009-capernaum-fully-realized.md) was written before implementation. This milestone adds the early original adventure **A clear way to the water**, a nine-prop village kit, ordinary activity in the four Capernaum spaces, save v11 and shared actor/focus corrections. The [delivery evidence and playtest entry points](verification/rfc009/README.md) include before/after compositions, independent Blender imports and four portable saves.

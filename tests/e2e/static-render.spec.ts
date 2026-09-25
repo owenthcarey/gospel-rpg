@@ -18,7 +18,8 @@ test.use({
 const options = {
   stylePath: resolve('tests/e2e/static-render.css'),
   maxDiffPixelRatio: 0.02,
-  threshold: 0.2,
+  // Matte wall and floor colors are close; retain sensitivity to missing edges.
+  threshold: 0.12,
   timeout: 30_000,
 };
 

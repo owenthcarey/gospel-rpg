@@ -15,6 +15,9 @@ export const ANIMATION_CLIPS = [
   'PutDown',
   'Repair',
   'SitDown',
+  'Greet',
+  'Listen',
+  'Respond',
 ] as const;
 export type ActorClip = (typeof ANIMATION_CLIPS)[number] | 'SitUp' | 'FrameCarry' | 'TouchFrame';
 export const ACTOR_ASSETS = [

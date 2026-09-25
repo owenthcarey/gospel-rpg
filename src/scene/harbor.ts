@@ -15,6 +15,8 @@ import {
 } from '../game/harbor/arrangement';
 import type { HarborState } from '../game/harbor/types';
 import type { AssetLibrary, Model } from './assets';
+import { interiorTextiles } from './presentation/interiors';
+import { wornAreas } from './presentation/ground';
 
 function matte(scene: Scene, name: string, color: string): StandardMaterial {
   const m = new StandardMaterial(name, scene);
@@ -23,6 +25,7 @@ function matte(scene: Scene, name: string, color: string): StandardMaterial {
   return m;
 }
 export function dressVillage(scene: Scene, library: AssetLibrary, region: string): void {
+  if (region === 'gathering-house' || region === 'bakehouse') interiorTextiles(scene, region);
   const batches = new Map<AssetId, Model[]>();
   for (const p of capernaumScenery[region] ?? []) {
     const model = library.instantiate(p.asset, 'village-detail:' + p.asset);
@@ -34,27 +37,12 @@ export function dressVillage(scene: Scene, library: AssetLibrary, region: string
     batches.set(p.asset, group);
   }
   for (const [id, models] of batches) library.batch(id, models);
-  const patches = (villagePatches[region] ?? []).map(([x, z, width, height], i) => {
-    const mesh = MeshBuilder.CreateDisc(
-      'village-worn-ground-' + i,
-      { radius: 1, tessellation: 9 },
+  if (villagePatches[region]?.length)
+    wornAreas(
       scene,
+      villagePatches[region]!,
+      region === 'gathering-house' || region === 'bakehouse',
     );
-    mesh.rotation.x = Math.PI / 2;
-    mesh.scaling.set(width / 2, height / 2, 1);
-    mesh.position.set(x, 0.006, z);
-    mesh.isPickable = false;
-    return mesh;
-  });
-  if (patches.length) {
-    const merged = Mesh.MergeMeshes(patches, true, true)!;
-    merged.material = matte(
-      scene,
-      'village-worn-ground',
-      region === 'gathering-house' || region === 'bakehouse' ? '#c7ad78' : '#bcb582',
-    );
-    merged.isPickable = false;
-  }
 }
 
 /** The same coordinates power the solver, readable plan, geometry and storage bays. */

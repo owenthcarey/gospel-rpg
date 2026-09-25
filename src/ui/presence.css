@@ -1,0 +1,264 @@
+/* Presentation surfaces deliberately leave space for people and physical work. */
+:root {
+  --paper: #f1e6cd;
+  --panel: rgba(25, 44, 39, 0.94);
+  --gold: #e1c38a;
+}
+.world-vignette {
+  opacity: 0.42;
+}
+:root .quest-card:not(.objective-expanded) {
+  width: min(300px, calc(100vw - 32px));
+  border-left: 2px solid #d6b879;
+  padding: 16px 18px 10px;
+}
+:root .quest-card:not(.objective-expanded) h1 {
+  font-size: 23px;
+}
+.quest-card .compact-journal,
+.quest-card .objective-toggle {
+  margin-right: 10px;
+}
+.conversing #hud > :not(.topbar),
+.conversing .world-labels {
+  visibility: hidden;
+}
+.conversation-overlay .panel-backdrop {
+  background: transparent;
+  backdrop-filter: none;
+}
+.conversation-overlay {
+  pointer-events: none;
+}
+.conversing .toast {
+  top: 80px;
+  bottom: auto;
+}
+.conversation-overlay > [role='dialog'] {
+  pointer-events: auto;
+}
+:root .conversation-overlay .dialogue-box {
+  width: min(780px, calc(100vw - 48px));
+  bottom: 24px;
+  max-height: min(48dvh, 440px);
+  padding: 23px 26px;
+  gap: 22px;
+  border-radius: 12px;
+  background: linear-gradient(115deg, #f5ebd5, #e7dabd);
+  box-shadow:
+    0 16px 60px #0a211c70,
+    inset 0 1px #fff7e4;
+}
+:root .conversation-overlay .dialogue-portrait {
+  display: block;
+  width: 100px;
+  height: 116px;
+  border: 0;
+  border-radius: 48px 48px 8px 8px;
+  overflow: hidden;
+  background: #a0afa0;
+}
+.speaker-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.conversation-overlay .dialogue-main header {
+  flex-wrap: wrap;
+  align-items: start;
+  gap: 8px;
+}
+.conversation-overlay .dialogue-main header > div {
+  flex: 1;
+}
+.conversation-overlay .dialogue-main header .icon-button {
+  min-width: 36px;
+  min-height: 36px;
+}
+:root .conversation-motion {
+  margin: 0;
+  font-size: 11px;
+  color: #465b4f;
+  min-height: 30px;
+  padding: 4px 7px;
+  border: 1px solid #697b6055;
+  border-radius: 5px;
+}
+:root .conversation-overlay .dialogue-main h2 {
+  font-size: 28px;
+}
+:root .conversation-overlay .dialogue-main header p {
+  font-size: 11px;
+  color: #596752;
+}
+:root .conversation-overlay .dialogue-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #35483c;
+  margin: 15px 0;
+}
+:root .conversation-overlay .dialogue-choices button {
+  font-size: 13px;
+  padding: 11px 13px;
+  min-height: 42px;
+  border-radius: 5px;
+  background: #fcf8ec65;
+}
+:root .conversation-overlay .dialogue-choices button:hover {
+  background: #fff9e9;
+  border-color: #8c825c;
+  transform: translateX(2px);
+}
+.conversation-overlay .dialogue-source {
+  font-size: 10px;
+  color: #60674e;
+}
+:root .conversation-context {
+  position: absolute;
+  width: min(460px, 42vw);
+  max-height: calc(100dvh - 120px);
+  top: 90px;
+  bottom: auto;
+  left: auto;
+  right: 26px;
+  transform: none;
+  border-radius: 12px;
+}
+.context-portrait {
+  width: 66px;
+  height: 77px;
+  flex: 0 0 66px;
+  border-radius: 32px 32px 5px 5px;
+  overflow: hidden;
+  background: #a0afa0;
+}
+.conversation-context .panel-header {
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 20px;
+}
+.conversation-context .panel-header > div:not(.context-portrait) {
+  flex: 1;
+  min-width: 120px;
+}
+.conversation-context .panel-header h2 {
+  font-size: 25px;
+}
+:root .conversation-context .conversation-motion {
+  color: #efe6cd;
+  border-color: #c6c5a577;
+}
+.conversation-context .panel-body {
+  padding: 18px 22px;
+}
+.conversation-context .panel-footer {
+  padding: 12px 20px;
+}
+.conversation-context .panel-footer > span {
+  display: none;
+}
+.scene-controls {
+  border-radius: 12px;
+  box-shadow: 0 15px 60px #10292160;
+}
+.scene-mode .topbar {
+  background: linear-gradient(#17332fd9, #17332f00);
+}
+.scene-caption + .scene-caption {
+  border-top-color: #a28e6440;
+}
+.scene-reading {
+  scrollbar-color: #998c6c transparent;
+}
+:root[data-text-size='large'] .conversation-overlay .dialogue-text {
+  font-size: 19px;
+}
+:root[data-text-size='large'] .conversation-overlay .dialogue-choices button {
+  font-size: 16px;
+}
+@media (max-width: 699px) {
+  :root .quest-card:not(.objective-expanded) {
+    width: calc(100vw - 24px);
+    padding: 12px 15px 8px;
+  }
+  :root .quest-card:not(.objective-expanded) h1 {
+    font-size: 20px;
+    margin: 7px 0;
+  }
+  :root .quest-card:not(.objective-expanded) .current-objective {
+    margin-top: 6px;
+  }
+  :root .conversation-overlay .dialogue-box {
+    width: calc(100vw - 20px);
+    left: 10px;
+    transform: none;
+    bottom: 10px;
+    max-height: 57dvh;
+    padding: 16px;
+    gap: 12px;
+  }
+  :root .conversation-overlay .dialogue-portrait {
+    width: 55px;
+    height: 65px;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+  }
+  .conversation-overlay .dialogue-main header {
+    min-height: 68px;
+    padding-left: 67px;
+  }
+  :root .conversation-overlay .dialogue-main h2 {
+    font-size: 25px;
+  }
+  .conversation-overlay .dialogue-main header .conversation-motion {
+    flex-basis: auto;
+  }
+  :root .conversation-context {
+    left: 10px;
+    right: 10px;
+    top: auto;
+    bottom: 10px;
+    width: auto;
+    max-height: 57dvh;
+  }
+  .conversation-context .panel-header {
+    padding: 14px 16px;
+  }
+  .conversation-context .panel-body {
+    padding: 14px 16px;
+  }
+}
+@media (max-height: 540px) and (min-width: 700px) {
+  :root .conversation-overlay .dialogue-box {
+    width: 47vw;
+    left: auto;
+    right: 12px;
+    transform: none;
+    bottom: 12px;
+    max-height: calc(100dvh - 82px);
+    padding: 14px;
+    gap: 10px;
+  }
+  :root .conversation-overlay .dialogue-portrait {
+    width: 54px;
+    height: 64px;
+  }
+  :root .conversation-overlay .dialogue-text {
+    font-size: 14px;
+    margin: 10px 0;
+  }
+  :root .conversation-context {
+    top: 72px;
+    right: 12px;
+    max-height: calc(100dvh - 84px);
+    width: 47vw;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .conversation-overlay .dialogue-choices button:hover {
+    transform: none;
+  }
+}

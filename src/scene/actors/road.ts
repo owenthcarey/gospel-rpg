@@ -54,6 +54,9 @@ export class RoadActivity {
     const p = this.actor.root.position;
     return { x: p.x, z: p.z };
   }
+  get conversationActor(): Actor {
+    return this.actor;
+  }
   settings(s: Settings): void {
     this.still = s.reducedMotion;
   }

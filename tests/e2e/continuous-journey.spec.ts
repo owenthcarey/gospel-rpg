@@ -22,7 +22,9 @@ test('one fresh traveler completes all four chapters without replacing or import
     info.project.name === 'mobile-chromium',
     'One continuous desktop journey complements the complete phone chapter and interruption tests.',
   );
-  test.setTimeout(900_000);
+  // Hosted software WebGL reached Chapter IV's aftermath at the old 15-minute limit.
+  // Leave two minutes inside the CI suite deadline for cleanup and diagnostics.
+  test.setTimeout(process.env.CI ? 1_080_000 : 900_000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await ready(page);

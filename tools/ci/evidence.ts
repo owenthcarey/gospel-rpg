@@ -6,7 +6,7 @@ export const MANIFEST_PATH = 'docs/verification/manifest.json';
 const MEDIA =
   /\.(?:png|jpe?g|webp|gif|avif|bmp|tiff?|ico|pdf|zip|gz|7z|tar|mp4|webm|mov|wav|mp3|ogg|flac|glb|blend\d*|woff2?|ttf|otf)$/iu;
 const ASSET =
-  /^(?:public\/assets\/models\/[^/]+\.glb|assets\/source\/[^/]+\.blend|tests\/e2e\/screenshots\/.+\.png)$/u;
+  /^(?:public\/assets\/models\/[^/]+\.glb|public\/assets\/portraits\/[^/]+\.webp|assets\/source\/[^/]+\.blend|tests\/e2e\/screenshots\/.+\.png)$/u;
 const REVIEW_MEDIA =
   /\.(?:png|jpe?g|webp|gif|avif|bmp|tiff?|ico|pdf|zip|mp4|webm|mov|wav|mp3|ogg|flac)$/iu;
 

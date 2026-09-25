@@ -14,6 +14,9 @@ import type { AssetLibrary, Model } from '../assets';
 import { Actor } from './actor';
 
 export class VillageActivity {
+  conversationActor(id: string): Actor | undefined {
+    return this.actors.get(id);
+  }
   private actors = new Map<string, Actor>();
   private crowd: Actor[] = [];
   private props = new Map<string, Model>();

@@ -5,6 +5,7 @@ import type { ActorClip } from '../../content/assets';
 import type { Point } from '../../game/types';
 import { distance } from '../../game/pathfinding';
 import type { Model } from '../assets';
+import { turnToward } from '../../game/presence';
 
 /** Samples Blender clips using simulation time; no Babylon auto-animation clock. */
 export class Actor {
@@ -19,6 +20,7 @@ export class Actor {
   private oneShot?: { name: ActorClip; time: number };
   private sampledFrame = 0;
   private blendTime = 0;
+  private strideRate = 1;
   private previousPose: {
     target: TransformNode;
     position: Vector3;
@@ -77,7 +79,8 @@ export class Actor {
     this.oneShot = undefined;
     this.setClip(name);
     if (!this.current) return;
-    if (!still) this.elapsed += dt;
+    if (!still)
+      this.elapsed += dt * (['Walk', 'Carry', 'MatCarry'].includes(name) ? this.strideRate : 1);
     const fps = this.current.targetedAnimations[0]?.animation.framePerSecond ?? 60;
     const length = this.current.to - this.current.from;
     this.sampledFrame =
@@ -131,6 +134,30 @@ export class Actor {
       action: this.oneShot?.name ?? '',
     };
   }
+  snapshotPose() {
+    return {
+      clip: this.currentName ?? 'Idle',
+      frame: this.sampledFrame,
+      elapsed: this.elapsed,
+      oneShot: this.oneShot ? { ...this.oneShot } : undefined,
+    };
+  }
+  restorePose(pose: ReturnType<Actor['snapshotPose']>): void {
+    this.setClip(pose.clip);
+    this.elapsed = pose.elapsed;
+    this.oneShot = pose.oneShot;
+    this.sampledFrame = pose.frame;
+    this.current?.goToFrame(pose.frame);
+    this.previousPose = [];
+  }
+  setStrideSpeed(speed: number): void {
+    this.strideRate = Math.max(0.2, Math.min(1.5, speed / 3.25));
+  }
+  turnTo(point: Point, dt: number, rate = 12): void {
+    const at = this.root.getAbsolutePosition();
+    const heading = Math.PI + Math.atan2(point.x - at.x, point.z - at.z);
+    this.root.rotation.y = turnToward(this.root.rotation.y, heading, dt, rate);
+  }
   pose(name: ActorClip): void {
     this.idle = name;
     this.setClip(name);
@@ -151,7 +178,11 @@ export class Actor {
       const point = this.route[0]!;
       const current = { x: this.root.position.x, z: this.root.position.z };
       const d = distance(current, point);
-      this.root.rotation.y = Math.PI + Math.atan2(point.x - current.x, point.z - current.z);
+      this.root.rotation.y = turnToward(
+        this.root.rotation.y,
+        Math.PI + Math.atan2(point.x - current.x, point.z - current.z),
+        dt,
+      );
       this.moving = true;
       if (d <= remaining) {
         this.root.position.x = point.x;
@@ -164,6 +195,7 @@ export class Actor {
         remaining = 0;
       }
     }
+    this.setStrideSpeed(1.35);
     this.sample(this.moving ? 'Walk' : this.idle, dt, still);
   }
   face(point: Point): void {

@@ -1,3 +1,11 @@
+import { lakeCompositions, type LakeComposition } from '../../content/episode/composition';
+import type { ScreenRect } from '../../game/presence';
+import { frameSubject } from '../presentation/framing';
+import { boatSupport } from '../actors/boat';
+import type { LinesMesh } from '@babylonjs/core/Meshes/linesMesh';
+import { fitOar, handGrip } from '../presentation/attachments';
+import { groundMosaic, shorelineBank } from '../presentation/ground';
+import { WaterPresentation } from '../presentation/water';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
@@ -11,144 +19,10 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { GameState, Point, Settings } from '../../game/types';
-import { beatFor, type Staging } from '../../content/episode/scenes';
-import { LAKE_ASSETS, type ActorAsset, type ActorClip } from '../../content/assets';
+import { LAKE_ASSETS, type ActorAsset } from '../../content/assets';
 import { AssetLibrary, type Model } from '../assets';
 import { Actor } from '../actors/actor';
 import type { RegionView } from './types';
-
-interface Composition {
-  boat: [number, number];
-  partner: [number, number];
-  target: [number, number, number];
-  radius: number;
-  alpha: number;
-  beta: number;
-  simon: ActorClip;
-  jesus: ActorClip;
-  partners: ActorClip;
-  net: 'none' | 'folded' | 'cast' | 'full';
-  cargo: boolean;
-}
-const compositions: Record<Staging, Composition> = {
-  shore: {
-    boat: [-7, 0],
-    partner: [-6, 6],
-    target: [-8, 0.5, 1],
-    radius: 20,
-    alpha: -1.1,
-    beta: 0.85,
-    simon: 'Idle',
-    jesus: 'Sit',
-    partners: 'Idle',
-    net: 'folded',
-    cargo: false,
-  },
-  teaching: {
-    boat: [-5, 0],
-    partner: [-6, 6],
-    target: [-6, 0.8, 1],
-    radius: 17,
-    alpha: -1.05,
-    beta: 0.9,
-    simon: 'Sit',
-    jesus: 'Sit',
-    partners: 'Sit',
-    net: 'folded',
-    cargo: false,
-  },
-  rowing: {
-    boat: [0, 0],
-    partner: [-5, 6],
-    target: [0, 0.6, 1],
-    radius: 16,
-    alpha: -0.9,
-    beta: 0.9,
-    simon: 'Row',
-    jesus: 'Sit',
-    partners: 'Sit',
-    net: 'folded',
-    cargo: false,
-  },
-  lowering: {
-    boat: [1, 1],
-    partner: [-4, 7],
-    target: [1, 0.4, 1],
-    radius: 14,
-    alpha: -0.8,
-    beta: 0.82,
-    simon: 'Haul',
-    jesus: 'Sit',
-    partners: 'Sit',
-    net: 'cast',
-    cargo: false,
-  },
-  catch: {
-    boat: [1, 1],
-    partner: [-3, 6],
-    target: [1.4, 0.5, 1],
-    radius: 14,
-    alpha: -0.8,
-    beta: 0.83,
-    simon: 'Haul',
-    jesus: 'Sit',
-    partners: 'Gesture',
-    net: 'full',
-    cargo: false,
-  },
-  partners: {
-    boat: [1, 1],
-    partner: [3.5, 2],
-    target: [2.3, 0.6, 1.6],
-    radius: 16,
-    alpha: -0.8,
-    beta: 0.85,
-    simon: 'Haul',
-    jesus: 'Sit',
-    partners: 'Haul',
-    net: 'full',
-    cargo: true,
-  },
-  kneeling: {
-    boat: [1, 1],
-    partner: [3.5, 2],
-    target: [1, 0.9, 1],
-    radius: 12,
-    alpha: -0.9,
-    beta: 0.85,
-    simon: 'Kneel',
-    jesus: 'Sit',
-    partners: 'Idle',
-    net: 'folded',
-    cargo: true,
-  },
-  calling: {
-    boat: [1, 1],
-    partner: [3.5, 2],
-    target: [1.7, 0.9, 1],
-    radius: 13,
-    alpha: -0.95,
-    beta: 0.9,
-    simon: 'Kneel',
-    jesus: 'Gesture',
-    partners: 'Idle',
-    net: 'folded',
-    cargo: true,
-  },
-  return: {
-    boat: [-7, 0],
-    partner: [-5.5, 5],
-    target: [-7, 0.6, 1],
-    radius: 19,
-    alpha: -1.05,
-    beta: 0.88,
-    simon: 'Row',
-    jesus: 'Sit',
-    partners: 'Row',
-    net: 'folded',
-    cargo: true,
-  },
-};
 
 /** Disposable presentation region. No spatial player input, physics or quest rewards. */
 export class LakeRegion implements RegionView {
@@ -161,17 +35,20 @@ export class LakeRegion implements RegionView {
   private extras: Actor[] = [];
   private oars: TransformNode[] = [];
   private nets = new Map<string, Model>();
+  private netCords?: LinesMesh;
+  private shoreNets: Model[] = [];
   private cargo: Model[] = [];
-  private ripples: Mesh[] = [];
+  private water!: WaterPresentation;
   private paused = true;
   private reduced = false;
-  private current?: Composition;
-  private staging: Staging = 'shore';
+  private current?: LakeComposition;
+  private readingBounds?: ScreenRect;
   private checkpoint = '';
   private last = 0;
   private time = 0;
   private shorePosition: Point;
   private disposed = false;
+  private dirty = true;
   private entrance = 0;
   private startingBoatPositions: Vector3[] = [];
   private startCamera?: { target: Vector3; radius: number; alpha: number; beta: number };
@@ -220,35 +97,35 @@ export class LakeRegion implements RegionView {
     return material;
   }
   private environment(): void {
-    const lake = MeshBuilder.CreateGround('open-water', { width: 160, height: 160 }, this.scene);
-    lake.position.set(25, -0.16, 5);
-    lake.material = this.material('deep-water', '#619d9f');
-    lake.isPickable = false;
+    this.water = new WaterPresentation(this.scene, {
+      name: 'open-water',
+      width: 160,
+      depth: 160,
+      x: 25,
+      z: 5,
+      y: -0.16,
+      shore: -11,
+    });
     const shore = MeshBuilder.CreateGround('distant-shore', { width: 30, height: 100 }, this.scene);
     shore.position.set(-27, 0.01, 0);
-    shore.material = this.material('shore-sand', '#d5c48d');
+    shore.material = this.material('shore-sand', '#ffffff');
+    const sand = Color3.FromHexString('#c6b99b').toLinearSpace();
+    shore.setVerticesData(
+      'color',
+      Array.from({ length: shore.getTotalVertices() }, () => [sand.r, sand.g, sand.b, 1]).flat(),
+    );
     shore.receiveShadows = true;
     shore.isPickable = false;
-    const shallows = MeshBuilder.CreateGround(
-      'lake-shallows',
-      { width: 8, height: 100 },
+    shorelineBank(this.scene, 'lake-shore-bank', () => -12, -40, 40);
+    groundMosaic(
       this.scene,
+      'lake-shore-earth',
+      { min: -40, max: 40 },
+      (p) => p.x < -13,
+      () => 0.01,
+      false,
+      ['#c5b89b', '#c7ba9c', '#c6b99a', '#c7b99b'],
     );
-    shallows.position.set(-9, -0.13, 0);
-    shallows.material = this.material('lake-shallow-material', '#83b3a7', 0.65);
-    shallows.isPickable = false;
-    const rippleMaterial = this.material('lake-ripple-material', '#cee4d8', 0.3);
-    for (let i = 0; i < 36; i++) {
-      const ripple = MeshBuilder.CreateGround(
-        'lake-ripple-' + i,
-        { width: 0.5 + (i % 5) * 0.35, height: 0.027 },
-        this.scene,
-      );
-      ripple.position.set(-10 + ((i * 7.3) % 38), -0.1, -18 + ((i * 11.7) % 48));
-      ripple.material = rippleMaterial;
-      ripple.isPickable = false;
-      this.ripples.push(ripple);
-    }
     const hillMaterial = this.material('lake-hills', '#9fae86');
     const hills: Mesh[] = [];
     for (let i = 0; i < 10; i++) {
@@ -272,6 +149,8 @@ export class LakeRegion implements RegionView {
     for (let i = 0; i < 2; i++) {
       const boat = this.library.instantiate('boat', 'lake-boat-' + i);
       boat.root.scaling.set(1.35, 1, 1.25);
+      boatSupport(boat.root, 'lake-forward-seat-' + i, 1.15, 0.25, 0.59, 1.05);
+      boatSupport(boat.root, 'lake-rear-seat-' + i, 1.15, 0.25, 0.59, -0.65);
       this.boats.push(boat);
       for (const [side, x] of [
         ['left', -1],
@@ -286,8 +165,9 @@ export class LakeRegion implements RegionView {
       for (let j = 0; j < 3; j++) {
         const cargo = this.library.instantiate('basket_fish', 'boat-' + i + '-catch-' + j);
         cargo.root.parent = boat.root;
-        cargo.root.position.set(j % 2 === 0 ? 0.3 : -0.3, 0.14, -0.75 + j * 0.7);
-        cargo.root.scaling.setAll(0.68);
+        // Bow/stern wells and the spare side leave the actors' feet and knees clear.
+        cargo.root.position.set(j === 1 ? -0.42 : 0, 0.1, [-1.45, 0.05, 1.72][j]!);
+        cargo.root.scaling.setAll(j === 2 ? 0.45 : 0.55);
         this.cargo.push(cargo);
       }
     }
@@ -313,6 +193,28 @@ export class LakeRegion implements RegionView {
       model.root.parent = this.boats[0]!.root;
       model.root.position.set(id === 'folded' ? 0.25 : 1.15, id === 'cast' ? 0.05 : 0.55, 0.25);
       this.nets.set(id, model);
+    }
+    this.netCords = MeshBuilder.CreateLineSystem(
+      'net-working-cords',
+      {
+        lines: [
+          [new Vector3(), new Vector3(), new Vector3()],
+          [new Vector3(), new Vector3(), new Vector3()],
+        ],
+        updatable: true,
+      },
+      this.scene,
+    );
+    this.netCords.color = Color3.FromHexString('#c4b280');
+    this.netCords.isPickable = false;
+    this.netCords.parent = this.boats[0]!.root;
+    for (const [x, z] of [
+      [-12.3, 0],
+      [-12.3, 4],
+    ]) {
+      const net = this.library.instantiate('net_folded', 'shore-washing-net');
+      net.root.position.set(x!, 0.03, z!);
+      this.shoreNets.push(net);
     }
     for (let i = 0; i < 8; i++) {
       const actor = new Actor(
@@ -340,8 +242,8 @@ export class LakeRegion implements RegionView {
     this.shorePosition = { ...state.position };
     if (!state.episode.checkpoint || state.episode.checkpoint === this.checkpoint) return;
     this.checkpoint = state.episode.checkpoint;
-    this.staging = beatFor(state.episode.checkpoint).staging;
-    this.current = compositions[this.staging];
+    this.dirty = true;
+    this.current = lakeCompositions[state.episode.checkpoint];
     this.entrance = this.reduced ? 4 : 0;
     this.startingBoatPositions = this.boats.map((boat) => boat.root.position.clone());
     this.startCamera = {
@@ -369,7 +271,9 @@ export class LakeRegion implements RegionView {
     const t = linear * linear * (3 - 2 * linear);
     const destinations = [c.boat, c.partner];
     this.boats.forEach((model, i) => {
-      const target = new Vector3(destinations[i]![0], c.cargo ? -0.34 : -0.2, destinations[i]![1]);
+      // The loaded hull settles, while its actual +0.10 m interior floor stays
+      // above the maximum wave even at the low point of the cosmetic bob/roll.
+      const target = new Vector3(destinations[i]![0], c.cargo ? -0.2 : -0.16, destinations[i]![1]);
       const from = this.startingBoatPositions[i] ?? target;
       Vector3.LerpToRef(from, target, t, model.root.position);
       if (!this.reduced) {
@@ -377,24 +281,19 @@ export class LakeRegion implements RegionView {
         model.root.rotation.z = Math.sin(this.time * 0.65 + i) * 0.012;
       } else model.root.rotation.z = 0;
     });
-    const cameraTarget = Vector3.FromArray(c.target);
     const canvas = this.engine.getRenderingCanvas()!;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const captionsBelow = width <= 900 && height > 540;
-    const radius = c.radius * (captionsBelow ? Math.max(1, 0.9 / (width / height)) : 1);
-    if (captionsBelow) {
-      // Shift along the camera's vertical plane to center the action above the captions.
-      const down = new Vector3(
-        Math.cos(c.alpha) * Math.cos(c.beta),
-        -Math.sin(c.beta),
-        Math.sin(c.alpha) * Math.cos(c.beta),
-      );
-      cameraTarget.addInPlace(down.scale(radius * Math.tan(this.camera.fov / 2) * 0.48));
-    } else {
-      cameraTarget.y -= 0.4;
-      cameraTarget.addInPlace(new Vector3(-Math.sin(c.alpha), 0, Math.cos(c.alpha)).scale(3.5));
-    }
+    const framed = frameSubject(
+      this.camera,
+      canvas.clientWidth,
+      canvas.clientHeight,
+      Vector3.FromArray(c.target),
+      c.extent,
+      c.alpha,
+      c.beta,
+      this.readingBounds,
+    );
+    const cameraTarget = framed.target,
+      radius = framed.radius;
     if (this.startCamera && t < 1) {
       Vector3.LerpToRef(this.startCamera.target, cameraTarget, t, this.camera.target);
       this.camera.radius = this.startCamera.radius + (radius - this.startCamera.radius) * t;
@@ -406,40 +305,130 @@ export class LakeRegion implements RegionView {
       this.camera.alpha = c.alpha;
       this.camera.beta = c.beta;
     }
-    const rowing = this.staging === 'rowing' || this.staging === 'return';
-    this.oars.forEach((oar, i) => {
-      oar.rotation.z =
-        this.reduced || !rowing ? 0 : Math.sin(this.time * 2.4) * 0.22 * (i % 2 ? -1 : 1);
-      oar.rotation.y =
-        ((i % 2 ? 1 : -1) * Math.PI) / 2 +
-        (this.reduced || !rowing ? 0 : Math.cos(this.time * 2.4) * 0.2);
-    });
+    this.stagePeople(t);
     const net = this.nets.get(c.net);
     if (net && c.net !== 'folded') {
       net.root.position.y = c.net === 'cast' ? 0.04 : 0.6;
       if (!this.reduced) net.root.position.y += Math.sin(this.time * 1.2) * 0.08;
     }
-    this.ripples.forEach(
-      (ripple, i) =>
-        (ripple.scaling.x = this.reduced ? 1 : 0.85 + Math.sin(this.time * 0.65 + i) * 0.2),
-    );
+    if (this.netCords) {
+      const working = c.net === 'cast' || c.net === 'full';
+      this.netCords.setEnabled(working);
+      if (working && net)
+        MeshBuilder.CreateLineSystem(
+          'net-working-cords',
+          {
+            lines: (['left', 'right'] as const).map((side, i) => [
+              handGrip(this.actors.get('simon')!, side, this.boats[0]!.root),
+              new Vector3(0.86, 0.66, i ? 0.65 : -0.25),
+              new Vector3(1.5, net.root.position.y + 0.08, i ? 0.8 : -0.1),
+            ]),
+            instance: this.netCords,
+          },
+          this.scene,
+        );
+    }
+    this.stageOars();
+    this.water.tick(this.time, this.reduced);
+    this.scene.metadata = {
+      ...this.scene.metadata,
+      lake: { checkpoint: this.checkpoint, time: this.time, entrance: t, extent: c.extent },
+    };
+    canvas.dataset.lakeTime = this.checkpoint + ':' + this.time.toFixed(2);
+  }
+  private stageOars(): void {
+    this.oars.forEach((oar, i) => {
+      const boat = this.boats[Math.floor(i / 2)]!.root,
+        actor = this.actors.get(i < 2 ? 'simon' : 'john')!;
+      const side = i % 2 ? 'right' : 'left',
+        sign = i % 2 ? 1 : -1;
+      const rowing = actor.playback.clip === 'Row',
+        seated = actor.playback.clip === 'Sit';
+      if (rowing || seated)
+        fitOar(
+          oar,
+          handGrip(actor, side, boat),
+          sign * (Math.PI / 2 + (this.reduced || !rowing ? 0 : Math.sin(this.time * 2.4) * 0.16)),
+          0.3,
+        );
+      else {
+        oar.rotation.set(0, 0, 0);
+        oar.position.set(sign * 0.48, 0.22, 0);
+      }
+    });
+  }
+  private stagePeople(transition: number): void {
+    const work = ['lowering', 'abundance', 'partners'].includes(this.checkpoint);
+    for (const [id, actor] of this.actors) {
+      const boatIndex = id === 'jesus' || id === 'simon' ? 0 : 1;
+      const front = id === 'jesus' || id === 'james';
+      const returning = this.checkpoint === 'return' && (this.reduced || transition >= 0.8);
+      if (this.checkpoint === 'gathering' && id !== 'jesus') {
+        actor.root.parent = null;
+        actor.root.scaling.setAll(1);
+        actor.root.position.set(
+          id === 'john' ? -14.1 : -13.1,
+          0,
+          id === 'simon' ? 0 : id === 'james' ? 3.7 : 4.8,
+        );
+        actor.face({ x: -11, z: id === 'simon' ? 0 : 4 });
+      } else if (returning) {
+        actor.root.parent = null;
+        actor.root.scaling.setAll(1);
+        const index = ['jesus', 'simon', 'james', 'john'].indexOf(id);
+        actor.root.position.set(-12.3 - (index % 2) * 1.1, 0, -0.4 + Math.floor(index / 2) * 1.9);
+        actor.face({ x: -18, z: 3 });
+        actor.pose('Listen');
+      } else {
+        actor.root.parent = this.boats[boatIndex]!.root;
+        actor.root.scaling.set(1 / 1.35, 1, 1 / 1.25);
+        const seated = ['Sit', 'Row'].includes(actor.playback.clip);
+        actor.root.position.set(
+          id === 'simon' && work ? 0.12 : 0,
+          seated ? 0.22 : 0.1,
+          seated ? (front ? 1.05 : -0.65) : front ? 1.3 : -0.1,
+        );
+        actor.root.rotation.y = front ? 0 : Math.PI;
+        if (id === 'jesus' && ['gathering', 'teaching'].includes(this.checkpoint))
+          actor.root.rotation.y = Math.PI / 2;
+        if (id === 'simon' && work) {
+          actor.root.position.z = 0.25;
+          actor.root.rotation.y = -Math.PI / 2;
+        }
+      }
+    }
+    this.shoreNets.forEach((net) => net.root.setEnabled(this.checkpoint === 'gathering'));
+    this.extras.forEach((actor, i) => {
+      actor.root.position.set(
+        (this.checkpoint === 'return' ? -15.5 : -12.4) - (i % 2) * 1.1,
+        0,
+        -3.4 + Math.floor(i / 2) * 1.55,
+      );
+    });
+  }
+  setReadingBounds(rect?: ScreenRect): void {
+    this.readingBounds = rect;
+    this.dirty = true;
   }
   renderFrame(): void {
     if (this.disposed || document.hidden) return;
     const now = performance.now();
-    if (this.paused && now - this.last < 100) return;
+    if (this.paused && !this.dirty && now - this.last < 100) return;
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
     if (!this.paused) {
-      this.time += dt;
+      if (!this.reduced) this.time += dt;
       this.positionScene(dt);
       for (const actor of this.actors.values()) actor.tick(dt, this.reduced);
       for (const actor of this.extras) actor.tick(dt, this.reduced);
     } else this.positionScene(0);
+    this.stageOars();
     this.scene.render();
+    this.dirty = false;
   }
   applySettings(settings: Settings): void {
     this.reduced = settings.reducedMotion;
+    this.water.quality(settings.quality === 'low');
     this.scene.shadowsEnabled = settings.quality === 'high';
     this.extras.forEach((actor, i) => actor.root.setEnabled(settings.quality === 'high' || i < 4));
     if (this.reduced) {
@@ -464,6 +453,7 @@ export class LakeRegion implements RegionView {
     this.disposed = true;
     this.deactivate();
     for (const actor of [...this.actors.values(), ...this.extras]) actor.dispose();
+    this.water.dispose();
     this.library.dispose();
     this.scene.dispose();
   }

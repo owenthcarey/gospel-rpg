@@ -37,6 +37,11 @@
       "maxFiles": 12,
       "maxBytes": 6291456,
       "exceptionReason": "Four spaces each need a baseline/delivered pair, plus two phone solutions and two independent Blender reviews."
+    },
+    "rfc010": {
+      "title": "The Way, Brought to Life",
+      "maxFiles": 6,
+      "maxBytes": 1688200
     }
   },
   "files": [
@@ -333,6 +338,48 @@
       "purpose": "Restored mother and son together.",
       "bytes": 314593,
       "sha256": "5ac25488574a673769f8b36a8f33bffcbdcd7e9bc6a946522137a3f2e04c6e7b"
+    },
+    {
+      "path": "docs/verification/rfc010/kit.webp",
+      "collection": "rfc010",
+      "purpose": "Architecture and principal people from independent final-export imports in Blender.",
+      "bytes": 35108,
+      "sha256": "e23825ddd4f38376bd6cb632647845f9ea074ac484d9cc50650c2ceb1c19c56e"
+    },
+    {
+      "path": "docs/verification/rfc010/people.webp",
+      "collection": "rfc010",
+      "purpose": "Distinct faces, garments and silhouettes from the shipped actors.",
+      "bytes": 30900,
+      "sha256": "22accf10e0a3ea2913eee86d39bc1314e26f9ce5e55a88aef534d24fa977c85c"
+    },
+    {
+      "path": "docs/verification/rfc010/shore-desktop.png",
+      "collection": "rfc010",
+      "purpose": "Final High Capernaum shore at the RFC-009 comparison position.",
+      "bytes": 716372,
+      "sha256": "b0de47cedd3beade885ccf669583365112678bd9b9567145e9d9ef9e166406aa"
+    },
+    {
+      "path": "docs/verification/rfc010/lake-partners-desktop.png",
+      "collection": "rfc010",
+      "purpose": "Both loaded boats, working net and panel-aware Chapter I composition.",
+      "bytes": 335630,
+      "sha256": "2d4cf9fb2de45423fbfdc72e758cfd10682f15d2f0ea7d7272d7a9a9bbff776c"
+    },
+    {
+      "path": "docs/verification/rfc010/bakehouse-desktop.png",
+      "collection": "rfc010",
+      "purpose": "Inhabited bakehouse, refined people, wall courses and floor textiles.",
+      "bytes": 342087,
+      "sha256": "994218a04c3095230e522217309c99bce2f0325d8b3760a2cbefafd0782daa20"
+    },
+    {
+      "path": "docs/verification/rfc010/conversation-phone.png",
+      "collection": "rfc010",
+      "purpose": "Large reading size, reduced motion and a recognized nearby speaker at phone width.",
+      "bytes": 196552,
+      "sha256": "c6eb0f5871db0eec914de3dce455b7fb96514c5c3e495209e81cc67389b253ac"
     }
   ]
 }

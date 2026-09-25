@@ -1,3 +1,5 @@
+import type { ScreenRect } from '../../game/presence';
+import { applyCameraPose, frameSubject } from '../presentation/framing';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
@@ -88,6 +90,7 @@ export class RoofRegion implements RegionView {
   private ropes: Mesh[] = [];
   private state: GameState;
   private time = 0;
+  private readingBounds?: ScreenRect;
   private last = 0;
   private paused = true;
   private reduced = false;
@@ -198,27 +201,20 @@ export class RoofRegion implements RegionView {
   private stage(dt: number): void {
     const id = this.state.campaign.roof.checkpoint ?? 'house';
     const c = compositions[id];
-    this.camera.alpha = c.alpha;
-    this.camera.beta = c.beta;
-    this.camera.radius = c.radius;
-    this.camera.target.set(...c.target);
     const canvas = this.engine.getRenderingCanvas()!;
-    const below = canvas.clientWidth <= 900 && canvas.clientHeight > 540;
-    const radius =
-      c.radius * (below ? Math.max(1, 0.9 / (canvas.clientWidth / canvas.clientHeight)) : 1);
-    if (below)
-      this.camera.target.addInPlace(
-        new Vector3(
-          Math.cos(c.alpha) * Math.cos(c.beta),
-          -Math.sin(c.beta),
-          Math.sin(c.alpha) * Math.cos(c.beta),
-        ).scale(radius * Math.tan(this.camera.fov / 2) * 0.48),
-      );
-    else
-      this.camera.target.addInPlace(
-        new Vector3(-Math.sin(c.alpha), 0, Math.cos(c.alpha)).scale(3.2),
-      );
-    this.camera.radius = radius;
+    applyCameraPose(
+      this.camera,
+      frameSubject(
+        this.camera,
+        canvas.clientWidth,
+        canvas.clientHeight,
+        Vector3.FromArray(c.target),
+        c.radius * Math.tan(this.camera.fov / 2) * 0.58,
+        c.alpha,
+        c.beta,
+        this.readingBounds,
+      ),
+    );
     this.roof?.root.setEnabled(c.roof);
     const lowering = id === 'roof';
     const before = id === 'house' || id === 'bearers';
@@ -286,6 +282,9 @@ export class RoofRegion implements RegionView {
       if (!this.paused || (dt === 0 && this.time === 0) || this.reduced)
         actor.sample(clip, dt, this.reduced);
     }
+  }
+  setReadingBounds(rect?: ScreenRect): void {
+    this.readingBounds = rect;
   }
   renderFrame(): void {
     if (document.hidden) {

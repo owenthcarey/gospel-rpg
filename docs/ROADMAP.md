@@ -1,6 +1,6 @@
 # Completed milestone and next steps
 
-RFC-009 delivers **Capernaum, Fully Realized**: an early optional landing arrangement, original village craft kit, state-aware ordinary activity and v11 continuity. See [RFC-009](rfcs/009-capernaum-fully-realized.md) and its [playtest guide](PLAYTEST.md#capernaum-fully-realized).
+RFC-010 delivers **The Way, Brought to Life**: refined people and portraits, nearby conversation performances, responsive scene framing, Capernaum terrain and architecture, physical-action accents, coherent water and all ten Chapter I compositions. Four chapters, existing practical solutions and save v11 retain their progression. See [RFC-010](rfcs/010-the-way-brought-to-life.md) and the [presentation review guide](verification/rfc010/README.md).
 
 ## Implemented: Into the Deep
 
@@ -65,3 +65,7 @@ The next expansion should follow human review of the complete connected journey,
 ## Delivered: The Journey in Your Hands
 
 RFC-008 adds a useful journal overview, compact expandable objectives, work controls beside the world, temporary screen previews, target/camera focus and deliberate pointer selection. Existing narratives, practical solutions and saves remain intact. Firefox/WebKit now have a separate real-WebGL smoke suite in addition to the complete Chromium journeys. The next evaluation should use physical touch devices and assistive technology alongside the supplied practical review saves; automated coverage does not settle pacing or usability.
+
+## Delivered: Capernaum, Fully Realized
+
+[RFC-009](rfcs/009-capernaum-fully-realized.md) adds the optional early landing adventure, nine original craft props, state-aware village activity and v11 continuity. Either crossing remains available with recoverable supplies and a remembered reflection.

@@ -32,7 +32,7 @@ def mat(name, color):
     m = bpy.data.materials.new("way_" + name)
     m.diffuse_color = (*color, 1)
     m.use_nodes = True
-    p = m.node_tree.nodes.get("Principled BSDF")
+    p = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
     p.inputs["Base Color"].default_value = (*color, 1)
     p.inputs["Roughness"].default_value = 0.95
     return m
@@ -123,14 +123,14 @@ def export(name):
         palette = bpy.data.materials.new("way_vertex_palette")
         palette.diffuse_color = (1, 1, 1, 1)
         palette.use_nodes = True
-        shader = palette.node_tree.nodes.get("Principled BSDF")
+        shader = next(n for n in palette.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         shader.inputs["Roughness"].default_value = .95
     palette = bpy.data.materials["way_vertex_palette"]
-    if not palette.node_tree.nodes.get("Palette colors"):
+    if not any(n.type == "VERTEX_COLOR" for n in palette.node_tree.nodes):
         vertex = palette.node_tree.nodes.new("ShaderNodeVertexColor")
         vertex.name = "Palette colors"
         vertex.layer_name = "Color"
-        palette.node_tree.links.new(vertex.outputs["Color"], palette.node_tree.nodes.get("Principled BSDF").inputs["Base Color"])
+        palette.node_tree.links.new(vertex.outputs["Color"], next(n for n in palette.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Base Color"])
     o.data.materials.append(palette)
     socket_nodes = []
     if name == "boat":

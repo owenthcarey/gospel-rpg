@@ -1,4 +1,9 @@
+import { ActionFeedback } from './presentation/action';
 import { harborPlaces } from '../content/harbor/places';
+import { WaterPresentation } from './presentation/water';
+import { wornPaths, groundMosaic, shorelineBank } from './presentation/ground';
+import { ConversationPresentation } from './presentation/conversation';
+import { turnToward, type ScreenRect } from '../game/presence';
 import { HarborPresentation, dressVillage } from './harbor';
 import { EverydayActivity } from './actors/everyday';
 import { WorkPresentation, type WorkRect } from './work';
@@ -94,6 +99,9 @@ export class World {
   grid: WalkGrid;
   private layout?: ExplorationLayout;
   private workView?: WorkPresentation;
+  private actionFeedback?: ActionFeedback;
+  private conversationView?: ConversationPresentation;
+  private active = false;
   private travelerBoat?: TravelerBoat;
   private mooredBoat?: TransformNode;
   private lakeCompany?: Actor;
@@ -135,6 +143,7 @@ export class World {
   private paused = true;
   private reducedMotion = false;
   private waterLines: Mesh[] = [];
+  private water?: WaterPresentation;
   private boats: TransformNode[] = [];
   private people = new Map<string, TransformNode>();
   private time = 0;
@@ -222,38 +231,37 @@ export class World {
         },
         this.scene,
       );
-      floor.material = this.material(
-        'neighborhood-ground',
-        initial.region === 'galilee-water' ? '#659caa' : this.layout.inside ? '#ddcfae' : '#b1b780',
+      const groundColor = Color3.FromHexString(
+        initial.region === 'galilee-water' ? '#659caa' : this.layout.inside ? '#cebc9c' : '#afb18a',
+      ).toLinearSpace();
+      floor.material = this.material('neighborhood-ground', '#ffffff');
+      // Use the same lighting path as the worn surfaces; a diffuse color is
+      // clamped before vertex color in StandardMaterial and would make the base brighter.
+      floor.setVerticesData(
+        VertexBuffer.ColorKind,
+        Array.from({ length: floor.getTotalVertices() }, () => [
+          groundColor.r,
+          groundColor.g,
+          groundColor.b,
+          1,
+        ]).flat(),
       );
       floor.receiveShadows = true;
       floor.metadata = { ground: true };
       if (this.layout.height) this.conformToGround(floor);
-      const pathMaterial = this.material('worn-paths', '#d7c194');
-      const junctions = new Map<string, { point: Point; width: number }>();
-      for (const [a, b, width] of this.layout.paths) {
-        const path = MeshBuilder.CreateGround(
-          'lane-path',
-          {
-            width,
-            height: distance(a, b),
-            subdivisions: this.layout.height ? Math.ceil(distance(a, b)) : 1,
-          },
+      wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
+        groundHeight(initial.region, p),
+      );
+      if (initial.region !== 'galilee-water')
+        groundMosaic(
           this.scene,
+          'regional-earth',
+          this.layout.bounds,
+          this.layout.terrain,
+          (p) => groundHeight(initial.region, p),
+          this.layout.inside,
         );
-        path.position.set((a.x + b.x) / 2, 0.012, (a.z + b.z) / 2);
-        path.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
-        if (this.layout.height) this.conformToGround(path, 0.014);
-        path.material = pathMaterial;
-        path.metadata = { ground: true };
-        if (this.layout.height)
-          for (const point of [a, b]) {
-            const key = point.x + ',' + point.z;
-            if ((junctions.get(key)?.width ?? 0) < width) junctions.set(key, { point, width });
-          }
-      }
-      for (const { point, width } of junctions.values())
-        this.makePathJunction(point, width, pathMaterial);
+      else floor.setEnabled(false);
       if (isLakeRegion(initial.region)) this.makeCrossingTerrain();
       if (initial.region === 'galilean-road') {
         const lake = MeshBuilder.CreateGround(
@@ -361,6 +369,8 @@ export class World {
     this.actorPlayer = new Actor(playerModel, true);
     this.playerModel = playerModel.root;
     this.playerModel.parent = this.player;
+    this.conversationView = new ConversationPresentation(this.camera, this.canvas);
+    this.actionFeedback = new ActionFeedback(this.scene);
     const ring = MeshBuilder.CreateTorus(
       'player-ring',
       { diameter: 0.92, thickness: 0.025, tessellation: 40 },
@@ -428,42 +438,31 @@ export class World {
   }
 
   private makeCrossingTerrain(): void {
-    const water = this.state.region === 'galilee-water';
-    const sand = this.material('crossing-sand', '#bdba85');
-    const sea = this.material('crossing-blue', '#659caa');
-    const patches = water
-      ? [
-          [-40, 0, 36, 100],
-          [40, 0, 36, 100],
-          [-5, 3, 5, 4],
-        ]
-      : [[0, -34, 100, 52]];
-    for (const [x, z, width, height] of patches) {
-      const p = MeshBuilder.CreateGround(
-        'crossing-bank',
-        { width: width!, height: height! },
-        this.scene,
-      );
-      p.position.set(x!, 0.01, z!);
-      p.material = water ? sand : sea;
-      p.metadata = water ? {} : { ground: true };
-      p.isPickable = !water;
-    }
-    const ripple = this.material('crossing-ripple', '#9ac6c8');
-    for (let i = 0; i < 18; i++) {
-      const r = MeshBuilder.CreateGround(
-        'crossing-ripple-' + i,
-        { width: 1.1 + (i % 3), height: 0.045 },
-        this.scene,
-      );
-      r.position.set(
-        water ? -16 + (i % 6) * 6 : -18 + (i % 6) * 7,
-        0.02,
-        water ? -19 + Math.floor(i / 6) * 17 : -14 - Math.floor(i / 6) * 6,
-      );
-      r.material = ripple;
-      r.isPickable = false;
-      this.waterLines.push(r);
+    const afloat = this.state.region === 'galilee-water';
+    this.water = new WaterPresentation(this.scene, {
+      name: 'crossing-water',
+      width: 160,
+      depth: 160,
+      z: afloat ? 0 : -74,
+      y: afloat ? -0.04 : 0.006,
+      interactive: afloat,
+    });
+    if (afloat) {
+      const sand = this.material('crossing-sand', '#b6ac87');
+      for (const [x, z, width, height] of [
+        [-40, 0, 36, 100],
+        [40, 0, 36, 100],
+        [-5, 3, 5, 4],
+      ]) {
+        const bank = MeshBuilder.CreateGround(
+          'crossing-bank',
+          { width: width!, height: height! },
+          this.scene,
+        );
+        bank.position.set(x!, 0.01, z!);
+        bank.material = sand;
+        bank.isPickable = false;
+      }
     }
   }
   getBoatHeading(): number | undefined {
@@ -505,27 +504,6 @@ export class World {
     return anchor;
   }
 
-  private makePathJunction(point: Point, width: number, material: StandardMaterial): void {
-    const positions = [point.x, groundHeight(this.state.region, point) + 0.014, point.z],
-      indices: number[] = [];
-    for (let i = 0; i < 12; i++) {
-      const x = point.x + (Math.cos((i * Math.PI) / 6) * width) / 2,
-        z = point.z + (Math.sin((i * Math.PI) / 6) * width) / 2;
-      positions.push(x, groundHeight(this.state.region, { x, z }) + 0.014, z);
-      indices.push(0, i + 1, ((i + 1) % 12) + 1);
-    }
-    const mesh = new Mesh('path-junction', this.scene),
-      data = new VertexData(),
-      normals: number[] = [];
-    VertexData.ComputeNormals(positions, indices, normals);
-    data.positions = positions;
-    data.indices = indices;
-    data.normals = normals;
-    data.applyToMesh(mesh);
-    mesh.material = material;
-    mesh.isPickable = false;
-    mesh.receiveShadows = true;
-  }
   private conformToGround(mesh: Mesh, offset = 0): void {
     const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
     const world = mesh.computeWorldMatrix(true);
@@ -546,9 +524,9 @@ export class World {
     const positions: number[] = [],
       indices: number[] = [],
       colors: number[] = [];
-    const sand = Color3.FromHexString('#d8c48e'),
-      grass = Color3.FromHexString('#adb476'),
-      dry = Color3.FromHexString('#c5ba83');
+    const sand = Color3.FromHexString('#cebd98'),
+      grass = Color3.FromHexString('#a8ad87'),
+      dry = Color3.FromHexString('#b8b38b');
     for (let z = -36; z < 42; z += 2) {
       for (let x = -42; x < 12; x += 2) {
         const edge0 = shoreline(z),
@@ -564,7 +542,7 @@ export class World {
         indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
         const grassy = x < -9 || (z > 10 && x < 4) || z < -12;
         const color = (x > edge0 - 3 ? sand : grassy ? grass : dry)
-          .scale(0.99 + this.random(x * 7 + z * 13) * 0.02)
+          .scale(0.96 + this.random(x * 7 + z * 13) * 0.08)
           .toLinearSpace();
         for (let i = 0; i < 4; i++) colors.push(color.r, color.g, color.b, 1);
       }
@@ -588,36 +566,18 @@ export class World {
   }
 
   private makeWater(): void {
-    const water = MeshBuilder.CreateGround(
-      'galilee',
-      { width: 180, height: 180, subdivisions: 1 },
-      this.scene,
-    );
-    water.position.set(45, -0.18, 5);
-    water.material = this.material('lake-blue', '#71aeb2');
-    water.isPickable = false;
-    const shallows = MeshBuilder.CreateGround('shallows', { width: 10, height: 85 }, this.scene);
-    shallows.position.set(13.4, -0.16, 4);
-    shallows.material = this.material('shallow-turquoise', '#89b9ad', 0.65);
-    shallows.isPickable = false;
-    const rippleMaterial = this.material('soft-water-glints', '#e6eee0', 0.33);
-    rippleMaterial.disableLighting = true;
-    rippleMaterial.emissiveColor = Color3.FromHexString('#d4e6d5');
-    for (let i = 0; i < 48; i++) {
-      const line = MeshBuilder.CreateGround(
-        `ripple-${i}`,
-        { width: 0.5 + this.random(i + 2) * 3, height: 0.025 + this.random(i + 9) * 0.035 },
-        this.scene,
-      );
-      line.position.set(10.5 + this.random(i + 10) * 58, -0.12, -35 + this.random(i + 20) * 90);
-      line.material = rippleMaterial;
-      line.isPickable = false;
-      this.waterLines.push(line);
-    }
+    shorelineBank(this.scene, 'capernaum-shore-bank', shoreline, -36, 42);
+    this.water = new WaterPresentation(this.scene, {
+      name: 'galilee',
+      width: 180,
+      depth: 180,
+      x: 45,
+      z: 5,
+      shore: 8,
+    });
   }
 
   private makePaths(): void {
-    const pathMaterial = this.material('worn-path', '#dfcd9c');
     const segments: [Point, Point, number][] = [
       [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
       [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
@@ -625,21 +585,8 @@ export class World {
       [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
       [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
     ];
-    const paths: Mesh[] = [];
-    segments.forEach(([a, b, width], i) => {
-      const path = MeshBuilder.CreateGround(
-        `footpath-${i}`,
-        { width, height: distance(a, b) },
-        this.scene,
-      );
-      path.position.set((a.x + b.x) / 2, 0.016, (a.z + b.z) / 2);
-      path.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
-      path.material = pathMaterial;
-      path.receiveShadows = true;
-      path.metadata = { ground: true };
-      paths.push(path);
-    });
-    this.mergeStatic(paths, 'village-footpaths').metadata = { ground: true };
+    wornPaths(this.scene, 'village-footpaths', segments);
+    groundMosaic(this.scene, 'village-earth', { min: -28, max: 28 }, isLand, () => 0);
     const pebbleMat = this.material('path-pebbles', '#b9ab83');
     const pebbles: Mesh[] = [];
     for (let i = 0; i < 48; i++) {
@@ -794,16 +741,18 @@ export class World {
     this.showRoute();
   }
 
-  private face(target: Point): void {
+  private face(target: Point, dt?: number): void {
     if (this.travelerBoat) {
       this.player.rotation.y = normalizeHeading(
         Math.atan2(target.x - this.position.x, target.z - this.position.z),
       );
       return;
     }
-    if (this.playerModel)
+    if (this.playerModel) {
+      const heading = Math.PI + Math.atan2(target.x - this.position.x, target.z - this.position.z);
       this.playerModel.rotation.y =
-        Math.PI + Math.atan2(target.x - this.position.x, target.z - this.position.z);
+        dt && !this.reducedMotion ? turnToward(this.playerModel.rotation.y, heading, dt) : heading;
+    }
   }
   nearest(): Interactable | undefined {
     return [...this.destinations]
@@ -901,7 +850,7 @@ export class World {
     return { ...this.position };
   }
   private fitCamera(): void {
-    if (!this.layout || this.workView?.active) return;
+    if (!this.layout || this.workView?.active || this.conversationView?.active) return;
     const scale = Math.max(
       1,
       0.9 / (this.canvas.clientWidth / Math.max(1, this.canvas.clientHeight)),
@@ -970,6 +919,8 @@ export class World {
         line.scaling.x = 1;
       });
     }
+    this.water?.quality(settings.quality === 'low');
+    this.water?.tick(this.time, this.reducedMotion);
     this.scene.shadowsEnabled = settings.quality === 'high';
   }
   private simulate(dt: number): void {
@@ -1010,7 +961,7 @@ export class World {
           this.grid.walkable({ x: next.x, z: this.position.z }) &&
           this.grid.walkable({ x: this.position.x, z: next.z });
         if (this.grid.walkable(next) && diagonalSafe) {
-          this.face(next);
+          this.face(next, dt);
           this.position = next;
           moving = true;
         }
@@ -1023,7 +974,7 @@ export class World {
               ? 0.44
               : 1),
         );
-        if (step.facing) this.face(step.facing);
+        if (step.facing) this.face(step.facing, dt);
         this.position = step.position;
         this.path = step.path;
         moving = step.moving;
@@ -1045,6 +996,9 @@ export class World {
         groundHeight(this.state.region, this.position),
         this.position.z,
       );
+      this.actorPlayer.setStrideSpeed(
+        this.destination === 'amos-waypoint' || this.destination === 'neri-meeting' ? 1.43 : 3.25,
+      );
       this.poseTraveler(moving && !this.paused, dt);
       const target = this.cameraTarget();
       if (this.reducedMotion) this.camera.target.copyFrom(target);
@@ -1055,10 +1009,17 @@ export class World {
     this.fitCamera();
     const now = performance.now();
     // Menus and the welcome screen do not need a full-rate 3D render loop.
-    if (document.hidden || (this.paused && now - this.lastRender < 100)) return;
+    if (
+      document.hidden ||
+      (this.paused &&
+        (!this.conversationView?.animated || this.reducedMotion) &&
+        now - this.lastRender < 100)
+    )
+      return;
     const elapsed = this.lastRender ? (now - this.lastRender) / 1000 : 0;
     this.lastRender = now;
     this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
+    if (this.active) this.conversationView?.tick(Math.min(elapsed, 0.1), this.reducedMotion);
     // Consume slow frames in collision-safe steps; discard only long suspension gaps.
     let remaining = Math.min(elapsed, 0.25);
     while (remaining > 0.00001) {
@@ -1075,6 +1036,12 @@ export class World {
         line.scaling.x = 0.8 + Math.sin(this.time * 0.65 + i) * 0.22;
       });
     }
+    this.water?.tick(this.time, this.reducedMotion);
+    this.actionFeedback?.tick(
+      Math.min(elapsed, 0.1),
+      this.active && !this.paused,
+      this.reducedMotion,
+    );
     for (const { node, kind } of this.cutaways) {
       // Hide roofs completely and lower camera-facing walls, retaining a readable outline.
       if (kind === 'roof') node.setEnabled(false);
@@ -1169,10 +1136,12 @@ export class World {
     }
   }
   activate(): void {
+    this.active = true;
     this.camera.attachControl(this.canvas, true);
     this.lastRender = performance.now();
   }
   deactivate(): void {
+    this.active = false;
     this.setPaused(true);
     this.camera.detachControl();
   }
@@ -1214,6 +1183,7 @@ export class World {
     if (this.destination && !this.destinations.some((p) => p.id === this.destination)) this.stop();
   }
   setWorkFocus(target?: WorkTarget, preview?: ScreenPreview): void {
+    if (target) this.conversationView?.clear();
     if (target) this.stop();
     this.workView?.select(target, this.state, preview);
     this.canvas.dataset.workTarget = target?.id ?? '';
@@ -1221,6 +1191,26 @@ export class World {
   }
   setWorkBounds(rect?: WorkRect): void {
     this.workView?.setBounds(rect);
+  }
+  setConversation(id?: string, rect?: ScreenRect, paused = false): void {
+    if (!id || this.travelerBoat) {
+      this.conversationView?.clear();
+      return;
+    }
+    const actor =
+      id === 'neri'
+        ? this.road?.conversationActor
+        : (this.actors.get(id) ?? this.activity?.conversationActor(id));
+    if (
+      !actor ||
+      !actor.root.isEnabled() ||
+      distance(this.position, actor.root.getAbsolutePosition()) > 4.5
+    ) {
+      this.conversationView?.clear();
+      return;
+    }
+    this.conversationView?.select(id, actor, this.actorPlayer, rect);
+    this.conversationView?.setPaused(paused);
   }
   frameWork(): void {
     this.workView?.frame();
@@ -1232,6 +1222,7 @@ export class World {
     return this.road?.position();
   }
   performInteraction(motion?: ActionMotion, target?: string): void {
+    this.conversationView?.clear();
     if (!motion) this.activity?.perform();
     else {
       const place = this.destinations.find((p) => p.id === target);
@@ -1246,6 +1237,12 @@ export class World {
         return;
       }
       if (place) {
+        this.actionFeedback?.play(
+          motion,
+          place,
+          groundHeight(this.state.region, place),
+          this.reducedMotion,
+        );
         this.face(place);
         this.actors.get(place.id)?.face(this.position);
       }
@@ -1254,6 +1251,9 @@ export class World {
     }
   }
   dispose(): void {
+    this.actionFeedback?.dispose();
+    this.water?.dispose();
+    this.conversationView?.dispose();
     this.workView?.dispose();
     this.deactivate();
     this.cleanup.forEach((fn) => fn());

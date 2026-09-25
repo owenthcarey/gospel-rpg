@@ -1,3 +1,5 @@
+import type { ScreenRect } from '../../game/presence';
+import { applyCameraPose, frameSubject } from '../presentation/framing';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
@@ -38,6 +40,7 @@ export class NainRegion implements RegionView {
   private frame!: Model;
   private state: GameState;
   private time = 0;
+  private readingBounds?: ScreenRect;
   private last = 0;
   private paused = true;
   private reduced = false;
@@ -134,26 +137,20 @@ export class NainRegion implements RegionView {
     if (!this.frame) return;
     const id = this.state.road.chapter.checkpoint ?? 'approach',
       c = compositions[id];
-    this.camera.alpha = c.alpha;
-    this.camera.beta = c.beta;
-    this.camera.target.set(...c.target);
-    const canvas = this.engine.getRenderingCanvas()!,
-      below = canvas.clientWidth <= 900 && canvas.clientHeight > 540;
-    const radius =
-      c.radius * (below ? Math.max(1, 0.9 / (canvas.clientWidth / canvas.clientHeight)) : 1);
-    if (below)
-      this.camera.target.addInPlace(
-        new Vector3(
-          Math.cos(c.alpha) * Math.cos(c.beta),
-          -Math.sin(c.beta),
-          Math.sin(c.alpha) * Math.cos(c.beta),
-        ).scale(radius * Math.tan(this.camera.fov / 2) * 0.48),
-      );
-    else
-      this.camera.target.addInPlace(
-        new Vector3(-Math.sin(c.alpha), 0, Math.cos(c.alpha)).scale(3.2),
-      );
-    this.camera.radius = radius;
+    const canvas = this.engine.getRenderingCanvas()!;
+    applyCameraPose(
+      this.camera,
+      frameSubject(
+        this.camera,
+        canvas.clientWidth,
+        canvas.clientHeight,
+        Vector3.FromArray(c.target),
+        c.radius * Math.tan(this.camera.fov / 2) * 0.58,
+        c.alpha,
+        c.beta,
+        this.readingBounds,
+      ),
+    );
     const approaching = id === 'approach',
       restored = id === 'wonder' || (id === 'restored' && (this.reduced || this.time >= 2.5));
     const z = approaching
@@ -234,6 +231,9 @@ export class NainRegion implements RegionView {
       ...this.scene.metadata,
       nain: { checkpoint: id, restored, time: this.time },
     };
+  }
+  setReadingBounds(rect?: ScreenRect): void {
+    this.readingBounds = rect;
   }
   renderFrame(): void {
     if (document.hidden) {

@@ -118,6 +118,8 @@ async function slider(page: Page, name: string, value: number): Promise<void> {
 test('audio waits for a gesture, mixes independent channels, suspends in background, and preserves mute', async ({
   page,
 }, info) => {
+  // The CI trace reached the final unmute at 178 seconds; retain the full audio probe.
+  if (process.env.CI) test.setTimeout(300_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await probe(page);

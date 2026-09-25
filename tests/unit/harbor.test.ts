@@ -189,22 +189,17 @@ describe('ordinary village activity and budgets', () => {
     }
     expect(stationPose(station, station.period, false).position).toEqual(station.origin);
   });
-  it('adds at most 192 KiB per Capernaum region and no assets to other regions', () => {
+  it('keeps RFC-009 scenery inventories limited to Capernaum; RFC-010 budgets cover shared re-exports', () => {
     const baseline = JSON.parse(
       readFileSync('docs/verification/rfc009/asset-baseline.json', 'utf8'),
-    ) as Record<ExplorationRegion, { assets: string[]; bytes: number }>;
+    ) as Record<ExplorationRegion, { assets: string[] }>;
     for (const [id, old] of Object.entries(baseline)) {
-      const inventory = explorationAssets(id as ExplorationRegion);
-      const bytes = inventory.reduce(
-        (sum, n) => sum + readFileSync('public/assets/models/' + n + '.glb').length,
-        0,
-      );
-      if (['capernaum', 'capernaum-lanes', 'gathering-house', 'bakehouse'].includes(id))
-        expect(bytes - old.bytes, id).toBeLessThanOrEqual(192 * 1024);
-      else {
-        expect(inventory, id).toEqual(old.assets);
-        expect(bytes, id).toBe(old.bytes);
-      }
+      if (!['capernaum', 'capernaum-lanes', 'gathering-house', 'bakehouse'].includes(id))
+        expect(explorationAssets(id as ExplorationRegion), id).toEqual(old.assets);
+      else
+        expect(explorationAssets(id as ExplorationRegion)).toEqual(
+          expect.arrayContaining(old.assets),
+        );
     }
   });
 });

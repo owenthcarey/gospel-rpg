@@ -191,7 +191,8 @@ test('failed replay startup and return preserve a portable journey and support r
 test('return encounters, recap and journal statuses remain usable with skipped stories and large phone text', async ({
   page,
 }, info) => {
-  test.setTimeout(360_000);
+  // Software WebGL reached the final reflection at the old six-minute CI deadline.
+  test.setTimeout(process.env.CI ? 480_000 : 360_000);
   const contrast: Record<string, number> = {};
   let saved = homeAt(completedJourney(), 'shore');
   await ready(page, saved);

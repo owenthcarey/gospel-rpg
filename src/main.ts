@@ -42,6 +42,7 @@ import './ui/campaign.css';
 import './ui/life.css';
 import './ui/road.css';
 import './ui/exploration.css';
+import './ui/presence.css';
 import {
   ROAD_ACTIONS,
   TRAIL_EVIDENCE,
@@ -105,6 +106,8 @@ const ui = new Interface(document.querySelector('#ui')!, {
     runAction(() => updateSetting(key, value));
   },
   workLayout: (rect) => world?.setWorkBounds(rect),
+  readingLayout: (rect) => world?.setReadingBounds(rect),
+  presentationLayout: (id, rect, paused) => world?.setConversation(id, rect, paused),
   importFile: (file) => {
     audio.unlock();
     runAction(() => loadFile(file));
@@ -561,8 +564,11 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'harbor-action': {
       const [id, expected] = (value ?? '').split('|');
       if (!id) break;
+      const before = state;
+      const motion = harborActions(snapshot()).find((action) => action.id === id)?.motion;
       await apply({ type: 'harbor-action', id, expected });
-      if (contextId) ui.context(contextId, snapshot());
+      if (state !== before && motion) await close();
+      else if (contextId) ui.context(contextId, snapshot());
       break;
     }
     case 'follow-story': {
