@@ -16,7 +16,7 @@ import {
   cargoPosition,
 } from '../../src/game/harbor/arrangement';
 import { clearHarbor, harborAction } from '../helpers/harbor';
-import { posedVertices, bakedGeometry } from '../helpers/posed-geometry';
+import { posedVertices, bakedGeometry, nearestDistance } from '../helpers/posed-geometry';
 import type { ExplorationRegion } from '../../src/game/campaign/types';
 import { capernaumScenery } from '../../src/content/harbor/scenery';
 import { campaignLayout } from '../../src/content/campaign/layouts';
@@ -111,9 +111,7 @@ it('reconstructs and disposes state-gated ordinary work without moving named tar
   const netBench = posedVertices(scene.getTransformNodeByName('village-detail:net_workbench')!);
   for (const side of ['left', 'right']) {
     const hands = posedVertices(eliab.root, 'forearm_' + side);
-    expect(
-      Math.min(...hands.flatMap((p) => netBench.map((q) => Vector3.Distance(p, q)))),
-    ).toBeLessThan(0.25);
+    expect(nearestDistance(hands, netBench)).toBeLessThan(0.25);
   }
   review['net-work'] = bakedGeometry(scene);
   activity.dispose();
@@ -149,10 +147,7 @@ it.each(['capernaum-lanes', 'bakehouse', 'gathering-house'] as const)(
       const board = posedVertices(scene.getTransformNodeByName('village-detail:bread_board')!);
       for (const side of ['left', 'right']) {
         const hands = posedVertices(person, 'forearm_' + side);
-        expect(
-          Math.min(...hands.flatMap((p) => board.map((q) => Vector3.Distance(p, q)))),
-          side + ' bread-working hand',
-        ).toBeLessThan(0.25);
+        expect(nearestDistance(hands, board), side + ' bread-working hand').toBeLessThan(0.25);
       }
     }
     review[region] = bakedGeometry(scene);

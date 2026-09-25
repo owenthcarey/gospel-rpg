@@ -3,11 +3,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding-bottom: 18px;
-  border-bottom: 1px solid #b6af91;
-}
-.journal-categories button[aria-pressed='true'] {
-  background: #29443e;
-  color: #fff1c6;
+  border-bottom: 1px solid var(--line);
 }
 .journal-filter {
   display: flex;
@@ -20,12 +16,6 @@
   min-width: 0;
   max-width: 100%;
   min-height: 44px;
-  border: 1px solid #a39672;
-  border-radius: 5px;
-  padding: 8px;
-  background: #f4f0df;
-  color: #29443e;
-  font: inherit;
 }
 .journal-directory {
   display: grid;
@@ -34,23 +24,28 @@
 }
 .journal-directory article,
 .thread-evidence {
-  border: 1px solid #b6af91;
-  background: #eeebdb;
+  border: 1px solid var(--line-strong);
+  background: var(--parch-50);
   padding: 18px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   line-height: 1.65;
+  box-shadow: inset 0 0 0 3px rgba(242, 232, 208, 0.7);
+}
+.journal-directory article > p:not(.content-note) {
+  color: var(--fg-2);
+  margin: 4px 0 10px;
 }
 .thread-evidence article {
   margin: 16px 0;
   padding-left: 16px;
-  border-left: 3px solid #37698a;
+  border-left: 3px solid var(--lake);
 }
 .thread-evidence h4 {
   margin: 6px 0;
 }
 .recent-memories {
   font:
-    24px Georgia,
+    24px var(--font-serif),
     serif;
   margin-top: 28px;
 }
@@ -58,11 +53,6 @@
   width: min(440px, 46vw);
   margin: 0 auto 10px;
   padding: 12px;
-  background: #f2eddbf5;
-  color: #29443e;
-  border: 1px solid #a39672;
-  border-radius: 9px;
-  box-shadow: 0 8px 24px #172c3029;
   text-align: left;
   pointer-events: auto;
 }
@@ -81,18 +71,9 @@
   min-height: 44px;
   padding: 8px 12px;
   white-space: normal;
-  color: #29443e;
-  background: #f8f3e5;
-  border-color: #8c997c;
-}
-.nearby-choices button:hover,
-.nearby-choices button:focus-visible {
-  color: #fff1c6;
-  background: #29443e;
 }
 :root #ui:not(.scene-mode) .toast {
   bottom: var(--notice-bottom, 105px);
-  animation: life-notice-in 0.2s ease;
   pointer-events: none;
 }
 @keyframes life-notice-in {
@@ -119,7 +100,7 @@
 }
 .action-blocker {
   padding: 10px 12px;
-  border-left: 3px solid #a39672;
+  border-left: 3px solid var(--gold-500);
   line-height: 1.6;
 }
 @media (max-width: 700px) {

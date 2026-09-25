@@ -351,5 +351,6 @@ export function parseSettings(raw: unknown): Settings {
     quality: raw.quality === 'low' ? 'low' : 'high',
     reducedMotion:
       typeof raw.reducedMotion === 'boolean' ? raw.reducedMotion : DEFAULT_SETTINGS.reducedMotion,
+    ...(raw.openingSeen === true ? { openingSeen: true } : {}),
   };
 }

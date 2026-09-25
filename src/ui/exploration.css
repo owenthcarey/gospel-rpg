@@ -15,7 +15,6 @@
   display: inline-flex;
   min-height: 36px;
   margin-top: 4px;
-  color: #eee1b5;
 }
 .quest-card .compact-journal {
   display: inline-flex;
@@ -32,21 +31,21 @@
   outline-offset: 2px;
 }
 .journey-overview {
-  color: #303f35;
+  color: var(--fg);
 }
 .journey-overview h3,
 .journey-overview h4 {
-  color: #293e34;
+  color: var(--fg);
 }
 .journey-overview .eyebrow {
-  color: #655b3d;
+  color: var(--accent);
 }
 .overview-intro {
   margin: 12px 0 22px;
 }
 .overview-intro h3 {
   font:
-    30px Georgia,
+    30px var(--font-serif),
     serif;
   margin: 6px 0;
 }
@@ -60,44 +59,40 @@
 }
 .opportunity {
   padding: 18px 20px;
-  border: 1px solid #bcb58e;
-  border-radius: 8px;
-  background: #e9e3c9;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--parch-50);
+  box-shadow: inset 0 0 0 3px rgba(242, 232, 208, 0.7);
 }
 .opportunity h3 {
   margin: 8px 0;
   font:
-    23px Georgia,
+    23px var(--font-serif),
     serif;
 }
 .current-opportunity {
-  background: #dce1cb;
-  border-left: 4px solid #617966;
+  background: #e3e6d0;
+  border-left: 3px solid var(--moss);
   margin-bottom: 24px;
 }
 .opportunity .opportunity-place {
   display: flex;
   gap: 6px;
   align-items: flex-start;
-  font-size: 13px;
-  color: #465746;
+  font-size: 14px;
+  color: #3f4d3d;
 }
 .opportunity-place svg {
   flex: 0 0 16px;
   margin-top: 2px;
 }
 .journey-overview .secondary-button {
-  color: #2c4437;
-  background: #f7f2df;
-  border-color: #8b9a7e;
   min-height: 44px;
 }
-.journey-overview .secondary-button:hover {
-  background: #fff9e6;
-}
 .overview-notice {
-  background: #e1dfc5;
-  border-radius: 7px;
+  background: rgba(255, 252, 243, 0.6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   padding: 16px 20px;
   margin-bottom: 18px;
 }
@@ -106,7 +101,7 @@
 }
 .elsewhere-stories {
   margin: 24px 0;
-  border-top: 1px solid #b7b295;
+  border-top: 1px solid var(--line);
   padding-top: 14px;
 }
 .elsewhere-stories summary {
@@ -116,38 +111,51 @@
   font-weight: 600;
 }
 .overview-footnote {
-  color: #52604d;
+  color: var(--fg-2);
   font-size: 14px;
   line-height: 1.6;
+  margin: 18px 0 12px;
 }
 .work-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 30;
+  /* The panel slides in from the right edge; never let it widen the page. */
+  overflow: clip;
 }
 .work-panel {
   position: absolute;
-  top: 80px;
+  top: 88px;
   right: 16px;
   bottom: 16px;
-  width: min(370px, 43vw);
+  width: min(380px, 43vw);
   display: flex;
   flex-direction: column;
   pointer-events: auto;
-  color: #f3edda;
-  background: #2b4238;
-  border: 1px solid #91a38b;
-  border-radius: 12px;
-  box-shadow: 0 12px 32px #102b2538;
+  color: var(--text-cream);
+  background-color: var(--ink-800);
+  background-image: linear-gradient(170deg, rgba(62, 80, 64, 0.4), transparent 45%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
   overflow: hidden;
+  animation: work-in var(--dur-slow) var(--ease-out) both;
+}
+@keyframes work-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
 }
 .work-header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 18px 18px 12px;
-  border-bottom: 1px solid #78917b;
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--line);
 }
 .work-header > div {
   flex: 1;
@@ -155,26 +163,28 @@
 }
 .work-header h2 {
   font:
-    25px/1.15 Georgia,
+    500 27px/1.12 var(--font-serif),
     serif;
-  color: #f9edc6;
+  color: var(--gold-100);
   margin: 5px 0 0;
 }
 .work-panel .eyebrow {
-  font-size: 10px;
+  font-size: 10.5px;
   line-height: 1.4;
-  color: #e3d6a4;
+  color: var(--gold-300);
   margin: 0;
 }
 .work-panel .icon-button {
   flex: 0 0 44px;
   width: 44px;
   height: 44px;
-  color: #f3edda;
-  border-color: #78917b;
+  color: var(--text-cream);
+  border-color: var(--line-strong);
 }
 .work-body {
-  padding: 0 18px 14px;
+  position: relative;
+  z-index: 1;
+  padding: 0 20px 14px;
   overflow-y: auto;
   overscroll-behavior: contain;
   flex: 1;
@@ -198,45 +208,56 @@
   justify-content: space-between;
 }
 .work-panel .secondary-button {
-  color: #263d32;
-  background: #eee8cb;
-  border: 1px solid #e0cf99;
+  color: #2a2a1f;
+  background-color: var(--parch-100);
+  background-image: linear-gradient(180deg, var(--parch-0), var(--parch-100));
+  border: 1px solid #fff3d4;
   min-height: 44px;
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: 10px 14px;
+  font-size: 15px;
   line-height: 1.35;
   white-space: normal;
+  box-shadow:
+    0 6px 14px -8px rgba(0, 0, 0, 0.6),
+    inset 0 -2px rgba(109, 82, 34, 0.12);
 }
 .work-panel .secondary-button:hover:not(:disabled) {
-  background: #fff6d4;
+  background-color: var(--parch-50);
+  background-image: linear-gradient(180deg, #fffdf6, var(--parch-50));
+  border-color: var(--gold-200);
 }
 .work-panel .secondary-button:disabled {
-  color: #c8d0be;
-  background: #354d41;
-  border-color: #6c826d;
+  color: #c8ccb4;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(224, 194, 131, 0.22);
+  box-shadow: none;
   opacity: 1;
 }
 .work-panel .secondary-button[aria-pressed='true'] {
-  border: 2px solid #69d5e6;
-  background: #d7f0e6;
+  border: 2px solid var(--gold-300);
+  background: var(--gold-100);
 }
 .work-panel .action-blocker {
   margin: 4px 0 6px;
-  color: #d8dfcd;
-  font-size: 12px;
+  color: var(--text-cream-2);
+  font-size: 13px;
 }
 .work-panel .work-result {
   margin: 12px 0 0;
-  padding: 12px;
-  background: #20392f;
-  color: #f1e7bb;
-  border-left: 3px solid #d9bd71;
+  padding: 12px 14px;
+  background: var(--ink-900);
+  color: var(--gold-100);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold-300);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-family: var(--font-serif);
+  font-size: 16px;
 }
 .work-panel .work-result:empty {
   display: none;
 }
 .work-panel details {
-  border-top: 1px solid #78917b;
+  border-top: 1px solid var(--line);
   margin-top: 14px;
   padding-top: 5px;
 }
@@ -247,14 +268,16 @@
   cursor: pointer;
   font-size: 14px;
   line-height: 1.4;
-  color: #f2e9c8;
+  color: var(--gold-100);
 }
 .work-panel details p,
 .work-panel .work-hints p {
-  color: #eceddc;
+  color: var(--text-cream-2);
 }
 .work-panel .work-hints {
   background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line);
   border-radius: 0;
   padding: 5px 0 0;
 }
@@ -263,12 +286,14 @@
   gap: 8px;
 }
 .work-footer {
-  padding: 12px 18px;
+  position: relative;
+  z-index: 1;
+  padding: 12px 20px 14px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  border-top: 1px solid #78917b;
-  background: #253b31;
+  border-top: 1px solid var(--line);
+  background: rgba(10, 17, 14, 0.35);
 }
 .work-footer .secondary-button {
   flex: 1 1 120px;
@@ -278,9 +303,9 @@
 .work-footer span {
   display: block;
   width: 100%;
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.4;
-  color: #d8dfcd;
+  color: var(--text-cream-3);
 }
 .work-supplies {
   display: grid;
@@ -289,17 +314,17 @@
   margin-bottom: 12px;
 }
 .work-supplies .rest-socket {
-  background: #213c30;
-  border: 1px solid #78917b;
-  color: #eae6cf;
-  border-radius: 4px;
+  background: var(--ink-900);
+  border: 1px solid var(--line);
+  color: var(--text-cream-2);
+  border-radius: var(--radius-sm);
   padding: 7px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 .work-supplies .rest-socket strong {
   display: block;
-  color: #f3dfab;
+  color: var(--gold-200);
   text-transform: capitalize;
   font-size: 13px;
 }
@@ -313,7 +338,7 @@
   gap: 8px;
 }
 .work-panel .preview-description {
-  color: #e9e6c8;
+  color: var(--text-cream);
 }
 .working .quest-card,
 .working .traveler-card,
@@ -328,18 +353,15 @@
 .working .world-label:not(.selected-destination) {
   display: none;
 }
-.working .topbar {
-  background: #263e32;
-}
+
 .working .toast {
   bottom: 20px;
   max-width: min(480px, calc(100vw - 430px));
   left: 24px;
   transform: none;
 }
-.work-panel :focus-visible,
-.journey-overview :focus-visible {
-  outline: 3px solid #deaa42;
+.work-panel :focus-visible {
+  outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
 .return-to-work {

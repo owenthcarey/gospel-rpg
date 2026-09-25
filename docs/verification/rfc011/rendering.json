@@ -1,0 +1,236 @@
+{
+  "description": "RFC-011 reference compositions from tools/capture/presentation.spec.ts: the same save and camera per sample, before (RFC-010 baseline 04c56f8) and after (final RFC-011 build). Draw calls are the in-game diagnostics after the scene settles.",
+  "viewport": "1440x900 desktop emulation, headless Chromium",
+  "ceilings": {
+    "high": 300,
+    "low": 130
+  },
+  "maxAfter": {
+    "high": 152,
+    "low": 83
+  },
+  "samples": {
+    "capernaum-high": {
+      "region": "capernaum",
+      "before": 138,
+      "after": 152,
+      "activeMeshes": 129,
+      "scenes": 1
+    },
+    "capernaum-low": {
+      "region": "capernaum",
+      "before": 75,
+      "after": 83,
+      "activeMeshes": 129,
+      "scenes": 1
+    },
+    "capernaum-landing-high": {
+      "region": "capernaum",
+      "before": 138,
+      "after": 152,
+      "activeMeshes": 131,
+      "scenes": 1
+    },
+    "capernaum-landing-low": {
+      "region": "capernaum",
+      "before": 75,
+      "after": 83,
+      "activeMeshes": 131,
+      "scenes": 1
+    },
+    "capernaum-lanes-high": {
+      "region": "capernaum-lanes",
+      "before": 118,
+      "after": 133,
+      "activeMeshes": 103,
+      "scenes": 1
+    },
+    "capernaum-lanes-low": {
+      "region": "capernaum-lanes",
+      "before": 52,
+      "after": 60,
+      "activeMeshes": 98,
+      "scenes": 1
+    },
+    "gathering-house-high": {
+      "region": "gathering-house",
+      "before": 55,
+      "after": 64,
+      "activeMeshes": 57,
+      "scenes": 1
+    },
+    "gathering-house-low": {
+      "region": "gathering-house",
+      "before": 30,
+      "after": 33,
+      "activeMeshes": 57,
+      "scenes": 1
+    },
+    "bakehouse-high": {
+      "region": "bakehouse",
+      "before": 79,
+      "after": 89,
+      "activeMeshes": 81,
+      "scenes": 1
+    },
+    "bakehouse-low": {
+      "region": "bakehouse",
+      "before": 42,
+      "after": 46,
+      "activeMeshes": 81,
+      "scenes": 1
+    },
+    "galilean-road-high": {
+      "region": "galilean-road",
+      "before": 61,
+      "after": 75,
+      "activeMeshes": 47,
+      "scenes": 1
+    },
+    "galilean-road-low": {
+      "region": "galilean-road",
+      "before": 25,
+      "after": 33,
+      "activeMeshes": 47,
+      "scenes": 1
+    },
+    "roadside-farm-high": {
+      "region": "roadside-farm",
+      "before": 63,
+      "after": 79,
+      "activeMeshes": 69,
+      "scenes": 1
+    },
+    "roadside-farm-low": {
+      "region": "roadside-farm",
+      "before": 33,
+      "after": 43,
+      "activeMeshes": 69,
+      "scenes": 1
+    },
+    "nain-gate-high": {
+      "region": "nain-gate",
+      "before": 44,
+      "after": 59,
+      "activeMeshes": 52,
+      "scenes": 1
+    },
+    "nain-gate-low": {
+      "region": "nain-gate",
+      "before": 24,
+      "after": 33,
+      "activeMeshes": 52,
+      "scenes": 1
+    },
+    "galilee-water-high": {
+      "region": "galilee-water",
+      "before": 45,
+      "after": 54,
+      "activeMeshes": 45,
+      "scenes": 1
+    },
+    "galilee-water-low": {
+      "region": "galilee-water",
+      "before": 25,
+      "after": 28,
+      "activeMeshes": 45,
+      "scenes": 1
+    },
+    "reed-landing-high": {
+      "region": "reed-landing",
+      "before": 29,
+      "after": 44,
+      "activeMeshes": 37,
+      "scenes": 1
+    },
+    "reed-landing-low": {
+      "region": "reed-landing",
+      "before": 17,
+      "after": 26,
+      "activeMeshes": 37,
+      "scenes": 1
+    },
+    "sheltered-cove-high": {
+      "region": "sheltered-cove",
+      "before": 29,
+      "after": 43,
+      "activeMeshes": 37,
+      "scenes": 1
+    },
+    "sheltered-cove-low": {
+      "region": "sheltered-cove",
+      "before": 17,
+      "after": 25,
+      "activeMeshes": 37,
+      "scenes": 1
+    },
+    "lake-gennesaret-high": {
+      "region": "lake-gennesaret",
+      "before": 55,
+      "after": 68,
+      "activeMeshes": 43,
+      "scenes": 1
+    },
+    "lake-gennesaret-low": {
+      "region": "lake-gennesaret",
+      "before": 24,
+      "after": 31,
+      "activeMeshes": 43,
+      "scenes": 1
+    },
+    "roof-account-high": {
+      "region": "roof-account",
+      "before": 67,
+      "after": 83,
+      "activeMeshes": 68,
+      "scenes": 1
+    },
+    "roof-account-low": {
+      "region": "roof-account",
+      "before": 30,
+      "after": 40,
+      "activeMeshes": 60,
+      "scenes": 1
+    },
+    "nain-account-high": {
+      "region": "nain-account",
+      "before": 59,
+      "after": 73,
+      "activeMeshes": 59,
+      "scenes": 1
+    },
+    "nain-account-low": {
+      "region": "nain-account",
+      "before": 25,
+      "after": 33,
+      "activeMeshes": 54,
+      "scenes": 1
+    },
+    "storm-account-high": {
+      "region": "storm-account",
+      "before": 24,
+      "after": 35,
+      "activeMeshes": 23,
+      "scenes": 1
+    },
+    "storm-account-low": {
+      "region": "storm-account",
+      "before": 13,
+      "after": 18,
+      "activeMeshes": 23,
+      "scenes": 1
+    }
+  },
+  "softwareRenderTiming": {
+    "description": "Capernaum shore, 1280x720, SwiftShader (ANGLE Vulkan). Median of 15 synchronous scene.render() calls each followed by a 1-pixel readPixels, after a 5 s settle; baseline and final builds served side by side and measured sequentially on an otherwise idle machine. A CPU-rasterizer fill-rate proxy only, not a device benchmark.",
+    "baselineMs": {
+      "high": 104.4,
+      "low": 50.6
+    },
+    "finalMs": {
+      "high": 110.1,
+      "low": 60.1
+    },
+    "lowAttribution": "Before the backdrop trim, Low measured about 66 ms; hiding groups one at a time attributed about 7 ms each to the backdrop hills and the water plane (water unchanged from baseline) and about 4 ms to trees, with the remainder spread across new scenery. Skipping backdrop quads hidden under each region ground recovered about 6 ms."
+  }
+}

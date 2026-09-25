@@ -49,7 +49,9 @@ export function questView(state: GameState): string {
   const count = rows.filter((row) => row.done).length;
   const current = rows.find((row) => !row.done)?.id;
   return [
-    '<div class="quest-eyebrow"><span class="quest-diamond">✧</span><span>' +
+    '<div class="quest-eyebrow"><span class="quest-diamond">' +
+      icon('star') +
+      '</span><span>' +
       (village ? 'VILLAGE STORY' : 'CHAPTER I') +
       '</span><span class="quest-count">' +
       (done ? 'COMPLETE' : count + ' / ' + rows.length) +

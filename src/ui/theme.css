@@ -1,0 +1,218 @@
+/* RFC-011 interface art direction: loaded after every feature stylesheet. */
+
+/* A tracked destination keeps the familiar "!" in a gilded seal. */
+.world-label.quest-target .label-symbol .icon {
+  display: none;
+}
+.world-label.quest-target .label-symbol::before {
+  display: block;
+  content: '!';
+  width: auto;
+  height: auto;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  font:
+    700 16px/1 var(--font-serif),
+    serif;
+  color: #3a2f14;
+}
+:root .world-label.quest-target .label-symbol {
+  margin-bottom: 2px;
+}
+
+/* Objective card expansion. */
+.quest-card.objective-expanded .quest-details:not([hidden]) {
+  animation: rise-in var(--dur) var(--ease-out) both;
+}
+.quest-card .objective-toggle,
+.quest-card .compact-journal {
+  color: var(--gold-200);
+  font-size: 13px;
+}
+.quest-card .objective-toggle::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 2px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--dur) var(--ease-out);
+}
+.quest-card .objective-toggle[aria-expanded='true']::after {
+  transform: translateY(4px) rotate(-135deg);
+}
+.quest-card :focus-visible {
+  outline-color: var(--focus);
+}
+
+/* Travel status: an ink ribbon above the hints. */
+:root .travel-status {
+  gap: 10px;
+  padding: 6px 8px 6px 16px;
+  background: var(--hud-glass-strong);
+  color: var(--gold-100);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 14px;
+  box-shadow: var(--shadow-hud);
+  animation: rise-in var(--dur) var(--ease-out) both;
+}
+:root #travel-status button {
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--btn-line);
+  background: var(--btn-bg);
+  color: var(--text-cream);
+  font-size: 13px;
+}
+:root #travel-status button:hover {
+  background: var(--btn-hover);
+}
+
+/* The nearby practical-action tray reads as a small parchment card. */
+:root .action-tray {
+  background-color: var(--parch-100);
+  background-image: var(--paper-grain);
+  color: var(--fg);
+  border: 1px solid #fff6df;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    var(--shadow-hud),
+    0 0 0 1px rgba(60, 44, 16, 0.35);
+  animation: rise-in var(--dur) var(--ease-out) both;
+}
+:root .nearby-choices button {
+  color: var(--btn-fg);
+  background: var(--parch-0);
+  border: 1px solid var(--btn-line);
+  border-radius: 6px;
+  font-weight: 500;
+}
+:root .nearby-choices button:hover,
+:root .nearby-choices button:focus-visible {
+  color: var(--gold-100);
+  background: var(--moss);
+  border-color: var(--moss);
+}
+.nearby-choices small {
+  color: inherit;
+  opacity: 0.8;
+}
+
+/* Scene-mode top gradient stays calm over the Gospel tableaux. */
+:root .scene-mode .topbar {
+  background: linear-gradient(rgba(12, 20, 16, 0.7), transparent);
+}
+
+/* The working topbar keeps ink behind the menus. */
+:root .working .topbar {
+  background: linear-gradient(rgba(12, 20, 16, 0.92), rgba(12, 20, 16, 0.6) 70%, transparent);
+}
+
+/* The context (people & places) panel is a narrower parchment card. */
+.conversation-context .panel-header::after {
+  left: 20px;
+  right: 20px;
+}
+
+/* Panels opened over a conversation keep the world visible. */
+.conversation-overlay .panel {
+  animation-name: dialogue-in;
+}
+
+@media (max-width: 640px) {
+  :root .panel::after,
+  :root .dialogue-box::after,
+  :root .scene-controls::after,
+  :root .quest-card::after,
+  :root .work-panel::after {
+    --corner-size: 16px;
+    inset: 4px;
+  }
+  :root .travel-status {
+    border-radius: 14px;
+  }
+}
+
+/* Selected tabs and filters (journal categories, story statuses, map views). */
+.secondary-button[aria-pressed='true'],
+.secondary-button[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--moss);
+  border-color: #2c4234;
+  color: var(--gold-100);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.secondary-button[aria-pressed='true'] .icon {
+  color: var(--gold-200);
+}
+:root .work-panel .secondary-button[aria-pressed='true'] {
+  color: #2a2a1f;
+  background: var(--gold-100);
+  border: 2px solid var(--gold-300);
+}
+
+/* The boot error keeps its glyph mark centered until main.ts adopts the logo mark. */
+.loading-error .loading-mark {
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  font-size: 44px;
+}
+
+@media (max-width: 640px) {
+  :root .camera-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
+    width: 108px;
+    padding: 2px;
+    border-radius: 16px;
+    gap: 0;
+  }
+  :root .camera-controls span {
+    display: none;
+  }
+  :root .quest-card .compact-journal,
+  :root .quest-card .objective-toggle {
+    min-height: 36px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  :root .quest-card .compact-journal {
+    bottom: 10px;
+  }
+  .scene-ornament {
+    display: none;
+  }
+  :root .scene-progress {
+    padding-bottom: 6px;
+  }
+  :root .caption-source {
+    font-size: 12.5px;
+  }
+}
+@media (max-height: 540px) {
+  .scene-ornament {
+    display: none;
+  }
+}
+
+/* While working, notices sit clear of the work panel regardless of the hidden hint bar. */
+:root #ui.working:not(.scene-mode) .toast {
+  bottom: 20px;
+}
+@media (max-width: 699px) {
+  :root #ui.working:not(.scene-mode) .toast {
+    bottom: calc(44dvh + 18px);
+  }
+}
+
+@media (max-width: 640px) {
+  /* Phone reading text grows; inscription labels keep their proportion. */
+  :root .panel-body p.eyebrow {
+    font-size: 10.5px;
+  }
+}

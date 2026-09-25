@@ -9,6 +9,7 @@ import { World, type WorldCallbacks } from './world';
 import { RoofRegion } from './regions/roof';
 import { NainRegion } from './regions/nain';
 import { LakeRegion } from './regions/lake';
+import { TitleView } from './regions/title';
 import { isExplorationView, type RegionView } from './regions/types';
 import { sceneAssets, type AssetVisibility } from './assets';
 
@@ -28,6 +29,7 @@ export interface Diagnostics {
 export class GameRuntime {
   readonly engine: Engine;
   private view?: RegionView;
+  private title?: TitleView;
   private instrumentation?: SceneInstrumentation;
   private region?: RegionId;
   private settings?: Settings;
@@ -64,7 +66,8 @@ export class GameRuntime {
     window.addEventListener('resize', this.resize);
     this.engine.runRenderLoop(() => {
       if (!this.graphicsReady) return;
-      this.view?.renderFrame();
+      if (this.view) this.view.renderFrame();
+      else this.title?.renderFrame();
       if (import.meta.env.DEV && performance.now() - this.diagnosticTimer > 1000) {
         this.diagnosticTimer = performance.now();
         this.canvas.dataset.diagnostics = JSON.stringify(this.diagnostics());
@@ -105,6 +108,9 @@ export class GameRuntime {
         'roof-account': () => new RoofRegion(this.engine, state),
       };
       candidate = factories[state.region]();
+      // Materials compile while loading; match the selected quality's shadows from the start so
+      // no shader built for High is drawn once at Low without its shadow map.
+      if (this.settings) candidate.scene.shadowsEnabled = this.settings.quality !== 'low';
       await candidate.load(progress);
       if (this.disposed) throw new Error('Region loading was cancelled.');
       candidate.update(state);
@@ -115,6 +121,8 @@ export class GameRuntime {
       this.view = candidate;
       this.region = state.region;
       prior?.dispose();
+      this.title?.dispose();
+      this.title = undefined;
       candidate.activate();
       candidate.setPaused(this.paused);
       this.canvas.dataset.region = state.region;
@@ -137,6 +145,25 @@ export class GameRuntime {
     } finally {
       this.switching = false;
     }
+  }
+  /** The model-free welcome backdrop; replaced by the first region that opens. */
+  async showTitle(): Promise<void> {
+    if (this.view || this.title || this.disposed) return;
+    const title = new TitleView(this.engine);
+    await title.load();
+    if (this.view || this.disposed) {
+      title.dispose();
+      return;
+    }
+    this.title = title;
+    if (this.settings) title.applySettings(this.settings);
+    title.setPaused(this.paused && Boolean(this.view));
+    this.canvas.dataset.title = 'true';
+  }
+  /** The HUD line describing the current stage's hour and weather. */
+  atmosphere(): string {
+    const view = this.view as (RegionView & { atmosphere?: string }) | undefined;
+    return view?.atmosphere ?? '';
   }
   update(state: GameState): void {
     state = presentationState(state);
@@ -179,6 +206,7 @@ export class GameRuntime {
         : 1 / Math.min(window.devicePixelRatio, 1.5),
     );
     this.view?.applySettings(settings);
+    this.title?.applySettings(settings);
     this.engine.resize();
   }
   setWorkFocus(
@@ -198,6 +226,9 @@ export class GameRuntime {
   }
   setReadingBounds(rect?: import('../game/presence').ScreenRect): void {
     this.view?.setReadingBounds?.(rect);
+  }
+  playArrival(): void {
+    if (this.view instanceof World) this.view.playArrival();
   }
   cancelNavigation(): void {
     if (isExplorationView(this.view)) this.view.stop();
@@ -244,6 +275,7 @@ export class GameRuntime {
     this.engine.stopRenderLoop();
     this.instrumentation?.dispose();
     this.view?.dispose();
+    this.title?.dispose();
     this.engine.dispose();
   }
 }

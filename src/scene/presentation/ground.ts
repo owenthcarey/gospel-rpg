@@ -18,7 +18,7 @@ export function wornAreas(
     indices: number[] = [],
     colors: number[] = [];
   const shades = (
-    inside ? ['#d6c19a', '#d0be9b', '#cebc9c'] : ['#bcb48b', '#b6b38b', '#b1b38b']
+    inside ? ['#dcd2bf', '#d9cfbc', '#d7cdba'] : ['#cfc8ae', '#cdc6ad', '#cac4ac']
   ).map((hex) => Color3.FromHexString(hex).toLinearSpace());
   for (const [x, z, width, depth] of areas) {
     const base = positions.length / 3;
@@ -113,7 +113,7 @@ export function wornPaths(
   name: string,
   segments: readonly PathSegment[],
   height: (p: Point) => number = () => 0,
-  colors = ['#c6b08a', '#c0aa83', '#ab9c73'],
+  colors = ['#d2c3a9', '#cebea4', '#c3b69f'],
 ): Mesh {
   const positions: number[] = [],
     indices: number[] = [],
@@ -187,7 +187,7 @@ export function groundMosaic(
   const palette = (
     paletteHex ??
     (inside
-      ? ['#cdbb9c', '#cebd9d', '#cebc9b', '#cfbd9d']
+      ? ['#d7cdba', '#d9cfbc', '#d5cbb8', '#dad0bd']
       : ['#b1b38b', '#b5b68b', '#b8b68a', '#afaf85', '#b6b58a'])
   ).map((c) => Color3.FromHexString(c).toLinearSpace());
   const step = inside ? 1.6 : 2.1;
@@ -228,5 +228,154 @@ export function groundMosaic(
   mesh.material = material;
   mesh.receiveShadows = true;
   mesh.isPickable = false;
+  return mesh;
+}
+
+function smoothNoise(x: number, z: number): number {
+  const ix = Math.floor(x),
+    iz = Math.floor(z);
+  const fx = x - ix,
+    fz = z - iz;
+  const ux = fx * fx * (3 - 2 * fx),
+    uz = fz * fz * (3 - 2 * fz);
+  const a = noise(ix, iz),
+    b = noise(ix + 1, iz),
+    c = noise(ix, iz + 1),
+    d = noise(ix + 1, iz + 1);
+  return a + (b - a) * ux + (c - a) * uz + (a - b - c + d) * ux * uz;
+}
+/** Deterministic fractal noise in [0, 1] for painted ground and rolling backdrop hills. */
+export function fbm(x: number, z: number, octaves = 4): number {
+  let value = 0,
+    amplitude = 0.5,
+    total = 0;
+  for (let i = 0; i < octaves; i++) {
+    value += smoothNoise(x, z) * amplitude;
+    total += amplitude;
+    x = x * 2.03 + 17.1;
+    z = z * 2.03 + 3.7;
+    amplitude *= 0.5;
+  }
+  return value / total;
+}
+
+/** Irregular coast margin shared with the water shader's shore distance. */
+export function coastMargin(p: Point): number {
+  return (
+    1.2 +
+    0.8 * Math.sin(p.x * 0.35 + Math.sin(p.z * 0.21) * 2) +
+    0.45 * Math.sin(p.z * 0.47 + p.x * 0.13)
+  );
+}
+
+export type GroundStyle = 'village' | 'dry' | 'shore' | 'lane';
+const GROUND_PALETTES: Record<GroundStyle, readonly [string, string, string, string]> = {
+  // lush, dry, earth, distant
+  village: ['#7f8b5f', '#9f9870', '#8c7a5b', '#879178'],
+  dry: ['#848b60', '#a49a74', '#978063', '#8f9278'],
+  shore: ['#8a965f', '#9d9a6e', '#958464', '#8b9679'],
+  lane: ['#9d8d6f', '#a49474', '#8c7b62', '#948a72'],
+};
+/** Broad painted variation shared by the playable floor and the backdrop, so they meet seamlessly. */
+export function groundColor(p: Point, style: GroundStyle, rise = 0): Color3 {
+  const [lush, dry, earth, far] = GROUND_PALETTES[style].map((hex) => Color3.FromHexString(hex));
+  const broad = fbm(p.x * 0.045 + 3, p.z * 0.045 - 7);
+  const fine = fbm(p.x * 0.21 - 11, p.z * 0.21 + 5, 3);
+  let color = Color3.Lerp(lush!, dry!, Math.min(1, Math.max(0, (broad - 0.36) / 0.3)));
+  color = Color3.Lerp(color, earth!, Math.max(0, (fine - 0.6) / 0.25) * 0.55);
+  color = color.scale(0.95 + fine * 0.1);
+  if (rise > 0) color = Color3.Lerp(color, far!, Math.min(0.7, rise * 0.12));
+  // Display-space colors: chosen as they should read under the neutral grade.
+  return color;
+}
+
+/** Repaint a playable floor with the shared ground palette; positions are unchanged. */
+export function paintGround(mesh: Mesh, style: GroundStyle, land?: (p: Point) => boolean): void {
+  const positions = mesh.getVerticesData('position')!;
+  const world = mesh.computeWorldMatrix(true).asArray();
+  const colors: number[] = [];
+  const sand = Color3.FromHexString('#b3a47d'),
+    wet = Color3.FromHexString('#7d7a60');
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i]! + world[12]!,
+      z = positions[i + 2]! + world[14]!;
+    let c = groundColor({ x, z }, style);
+    // A pale strand at the water's edge, darkening where the bank slopes under.
+    if (land && !land({ x, z })) c = Color3.Lerp(sand, wet, Math.min(1, -positions[i + 1]! * 2.2));
+    else if (land && [1, -1].some((d) => !land({ x: x + d, z }) || !land({ x, z: z + d })))
+      c = Color3.Lerp(c, sand, 0.6);
+    colors.push(c.r, c.g, c.b, 1);
+  }
+  mesh.setVerticesData('color', colors);
+}
+
+/**
+ * Rolling land beyond the playable square that meets the horizon rings. It lies under the floor
+ * inside the reserve, sinks below any water, and is never pickable or walkable.
+ */
+export function backdropTerrain(
+  scene: Scene,
+  options: {
+    reserve: { minX: number; maxX: number; minZ: number; maxZ: number };
+    size: number;
+    style: GroundStyle;
+    base?: (p: Point) => number;
+    water?: (p: Point) => boolean;
+    rise?: (p: Point) => number;
+  },
+): Mesh {
+  const { reserve, size } = options;
+  const step = 2;
+  const n = Math.ceil(size / step);
+  const positions: number[] = [],
+    indices: number[] = [],
+    colors: number[] = [];
+  const half = (n * step) / 2;
+  const outside = (x: number, z: number) =>
+    Math.max(reserve.minX - x, x - reserve.maxX, reserve.minZ - z, z - reserve.maxZ, 0);
+  for (let j = 0; j <= n; j++)
+    for (let i = 0; i <= n; i++) {
+      const x = -half + i * step,
+        z = -half + j * step;
+      const p = { x, z };
+      const d = outside(x, z);
+      const lift = (options.rise?.(p) ?? 1) * Math.min(1, d / 26);
+      const hills = lift * lift * (3 - 2 * lift) * (4.5 + fbm(x * 0.035, z * 0.035) * 9);
+      let y = (options.base?.(p) ?? 0) + hills - (d > 0 ? 0.02 : 0.12);
+      if (options.water?.(p)) y = Math.min(y, -0.9);
+      positions.push(x, y, z);
+      const c = groundColor(p, options.style, hills);
+      colors.push(c.r, c.g, c.b, 1);
+    }
+  // Quads well inside the reserve lie under the region's own ground: skip them so they cost
+  // neither vertices nor (unsorted, overdrawn) fragments.
+  const hidden = (x: number, z: number) =>
+    Math.min(x - reserve.minX, reserve.maxX - x, z - reserve.minZ, reserve.maxZ - z) >= step;
+  for (let j = 0; j < n; j++)
+    for (let i = 0; i < n; i++) {
+      const x = -half + i * step,
+        z = -half + j * step;
+      if (hidden(x, z) && hidden(x + step, z + step)) continue;
+      const a = j * (n + 1) + i;
+      // Babylon's left-handed front faces wind clockwise when viewed from above.
+      indices.push(a, a + 1, a + n + 1, a + 1, a + n + 2, a + n + 1);
+    }
+  const mesh = new Mesh('backdrop-terrain', scene),
+    data = new VertexData(),
+    normals: number[] = [];
+  data.positions = positions;
+  data.indices = indices;
+  data.colors = colors;
+  VertexData.ComputeNormals(positions, indices, normals);
+  data.normals = normals;
+  data.applyToMesh(mesh);
+  const material = new StandardMaterial('backdrop-earth', scene);
+  material.diffuseColor = Color3.White();
+  material.specularColor = Color3.Black();
+  mesh.material = material;
+  mesh.receiveShadows = true;
+  mesh.isPickable = false;
+  mesh.metadata = { backdrop: true };
+  mesh.freezeWorldMatrix();
   return mesh;
 }

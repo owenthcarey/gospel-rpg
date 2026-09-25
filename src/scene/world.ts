@@ -1,8 +1,18 @@
 import { ActionFeedback } from './presentation/action';
 import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
-import { wornPaths, groundMosaic, shorelineBank } from './presentation/ground';
+import {
+  wornPaths,
+  groundMosaic,
+  shorelineBank,
+  paintGround,
+  backdropTerrain,
+  coastMargin,
+  groundColor,
+  type GroundStyle,
+} from './presentation/ground';
 import { ConversationPresentation } from './presentation/conversation';
+import { applyCameraPose, cameraPose, type CameraPose } from './presentation/framing';
 import { turnToward, type ScreenRect } from '../game/presence';
 import { HarborPresentation, dressVillage } from './harbor';
 import { EverydayActivity } from './actors/everyday';
@@ -19,12 +29,13 @@ import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { ArcRotateCameraPointersInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import { Vector3, Matrix } from '@babylonjs/core/Maths/math.vector';
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
-import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
-import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
-import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { StageEnvironment } from './environment/stage';
+import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte';
+import { GroundCover, type CoverOptions } from './environment/cover';
+import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
@@ -53,7 +64,7 @@ import type { ActionMotion } from '../content/campaign/actions';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput } from './input';
-import { approachPath, stepPath, clearancePosition } from '../game/navigation';
+import { approachPath, stepPath, clearancePosition, smoothPath } from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
@@ -88,11 +99,54 @@ export interface WorldCallbacks {
     destination?: string,
   ) => void;
 }
+/** The shared lifecycle of optional exploration controllers. Ticks keep their own inputs. */
+interface WorldActivity {
+  settings?(settings: Settings): void;
+  update?(state: GameState): void;
+  dispose?(): void;
+}
 export interface ScreenLabel {
   id: string;
   x: number;
   y: number;
   visible: boolean;
+}
+
+/** Height of a regular ground grid at a point, from its own vertices (nearest sample). */
+function floorHeight(mesh: Mesh, p: Point): number {
+  const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+  const count = Math.round(Math.sqrt(positions.length / 3));
+  const size = mesh.getBoundingInfo().boundingBox.extendSize;
+  const i = Math.round(((p.x + size.x) / (size.x * 2)) * (count - 1));
+  const j = Math.round(((p.z + size.z) / (size.z * 2)) * (count - 1));
+  const k = (Math.max(0, Math.min(count - 1, j)) * count + Math.max(0, Math.min(count - 1, i))) * 3;
+  return positions[k + 1] ?? 0;
+}
+const VILLAGE_PATHS: [Point, Point, number][] = [
+  [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
+  [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
+  [{ x: -20, z: -1 }, { x: 8, z: -1 }, 2.5],
+  [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
+  [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
+];
+/** Distance from a point to the nearest path edge (negative on the path). */
+function pathDistance(p: Point, segments: readonly (readonly [Point, Point, number])[]): number {
+  let best = Infinity;
+  for (const [a, b, width] of segments) {
+    const dx = b.x - a.x,
+      dz = b.z - a.z;
+    const t = Math.max(
+      0,
+      Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz || 1)),
+    );
+    best = Math.min(best, Math.hypot(p.x - a.x - dx * t, p.z - a.z - dz * t) - width * 0.63);
+  }
+  return best;
+}
+function groundStyle(region: string): GroundStyle {
+  if (['galilean-road', 'roadside-farm', 'nain-gate'].includes(region)) return 'dry';
+  if (['reed-landing', 'sheltered-cove'].includes(region)) return 'shore';
+  return 'village';
 }
 
 export class World {
@@ -115,6 +169,16 @@ export class World {
   readonly scene: Scene;
   readonly camera: ArcRotateCamera;
   private shadow: ShadowGenerator;
+  private stage: StageEnvironment;
+  private cover?: GroundCover;
+  private floor?: Mesh;
+  private coverQuality?: 'high' | 'low';
+  private arrival?: {
+    t: number;
+    from: { alpha: number; beta: number; radius: number };
+    to: { alpha: number; beta: number; radius: number };
+    limits: [number | null, number | null];
+  };
   private library: AssetLibrary;
   private actorPlayer!: Actor;
   private galilee?: GalileeActivity;
@@ -124,7 +188,8 @@ export class World {
     height: number;
     x: number;
     z: number;
-    scaleY: number;
+    fade: StylePlugin[];
+    amount: number;
   }[] = [];
   private actors = new Map<string, Actor>();
   private activity!: VillageActivity;
@@ -137,6 +202,11 @@ export class World {
   private marker: Mesh;
   private routeDots: Mesh[] = [];
   private strideTime = 0;
+  private walkRamp = 0;
+  private pendingRotation = 0;
+  private dataCache = new Map<string, string>();
+  private cameraReturn?: { from: CameraPose; to: CameraPose; t: number };
+  private lastPace = 1;
   private path: Point[] = [];
   private destination?: string;
   private keys = new Set<string>();
@@ -171,10 +241,6 @@ export class World {
       : new WalkGrid(obstacles, isLand);
     this.engine = engine;
     this.scene = new Scene(this.engine);
-    this.scene.clearColor = new Color4(0.7, 0.78, 0.73, 1);
-    this.scene.fogMode = Scene.FOGMODE_EXP2;
-    this.scene.fogColor = new Color3(0.7, 0.78, 0.73);
-    this.scene.fogDensity = 0.01;
     this.scene.collisionsEnabled = false;
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
@@ -188,7 +254,7 @@ export class World {
     this.camera.lowerRadiusLimit = 16;
     this.camera.upperRadiusLimit = 46;
     this.camera.lowerBetaLimit = 0.42;
-    this.camera.upperBetaLimit = 1.16;
+    this.camera.upperBetaLimit = 1.32;
     this.camera.panningSensibility = 0;
     this.camera.wheelDeltaPercentage = 0.015;
     this.camera.minZ = 0.2;
@@ -203,65 +269,95 @@ export class World {
       pointers.angularSensibilityY = 1000;
       pointers.pinchDeltaPercentage = 0.01;
     }
-    const sky = new HemisphericLight('soft-sky', new Vector3(0, 1, 0), this.scene);
-    sky.intensity = 0.6;
-    sky.diffuse = new Color3(0.94, 0.96, 1);
-    sky.groundColor = new Color3(0.36, 0.31, 0.2);
-    const sun = new DirectionalLight('morning-sun', new Vector3(0.7, -1.5, 0.8), this.scene);
-    sun.position.set(-22, 38, -20);
-    sun.intensity = 0.72;
-    sun.diffuse = new Color3(1, 0.97, 0.88);
-    sun.shadowMinZ = 1;
-    sun.shadowMaxZ = 100;
-    sun.autoCalcShadowZBounds = true;
-    this.shadow = new ShadowGenerator(1024, sun);
-    this.shadow.usePercentageCloserFiltering = true;
-    this.shadow.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
-    this.shadow.darkness = 0.25;
-    this.shadow.bias = 0.002;
-    this.shadow.normalBias = 0.04;
+    const region = initial.region;
+    this.stage = new StageEnvironment(this.scene, this.camera, environmentFor(region), {
+      sky: 200,
+      horizon:
+        region === 'galilee-water' || this.layout?.inside
+          ? undefined
+          : this.layout
+            ? { center: { x: 0, z: 0 }, radius: 88, seed: region.length * 7 }
+            : { center: { x: -10, z: 3 }, radius: 92, seed: 11 },
+      ground: (x, z) => (region === 'galilee-water' ? -0.05 : groundHeight(region, { x, z })),
+    });
+    this.shadow = this.stage.shadow;
     this.library = new AssetLibrary(this.scene, this.shadow);
     if (this.layout) {
+      const inside = this.layout.inside;
+      const shore = isLakeRegion(initial.region) && initial.region !== 'galilee-water';
       const floor = MeshBuilder.CreateGround(
         'walkable-terrain',
         {
-          width: this.layout.inside ? 16 : 100,
-          height: this.layout.inside ? 16 : 100,
-          subdivisions: this.layout.height ? 100 : 1,
+          width: inside ? 12.6 : 100,
+          height: inside ? 12.6 : 100,
+          subdivisions: inside ? 1 : 100,
         },
         this.scene,
       );
-      const groundColor = Color3.FromHexString(
-        initial.region === 'galilee-water' ? '#659caa' : this.layout.inside ? '#cebc9c' : '#afb18a',
-      ).toLinearSpace();
       floor.material = this.material('neighborhood-ground', '#ffffff');
-      // Use the same lighting path as the worn surfaces; a diffuse color is
-      // clamped before vertex color in StandardMaterial and would make the base brighter.
-      floor.setVerticesData(
-        VertexBuffer.ColorKind,
-        Array.from({ length: floor.getTotalVertices() }, () => [
-          groundColor.r,
-          groundColor.g,
-          groundColor.b,
-          1,
-        ]).flat(),
-      );
       floor.receiveShadows = true;
       floor.metadata = { ground: true };
+      this.floor = floor;
       if (this.layout.height) this.conformToGround(floor);
+      if (shore) this.shapeShore(floor);
+      if (inside) {
+        // Use the same lighting path as the worn surfaces; a diffuse color is
+        // clamped before vertex color in StandardMaterial and would make the base brighter.
+        const earth = Color3.FromHexString('#b4a283');
+        floor.setVerticesData(
+          VertexBuffer.ColorKind,
+          Array.from({ length: floor.getTotalVertices() }, () => [
+            earth.r,
+            earth.g,
+            earth.b,
+            1,
+          ]).flat(),
+        );
+      } else
+        paintGround(
+          floor,
+          groundStyle(initial.region),
+          shore ? (p) => floorHeight(floor, p) > -0.01 : undefined,
+        );
       wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
         groundHeight(initial.region, p),
       );
-      if (initial.region !== 'galilee-water')
+      if (inside) {
+        // The lane outside the doorway: the room sits in a street, not in empty space.
+        const lane = MeshBuilder.CreateGround(
+          'surrounding-lane',
+          { width: 60, height: 60, subdivisions: 40 },
+          this.scene,
+        );
+        lane.position.y = -0.03;
+        lane.material = this.material('surrounding-lane-earth', '#ffffff');
+        paintGround(lane, 'lane');
+        lane.receiveShadows = true;
+        lane.isPickable = false;
+      }
+      if (inside)
         groundMosaic(
           this.scene,
           'regional-earth',
-          this.layout.bounds,
+          { min: -5.8, max: 5.8 },
           this.layout.terrain,
           (p) => groundHeight(initial.region, p),
-          this.layout.inside,
+          true,
         );
-      else floor.setEnabled(false);
+      if (initial.region === 'galilee-water') floor.setEnabled(false);
+      else if (!inside)
+        backdropTerrain(this.scene, {
+          reserve: { minX: -24, maxX: 24, minZ: -24, maxZ: 24 },
+          size: 260,
+          style: groundStyle(initial.region),
+          base: (p) => groundHeight(initial.region, p),
+          water: shore
+            ? (p) => p.z < 13 && !(Math.abs(p.x) < 14 && p.z > -8)
+            : initial.region === 'galilean-road'
+              ? (p) => p.x > 30 && p.z < 0 && p.z > -40
+              : undefined,
+          rise: shore ? (p) => Math.min(1, Math.max(0, (p.z - 14) / 10)) : undefined,
+        });
       if (isLakeRegion(initial.region)) this.makeCrossingTerrain();
       if (initial.region === 'galilean-road') {
         const lake = MeshBuilder.CreateGround(
@@ -276,16 +372,17 @@ export class World {
       this.camera.lowerRadiusLimit = this.layout.camera.min;
       this.camera.upperRadiusLimit = this.layout.camera.max;
       this.resetCamera();
-      if (this.layout.inside) {
-        this.scene.fogDensity = 0;
-        sky.intensity = 0.8;
-      }
     } else {
       this.makeTerrain();
+      backdropTerrain(this.scene, {
+        reserve: { minX: -42, maxX: 12, minZ: -36, maxZ: 42 },
+        size: 280,
+        style: 'village',
+        water: (p) => p.x > shoreline(p.z) - 0.6,
+      });
       this.makeWater();
       this.makePaths();
       this.makeDocks();
-      this.makeDistantLandscape();
     }
     this.marker = MeshBuilder.CreateTorus(
       'walk-destination',
@@ -328,8 +425,18 @@ export class World {
         node.position.y = groundHeight(this.state.region, p) + (p.y ?? 0);
         node.scaling.x *= p.scaleX ?? 1;
         if (p.cutaway) this.cutaways.push({ node, kind: p.cutaway });
+        if (p.asset === 'oven')
+          this.stage.atmosphere.addSmoke(new Vector3(p.x, node.position.y + 1.25, p.z), 0.7);
       }
-    } else for (const p of [...buildings, ...trees, ...props]) this.place(p);
+    } else {
+      for (const p of [...buildings, ...trees, ...props]) this.place(p);
+      // Courtyard ovens behind two homes: a quiet sign of an ordinary morning.
+      for (const [x, z] of [
+        [-10.5, 7.5],
+        [-16, -7],
+      ])
+        this.stage.atmosphere.addSmoke(new Vector3(x!, 0.9, z!), 0.9);
+    }
     for (const person of this.layout
       ? isLakeRegion(this.state.region)
         ? localLakePlaces(this.state)
@@ -427,14 +534,54 @@ export class World {
         this.state.region === 'capernaum' ? -4 : -10,
       );
       if (this.state.region === 'sheltered-cove') {
-        this.lakeCompany = new Actor(this.library.instantiate('villager', 'cove-resting-company'));
+        this.lakeCompany = new Actor(
+          this.library.instantiate('villager', 'cove-resting-company'),
+          true,
+        );
         this.lakeCompany.root.position.set(-5, 0.08, 7);
         this.lakeCompany.root.rotation.y = Math.PI;
       }
     }
     this.update(this.state);
     this.setPosition(this.position, true);
+    const cover = this.coverOptions();
+    if (cover) this.cover = new GroundCover(this.library, cover);
     await this.scene.whenReadyAsync();
+  }
+  /** Ground cover grows on open land only: never on paths, water, sand or blocked cells. */
+  private coverOptions(): CoverOptions | undefined {
+    const region = this.state.region;
+    if (region === 'galilee-water' || this.layout?.inside) return undefined;
+    const height = (p: Point) => groundHeight(region, p);
+    if (!this.layout)
+      return {
+        center: { x: -14, z: 3 },
+        radius: 30,
+        seed: 3,
+        height,
+        pathDistance: (p) => pathDistance(p, VILLAGE_PATHS),
+        allowed: (p) =>
+          p.x < shoreline(p.z) - 3 &&
+          p.x > -44 &&
+          p.z > -36 &&
+          p.z < 42 &&
+          (!isLand(p) || this.grid.walkable(p)),
+      };
+    const layout = this.layout;
+    const bound = layout.bounds.max;
+    const shore = isLakeRegion(region);
+    return {
+      radius: 26,
+      seed: region.length,
+      height,
+      density: region === 'capernaum-lanes' ? 0.6 : 1,
+      pathDistance: (p) => pathDistance(p, layout.paths),
+      allowed: (p) => {
+        if (shore && this.floor && floorHeight(this.floor, p) < -0.01) return false;
+        if (shore && layout.terrain(p) && Math.abs(p.x) < 14 && p.z < -5) return false;
+        return Math.abs(p.x) <= bound && Math.abs(p.z) <= bound ? this.grid.walkable(p) : true;
+      },
+    };
   }
 
   private makeCrossingTerrain(): void {
@@ -443,38 +590,142 @@ export class World {
       name: 'crossing-water',
       width: 160,
       depth: 160,
-      z: afloat ? 0 : -74,
-      y: afloat ? -0.04 : 0.006,
+      z: afloat ? 0 : -60,
+      y: afloat ? -0.04 : -0.12,
       interactive: afloat,
+      land: afloat
+        ? [
+            { x: -40, z: 0, halfX: 18, halfZ: 50 },
+            { x: 40, z: 0, halfX: 18, halfZ: 50 },
+            { x: -5, z: 3, halfX: 2.5, halfZ: 2 },
+          ]
+        : [
+            { x: 0, z: 3, halfX: 14, halfZ: 11 },
+            { x: 0, z: 513, halfX: 1000, halfZ: 500 },
+          ],
+      coast: 1,
     });
+    this.stage.attachWater(this.water);
     if (afloat) {
-      const sand = this.material('crossing-sand', '#b6ac87');
-      for (const [x, z, width, height] of [
-        [-40, 0, 36, 100],
-        [40, 0, 36, 100],
-        [-5, 3, 5, 4],
-      ]) {
+      // Banks and the islet share the water shader's irregular coast, so foam meets real land.
+      const box = (p: Point, cx: number, cz: number, hx: number, hz: number) => {
+        const ex = Math.abs(p.x - cx) - hx,
+          ez = Math.abs(p.z - cz) - hz;
+        return Math.hypot(Math.max(ex, 0), Math.max(ez, 0)) + Math.min(Math.max(ex, ez), 0);
+      };
+      const land = (p: Point) =>
+        Math.min(box(p, -40, 0, 18, 50), box(p, 40, 0, 18, 50), box(p, -5, 3, 2.5, 2)) -
+          coastMargin(p) <
+        0;
+      for (const [x, z, width, depth] of [
+        [-42, 0, 44, 110],
+        [42, 0, 44, 110],
+        [-5, 3, 12, 11],
+      ] as const) {
         const bank = MeshBuilder.CreateGround(
           'crossing-bank',
-          { width: width!, height: height! },
+          { width, height: depth, subdivisions: Math.round(Math.max(width, depth) / 1.2) },
           this.scene,
         );
-        bank.position.set(x!, 0.01, z!);
-        bank.material = sand;
+        bank.position.set(x, 0, z);
+        const positions = bank.getVerticesData(VertexBuffer.PositionKind)!;
+        for (let i = 0; i < positions.length; i += 3) {
+          const p = { x: positions[i]! + x, z: positions[i + 2]! + z };
+          const inland = Math.max(0, Math.abs(p.x) - 26);
+          positions[i + 1] = land(p) ? 0.02 + Math.min(1.6, inland * 0.12) : -0.4;
+        }
+        const normals: number[] = [];
+        VertexData.ComputeNormals(positions, bank.getIndices()!, normals);
+        bank.setVerticesData(VertexBuffer.PositionKind, positions);
+        bank.setVerticesData(VertexBuffer.NormalKind, normals);
+        bank.material = this.material('crossing-bank-earth', '#ffffff');
+        paintGround(bank, 'shore', land);
+        bank.receiveShadows = true;
         bank.isPickable = false;
       }
     }
+  }
+  /** Cosmetic rings around floating hulls; the steered boat's rings strengthen while moving. */
+  private hullRipples() {
+    const hulls = [
+      ...this.boats.map((node) => ({ node, strength: 0.35 })),
+      ...(this.mooredBoat?.isEnabled() ? [{ node: this.mooredBoat, strength: 0.3 }] : []),
+      ...(this.travelerBoat
+        ? [{ node: this.player, strength: this.path.length || this.keys.size ? 0.9 : 0.4 }]
+        : []),
+    ];
+    return hulls.map(({ node, strength }) => {
+      const at = node.getAbsolutePosition();
+      return { x: at.x, z: at.z, radius: 1.5, strength };
+    });
+  }
+  /**
+   * An establishing move for a first journey: from a wide view over the shore down to the
+   * traveler. Cosmetic; any camera input or reduced motion ends it at the gameplay view.
+   */
+  playArrival(): void {
+    if (this.reducedMotion) return;
+    const to = { alpha: this.camera.alpha, beta: this.camera.beta, radius: this.camera.radius };
+    this.arrival = {
+      t: 0,
+      from: {
+        alpha: to.alpha - 0.85,
+        beta: Math.min(1.34, to.beta + 0.5),
+        radius: to.radius * 1.9,
+      },
+      to,
+      limits: [this.camera.upperRadiusLimit, this.camera.upperBetaLimit],
+    };
+    this.camera.upperRadiusLimit = this.arrival.from.radius;
+    this.camera.upperBetaLimit = 1.4;
+    Object.assign(this.camera, this.arrival.from);
+  }
+  private tickArrival(dt: number): void {
+    const a = this.arrival;
+    if (!a) return;
+    a.t += dt;
+    const k = Math.min(1, a.t / 4.2);
+    const e = k * k * (3 - 2 * k);
+    const interrupted = this.keys.size > 0 || this.path.length > 0;
+    this.camera.alpha = a.from.alpha + (a.to.alpha - a.from.alpha) * e;
+    this.camera.beta = a.from.beta + (a.to.beta - a.from.beta) * e;
+    this.camera.radius = a.from.radius + (a.to.radius - a.from.radius) * e;
+    if (k >= 1 || interrupted || this.reducedMotion) {
+      Object.assign(this.camera, a.to);
+      [this.camera.upperRadiusLimit, this.camera.upperBetaLimit] = a.limits;
+      this.arrival = undefined;
+    }
+  }
+  /** Test-facing canvas attributes, written only when their value changes. */
+  private setData(key: string, value: string): void {
+    if (this.dataCache.get(key) === value) return;
+    this.dataCache.set(key, value);
+    this.canvas.dataset[key] = value;
+  }
+  /** Every optional scene controller, registered once for settings, state and disposal. */
+  private activities(): WorldActivity[] {
+    const harbor = this.harbor;
+    const all: (WorldActivity | undefined)[] = [
+      this.activity,
+      this.neighborhood,
+      this.road,
+      this.life,
+      this.connection,
+      this.galilee,
+      this.everyday,
+      harbor && { update: (state: GameState) => harbor.update(state.harbor) },
+    ];
+    return all.filter((a): a is WorldActivity => Boolean(a));
+  }
+  get atmosphere(): string {
+    return this.stage.label;
   }
   getBoatHeading(): number | undefined {
     return this.travelerBoat ? normalizeHeading(this.player.rotation.y) : undefined;
   }
 
   private material(name: string, hex: string, alpha = 1): StandardMaterial {
-    const m = new StandardMaterial(name, this.scene);
-    m.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
-    m.specularColor = Color3.Black();
-    m.alpha = alpha;
-    return m;
+    return this.stage.material(name, hex, alpha);
   }
   private place(p: Placement, interactionId?: string): TransformNode {
     const model = this.library.instantiate(
@@ -483,7 +734,7 @@ export class World {
       interactionId,
     );
     const anchor = model.root;
-    if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model));
+    if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model, true));
     anchor.position.set(
       p.x,
       p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : groundHeight(this.state.region, p),
@@ -493,17 +744,56 @@ export class World {
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
-    if (['olive', 'cypress', 'palm'].includes(p.asset))
+    if (['olive', 'cypress', 'palm'].includes(p.asset)) {
+      // Each view-blocking tree owns a material so it can dissolve on its own.
+      const fade = anchor.getChildMeshes().flatMap((mesh) => {
+        const source = mesh.material as StandardMaterial | null;
+        if (!source) return [];
+        const material = new StandardMaterial(
+          source.name + ':fade:' + this.occluders.length,
+          this.scene,
+        );
+        material.diffuseColor = source.diffuseColor.clone();
+        material.specularColor = Color3.Black();
+        material.backFaceCulling = source.backFaceCulling;
+        const plugin = stylePlugin(material);
+        plugin.configure(WIND_SHAPES[p.asset], true);
+        mesh.material = material;
+        return [plugin];
+      });
       this.occluders.push({
         node: anchor,
         height: 3.5 * (p.scale ?? 1),
         x: p.x,
         z: p.z,
-        scaleY: anchor.scaling.y,
+        fade,
+        amount: 1,
       });
+    }
     return anchor;
   }
 
+  /** Slope unwalkable floor down under the lake so the water meets a real bank. */
+  private shapeShore(mesh: Mesh): void {
+    const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+    // Land continues behind the landing; only its lake-facing sides fall away.
+    const land = (p: Point) => this.layout!.terrain(p) || p.z > 13;
+    for (let i = 0; i < positions.length; i += 3) {
+      const p = { x: positions[i]!, z: positions[i + 2]! };
+      if (land(p)) continue;
+      let nearest = 7;
+      for (let dz = -6; dz <= 6; dz += 0.5)
+        for (let dx = -6; dx <= 6; dx += 0.5)
+          if (land({ x: p.x + dx, z: p.z + dz })) nearest = Math.min(nearest, Math.hypot(dx, dz));
+      const beyond = nearest - coastMargin(p);
+      positions[i + 1] = beyond <= 0 ? 0 : -0.55 * Math.min(1, beyond / 2.5);
+    }
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, mesh.getIndices()!, normals);
+    mesh.setVerticesData(VertexBuffer.PositionKind, positions);
+    mesh.setVerticesData(VertexBuffer.NormalKind, normals);
+    mesh.refreshBoundingInfo();
+  }
   private conformToGround(mesh: Mesh, offset = 0): void {
     const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
     const world = mesh.computeWorldMatrix(true);
@@ -524,9 +814,7 @@ export class World {
     const positions: number[] = [],
       indices: number[] = [],
       colors: number[] = [];
-    const sand = Color3.FromHexString('#cebd98'),
-      grass = Color3.FromHexString('#a8ad87'),
-      dry = Color3.FromHexString('#b8b38b');
+    const sand = Color3.FromHexString('#b8a882');
     for (let z = -36; z < 42; z += 2) {
       for (let x = -42; x < 12; x += 2) {
         const edge0 = shoreline(z),
@@ -540,10 +828,10 @@ export class World {
         positions.push(left0, 0, z, right0, 0, z, left1, 0, z + 2, right1, 0, z + 2);
         // Babylon's left-handed front faces wind clockwise when viewed from above.
         indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
-        const grassy = x < -9 || (z > 10 && x < 4) || z < -12;
-        const color = (x > edge0 - 3 ? sand : grassy ? grass : dry)
-          .scale(0.96 + this.random(x * 7 + z * 13) * 0.08)
-          .toLinearSpace();
+        const color =
+          x > edge0 - 3
+            ? sand.scale(0.96 + this.random(x * 7 + z * 13) * 0.08)
+            : groundColor({ x: x + 1, z: z + 1 }, 'village');
         for (let i = 0; i < 4; i++) colors.push(color.r, color.g, color.b, 1);
       }
     }
@@ -573,20 +861,14 @@ export class World {
       depth: 180,
       x: 45,
       z: 5,
-      shore: 8,
+      land: [{ x: 9.3 - 500, z: 0, halfX: 500, halfZ: 1000 }],
+      wobble: { amplitude: 1.5, frequency: 0.16 },
     });
+    this.stage.attachWater(this.water);
   }
 
   private makePaths(): void {
-    const segments: [Point, Point, number][] = [
-      [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
-      [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
-      [{ x: -20, z: -1 }, { x: 8, z: -1 }, 2.5],
-      [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
-      [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
-    ];
-    wornPaths(this.scene, 'village-footpaths', segments);
-    groundMosaic(this.scene, 'village-earth', { min: -28, max: 28 }, isLand, () => 0);
+    wornPaths(this.scene, 'village-footpaths', VILLAGE_PATHS);
     const pebbleMat = this.material('path-pebbles', '#b9ab83');
     const pebbles: Mesh[] = [];
     for (let i = 0; i < 48; i++) {
@@ -654,30 +936,6 @@ export class World {
     this.mergeStatic(posts, 'jetty-posts', true);
   }
 
-  private makeDistantLandscape(): void {
-    const materials = ['#a5b491', '#99ac8b', '#b1bc98'].map((c, i) =>
-      this.material(`distant-hill-${i}`, c),
-    );
-    const hills: Mesh[][] = [[], [], []];
-    for (let i = 0; i < 17; i++) {
-      const hill = MeshBuilder.CreateIcoSphere(
-        `distant-hill-${i}`,
-        { radius: 1, subdivisions: 1, flat: true },
-        this.scene,
-      );
-      hill.position.set(-58 + i * 8, -2, 43 + this.random(i) * 14);
-      hill.scaling.set(
-        10 + this.random(i + 3) * 6,
-        5 + this.random(i + 5) * 8,
-        10 + this.random(i + 7) * 6,
-      );
-      hill.material = materials[i % 3]!;
-      hill.isPickable = false;
-      hills[i % 3]!.push(hill);
-    }
-    hills.forEach((meshes, i) => this.mergeStatic(meshes, 'distant-hills-' + i));
-  }
-
   private bindInput(): void {
     this.cleanup.push(
       bindExplorationInput({
@@ -702,7 +960,9 @@ export class World {
   walkTo(target: Point): boolean {
     if (this.paused) return false;
     const cell = this.grid.nearest(target, 3);
-    const path = cell ? findPath(this.grid, this.position, cell) : [];
+    const path = cell
+      ? smoothPath(this.grid, this.position, findPath(this.grid, this.position, cell))
+      : [];
     if (!path.length) {
       this.callbacks.notice(
         this.travelerBoat
@@ -728,7 +988,11 @@ export class World {
       this.callbacks.interact(id);
       return;
     }
-    const path = approachPath(this.grid, this.position, target);
+    const path = smoothPath(
+      this.grid,
+      this.position,
+      approachPath(this.grid, this.position, target),
+    );
     if (!path.length) {
       this.callbacks.notice('There is no clear path to that place.');
       return;
@@ -760,6 +1024,7 @@ export class World {
       .sort((a, b) => distance(a, this.position) - distance(b, this.position))[0];
   }
   stop(): void {
+    this.walkRamp = 0;
     this.path = [];
     this.destination = undefined;
     this.marker.setEnabled(false);
@@ -767,12 +1032,39 @@ export class World {
     this.poseTraveler(false, 0);
     this.keys.clear();
   }
+  /** Route dots every 1.6 m along the remaining straight legs. */
   private showRoute(): void {
+    const points: Point[] = [];
+    let at = this.position;
+    let carry = 1.6;
+    for (const next of this.path) {
+      const d = distance(at, next);
+      while (carry <= d && points.length < this.routeDots.length) {
+        const t = carry / d;
+        points.push({ x: at.x + (next.x - at.x) * t, z: at.z + (next.z - at.z) * t });
+        carry += 1.6;
+      }
+      carry -= d;
+      at = next;
+    }
     this.routeDots.forEach((dot, i) => {
-      const point = this.path[i * 2];
+      const point = points[i];
       dot.setEnabled(Boolean(point) && this.guidance === 'full');
       if (point) dot.position.set(point.x, groundHeight(this.state.region, point) + 0.04, point.z);
     });
+  }
+  /** Ease into a walk and settle on arrival; never changes the route or its destination. */
+  private pace(dt: number): number {
+    this.walkRamp = Math.min(1, this.walkRamp + dt * 5);
+    let remaining = 0,
+      at = this.position;
+    for (const next of this.path) {
+      remaining += distance(at, next);
+      at = next;
+      if (remaining > 1.5) break;
+    }
+    this.lastPace = this.walkRamp * Math.min(1, 0.4 + remaining / 1.4);
+    return this.lastPace;
   }
   private poseTraveler(moving: boolean, dt: number): void {
     if (!this.playerModel) return;
@@ -808,8 +1100,12 @@ export class World {
       this.seatedAction = undefined;
       this.playerModel.position.set(0, 0, 0);
     }
-    if (moving && !this.reducedMotion) this.strideTime += dt;
-    else this.strideTime = 0;
+    if (moving && !this.reducedMotion) {
+      const before = Math.floor(this.strideTime / 0.4);
+      this.strideTime += dt;
+      if (Math.floor(this.strideTime / 0.4) !== before)
+        this.stage.atmosphere.footstep(this.player.position.add(new Vector3(0, 0.05, 0)));
+    } else this.strideTime = 0;
     const clip = this.state.campaign.carrying
       ? 'Carry'
       : (this.neighborhood?.playerClip(moving) ??
@@ -866,12 +1162,18 @@ export class World {
     if (this.state.region === 'galilee-water')
       return new Vector3(this.position.x * 0.65, 0, this.position.z * 0.65 + 2);
     if (this.layout?.inside) return new Vector3(0, 0, 0);
-    if (this.layout)
+    if (this.layout) {
+      // The land beyond each region is dressed now, so the view may follow further out.
+      const reach = this.layout.bounds.max - 9;
       return new Vector3(
-        Math.max(-5, Math.min(5, this.position.x)),
+        Math.max(-reach, Math.min(reach, this.position.x)),
         groundHeight(this.state.region, this.position),
-        Math.max(-4, Math.min(6, this.position.z + 3)),
+        Math.max(
+          -reach + 1,
+          Math.min(reach + 1, this.position.z + this.layout.camera.targetOffset * 2),
+        ),
       );
+    }
     return new Vector3(this.position.x, 0, this.position.z + 2);
   }
   resetCamera(): void {
@@ -879,12 +1181,15 @@ export class World {
       this.workView.frame();
       return;
     }
+    this.pendingRotation = 0;
     this.camera.alpha = -Math.PI / 2 - 0.45;
     this.camera.beta = this.layout?.camera.beta ?? 0.78;
     this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
   }
+  /** Rotation buttons ease through a quarter of a turn step instead of jumping. */
   rotate(direction: number): void {
-    this.camera.alpha += direction * 0.2;
+    if (this.reducedMotion) this.camera.alpha += direction * 0.3;
+    else this.pendingRotation += direction * 0.3;
   }
   zoom(direction: number): void {
     this.camera.radius = Math.max(
@@ -895,14 +1200,8 @@ export class World {
   applySettings(settings: Settings): void {
     this.guidance = settings.guidance ?? 'full';
     this.showRoute();
-    this.galilee?.settings(settings);
     this.reducedMotion = settings.reducedMotion;
-    this.activity?.settings(settings);
-    this.neighborhood?.settings(settings);
-    this.road?.settings(settings);
-    this.life?.settings(settings);
-    this.connection?.settings(settings);
-    this.everyday?.settings(settings);
+    for (const activity of this.activities()) activity.settings?.(settings);
     if (this.reducedMotion) {
       this.poseTraveler(false, 0);
       this.boats.forEach((boat) => {
@@ -921,7 +1220,11 @@ export class World {
     }
     this.water?.quality(settings.quality === 'low');
     this.water?.tick(this.time, this.reducedMotion);
-    this.scene.shadowsEnabled = settings.quality === 'high';
+    this.stage.applySettings(settings);
+    if (this.cover && this.coverQuality !== settings.quality) {
+      this.coverQuality = settings.quality;
+      this.cover.build(settings.quality);
+    }
   }
   private simulate(dt: number): void {
     if (!this.paused && !document.hidden) {
@@ -933,6 +1236,11 @@ export class World {
       this.connection?.tick(dt);
       this.galilee?.tick(dt);
       this.lakeCompany?.sample('Sit', dt, this.reducedMotion);
+      // Nearby people glance at the traveler; conversations direct their own gaze.
+      const head = new Vector3(this.position.x, this.player.position.y + 1.6, this.position.z);
+      for (const actor of this.actors.values())
+        if (!this.conversationView?.active)
+          actor.lookAt(distance(this.position, actor.root.position) < 4.5 ? head : null);
       for (const [id, actor] of this.actors)
         if ((id !== 'amos' || !this.neighborhood) && !this.everyday?.owns(id))
           actor.tick(dt, this.reducedMotion);
@@ -970,6 +1278,7 @@ export class World {
           this.position,
           this.path,
           dt *
+            this.pace(dt) *
             (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
               ? 0.44
               : 1),
@@ -997,7 +1306,9 @@ export class World {
         this.position.z,
       );
       this.actorPlayer.setStrideSpeed(
-        this.destination === 'amos-waypoint' || this.destination === 'neri-meeting' ? 1.43 : 3.25,
+        (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
+          ? 1.43
+          : 3.25) * (this.path.length ? Math.max(0.45, this.lastPace) : 1),
       );
       this.poseTraveler(moving && !this.paused, dt);
       const target = this.cameraTarget();
@@ -1019,6 +1330,22 @@ export class World {
     const elapsed = this.lastRender ? (now - this.lastRender) / 1000 : 0;
     this.lastRender = now;
     this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
+    if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
+    if (this.cameraReturn) {
+      const r = this.cameraReturn;
+      r.t = Math.min(1, r.t + Math.min(elapsed, 0.1) / 0.7);
+      const e = r.t * r.t * (3 - 2 * r.t);
+      this.camera.alpha = r.from.alpha + (r.to.alpha - r.from.alpha) * e;
+      this.camera.beta = r.from.beta + (r.to.beta - r.from.beta) * e;
+      this.camera.radius = r.from.radius + (r.to.radius - r.from.radius) * e;
+      Vector3.LerpToRef(r.from.target, r.to.target, e, this.camera.target);
+      if (r.t >= 1) this.cameraReturn = undefined;
+    }
+    if (Math.abs(this.pendingRotation) > 0.0005) {
+      const step = this.pendingRotation * (1 - Math.exp(-Math.min(elapsed, 0.1) * 10));
+      this.camera.alpha += step;
+      this.pendingRotation -= step;
+    }
     if (this.active) this.conversationView?.tick(Math.min(elapsed, 0.1), this.reducedMotion);
     // Consume slow frames in collision-safe steps; discard only long suspension gaps.
     let remaining = Math.min(elapsed, 0.25);
@@ -1037,6 +1364,7 @@ export class World {
       });
     }
     this.water?.tick(this.time, this.reducedMotion);
+    this.water?.setRipples(this.hullRipples());
     this.actionFeedback?.tick(
       Math.min(elapsed, 0.1),
       this.active && !this.paused,
@@ -1050,7 +1378,11 @@ export class World {
           node.position.x * Math.cos(this.camera.alpha) +
             node.position.z * Math.sin(this.camera.alpha) >
           1;
-        node.scaling.y = towardCamera ? 0.22 : 1;
+        const target = towardCamera ? 0.22 : 1;
+        node.scaling.y = this.reducedMotion
+          ? target
+          : node.scaling.y +
+            (target - node.scaling.y) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 9));
       }
     }
     // Lower only foliage crossing the camera-to-traveler sightline; retain its trunk and collision.
@@ -1068,7 +1400,12 @@ export class World {
         t < 1 &&
         separation < 1.25 &&
         groundHeight(this.state.region, o) + o.height > rayHeight;
-      o.node.scaling.y = o.scaleY * (blocks ? 0.38 : 1);
+      // Dissolve rather than shrink: silhouette and collision stay put, the traveler shows through.
+      const target = blocks ? 0.3 : 1;
+      o.amount = this.reducedMotion
+        ? target
+        : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
+      for (const plugin of o.fade) plugin.fade = o.amount;
     }
     const companion = this.neighborhood?.position();
     if (companion)
@@ -1076,22 +1413,27 @@ export class World {
         p.id === 'amos' ? { ...p, ...companion } : p,
       );
     const neri = this.road?.position();
-    this.canvas.dataset.roadCompanion = neri
-      ? JSON.stringify({
-          ...neri,
-          region: this.state.region,
-          step: this.state.road.company.step,
-          stage: this.state.road.company.stage,
-        })
-      : '';
+    this.setData(
+      'roadCompanion',
+      neri
+        ? JSON.stringify({
+            ...neri,
+            region: this.state.region,
+            step: this.state.road.company.step,
+            stage: this.state.road.company.stage,
+          })
+        : '',
+    );
     if (neri)
       this.destinations = this.destinations.map((p) => (p.id === 'neri' ? { ...p, ...neri } : p));
+    this.stage.setView(this.camera.target);
+    this.stage.tick(Math.min(elapsed, 0.1), this.active && !this.paused);
     this.scene.render();
     const playback = this.actorPlayer.playback;
-    this.canvas.dataset.boatHeading = String(this.getBoatHeading() ?? '');
-    this.canvas.dataset.actorPose = playback.clip;
-    this.canvas.dataset.actorFrame = playback.frame.toFixed(2);
-    this.canvas.dataset.actionMotion = this.seatedAction ? 'SitDown' : playback.action;
+    this.setData('boatHeading', String(this.getBoatHeading() ?? ''));
+    this.setData('actorPose', playback.clip);
+    this.setData('actorFrame', playback.frame.toFixed(2));
+    this.setData('actionMotion', this.seatedAction ? 'SitDown' : playback.action);
     if (performance.now() - this.lastFrame > 45) {
       this.lastFrame = performance.now();
       const width = this.engine.getRenderWidth(),
@@ -1160,13 +1502,8 @@ export class World {
         this.layout.bounds.max,
       );
     if (!this.layout) this.grid = new WalkGrid([...obstacles, ...passageObstacles(state)], isLand);
-    this.neighborhood?.update(state);
-    this.road?.update(state);
-    this.life?.update(state);
-    this.connection?.update(state);
-    this.galilee?.update(state);
-    this.harbor?.update(state.harbor);
-    this.everyday?.update(state);
+    for (const activity of this.activities())
+      if (activity !== this.activity) activity.update?.(state);
     this.people.get('joel')?.setEnabled(state.road.chapter.stage === 'complete');
     this.mooredBoat?.setEnabled(
       state.road.chapter.stage === 'complete' && state.lake.boat.berth === state.region,
@@ -1194,9 +1531,16 @@ export class World {
   }
   setConversation(id?: string, rect?: ScreenRect, paused = false): void {
     if (!id || this.travelerBoat) {
-      this.conversationView?.clear();
+      if (this.conversationView?.active && !this.reducedMotion) {
+        // Restore the exact bookmark, then glide there from the conversation framing.
+        const from = cameraPose(this.camera);
+        this.conversationView.clear();
+        this.cameraReturn = { from, to: cameraPose(this.camera), t: 0 };
+        applyCameraPose(this.camera, from);
+      } else this.conversationView?.clear();
       return;
     }
+    this.cameraReturn = undefined;
     const actor =
       id === 'neri'
         ? this.road?.conversationActor
@@ -1257,10 +1601,10 @@ export class World {
     this.workView?.dispose();
     this.deactivate();
     this.cleanup.forEach((fn) => fn());
-    this.activity?.dispose();
-    this.neighborhood?.dispose();
-    this.everyday?.dispose();
+    for (const activity of this.activities()) activity.dispose?.();
+    this.cover?.dispose();
     this.library.dispose();
+    this.stage.dispose();
     this.scene.dispose();
   }
 }

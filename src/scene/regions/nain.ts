@@ -1,14 +1,14 @@
 import type { ScreenRect } from '../../game/presence';
-import { applyCameraPose, frameSubject } from '../presentation/framing';
+import { frameSubject } from '../presentation/framing';
+import { ShotDirector } from '../presentation/shots';
+import { backdropTerrain, paintGround, wornPaths } from '../presentation/ground';
+import { StageEnvironment } from '../environment/stage';
+import { GroundCover } from '../environment/cover';
+import { environmentFor } from '../../content/environment';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
-import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
-import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
-import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import type { GameState, Point, Settings } from '../../game/types';
 import { NAIN_ASSETS, type ActorAsset, type ActorClip } from '../../content/assets';
@@ -45,13 +45,17 @@ export class NainRegion implements RegionView {
   private paused = true;
   private reduced = false;
   private low = false;
+  private stage: StageEnvironment;
+  private shots!: ShotDirector;
+  private composed = false;
+  private cover?: GroundCover;
+  private coverQuality?: 'high' | 'low';
   constructor(
     private engine: Engine,
     state: GameState,
   ) {
     this.state = structuredClone(state);
     this.scene = new Scene(engine);
-    this.scene.clearColor = new Color4(0.72, 0.78, 0.73, 1);
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
       'nain-camera',
@@ -62,33 +66,32 @@ export class NainRegion implements RegionView {
       this.scene,
     );
     this.camera.minZ = 0.1;
+    this.shots = new ShotDirector(this.camera);
     this.camera.maxZ = 100;
-    const sky = new HemisphericLight('gate-sky', new Vector3(0, 1, 0), this.scene);
-    sky.intensity = 0.72;
-    sky.groundColor = new Color3(0.4, 0.35, 0.24);
-    const sun = new DirectionalLight('gate-light', new Vector3(0.5, -1.4, 0.8), this.scene);
-    sun.position.set(-12, 22, -12);
-    sun.intensity = 0.68;
-    const shadow = new ShadowGenerator(1024, sun);
-    shadow.usePercentageCloserFiltering = true;
-    shadow.bias = 0.003;
-    shadow.normalBias = 0.04;
-    this.library = new AssetLibrary(this.scene, shadow);
-    const floor = MeshBuilder.CreateGround('nain-earth', { width: 70, height: 70 }, this.scene);
-    const mat = new StandardMaterial('nain-earth-matte', this.scene);
-    mat.diffuseColor = Color3.FromHexString('#c7bd91').toLinearSpace();
-    mat.specularColor = Color3.Black();
-    floor.material = mat;
+    this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('nain-account'), {
+      sky: 120,
+      horizon: { center: { x: 0, z: 6 }, radius: 60, seed: 31 },
+      shadowCenter: new Vector3(0, 0, 2),
+    });
+    this.library = new AssetLibrary(this.scene, this.stage.shadow);
+    const floor = MeshBuilder.CreateGround(
+      'nain-earth',
+      { width: 70, height: 70, subdivisions: 70 },
+      this.scene,
+    );
+    floor.material = this.stage.material('nain-earth-matte', '#ffffff');
+    paintGround(floor, 'dry');
     floor.receiveShadows = true;
     floor.isPickable = false;
-    const road = MeshBuilder.CreateGround('gate-road', { width: 5, height: 36 }, this.scene);
-    const path = new StandardMaterial('gate-road-matte', this.scene);
-    path.diffuseColor = Color3.FromHexString('#dfcea4').toLinearSpace();
-    path.specularColor = Color3.Black();
-    road.material = path;
-    road.position.y = 0.012;
-    road.receiveShadows = true;
-    road.isPickable = false;
+    wornPaths(this.scene, 'gate-road', [
+      [{ x: 0, z: -20 }, { x: 0, z: 6 }, 4.2],
+      [{ x: 0, z: 6 }, { x: 0.8, z: 22 }, 3],
+    ]);
+    backdropTerrain(this.scene, {
+      reserve: { minX: -20, maxX: 20, minZ: -20, maxZ: 22 },
+      size: 200,
+      style: 'dry',
+    });
   }
   async load(progress: (message: string) => void): Promise<void> {
     await this.library.load(NAIN_ASSETS, (n, total) =>
@@ -122,24 +125,32 @@ export class NainRegion implements RegionView {
     make('son', 'young_man');
     for (let i = 0; i < 4; i++) make('bearer-' + i, 'bearer');
     for (let i = 0; i < 10; i++) make('neighbor-' + i, i % 3 ? 'villager' : 'hannah');
-    this.stage();
+    this.cover = new GroundCover(this.library, {
+      radius: 20,
+      seed: 13,
+      height: () => 0,
+      pathDistance: (p) => Math.abs(p.x) - 2.2,
+      allowed: (p) => p.z < 4.8 || Math.abs(p.x) > 13.5,
+    });
+    this.compose();
     await this.scene.whenReadyAsync();
   }
   update(state: GameState): void {
     if (this.state.road.chapter.checkpoint !== state.road.chapter.checkpoint) this.time = 0;
     this.state = structuredClone(state);
-    this.stage();
+    this.compose();
   }
   private face(actor: Actor, target: Point): void {
     actor.face(target);
   }
-  private stage(): void {
+  private compose(): void {
     if (!this.frame) return;
     const id = this.state.road.chapter.checkpoint ?? 'approach',
       c = compositions[id];
     const canvas = this.engine.getRenderingCanvas()!;
-    applyCameraPose(
-      this.camera,
+    // Checkpoints ease between framed shots; a first or restored composition is immediate.
+    this.shots.shot(
+      id,
       frameSubject(
         this.camera,
         canvas.clientWidth,
@@ -150,7 +161,11 @@ export class NainRegion implements RegionView {
         c.beta,
         this.readingBounds,
       ),
+      {
+        instant: !this.composed || this.reduced,
+      },
     );
+    this.composed = true;
     const approaching = id === 'approach',
       restored = id === 'wonder' || (id === 'restored' && (this.reduced || this.time >= 2.5));
     const z = approaching
@@ -232,6 +247,9 @@ export class NainRegion implements RegionView {
       nain: { checkpoint: id, restored, time: this.time },
     };
   }
+  get atmosphere(): string {
+    return this.stage.label;
+  }
   setReadingBounds(rect?: ScreenRect): void {
     this.readingBounds = rect;
   }
@@ -245,9 +263,12 @@ export class NainRegion implements RegionView {
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
     if (!this.paused && !this.reduced) this.time = Math.min(6, this.time + dt);
-    this.stage();
+    this.compose();
     this.engine.getRenderingCanvas()!.dataset.nainTime =
       this.state.road.chapter.checkpoint + ':' + this.time.toFixed(2);
+    this.shots.tick(dt, { running: !this.paused, reduced: this.reduced });
+    this.stage.setView(this.camera.target);
+    this.stage.tick(dt, !this.paused);
     this.scene.render();
   }
   getPosition(): Point {
@@ -256,8 +277,13 @@ export class NainRegion implements RegionView {
   applySettings(s: Settings): void {
     this.reduced = s.reducedMotion;
     this.low = s.quality === 'low';
-    this.scene.shadowsEnabled = !this.low;
-    this.stage();
+    this.stage.applySettings(s);
+    const quality = s.quality === 'low' ? 'low' : 'high';
+    if (this.cover && this.coverQuality !== quality) {
+      this.coverQuality = quality;
+      this.cover.build(quality);
+    }
+    this.compose();
   }
   setPaused(value: boolean): void {
     this.paused = value;
@@ -270,7 +296,9 @@ export class NainRegion implements RegionView {
     this.paused = true;
   }
   dispose(): void {
+    this.cover?.dispose();
     this.library.dispose();
+    this.stage.dispose();
     this.scene.dispose();
   }
 }

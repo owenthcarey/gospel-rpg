@@ -11,7 +11,7 @@
 }
 .harbor-plan text {
   font:
-    12px system-ui,
+    12px var(--font-sans),
     sans-serif;
   fill: #263d34;
 }

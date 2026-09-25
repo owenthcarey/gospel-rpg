@@ -6,9 +6,10 @@ The armature supports independent elbows, hips, knees, head and body poses.
 import bpy
 import math
 import os
+from shading import bake_vertex_shading
 
 CLIPS = {
-    "Idle": 60, "Walk": 24, "Carry": 24, "Gesture": 60,
+    "Idle": 90, "Walk": 24, "Carry": 24, "Gesture": 60,
     "Sit": 60, "Row": 36, "Haul": 40, "Kneel": 60, "Recline": 60, "Rise": 60, "MatCarry": 24, "Use": 60,
     "PickUp": 36, "PutDown": 36, "Repair": 60, "SitDown": 72,
     "SitUp": 60, "FrameCarry": 60, "TouchFrame": 60,
@@ -50,7 +51,7 @@ def export_character(name, parts, scene, output, grid_index):
             bone = "head"
         elif obj.name.startswith("sleeve"):
             bone = "arm_" + side
-        elif obj.name.startswith("forearm"):
+        elif obj.name.startswith(("forearm", "hand")):
             bone = "forearm_" + side
         elif obj.name.startswith("sandals"):
             bone = "leg_" + side
@@ -58,7 +59,14 @@ def export_character(name, parts, scene, output, grid_index):
             bone = "leg_" + side
         else:
             bone = "body"
-        if obj.name.startswith(("robe", "draped_wrap")):
+        if obj.name.startswith(("head_cover_veil", "head_scarf_tail")):
+            # Veils follow the head above the collar and the shoulders below it.
+            for group_name in ("head", "body"):
+                indices = [v.index for v in obj.data.vertices
+                           if ((obj.matrix_world @ v.co).z >= 1.42) == (group_name == "head")]
+                if indices:
+                    obj.vertex_groups.new(name=group_name).add(indices, 1, "REPLACE")
+        elif obj.name.startswith(("robe", "draped_wrap", "apron", "mantle_back")):
             # The hem folds from the waist, keeping the upper tunic attached to the torso.
             for group_name in ("body", "robe"):
                 indices = [v.index for v in obj.data.vertices
@@ -96,6 +104,8 @@ def export_character(name, parts, scene, output, grid_index):
         vertex.layer_name = "Color"
         palette.node_tree.links.new(vertex.outputs["Color"], shader.inputs["Base Color"])
     skin.data.materials.append(palette)
+    # RFC-011: occlusion under the chin, arms and hem, baked in the shared rest pose.
+    bake_vertex_shading(skin, name, reach=.3, strength=.5, jitter=.02)
     modifier = skin.modifiers.new("Shared character skeleton", "ARMATURE")
     modifier.object = rig
     # Carry point is a deliberately stable root-space grip for two-handed baskets.
@@ -115,37 +125,82 @@ def export_character(name, parts, scene, output, grid_index):
         p = rig.pose.bones
         wave = math.sin(phase * math.tau)
         if clip in ("Idle", "Gesture"):
-            p["head"].rotation_euler.y = math.sin(phase*math.tau)*.025
-            p["body"].rotation_euler.x = math.sin(phase*math.tau)*.012
-        if clip in ("Walk", "Carry", "MatCarry"):
+            # Breathing, a slow weight shift and an occasional glance.
+            breath = math.sin(phase*math.tau)
+            p["body"].rotation_euler.x = breath*.014
+            p["root"].rotation_euler.z = math.sin(phase*math.tau + 1.1)*.012
+            p["body"].rotation_euler.z = -math.sin(phase*math.tau + 1.1)*.016
+            p["head"].rotation_euler.y = math.sin(phase*math.tau*2)*.035 if clip == "Idle" else breath*.025
+            p["head"].rotation_euler.x = -breath*.012
             for side, sign in [("left", 1), ("right", -1)]:
-                p["thigh_" + side].rotation_euler.x = sign*wave*.30
-                p["leg_" + side].rotation_euler.x = max(0, -sign*wave)*.16
-                p["arm_" + side].rotation_euler.x = -sign*wave*.28
+                p["arm_" + side].rotation_euler.y = sign*.05
+                p["arm_" + side].rotation_euler.x = -.035 - breath*.012
+                p["forearm_" + side].rotation_euler.x = -.12
+        if clip in ("Walk", "Carry", "MatCarry"):
+            # Heel strike, passing and push-off: hips twist and bob, shoulders counter.
+            stride = .36 if clip == "Walk" else .27
+            # Lowest at heel strike (legs spread), highest at passing (leg vertical).
+            p["root"].location.y = -.04*(1 - abs(wave))
+            p["root"].rotation_euler.y = wave*.07
+            p["body"].rotation_euler.y = -wave*.11
+            p["body"].rotation_euler.x = -.035
+            p["head"].rotation_euler.y = wave*.05
+            p["root"].rotation_euler.z = math.sin(phase*math.tau*2)*.015
+            for side, sign in [("left", 1), ("right", -1)]:
+                swing = sign*wave
+                p["thigh_" + side].rotation_euler.x = swing*stride
+                lift = math.sin(phase*math.tau + (0 if sign > 0 else math.pi) - .9)
+                p["leg_" + side].rotation_euler.x = max(0, lift)*.55
+                p["arm_" + side].rotation_euler.x = -swing*.34
+                p["arm_" + side].rotation_euler.y = sign*.04
+                p["forearm_" + side].rotation_euler.x = -.18 - max(0, -swing)*.22
         if clip in ("Carry", "MatCarry", "Use"):
             for side in ("left", "right"):
                 p["arm_" + side].rotation_euler.x = -.55
                 p["forearm_" + side].rotation_euler.x = -.72
         if clip == "Gesture":
-            p["arm_right"].rotation_euler.x = -.6 - .12*wave
-            p["forearm_right"].rotation_euler.x = -.65
+            # An open, teaching hand that rises, pauses and turns outward.
+            lift = .5 - .5*math.cos(phase*math.tau)
+            p["arm_right"].rotation_euler.x = -.55 - .22*lift
+            p["arm_right"].rotation_euler.z = -.12*lift
+            p["forearm_right"].rotation_euler.x = -.7 - .1*lift
+            p["forearm_right"].rotation_euler.y = .35*lift
+            p["arm_left"].rotation_euler.x = -.18*lift
+            p["body"].rotation_euler.y = .05*lift
             p["head"].rotation_euler.z = .06
+            p["head"].rotation_euler.x = -.03*lift
         if clip == "Greet":
+            # A small bow with the right hand to the chest, then an open palm.
             reach = math.sin(math.pi * phase) ** 2
+            bow = math.sin(math.pi * min(1, phase*1.6)) ** 2
+            p["body"].rotation_euler.x = -.14 * bow
+            p["head"].rotation_euler.x = -.12 * bow
             p["arm_right"].rotation_euler.x = -.82 * reach
             p["arm_right"].rotation_euler.z = -.18 * reach
             p["forearm_right"].rotation_euler.x = -.75 * reach
-            p["head"].rotation_euler.x = -.08 * reach
+            p["forearm_right"].rotation_euler.y = .3 * reach
         if clip == "Listen":
-            p["head"].rotation_euler.x = -.04 + .035 * wave
-            p["head"].rotation_euler.z = .025 * math.sin(phase * math.tau)
-            p["body"].rotation_euler.x = -.015 + .008 * wave
+            # Attentive: a slight lean, two gentle nods and hands clasped low.
+            nod = max(0, math.sin(phase * math.tau * 2)) ** 2
+            p["head"].rotation_euler.x = -.05 - .06 * nod
+            p["head"].rotation_euler.z = .04 * math.sin(phase * math.tau)
+            p["body"].rotation_euler.x = -.03 + .008 * wave
+            p["root"].rotation_euler.z = .01 * math.sin(phase * math.tau)
+            for side in ("left", "right"):
+                p["arm_" + side].rotation_euler.x = -.22
+                p["forearm_" + side].rotation_euler.x = -.55
         if clip == "Respond":
+            # Both hands open outward as the speaker explains, then settle.
             reach = math.sin(math.pi * phase) ** 2
-            p["arm_left"].rotation_euler.x = -.48 * reach
-            p["forearm_left"].rotation_euler.x = -.56 * reach
-            p["arm_left"].rotation_euler.z = .18 * reach
+            beat = math.sin(phase * math.tau * 2) * reach
+            p["arm_left"].rotation_euler.x = -.5 * reach
+            p["forearm_left"].rotation_euler.x = -.6 * reach
+            p["arm_left"].rotation_euler.z = .2 * reach
+            p["arm_right"].rotation_euler.x = -.36 * reach
+            p["forearm_right"].rotation_euler.x = -.5 * reach - .08 * beat
+            p["arm_right"].rotation_euler.z = -.14 * reach
             p["head"].rotation_euler.z = -.07 * reach
+            p["head"].rotation_euler.x = -.04 * beat
             p["body"].rotation_euler.z = -.025 * reach
         if clip in ("Sit", "Row"):
             for side in ("left", "right"):

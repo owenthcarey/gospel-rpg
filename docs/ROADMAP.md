@@ -1,6 +1,8 @@
 # Completed milestone and next steps
 
-RFC-010 delivers **The Way, Brought to Life**: refined people and portraits, nearby conversation performances, responsive scene framing, Capernaum terrain and architecture, physical-action accents, coherent water and all ten Chapter I compositions. Four chapters, existing practical solutions and save v11 retain their progression. See [RFC-010](rfcs/010-the-way-brought-to-life.md) and the [presentation review guide](verification/rfc010/README.md).
+RFC-011 delivers **A World in Light**: one shared stage environment with per-place light, sky, horizon, fog and grading across every region and Gospel account; lit water; wind, particles, birds and ground cover; a Blender MCP rebuild of all 98 models with baked shading, individually built people and new vegetation; smoothed motion, glances and dissolving occluders; eased Gospel shots; a live title view, cold open, veiled transitions and title cards; and a crafted game interface. Four chapters, eleven optional stories and save v11 are unchanged. See [RFC-011](rfcs/011-a-world-in-light.md) and the [review guide](verification/rfc011/README.md).
+
+RFC-010 delivered **The Way, Brought to Life**: refined people and portraits, nearby conversation performances, responsive scene framing, Capernaum terrain and architecture, physical-action accents, coherent water and all ten Chapter I compositions. See [RFC-010](rfcs/010-the-way-brought-to-life.md) and the [presentation review guide](verification/rfc010/README.md).
 
 ## Implemented: Into the Deep
 
@@ -69,3 +71,14 @@ RFC-008 adds a useful journal overview, compact expandable objectives, work cont
 ## Delivered: Capernaum, Fully Realized
 
 [RFC-009](rfcs/009-capernaum-fully-realized.md) adds the optional early landing adventure, nine original craft props, state-aware village activity and v11 continuity. Either crossing remains available with recoverable supplies and a remembered reflection.
+
+## Delivered: A World in Light
+
+[RFC-011](rfcs/011-a-world-in-light.md) turns the existing journey into a finished-looking game without adding content: environment profiles and a shared stage, lit water, atmosphere and ground cover, a Blender MCP asset pass (baked shading, people, vegetation, lossless channel pruning), runtime motion and camera polish, a shot director for all four Gospel accounts, and a new first impression and interface.
+
+Next, with the presentation layer in place:
+
+1. **Human playtest** of the complete journey with the new look ([playtest guide](PLAYTEST.md#a-world-in-light)): first-run cold open and arrival, readability of labels and title cards, comfort of camera eases and glances, and whether the atmosphere supports rather than distracts from reading. Editorial review of the new original narration.
+2. **Physical devices** — mid-range phones at Low and laptops at High — to confirm the 30/60 FPS targets now that post-processing, particles and ground cover exist, and Safari/iOS WebGL behaviour.
+3. **Bespoke re-staging** of Through the Roof, At the gate and Peace, be still using the shot director and fuller blocking, which this milestone deliberately left out.
+4. A **new chapter or region**, built on the finished pipeline.

@@ -6,6 +6,8 @@ import type { AnimationGroup } from '@babylonjs/core/Animations/animationGroup';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
+import '@babylonjs/loaders/glTF/2.0/Extensions/KHR_mesh_quantization';
+import { convertContainer } from './environment/matte';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 
@@ -19,7 +21,7 @@ export class AssetLibrary {
   private containers = new Map<AssetId, AssetContainer>();
   private disposed = false;
   constructor(
-    private scene: Scene,
+    readonly scene: Scene,
     private shadow?: ShadowGenerator,
   ) {}
   async load(
@@ -41,6 +43,7 @@ export class AssetLibrary {
             );
             if (this.disposed) container.dispose();
             else {
+              convertContainer(container, this.scene, id);
               for (const mesh of container.meshes) {
                 mesh.receiveShadows = true;
               }

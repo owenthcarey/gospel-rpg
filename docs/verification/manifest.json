@@ -42,6 +42,11 @@
       "title": "The Way, Brought to Life",
       "maxFiles": 6,
       "maxBytes": 1688200
+    },
+    "rfc011": {
+      "title": "A World in Light",
+      "maxFiles": 6,
+      "maxBytes": 524288
     }
   },
   "files": [
@@ -149,13 +154,6 @@
       "purpose": "Pouch controls at phone width.",
       "bytes": 642866,
       "sha256": "38b3850199437ec853f8a0cfeb2e31e31a930728ff358dc076ca547b181b28bc"
-    },
-    {
-      "path": "docs/verification/living-galilee-channel.png",
-      "collection": "living-galilee",
-      "purpose": "Original channel geometry before the later refinements.",
-      "bytes": 1570927,
-      "sha256": "5c63e242f84b5ce2199e403671fccd4e9802a21e1d5c4c8e25cde32423e27153"
     },
     {
       "path": "docs/verification/living-galilee-shelter-phone.png",
@@ -298,6 +296,90 @@
       "sha256": "508edfe8cd3f87e247c15d1fc13e565cd192b062ac7502033c97446ad6248075"
     },
     {
+      "path": "docs/verification/rfc010/bakehouse-desktop.png",
+      "collection": "rfc010",
+      "purpose": "Inhabited bakehouse, refined people, wall courses and floor textiles.",
+      "bytes": 342087,
+      "sha256": "994218a04c3095230e522217309c99bce2f0325d8b3760a2cbefafd0782daa20"
+    },
+    {
+      "path": "docs/verification/rfc010/conversation-phone.png",
+      "collection": "rfc010",
+      "purpose": "Large reading size, reduced motion and a recognized nearby speaker at phone width.",
+      "bytes": 196552,
+      "sha256": "c6eb0f5871db0eec914de3dce455b7fb96514c5c3e495209e81cc67389b253ac"
+    },
+    {
+      "path": "docs/verification/rfc010/kit.webp",
+      "collection": "rfc010",
+      "purpose": "Architecture and principal people from independent final-export imports in Blender.",
+      "bytes": 35108,
+      "sha256": "e23825ddd4f38376bd6cb632647845f9ea074ac484d9cc50650c2ceb1c19c56e"
+    },
+    {
+      "path": "docs/verification/rfc010/lake-partners-desktop.png",
+      "collection": "rfc010",
+      "purpose": "Both loaded boats, working net and panel-aware Chapter I composition.",
+      "bytes": 335630,
+      "sha256": "2d4cf9fb2de45423fbfdc72e758cfd10682f15d2f0ea7d7272d7a9a9bbff776c"
+    },
+    {
+      "path": "docs/verification/rfc010/people.webp",
+      "collection": "rfc010",
+      "purpose": "Distinct faces, garments and silhouettes from the shipped actors.",
+      "bytes": 30900,
+      "sha256": "22accf10e0a3ea2913eee86d39bc1314e26f9ce5e55a88aef534d24fa977c85c"
+    },
+    {
+      "path": "docs/verification/rfc010/shore-desktop.png",
+      "collection": "rfc010",
+      "purpose": "Final High Capernaum shore at the RFC-009 comparison position.",
+      "bytes": 716372,
+      "sha256": "b0de47cedd3beade885ccf669583365112678bd9b9567145e9d9ef9e166406aa"
+    },
+    {
+      "path": "docs/verification/rfc011/farm-after.webp",
+      "collection": "rfc011",
+      "purpose": "The roadside farm after RFC-011: painted ground, olive groves, ground cover and afternoon light.",
+      "bytes": 37658,
+      "sha256": "13d16d54d5a8e686ca6ed20c9009464b0a92134385ea3aa5b91785a815f9f2d7"
+    },
+    {
+      "path": "docs/verification/rfc011/people-blender.webp",
+      "collection": "rfc011",
+      "purpose": "Blender MCP review of eight rebuilt people from their exported GLBs.",
+      "bytes": 23690,
+      "sha256": "ef302606a6f7200ca80c796c9e187d00258780d0687f88bd58bd50c22f293568"
+    },
+    {
+      "path": "docs/verification/rfc011/road-before.webp",
+      "collection": "rfc011",
+      "purpose": "The Galilean road before RFC-011: flat field, pale sky, no ground cover.",
+      "bytes": 14676,
+      "sha256": "74d0775ca6818f328388b05ae0a750f59ea930239afb533398a59fdd48305537"
+    },
+    {
+      "path": "docs/verification/rfc011/shore-after.webp",
+      "collection": "rfc011",
+      "purpose": "The same shore after RFC-011: graded light, sky, water, people, vegetation, ground cover and the new HUD.",
+      "bytes": 59632,
+      "sha256": "6eab07c2864ea518ad6368c39eb0081dac8a69127930a7216c1a816545b89afc"
+    },
+    {
+      "path": "docs/verification/rfc011/shore-before.webp",
+      "collection": "rfc011",
+      "purpose": "Capernaum shore at High before RFC-011, same camera and save.",
+      "bytes": 43466,
+      "sha256": "09643abd5cd1da34614d2f00c2b8bd12a9a1360da539856840df11d4d49b81d9"
+    },
+    {
+      "path": "docs/verification/rfc011/title.webp",
+      "collection": "rfc011",
+      "purpose": "The model-free title view: dawn over the lake behind the welcome.",
+      "bytes": 29884,
+      "sha256": "74a6852af29155e5dd8223dc41a83ea801b1be4bd107e5850ffd8c83d60a134d"
+    },
+    {
       "path": "docs/verification/road-to-nain-command-desktop.png",
       "collection": "road-to-nain",
       "purpose": "Gospel command and scene on desktop.",
@@ -338,48 +420,6 @@
       "purpose": "Restored mother and son together.",
       "bytes": 314593,
       "sha256": "5ac25488574a673769f8b36a8f33bffcbdcd7e9bc6a946522137a3f2e04c6e7b"
-    },
-    {
-      "path": "docs/verification/rfc010/kit.webp",
-      "collection": "rfc010",
-      "purpose": "Architecture and principal people from independent final-export imports in Blender.",
-      "bytes": 35108,
-      "sha256": "e23825ddd4f38376bd6cb632647845f9ea074ac484d9cc50650c2ceb1c19c56e"
-    },
-    {
-      "path": "docs/verification/rfc010/people.webp",
-      "collection": "rfc010",
-      "purpose": "Distinct faces, garments and silhouettes from the shipped actors.",
-      "bytes": 30900,
-      "sha256": "22accf10e0a3ea2913eee86d39bc1314e26f9ce5e55a88aef534d24fa977c85c"
-    },
-    {
-      "path": "docs/verification/rfc010/shore-desktop.png",
-      "collection": "rfc010",
-      "purpose": "Final High Capernaum shore at the RFC-009 comparison position.",
-      "bytes": 716372,
-      "sha256": "b0de47cedd3beade885ccf669583365112678bd9b9567145e9d9ef9e166406aa"
-    },
-    {
-      "path": "docs/verification/rfc010/lake-partners-desktop.png",
-      "collection": "rfc010",
-      "purpose": "Both loaded boats, working net and panel-aware Chapter I composition.",
-      "bytes": 335630,
-      "sha256": "2d4cf9fb2de45423fbfdc72e758cfd10682f15d2f0ea7d7272d7a9a9bbff776c"
-    },
-    {
-      "path": "docs/verification/rfc010/bakehouse-desktop.png",
-      "collection": "rfc010",
-      "purpose": "Inhabited bakehouse, refined people, wall courses and floor textiles.",
-      "bytes": 342087,
-      "sha256": "994218a04c3095230e522217309c99bce2f0325d8b3760a2cbefafd0782daa20"
-    },
-    {
-      "path": "docs/verification/rfc010/conversation-phone.png",
-      "collection": "rfc010",
-      "purpose": "Large reading size, reduced motion and a recognized nearby speaker at phone width.",
-      "bytes": 196552,
-      "sha256": "c6eb0f5871db0eec914de3dce455b7fb96514c5c3e495209e81cc67389b253ac"
     }
   ]
 }
