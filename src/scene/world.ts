@@ -31,7 +31,7 @@ import { ArcRotateCameraPointersInput } from '@babylonjs/core/Cameras/Inputs/arc
 import { Vector3, Matrix } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
-import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { StageEnvironment } from './environment/stage';
 import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte';
 import { GroundCover, type CoverOptions } from './environment/cover';
@@ -728,7 +728,13 @@ export class World {
       const fade = anchor.getChildMeshes().flatMap((mesh) => {
         const source = mesh.material as StandardMaterial | null;
         if (!source) return [];
-        const material = source.clone(source.name + ':fade:' + this.occluders.length);
+        const material = new StandardMaterial(
+          source.name + ':fade:' + this.occluders.length,
+          this.scene,
+        );
+        material.diffuseColor = source.diffuseColor.clone();
+        material.specularColor = Color3.Black();
+        material.backFaceCulling = source.backFaceCulling;
         const plugin = stylePlugin(material);
         plugin.configure(WIND_SHAPES[p.asset], true);
         mesh.material = material;

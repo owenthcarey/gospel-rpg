@@ -44,6 +44,8 @@ export class StylePlugin extends MaterialPluginBase {
   }
   constructor(material: Material) {
     super(material, 'WayStyle', 180, { WAY_WIND: false, WAY_FADE: false }, true, true);
+    // Scene-owned and rebuilt from recipes; never serialized or cloned with its material.
+    this.doNotSerialize = true;
   }
   /** Changing either feature recompiles only this material's effect. */
   configure(wind: WindShape | undefined, fading: boolean): void {
