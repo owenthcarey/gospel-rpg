@@ -2,6 +2,44 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## A World in Light · 2026-09-25
+
+[RFC-011](rfcs/011-a-world-in-light.md) was drafted before implementation. This milestone gives every region, Gospel account and the title a shared stage environment: per-place light, sky, horizon, fog and grading, fixed-frustum shadows with contact shadows, lit water, wind, particles, birds, ground cover, painted ground and backdrop hills. Blender MCP rebuilt the catalog with baked shading, fifteen individually built people with fuller clips, new vegetation and a refined gate and boat. Motion gains smoothed routes, glances, dissolving occluders and eased camera returns; all four Gospel presenters use a shot director. First impressions gain a live title view, cold open, veiled arrival, title cards, bundled typography and a restyled interface. Four chapters, eleven optional stories, the authored scripture and save v11 are unchanged. The [review guide](verification/rfc011/README.md) links selected images and records.
+
+The final `npm run check` passes evidence validation, types, ESLint, **607 unit checks across 34 files** and the production build; formatting passes. New checks cover the shot director (first/restored compositions, Continue retargeting, pause, reduced motion, bounded moves, resizing), every environment profile and the storm blend endpoints, deterministic ground cover that avoids paths and blocked ground within quality caps, opening content and provenance, smoothed routes that stay on walkable cells, bounded and released glances on the imported traveler, typed interface commands and notices, and clip motion measured on every exported actor (a 40 mm walk bob, 15–17 mm idle breath and feet planted within 2.3 mm). Every existing imported-geometry contact passes on the rebuilt exports, including rowing hands, seats, feet, rails, carried props and the storm cushion.
+
+On the final commit `1e1ae6d`, the complete Chromium desktop/phone matrix passes **159 cases, with eleven intentional skips and zero failures, in 57.5 minutes**, using one worker and no retries. It includes the uninterrupted four-chapter journey, all replay scenes, the rendering-budget samples, both reviewed image baselines with their negative controls, and the new first-run cases: the cold open, veil, title card and Continue path, and replay from Settings with reduced motion and Escape. Firefox/WebKit passed all four compatibility checks in **40.4 seconds**; that smoke is narrower than the Chromium matrix.
+
+Full runs found four real defects, each fixed before acceptance rather than retried away:
+
+- **Short-landscape overflow.** An early full run (154 passed, eleven skipped, one failed; 57.7 minutes) showed the work panel's slide-in transform widening an 844 px phone page to 850 px. The overlay now clips it.
+- **Focus restore race.** A later run at `c1bbdc5` (157 passed, eleven skipped, two failed; 57.3 minutes) had an intermittent harbor keyboard failure, reproduced in one of six repeats. Instrumented events showed that the work panel's one-frame-late focus restore took focus back from a control focused in the meantime, so Enter repeated the hint instead of turning the plank. Restore now runs only when a re-render actually dropped focus, in the work panel and Galilee surfaces. Twenty repeats then passed, and the case now asserts that focus is kept.
+- **Stale image baseline.** In the same run, the Nain image baseline still showed the flat-lintel gate and denser Low cover from before two later commits. It was regenerated, reviewed, and rerun without updates; the missing-gate negative control still fails.
+- **One-frame shadow mismatch.** That run's trace also showed ANGLE sampler warnings. A WebGL hook traced them to one frame after importing a save at Low: 29 draws skipped because shaders compiled for High shadows had no shadow map bound. Regions now compile with the selected quality's shadow state, and every quality and path measured zero failing draws.
+
+A run at `b39134b` passed 159 cases with eleven skips and no failures (57.6 minutes), before the shadow fix above.
+
+Earlier, the capture tool caught a material clone on an unregistered style plugin that stopped every region from loading; fade materials are now built directly. Contact tests found a 0.041 m storm-cushion gap in a rebuilt robe (limit 0.025); the robe was reshaped rather than the limit loosened. Expectations changed only where the delivery intended it: 288 px portraits, ground cover in outdoor inventories, and an explicit 15-second timeout for one lake composition that loads every actor. Both static image baselines were reviewed for the new look and pass without updates, with their missing-geometry negative controls still failing.
+
+Blender MCP ran every recipe in Blender 5.2.1 LTS through the Blender Lab MCP add-on, restoring the open user scene after each run; `npm run assets:build -- --rfc011` reproduces the same order headlessly. It added four ground-cover models and re-exported the other **94**. The [asset record](verification/rfc011/asset-delivery.json) lists **98 GLBs totaling 5,546,300 bytes**, 1,160,512 bytes fewer than RFC-010 and under the **7.5 MiB** cap. Fifteen portraits total **102,168 bytes**, under **384 KiB**. The largest regional growth over the RFC-010 inventories is **224,088 bytes** (residential lanes), under **768 KiB**; the gathering house, bakehouse and reed landing download less than before. Model-request concurrency remains four. Nine WOFF2 font files total **196,448 bytes**, under **400 KiB**, and load from the build's own origin.
+
+The production application is **583,150 bytes** (179,279 gzip), CSS **103,930 bytes**, and the Babylon bundle **3,323,030 bytes** (753,756 gzip), 332,041 bytes above RFC-010's record for the particle, shader-material and rendering-pipeline modules. Vite's existing large-chunk advisory remains.
+
+| Reference composition (1440×900)          | Before High / Low | After High / Low  |
+| ----------------------------------------- | ----------------- | ----------------- |
+| Capernaum shore                           | 138 / 75          | 152 / 83          |
+| Residential lanes                         | 118 / 52          | 133 / 60          |
+| Gathering house                           | 55 / 30           | 64 / 33           |
+| Bakehouse                                 | 79 / 42           | 89 / 46           |
+| Galilean road / roadside farm             | 61 / 25, 63 / 33  | 75 / 33, 79 / 43  |
+| Nain gate                                 | 44 / 24           | 59 / 33           |
+| Lake, reed landing, cove                  | 45 / 25 and lower | 54 / 28 and lower |
+| Gospel accounts (lake, roof, Nain, storm) | 24–67 / 13–30     | 35–83 / 18–40     |
+
+All 30 same-camera samples report one settled scene inside the unchanged **300 High / 130 Low** ceilings; the [rendering record](verification/rfc011/rendering.json) lists each one. Post-processing runs only at High, and Low adds no full-screen pass. On SwiftShader at 1280×720, synchronous Capernaum renders measured **104 → 110 ms** at High and **51 → 60 ms** at Low against the baseline build. Attribution found the backdrop grid shaded beneath each region's own ground; skipping those hidden quads recovered about 6 ms at Low with no visible change in any capture. These CPU-rasterizer figures are a fill-rate proxy, not device measurements; headless desktop captures reported 60 FPS.
+
+Every exploration region and Gospel account was reviewed at High and Low from the same cameras before and after, together with the first-run flow (title, cold-open cards, veil, arrival, settled view) and phone layouts. Human pacing and discovery, editorial review of the original narration, screen-reader and touch usability, and sustained physical-device performance remain outstanding in the [focused playtest](PLAYTEST.md#a-world-in-light). No deployment or remote CI run is claimed.
+
 ## The Way, Brought to Life · 2026-09-22
 
 [RFC-010](rfcs/010-the-way-brought-to-life.md) was drafted before implementation. This milestone refines Capernaum, shared characters, conversations, practical-action feedback, water and all ten **Into the Deep** scenes. Four chapters, 31 replay scenes, eleven optional stories, save v11 and the authored scripture remain intact. The [delivery guide](verification/rfc010/README.md) provides review entry points and six selected images.

@@ -1,6 +1,6 @@
 # A World in Light — review guide
 
-This guide accompanies [RFC-011](../../rfcs/011-a-world-in-light.md). It pairs same-camera captures from before and after the milestone, the new first impression and an independent Blender review of the rebuilt people. Measurements and test outcomes are recorded in the [verification record](../../VERIFICATION.md#a-world-in-light-rfc-011).
+This guide accompanies [RFC-011](../../rfcs/011-a-world-in-light.md). It pairs same-camera captures from before and after the milestone, the new first impression and an independent Blender review of the rebuilt people. Measurements and test outcomes are recorded in the [verification record](../../VERIFICATION.md#a-world-in-light--2026-09-25).
 
 ## Before and after
 
@@ -24,6 +24,11 @@ The welcome surface renders over a procedural dawn over the lake (no model reque
 ![Eight rebuilt people, imported from their GLBs](people-blender.webp)
 
 Rendered in an isolated Blender MCP workshop from the exported files: the traveler, Simon, Miriam, the elder villager, Jesus, John, Hannah and Ruth. Every actor keeps the twelve-bone rig and verified contacts; the imported-geometry tests measure rowing hands, seats, feet, rails, the reclining cushion and carried props on these exact files.
+
+## Records
+
+- [Asset delivery](asset-delivery.json): every model and portrait with bytes and SHA-256, and each exploration region's download against the RFC-010 baseline inventory.
+- [Rendering](rendering.json): before/after draw calls for all 30 reference compositions, and the software-renderer timing used to check the Low path.
 
 ## Reviewing locally
 

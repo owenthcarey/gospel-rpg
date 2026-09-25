@@ -1,6 +1,6 @@
 # RFC-011: A World in Light
 
-Status: accepted for implementation. Drafted before code or asset changes; delivery notes will be appended after verification.
+Status: implemented and verified, 2026-09-25. Drafted before code or asset changes. See the [delivery notes](#delivery-notes--2026-09-25) and the [verification record](../VERIFICATION.md#a-world-in-light--2026-09-25).
 
 The owner asked for the recommended studio-quality presentation milestone: rendering and atmosphere, character and motion quality, first impressions and interface, and the reusable core of cinematic staging. This RFC authorizes that local work, starting here and continuing through implementation and verification. The planning allowance is approximately **25–40K changed authored lines**, including tests, tools and asset recipes. Line count is not an acceptance quota. Source workshops, exported models and portraits are additional deliverables.
 
@@ -332,3 +332,11 @@ This milestone excludes:
 - full bespoke re-staging of Chapters II–IV beyond the shot system and legibility.
 
 Downloaded or third-party models, textures and sound remain excluded. The only new third-party runtime assets are open-license fonts, which must be recorded with their licenses.
+
+## Delivery notes · 2026-09-25
+
+All four strands are implemented. A shared stage environment with per-place profiles drives every region, Gospel account and the title: sky and horizon, fog, tone mapping and grading, fixed-frustum shadows with contact shadows, lit water, wind, particles, birds, ground cover, painted ground and backdrop hills. Blender MCP rebuilt all 98 models through reproducible recipes, including fifteen individually built people with fuller clips, new vegetation and ground cover, and a refined gate and boat; an independent Blender import reviewed the rebuilt people from their exported files. Smoothed routes, glances, dissolving occluders, eased returns and a shot director in all four presenters carry the motion work. The title view, cold open, veil, title cards, bundled fonts and restyled interface form the new first impression. Save v11, all four chapters and the authored accounts are unchanged.
+
+The catalog totals **5,546,300 bytes**, down 1,160,512 bytes; portraits total **102,168 bytes**; the largest regional growth is **224,088 bytes**; fonts add **196,448 bytes** of WOFF2. The maximum reference draw calls are **152 High / 83 Low**. No draw-call, download, concurrency or evidence limit was raised. A software-renderer check led to one late optimization: backdrop geometry hidden under each region's ground is no longer generated.
+
+Acceptance passed **607 unit checks**, the complete Chromium matrix on the final commit (**159 passed, eleven intentional skips, zero failures; 57.5 minutes**) and four Firefox/WebKit compatibility checks. Types, lint, build, formatting and evidence validation pass. Full runs exposed four defects, which were fixed and then rerun: a short-landscape phone overflow, a work-panel focus restore that could take focus back, a stale Nain image baseline, and one frame of shadow-shader mismatch when loading at Low. The [review guide](../verification/rfc011/README.md) links the selected images and records. Human pacing and editorial review of the new narration, assistive-technology and touch review, and sustained physical-device performance remain outstanding; automation does not establish them.
