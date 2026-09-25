@@ -2,6 +2,7 @@ import type { ScreenRect } from '../../game/presence';
 import { applyCameraPose, frameSubject } from '../presentation/framing';
 import { backdropTerrain, paintGround, wornPaths } from '../presentation/ground';
 import { StageEnvironment } from '../environment/stage';
+import { GroundCover } from '../environment/cover';
 import { environmentFor } from '../../content/environment';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
@@ -44,6 +45,8 @@ export class NainRegion implements RegionView {
   private reduced = false;
   private low = false;
   private stage: StageEnvironment;
+  private cover?: GroundCover;
+  private coverQuality?: 'high' | 'low';
   constructor(
     private engine: Engine,
     state: GameState,
@@ -118,6 +121,13 @@ export class NainRegion implements RegionView {
     make('son', 'young_man');
     for (let i = 0; i < 4; i++) make('bearer-' + i, 'bearer');
     for (let i = 0; i < 10; i++) make('neighbor-' + i, i % 3 ? 'villager' : 'hannah');
+    this.cover = new GroundCover(this.library, {
+      radius: 20,
+      seed: 13,
+      height: () => 0,
+      pathDistance: (p) => Math.abs(p.x) - 2.2,
+      allowed: (p) => p.z < 4.8 || Math.abs(p.x) > 13.5,
+    });
     this.compose();
     await this.scene.whenReadyAsync();
   }
@@ -255,6 +265,11 @@ export class NainRegion implements RegionView {
     this.reduced = s.reducedMotion;
     this.low = s.quality === 'low';
     this.stage.applySettings(s);
+    const quality = s.quality === 'low' ? 'low' : 'high';
+    if (this.cover && this.coverQuality !== quality) {
+      this.coverQuality = quality;
+      this.cover.build(quality);
+    }
     this.compose();
   }
   setPaused(value: boolean): void {
@@ -268,6 +283,7 @@ export class NainRegion implements RegionView {
     this.paused = true;
   }
   dispose(): void {
+    this.cover?.dispose();
     this.library.dispose();
     this.stage.dispose();
     this.scene.dispose();

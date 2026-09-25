@@ -16,7 +16,7 @@ import { obstacles, isLand } from '../../src/content/region';
 import { campaignLayout, layoutObstacles } from '../../src/content/campaign/layouts';
 import { WalkGrid } from '../../src/game/pathfinding';
 import { approachPath } from '../../src/game/navigation';
-import { posedVertices, bakedGeometry } from '../helpers/posed-geometry';
+import { posedVertices, bakedGeometry, nearestDistance } from '../helpers/posed-geometry';
 
 vi.mock('@babylonjs/core/Loading/sceneLoader', async (original) => {
   const actual = await original<typeof import('@babylonjs/core/Loading/sceneLoader')>();
@@ -113,9 +113,7 @@ describe('connected-journey exported geometry', () => {
     const held = posedVertices(scene.getTransformNodeByName('held-sewing-pouch')!);
     for (const side of ['left', 'right']) {
       const hand = posedVertices(player.root, 'forearm_' + side);
-      expect(
-        Math.min(...hand.flatMap((p) => held.map((q) => Vector3.Distance(p, q)))),
-      ).toBeLessThan(0.22);
+      expect(nearestDistance(hand, held)).toBeLessThan(0.22);
     }
     const seated = scene.getTransformNodeByName('life-resting-neighbor')!;
     const body = seated

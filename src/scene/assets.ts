@@ -21,7 +21,7 @@ export class AssetLibrary {
   private containers = new Map<AssetId, AssetContainer>();
   private disposed = false;
   constructor(
-    private scene: Scene,
+    readonly scene: Scene,
     private shadow?: ShadowGenerator,
   ) {}
   async load(

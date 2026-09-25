@@ -1,3 +1,4 @@
+import { GROUND_COVER } from '../../src/content/assets';
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { newGame } from '../../src/game/types';
@@ -194,8 +195,12 @@ describe('ordinary village activity and budgets', () => {
       readFileSync('docs/verification/rfc009/asset-baseline.json', 'utf8'),
     ) as Record<ExplorationRegion, { assets: string[] }>;
     for (const [id, old] of Object.entries(baseline)) {
+      // RFC-011 adds exactly the shared ground-cover kit to outdoor regions.
+      const cover = ['galilee-water', 'gathering-house', 'bakehouse'].includes(id)
+        ? []
+        : GROUND_COVER;
       if (!['capernaum', 'capernaum-lanes', 'gathering-house', 'bakehouse'].includes(id))
-        expect(explorationAssets(id as ExplorationRegion), id).toEqual(old.assets);
+        expect(explorationAssets(id as ExplorationRegion), id).toEqual([...old.assets, ...cover]);
       else
         expect(explorationAssets(id as ExplorationRegion)).toEqual(
           expect.arrayContaining(old.assets),

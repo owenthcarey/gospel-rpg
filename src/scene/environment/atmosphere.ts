@@ -171,10 +171,10 @@ class FlockView {
     this.birds = Array.from({ length: count }, (_, i) => ({
       angle: i * 2.39,
       radius: (gull ? 18 : 9) + (i % 3) * (gull ? 5 : 2.5),
-      height: (gull ? 13 : 6.5) + ((i * 7) % 5) * (gull ? 1.4 : 0.6),
+      height: (gull ? 13 : 7.5) + ((i * 7) % 5) * (gull ? 1.4 : 0.6),
       speed: (gull ? 0.09 : 0.24) * (i % 2 ? 1 : -1) * (0.85 + (i % 4) * 0.08),
       phase: i * 1.7,
-      size: gull ? 0.55 : 0.2,
+      size: gull ? 0.36 : 0.085,
     }));
     const vertices = count * 5;
     this.positions = new Float32Array(vertices * 3);

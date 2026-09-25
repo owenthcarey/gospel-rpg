@@ -6,6 +6,7 @@ import type { LinesMesh } from '@babylonjs/core/Meshes/linesMesh';
 import { fitOar, handGrip } from '../presentation/attachments';
 import { backdropTerrain, groundMosaic, shorelineBank } from '../presentation/ground';
 import { StageEnvironment } from '../environment/stage';
+import { GroundCover } from '../environment/cover';
 import { environmentFor } from '../../content/environment';
 import { WaterPresentation } from '../presentation/water';
 import { Scene } from '@babylonjs/core/scene';
@@ -30,6 +31,8 @@ export class LakeRegion implements RegionView {
   private library: AssetLibrary;
   private shadow: ShadowGenerator;
   private stage: StageEnvironment;
+  private cover?: GroundCover;
+  private coverQuality?: 'high' | 'low';
   private boats: Model[] = [];
   private actors = new Map<string, Actor>();
   private extras: Actor[] = [];
@@ -215,6 +218,13 @@ export class LakeRegion implements RegionView {
     }
     const palm = this.library.instantiate('palm', 'shore-palm');
     palm.root.position.set(-14, 0, 7);
+    this.cover = new GroundCover(this.library, {
+      center: { x: -27, z: 2 },
+      radius: 15,
+      seed: 9,
+      height: () => 0,
+      allowed: (p) => p.x < -14.6 && !(p.x > -24.5 && p.x < -15.5 && p.z > -8 && p.z < 13),
+    });
     await this.scene.whenReadyAsync();
   }
   update(state: GameState): void {
@@ -419,6 +429,11 @@ export class LakeRegion implements RegionView {
     this.reduced = settings.reducedMotion;
     this.water.quality(settings.quality === 'low');
     this.stage.applySettings(settings);
+    const quality = settings.quality === 'low' ? 'low' : 'high';
+    if (this.cover && this.coverQuality !== quality) {
+      this.coverQuality = quality;
+      this.cover.build(quality);
+    }
     this.extras.forEach((actor, i) => actor.root.setEnabled(settings.quality === 'high' || i < 4));
     if (this.reduced) {
       this.entrance = 4;
@@ -443,6 +458,7 @@ export class LakeRegion implements RegionView {
     this.deactivate();
     for (const actor of [...this.actors.values(), ...this.extras]) actor.dispose();
     this.water.dispose();
+    this.cover?.dispose();
     this.library.dispose();
     this.stage.dispose();
     this.scene.dispose();

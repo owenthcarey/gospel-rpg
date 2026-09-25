@@ -2,6 +2,7 @@ import type { ScreenRect } from '../../game/presence';
 import { applyCameraPose, frameSubject } from '../presentation/framing';
 import { backdropTerrain, paintGround } from '../presentation/ground';
 import { StageEnvironment } from '../environment/stage';
+import { GroundCover } from '../environment/cover';
 import { environmentFor } from '../../content/environment';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
@@ -96,6 +97,8 @@ export class RoofRegion implements RegionView {
   private reduced = false;
   private low = false;
   private stage: StageEnvironment;
+  private cover?: GroundCover;
+  private coverQuality?: 'high' | 'low';
   constructor(
     private engine: Engine,
     state: GameState,
@@ -198,6 +201,13 @@ export class RoofRegion implements RegionView {
       make('bearer-' + i, 'bearer', i % 2 ? 1.25 : -1.25, i < 2 ? -1.2 : 1.2);
     for (let i = 0; i < 8; i++)
       make('neighbor-' + i, 'villager', i < 4 ? -3.5 : 3.5, -2 + (i % 4) * 1.5);
+    this.cover = new GroundCover(this.library, {
+      radius: 17,
+      seed: 17,
+      height: () => 0,
+      density: 0.7,
+      allowed: (p) => Math.abs(p.x) > 6.8 || Math.abs(p.z) > 6.8,
+    });
     this.actors.get('patient')!.attach(this.rolled);
     this.update(this.state);
     await this.scene.whenReadyAsync();
@@ -318,6 +328,11 @@ export class RoofRegion implements RegionView {
     this.reduced = s.reducedMotion;
     this.low = s.quality === 'low';
     this.stage.applySettings(s);
+    const quality = s.quality === 'low' ? 'low' : 'high';
+    if (this.cover && this.coverQuality !== quality) {
+      this.coverQuality = quality;
+      this.cover.build(quality);
+    }
     this.compose(0);
   }
   setPaused(value: boolean): void {
@@ -331,6 +346,7 @@ export class RoofRegion implements RegionView {
     this.paused = true;
   }
   dispose(): void {
+    this.cover?.dispose();
     this.library.dispose();
     this.stage.dispose();
     this.scene.dispose();

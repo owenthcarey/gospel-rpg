@@ -1,3 +1,4 @@
+import { nearestDistance } from '../helpers/posed-geometry';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
@@ -143,7 +144,7 @@ describe('actual imported lake geometry', () => {
         const oar = points(
           scene.getTransformNodeByName('traveler-oar-' + (side === 'left' ? -1 : 1))!,
         );
-        const nearest = Math.min(...hand.flatMap((p) => oar.map((q) => Vector3.Distance(p, q))));
+        const nearest = nearestDistance(hand, oar);
         distances.push(nearest);
         if (side === 'left') bladeHeights.push(Math.min(...oar.map((p) => p.y)));
         expect(nearest, side + ' hand touches its oar at ' + phase).toBeLessThan(0.1);

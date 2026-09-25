@@ -32,6 +32,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { StageEnvironment } from './environment/stage';
+import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
@@ -113,6 +114,27 @@ function floorHeight(mesh: Mesh, p: Point): number {
   const k = (Math.max(0, Math.min(count - 1, j)) * count + Math.max(0, Math.min(count - 1, i))) * 3;
   return positions[k + 1] ?? 0;
 }
+const VILLAGE_PATHS: [Point, Point, number][] = [
+  [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
+  [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
+  [{ x: -20, z: -1 }, { x: 8, z: -1 }, 2.5],
+  [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
+  [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
+];
+/** Distance from a point to the nearest path edge (negative on the path). */
+function pathDistance(p: Point, segments: readonly (readonly [Point, Point, number])[]): number {
+  let best = Infinity;
+  for (const [a, b, width] of segments) {
+    const dx = b.x - a.x,
+      dz = b.z - a.z;
+    const t = Math.max(
+      0,
+      Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz || 1)),
+    );
+    best = Math.min(best, Math.hypot(p.x - a.x - dx * t, p.z - a.z - dz * t) - width * 0.63);
+  }
+  return best;
+}
 function groundStyle(region: string): GroundStyle {
   if (['galilean-road', 'roadside-farm', 'nain-gate'].includes(region)) return 'dry';
   if (['reed-landing', 'sheltered-cove'].includes(region)) return 'shore';
@@ -140,6 +162,9 @@ export class World {
   readonly camera: ArcRotateCamera;
   private shadow: ShadowGenerator;
   private stage: StageEnvironment;
+  private cover?: GroundCover;
+  private floor?: Mesh;
+  private coverQuality?: 'high' | 'low';
   private library: AssetLibrary;
   private actorPlayer!: Actor;
   private galilee?: GalileeActivity;
@@ -252,6 +277,7 @@ export class World {
       floor.material = this.material('neighborhood-ground', '#ffffff');
       floor.receiveShadows = true;
       floor.metadata = { ground: true };
+      this.floor = floor;
       if (this.layout.height) this.conformToGround(floor);
       if (shore) this.shapeShore(floor);
       if (inside) {
@@ -495,7 +521,44 @@ export class World {
     }
     this.update(this.state);
     this.setPosition(this.position, true);
+    const cover = this.coverOptions();
+    if (cover) this.cover = new GroundCover(this.library, cover);
     await this.scene.whenReadyAsync();
+  }
+  /** Ground cover grows on open land only: never on paths, water, sand or blocked cells. */
+  private coverOptions(): CoverOptions | undefined {
+    const region = this.state.region;
+    if (region === 'galilee-water' || this.layout?.inside) return undefined;
+    const height = (p: Point) => groundHeight(region, p);
+    if (!this.layout)
+      return {
+        center: { x: -14, z: 3 },
+        radius: 30,
+        seed: 3,
+        height,
+        pathDistance: (p) => pathDistance(p, VILLAGE_PATHS),
+        allowed: (p) =>
+          p.x < shoreline(p.z) - 3 &&
+          p.x > -44 &&
+          p.z > -36 &&
+          p.z < 42 &&
+          (!isLand(p) || this.grid.walkable(p)),
+      };
+    const layout = this.layout;
+    const bound = layout.bounds.max;
+    const shore = isLakeRegion(region);
+    return {
+      radius: 26,
+      seed: region.length,
+      height,
+      density: region === 'capernaum-lanes' ? 0.6 : 1,
+      pathDistance: (p) => pathDistance(p, layout.paths),
+      allowed: (p) => {
+        if (shore && this.floor && floorHeight(this.floor, p) < -0.01) return false;
+        if (shore && layout.terrain(p) && Math.abs(p.x) < 14 && p.z < -5) return false;
+        return Math.abs(p.x) <= bound && Math.abs(p.z) <= bound ? this.grid.walkable(p) : true;
+      },
+    };
   }
 
   private makeCrossingTerrain(): void {
@@ -685,14 +748,7 @@ export class World {
   }
 
   private makePaths(): void {
-    const segments: [Point, Point, number][] = [
-      [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
-      [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
-      [{ x: -20, z: -1 }, { x: 8, z: -1 }, 2.5],
-      [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
-      [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
-    ];
-    wornPaths(this.scene, 'village-footpaths', segments);
+    wornPaths(this.scene, 'village-footpaths', VILLAGE_PATHS);
     const pebbleMat = this.material('path-pebbles', '#b9ab83');
     const pebbles: Mesh[] = [];
     for (let i = 0; i < 48; i++) {
@@ -1008,6 +1064,10 @@ export class World {
     this.water?.quality(settings.quality === 'low');
     this.water?.tick(this.time, this.reducedMotion);
     this.stage.applySettings(settings);
+    if (this.cover && this.coverQuality !== settings.quality) {
+      this.coverQuality = settings.quality;
+      this.cover.build(settings.quality);
+    }
   }
   private simulate(dt: number): void {
     if (!this.paused && !document.hidden) {
@@ -1349,6 +1409,7 @@ export class World {
     this.activity?.dispose();
     this.neighborhood?.dispose();
     this.everyday?.dispose();
+    this.cover?.dispose();
     this.library.dispose();
     this.stage.dispose();
     this.scene.dispose();

@@ -271,8 +271,8 @@ export function coastMargin(p: Point): number {
 export type GroundStyle = 'village' | 'dry' | 'shore' | 'lane';
 const GROUND_PALETTES: Record<GroundStyle, readonly [string, string, string, string]> = {
   // lush, dry, earth, distant
-  village: ['#85925f', '#a39c6c', '#8f7b5a', '#8a9478'],
-  dry: ['#8e955f', '#b0a370', '#9a8160', '#949778'],
+  village: ['#7f8b5f', '#9f9870', '#8c7a5b', '#879178'],
+  dry: ['#848b60', '#a49a74', '#978063', '#8f9278'],
   shore: ['#8a965f', '#9d9a6e', '#958464', '#8b9679'],
   lane: ['#9d8d6f', '#a49474', '#8c7b62', '#948a72'],
 };
