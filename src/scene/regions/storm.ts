@@ -215,6 +215,9 @@ export class StormRegion implements RegionView {
     this.state = structuredClone(state);
     this.compose();
   }
+  get atmosphere(): string {
+    return this.stage.label;
+  }
   setReadingBounds(rect?: ScreenRect): void {
     this.readingBounds = rect;
   }

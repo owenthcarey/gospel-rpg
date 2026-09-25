@@ -85,9 +85,15 @@ void main(void) {
   vec2 p = vWater.xz;
   float t = still > 0.5 ? 0.0 : time;
   // Fine moving ripples perturb the broad wave normal.
-  vec2 r1 = vec2(sin(p.x * 2.3 + p.y * 1.1 - t * 1.7), cos(p.y * 2.7 - p.x * 0.9 + t * 1.3));
-  vec2 r2 = vec2(sin(p.x * 4.1 - p.y * 3.3 + t * 2.3), cos(p.y * 3.9 + p.x * 2.2 - t * 2.1));
-  vec3 n = normalize(vNormal + vec3(r1 * 0.045 + r2 * 0.025, 0.0).xzy * (1.0 + storm));
+  // Irregular drifting ripples (noise, not sines) so glints scatter instead of tiling.
+  vec2 q1 = p * 1.3 + vec2(t * 0.35, -t * 0.22);
+  vec2 q2 = p * 2.9 + vec2(-t * 0.5, t * 0.41) + 11.0;
+  vec2 r1 = vec2(noise(q1) - noise(q1 + vec2(0.35, 0.0)), noise(q1) - noise(q1 + vec2(0.0, 0.35))) * 3.2;
+  vec2 r2 = vec2(noise(q2) - noise(q2 + vec2(0.3, 0.0)), noise(q2) - noise(q2 + vec2(0.0, 0.3))) * 2.6;
+  float eye = length(cameraPosition - vWater);
+  // Fine ripples fade with distance so far water keeps one coherent sun path instead of aliasing.
+  float detail = 1.0 - smoothstep(18.0, 70.0, eye);
+  vec3 n = normalize(vNormal + vec3(r1 * 0.045 + r2 * 0.025, 0.0).xzy * (1.0 + storm) * detail);
   vec3 view = normalize(cameraPosition - vWater);
   float d = shoreDistance(p);
   float shallow = 1.0 - smoothstep(0.0, 7.0, d);
@@ -100,8 +106,8 @@ void main(void) {
   float fresnel = pow(1.0 - max(dot(n, view), 0.0), 3.0);
   color = mix(color, sky, fresnel * 0.6);
   // Crisp sun glints rather than streaks.
-  float glint = pow(max(dot(reflect(-toSun, n), view), 0.0), 140.0);
-  color += sunColor * smoothstep(0.25, 0.75, glint) * (1.0 - storm * 0.8) * 1.4;
+  float glint = pow(max(dot(reflect(-toSun, n), view), 0.0), mix(24.0, 140.0, detail));
+  color += sunColor * smoothstep(0.25, 0.75, glint) * (1.0 - storm * 0.8) * mix(0.7, 1.4, detail);
   // Lapping foam along every shore, broken by drifting noise.
   float lap = sin(t * 1.25 - d * 3.5) * 0.5 + 0.5;
   float edge = 1.0 - smoothstep(0.0, 0.35 + lap * 0.45, d);
@@ -118,8 +124,7 @@ void main(void) {
   float crest = smoothstep(0.55, 0.95, vWave) * smoothstep(0.35, 0.7, noise(p * 0.9 + t * 0.3));
   foam += crest * storm * 0.9;
   color = mix(color, foamColor, clamp(foam, 0.0, 1.0));
-  float distanceToEye = length(cameraPosition - vWater);
-  float visibility = exp(-pow(distanceToEye * fogDensity, 2.0));
+  float visibility = exp(-pow(eye * fogDensity, 2.0));
   color = mix(fogColor, color, clamp(visibility, 0.0, 1.0));
   gl_FragColor = vec4(linearOutput > 0.5 ? pow(max(color, 0.0), vec3(2.2)) : min(color, 1.0), 1.0);
 }`;

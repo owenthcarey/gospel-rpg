@@ -56,10 +56,11 @@ void main(void) {
   vec3 cloud = mix(mix(horizon, vec3(1.0), 0.6), sunColor, 0.18 + pow(toward, 4.0) * 0.4);
   cloud *= 0.92 + 0.12 * smoothstep(0.5, 0.9, n);
   color = mix(color, cloud, cover * 0.85);
-  float sun = smoothstep(0.99955 - disc * 0.00025, 0.99985, toward) * step(0.001, disc);
-  color += sunColor * sun * (1.0 - cover * 0.8) * 2.2;
   // The horizon band and everything below it dissolve into the scene fog.
   color = mix(color, fogColor, smoothstep(0.1, -0.03, d.y));
+  // The disc sits in front of the haze so a low sun still reads warm and bright.
+  float sun = smoothstep(0.99955 - disc * 0.00025, 0.99985, toward) * step(0.001, disc);
+  color += sunColor * sun * (1.0 - cover * 0.8) * step(-0.01, d.y) * 2.2;
   gl_FragColor = vec4(linearOutput > 0.5 ? pow(max(color, 0.0), vec3(2.2)) : min(color, 1.0), 1.0);
 }`;
 

@@ -54,7 +54,7 @@ export const environmentProfiles: Record<RegionId | 'title', EnvironmentProfile>
     ...morning,
     label: 'Dawn over the lake',
     sky: { zenith: '#51789a', horizon: '#f0cfa2', glow: '#ffc98a' },
-    sun: { azimuth: 1.6, elevation: 0.12, color: '#ffc58c', intensity: 1.05, disc: 1.6 },
+    sun: { azimuth: 1.6, elevation: 0.15, color: '#ffc58c', intensity: 1.05, disc: 1.6 },
     fill: { sky: '#b9c9dc', ground: '#6d5a44', intensity: 0.55 },
     fog: { color: '#e4d2b9', density: 0.006 },
     grade: { exposure: 1.04, contrast: 1.1, saturation: 1.02, warmth: 0.36, vignette: 0.42 },

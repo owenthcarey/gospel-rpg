@@ -165,6 +165,12 @@ export class World {
   private cover?: GroundCover;
   private floor?: Mesh;
   private coverQuality?: 'high' | 'low';
+  private arrival?: {
+    t: number;
+    from: { alpha: number; beta: number; radius: number };
+    to: { alpha: number; beta: number; radius: number };
+    limits: [number | null, number | null];
+  };
   private library: AssetLibrary;
   private actorPlayer!: Actor;
   private galilee?: GalileeActivity;
@@ -614,6 +620,43 @@ export class World {
       const at = node.getAbsolutePosition();
       return { x: at.x, z: at.z, radius: 1.5, strength };
     });
+  }
+  /**
+   * An establishing move for a first journey: from a wide view over the shore down to the
+   * traveler. Cosmetic; any camera input or reduced motion ends it at the gameplay view.
+   */
+  playArrival(): void {
+    if (this.reducedMotion) return;
+    const to = { alpha: this.camera.alpha, beta: this.camera.beta, radius: this.camera.radius };
+    this.arrival = {
+      t: 0,
+      from: {
+        alpha: to.alpha - 0.85,
+        beta: Math.min(1.34, to.beta + 0.5),
+        radius: to.radius * 1.9,
+      },
+      to,
+      limits: [this.camera.upperRadiusLimit, this.camera.upperBetaLimit],
+    };
+    this.camera.upperRadiusLimit = this.arrival.from.radius;
+    this.camera.upperBetaLimit = 1.4;
+    Object.assign(this.camera, this.arrival.from);
+  }
+  private tickArrival(dt: number): void {
+    const a = this.arrival;
+    if (!a) return;
+    a.t += dt;
+    const k = Math.min(1, a.t / 4.2);
+    const e = k * k * (3 - 2 * k);
+    const interrupted = this.keys.size > 0 || this.path.length > 0;
+    this.camera.alpha = a.from.alpha + (a.to.alpha - a.from.alpha) * e;
+    this.camera.beta = a.from.beta + (a.to.beta - a.from.beta) * e;
+    this.camera.radius = a.from.radius + (a.to.radius - a.from.radius) * e;
+    if (k >= 1 || interrupted || this.reducedMotion) {
+      Object.assign(this.camera, a.to);
+      [this.camera.upperRadiusLimit, this.camera.upperBetaLimit] = a.limits;
+      this.arrival = undefined;
+    }
   }
   get atmosphere(): string {
     return this.stage.label;
@@ -1165,6 +1208,7 @@ export class World {
     const elapsed = this.lastRender ? (now - this.lastRender) / 1000 : 0;
     this.lastRender = now;
     this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
+    if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
     if (this.active) this.conversationView?.tick(Math.min(elapsed, 0.1), this.reducedMotion);
     // Consume slow frames in collision-safe steps; discard only long suspension gaps.
     let remaining = Math.min(elapsed, 0.25);

@@ -403,6 +403,9 @@ export class LakeRegion implements RegionView {
       );
     });
   }
+  get atmosphere(): string {
+    return this.stage.label;
+  }
   setReadingBounds(rect?: ScreenRect): void {
     this.readingBounds = rect;
     this.dirty = true;

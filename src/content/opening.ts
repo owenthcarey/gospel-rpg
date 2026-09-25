@@ -42,3 +42,13 @@ export const placeLines: Record<RegionId, string> = {
   'sheltered-cove': 'A cove under split rock, sheltered from the evening wind.',
   'storm-account': 'Evening on the lake, and a sudden wind. Mark 4:35–41.',
 };
+
+/** Title cards for the four Gospel accounts, shown as each presentation opens. */
+export const accountCards: Partial<
+  Record<RegionId, { eyebrow: string; title: string; reference: string }>
+> = {
+  'lake-gennesaret': { eyebrow: 'Chapter I', title: 'Into the Deep', reference: 'Luke 5:1–11' },
+  'roof-account': { eyebrow: 'Chapter II', title: 'Through the Roof', reference: 'Mark 2:1–12' },
+  'nain-account': { eyebrow: 'Chapter III', title: 'At the gate', reference: 'Luke 7:11–17' },
+  'storm-account': { eyebrow: 'Chapter IV', title: 'Peace, be still', reference: 'Mark 4:35–41' },
+};

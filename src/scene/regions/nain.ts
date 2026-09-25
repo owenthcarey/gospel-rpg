@@ -238,6 +238,9 @@ export class NainRegion implements RegionView {
       nain: { checkpoint: id, restored, time: this.time },
     };
   }
+  get atmosphere(): string {
+    return this.stage.label;
+  }
   setReadingBounds(rect?: ScreenRect): void {
     this.readingBounds = rect;
   }

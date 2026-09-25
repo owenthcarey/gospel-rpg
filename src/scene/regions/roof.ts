@@ -303,6 +303,9 @@ export class RoofRegion implements RegionView {
         actor.sample(clip, dt, this.reduced);
     }
   }
+  get atmosphere(): string {
+    return this.stage.label;
+  }
   setReadingBounds(rect?: ScreenRect): void {
     this.readingBounds = rect;
   }

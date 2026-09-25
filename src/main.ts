@@ -70,6 +70,11 @@ import { actionFor } from './content/episode/interactions';
 import { Interface } from './ui/interface';
 import { JOURNAL_CATEGORIES, type JournalCategory, type JournalFilter } from './ui/views/journal';
 import { escapeHtml } from './ui/icons';
+import { ColdOpen, ChapterCard, Veil } from './ui/cinematic';
+import { accountCards, openingCards, OPENING_PROVENANCE, placeLines } from './content/opening';
+import { logoMark } from './ui/logo';
+import { regions } from './content/regions';
+import { trackedChapter } from './content/campaign/chapters';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas')!;
 const loading = document.querySelector<HTMLElement>('#loading')!;
@@ -92,6 +97,12 @@ let menuRequest = 0;
 let disposed = false;
 let storageWarned = false;
 let timer: ReturnType<typeof setInterval> | undefined;
+let cinematic = false;
+const coldOpen = new ColdOpen();
+const chapterCard = new ChapterCard(document.querySelector<HTMLElement>('#ui')!);
+const veil = new Veil();
+// Title cards announce each place and account once per session.
+const regionsSeen = new Set<string>();
 
 const ui = new Interface(document.querySelector('#ui')!, {
   action: (name, value) => {
@@ -130,9 +141,13 @@ async function changeRegion(next: GameState): Promise<void> {
   inspectionWork = undefined;
   regionLoading = true;
   syncPause();
-  loading.hidden = false;
-  loadingMessage.textContent = 'Opening the next part of your journey…';
+  const destination = displayRegion(next);
   ui.setBusy(true);
+  await veil.cover({
+    reduced: settings.reducedMotion,
+    title: regions[destination].title,
+    line: placeLines[destination],
+  });
   try {
     await world.load(next, (message) => {
       loadingMessage.textContent = message;
@@ -153,6 +168,35 @@ async function changeRegion(next: GameState): Promise<void> {
     loading.hidden = true;
     ui.setBusy(false);
     syncPause();
+    void veil.reveal({ reduced: settings.reducedMotion });
+  }
+}
+/** HUD lines and the once-per-session title card for the displayed place. */
+function presentArrival(): void {
+  ui.setAtmosphere(world?.atmosphere() ?? '');
+  ui.setTraveler(trackedChapter(state).title);
+  const region = displayRegion(state);
+  if (regionsSeen.has(region)) return;
+  regionsSeen.add(region);
+  const account = accountCards[region];
+  const place = regions[region];
+  void chapterCard.show(
+    account ?? { eyebrow: place.subtitle.split(' · ')[0] ?? 'Galilee', title: place.title },
+    { reduced: settings.reducedMotion },
+  );
+}
+async function playOpening(): Promise<void> {
+  cinematic = true;
+  syncPause();
+  try {
+    await coldOpen.play(openingCards, OPENING_PROVENANCE, { reduced: settings.reducedMotion });
+  } finally {
+    cinematic = false;
+    syncPause();
+  }
+  if (!settings.openingSeen) {
+    settings = { ...settings, openingSeen: true };
+    await saves.saveSettings(settings).catch(() => {});
   }
 }
 function reportError(error: unknown): void {
@@ -206,6 +250,7 @@ function syncPause(): void {
       document.hidden ||
       regionLoading ||
       graphicsLost ||
+      cinematic ||
       (isPresenting(state) && scenePaused),
   );
 }
@@ -272,6 +317,7 @@ async function apply(event: GameEvent): Promise<void> {
   world?.update(state);
   ui.update(state);
   audio.update(state);
+  presentArrival();
   const feedback = feedbackForEvent(event);
   if (feedback) audio.play(feedback);
   if (event.type === 'harbor-action') {
@@ -432,6 +478,9 @@ async function close(): Promise<void> {
 }
 async function begin(saved?: GameState): Promise<void> {
   await saveQueue.catch(() => {});
+  // The first new journey opens with the cold open; automation and returning players skip it.
+  const firstJourney = !saved && !settings.openingSeen && !navigator.webdriver;
+  if (firstJourney) await playOpening();
   const next = saved ? structuredClone(saved) : newGame();
   await changeRegion(next);
   state = next;
@@ -451,6 +500,8 @@ async function begin(saved?: GameState): Promise<void> {
   audio.set(settings);
   if (isPresenting(state)) ui.focusScene();
   else canvas.focus();
+  presentArrival();
+  if (firstJourney) world?.playArrival();
   await enqueueSave();
   if (!saved) ui.toast('Welcome to Capernaum. Speak with Simon by the boats to begin.');
 }
@@ -750,6 +801,11 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'settings':
       if (ui.panel === 'settings' && value === 'toggle') await close();
       else await showSettings();
+      break;
+    case 'replay-opening':
+      await close();
+      await playOpening();
+      if (!started) await close();
       break;
     case 'journey-map':
     case 'local-map':
@@ -1186,6 +1242,7 @@ async function boot(): Promise<void> {
     ui.toast('The view has been restored.');
   });
   world.applySettings(settings);
+  void world.showTitle().catch((error) => console.warn('Title view unavailable', error));
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
   document.documentElement.dataset.textSize = settings.textSize;
   const autosave = await saves.load('auto').catch(() => {
@@ -1216,7 +1273,7 @@ void boot().catch((error) => {
   console.error('Could not start The Way', error);
   world?.dispose();
   world = undefined;
-  loading.innerHTML = `<div class="loading-error"><div class="loading-mark">✧</div><h1>A pause on the journey</h1><p>${escapeHtml(error instanceof Error ? error.message : 'The village could not be loaded.')}</p><p>Check your connection and use a current browser with WebGL 2 enabled, then try again. Existing saves stay on this device.</p><button class="primary-button" id="retry">Try again</button></div>`;
+  loading.innerHTML = `<div class="loading-error">${logoMark('loading-mark')}<h1>A pause on the journey</h1><p>${escapeHtml(error instanceof Error ? error.message : 'The village could not be loaded.')}</p><p>Check your connection and use a current browser with WebGL 2 enabled, then try again. Existing saves stay on this device.</p><button class="primary-button" id="retry">Try again</button></div>`;
   loading.querySelector('#retry')?.addEventListener('click', () => window.location.reload());
 });
 
