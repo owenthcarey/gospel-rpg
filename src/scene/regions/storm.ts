@@ -1,5 +1,6 @@
 import type { ScreenRect } from '../../game/presence';
-import { applyCameraPose, frameSubject } from '../presentation/framing';
+import { frameSubject } from '../presentation/framing';
+import { ShotDirector } from '../presentation/shots';
 import { WaterPresentation } from '../presentation/water';
 import { StageEnvironment } from '../environment/stage';
 import { environmentFor, stormProfile } from '../../content/environment';
@@ -49,6 +50,9 @@ export class StormRegion implements RegionView {
   private reduced = false;
   private low = false;
   private stage: StageEnvironment;
+  private shots!: ShotDirector;
+  private composed = false;
+  private rough = 0;
   constructor(
     private engine: Engine,
     state: GameState,
@@ -65,6 +69,7 @@ export class StormRegion implements RegionView {
       this.scene,
     );
     this.camera.minZ = 0.1;
+    this.shots = new ShotDirector(this.camera);
     this.camera.maxZ = 150;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('storm-account'), {
       sky: 140,
@@ -149,6 +154,7 @@ export class StormRegion implements RegionView {
           ? 0
           : 1 - Math.min(this.time / 3, 1)
         : 0;
+    this.rough = rough;
     this.stage.blend(stormProfile, rough);
     this.stage.atmosphere.setIntensity(rough);
     this.sea.diffuseColor = Color3.Lerp(
@@ -192,8 +198,9 @@ export class StormRegion implements RegionView {
       beta = 0.9;
     const canvas = this.engine.getRenderingCanvas()!;
     const extent = id === 'waking' ? 2.45 : id === 'command' ? 3 : id === 'question' ? 5 : 4.2;
-    applyCameraPose(
-      this.camera,
+    // Checkpoints ease between framed shots; a first or restored composition is immediate.
+    this.shots.shot(
+      id,
       frameSubject(
         this.camera,
         canvas.clientWidth,
@@ -204,7 +211,11 @@ export class StormRegion implements RegionView {
         beta,
         this.readingBounds,
       ),
+      {
+        instant: !this.composed || this.reduced,
+      },
     );
+    this.composed = true;
     this.scene.metadata = {
       ...this.scene.metadata,
       storm: { checkpoint: id, rough, time: this.time },
@@ -234,6 +245,11 @@ export class StormRegion implements RegionView {
     this.compose();
     this.engine.getRenderingCanvas()!.dataset.stormTime =
       this.state.lake.chapter.checkpoint + ':' + this.time.toFixed(2);
+    this.shots.tick(dt, {
+      running: !this.paused,
+      reduced: this.reduced,
+      shake: this.rough,
+    });
     this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);
     this.scene.render();

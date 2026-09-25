@@ -41,6 +41,7 @@ export class VillageActivity {
     for (const person of episodePlaces.filter((p) => p.asset)) {
       const actor = new Actor(
         library.instantiate(person.asset as ActorAsset, person.id, person.id),
+        true,
       );
       actor.root.position.set(person.x, 0, person.z);
       actor.face({ x: 8, z: 2 });
@@ -57,6 +58,7 @@ export class VillageActivity {
     for (let i = 0; i < crowdSpots.length; i++) {
       const actor = new Actor(
         library.instantiate(i % 3 === 0 ? 'miriam' : 'villager', 'neighbor-' + i),
+        true,
       );
       actor.root.position.set(crowdSpots[i]!.x, 0, crowdSpots[i]!.z);
       actor.root.scaling.setAll(0.93 + (i % 3) * 0.035);

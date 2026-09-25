@@ -76,3 +76,43 @@ export function clearancePosition(grid: WalkGrid, from: Point, anchor?: Point): 
   }
   return grid.nearest(from) ?? from;
 }
+
+/**
+ * True when a straight walk from `a` to `b` stays inside walkable cells and never cuts a
+ * blocked corner, using the same diagonal rule as the A* search.
+ */
+export function clearLine(grid: WalkGrid, a: Point, b: Point): boolean {
+  const d = distance(a, b);
+  const steps = Math.max(1, Math.ceil(d / 0.2));
+  let prev = grid.cell(a);
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const c = grid.cell({ x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t });
+    if (!grid.walkable(c)) return false;
+    if (c.x !== prev.x && c.z !== prev.z) {
+      if (!grid.walkable({ x: c.x, z: prev.z }) || !grid.walkable({ x: prev.x, z: c.z }))
+        return false;
+    }
+    prev = c;
+  }
+  return true;
+}
+/**
+ * String-pull a cell path into the fewest straight legs with a clear line, so the traveler
+ * walks diagonally across open ground instead of zig-zagging between cell centres. The
+ * final point is unchanged, so arrival and reach are exactly those of the original route.
+ */
+export function smoothPath(grid: WalkGrid, from: Point, path: readonly Point[]): Point[] {
+  if (path.length < 2) return path.map((p) => ({ ...p }));
+  const out: Point[] = [];
+  let anchor = from;
+  let i = 0;
+  while (i < path.length) {
+    let j = path.length - 1;
+    while (j > i && !clearLine(grid, anchor, path[j]!)) j--;
+    out.push({ ...path[j]! });
+    anchor = path[j]!;
+    i = j + 1;
+  }
+  return out;
+}

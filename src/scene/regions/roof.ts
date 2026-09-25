@@ -1,5 +1,6 @@
 import type { ScreenRect } from '../../game/presence';
-import { applyCameraPose, frameSubject } from '../presentation/framing';
+import { frameSubject } from '../presentation/framing';
+import { ShotDirector } from '../presentation/shots';
 import { backdropTerrain, paintGround } from '../presentation/ground';
 import { StageEnvironment } from '../environment/stage';
 import { GroundCover } from '../environment/cover';
@@ -97,6 +98,8 @@ export class RoofRegion implements RegionView {
   private reduced = false;
   private low = false;
   private stage: StageEnvironment;
+  private shots!: ShotDirector;
+  private composed = false;
   private cover?: GroundCover;
   private coverQuality?: 'high' | 'low';
   constructor(
@@ -115,6 +118,7 @@ export class RoofRegion implements RegionView {
       this.scene,
     );
     this.camera.minZ = 0.1;
+    this.shots = new ShotDirector(this.camera);
     this.camera.maxZ = 80;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('roof-account'), {
       sky: 75,
@@ -222,8 +226,9 @@ export class RoofRegion implements RegionView {
     const id = this.state.campaign.roof.checkpoint ?? 'house';
     const c = compositions[id];
     const canvas = this.engine.getRenderingCanvas()!;
-    applyCameraPose(
-      this.camera,
+    // Checkpoints ease between framed shots; a first or restored composition is immediate.
+    this.shots.shot(
+      id,
       frameSubject(
         this.camera,
         canvas.clientWidth,
@@ -234,7 +239,11 @@ export class RoofRegion implements RegionView {
         c.beta,
         this.readingBounds,
       ),
+      {
+        instant: !this.composed || this.reduced,
+      },
     );
+    this.composed = true;
     this.roof?.root.setEnabled(c.roof);
     const lowering = id === 'roof';
     const before = id === 'house' || id === 'bearers';
@@ -320,6 +329,7 @@ export class RoofRegion implements RegionView {
     this.last = now;
     if (!this.paused) this.time += dt;
     this.compose(this.paused ? 0 : dt);
+    this.shots.tick(dt, { running: !this.paused, reduced: this.reduced });
     this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);
     this.scene.render();

@@ -56,7 +56,7 @@ export class GalileeActivity {
       this.prop('scoop', 'channel_scoop', 4, -11, 'spring-tools', 0.69);
       this.prop('inlet-stones', 'rock', 3, -7, 'spring-source').root.scaling.setAll(0.32);
       this.prop('silt', 'rock', 4, -7, 'channel-entry').root.scaling.set(0.4, 0.07, 0.34);
-      const actor = new Actor(library.instantiate('villager', 'galilee-water-traveler'));
+      const actor = new Actor(library.instantiate('villager', 'galilee-water-traveler'), true);
       actor.pose('Kneel');
       actor.root.setEnabled(false);
       this.company.push(actor);
@@ -108,7 +108,10 @@ export class GalileeActivity {
         }
       }
       for (let i = 0; i < 2; i++) {
-        const actor = new Actor(library.instantiate('villager', 'galilee-resting-traveler-' + i));
+        const actor = new Actor(
+          library.instantiate('villager', 'galilee-resting-traveler-' + i),
+          true,
+        );
         actor.pose('Sit');
         actor.root.setEnabled(false);
         this.company.push(actor);

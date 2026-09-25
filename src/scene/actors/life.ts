@@ -50,7 +50,7 @@ export class LifeActivity {
       prop('pieces', 'bench_pieces', 3, 0.02, 7);
       prop('cord-basket', 'basket_empty', 1, 0, 3, 'cord-basket').root.scaling.setAll(0.7);
       prop('cord', 'lashing_cord', 1, 0.32, 3, 'cord-basket');
-      this.resting = new Actor(library.instantiate('villager', 'life-resting-neighbor'));
+      this.resting = new Actor(library.instantiate('villager', 'life-resting-neighbor'), true);
       this.resting.root.position.set(3.45, 0.08, 7);
       this.resting.root.rotation.y = Math.PI;
       this.resting.pose('Sit');
@@ -65,7 +65,7 @@ export class LifeActivity {
     }
     if (region === 'capernaum-lanes' || region === 'bakehouse') {
       for (let i = 0; i < 2; i++) {
-        const actor = new Actor(library.instantiate('villager', 'life-table-neighbor-' + i));
+        const actor = new Actor(library.instantiate('villager', 'life-table-neighbor-' + i), true);
         const outdoor = region === 'capernaum-lanes';
         actor.root.position.set((outdoor ? 6 : 0) + (i ? 0.5 : -0.5), 0.08, outdoor ? 1.7 : 0.6);
         actor.pose('Sit');

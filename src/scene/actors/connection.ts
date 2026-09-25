@@ -18,7 +18,7 @@ export class ConnectionActivity {
     }
     if (s.region === 'capernaum')
       for (const [i, p] of HOME_COMPANY.entries()) {
-        const actor = new Actor(library.instantiate('villager', 'home-company-' + i));
+        const actor = new Actor(library.instantiate('villager', 'home-company-' + i), true);
         actor.root.position.set(p.x, 0, p.z);
         actor.root.rotation.y = p.rotation;
         actor.pose('Idle');

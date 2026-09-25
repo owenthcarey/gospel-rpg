@@ -12,6 +12,7 @@ import {
   type GroundStyle,
 } from './presentation/ground';
 import { ConversationPresentation } from './presentation/conversation';
+import { applyCameraPose, cameraPose, type CameraPose } from './presentation/framing';
 import { turnToward, type ScreenRect } from '../game/presence';
 import { HarborPresentation, dressVillage } from './harbor';
 import { EverydayActivity } from './actors/everyday';
@@ -32,6 +33,7 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { StageEnvironment } from './environment/stage';
+import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte';
 import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
@@ -62,7 +64,7 @@ import type { ActionMotion } from '../content/campaign/actions';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput } from './input';
-import { approachPath, stepPath, clearancePosition } from '../game/navigation';
+import { approachPath, stepPath, clearancePosition, smoothPath } from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
 import '@babylonjs/loaders/glTF/glTFFileLoader';
@@ -180,7 +182,8 @@ export class World {
     height: number;
     x: number;
     z: number;
-    scaleY: number;
+    fade: StylePlugin[];
+    amount: number;
   }[] = [];
   private actors = new Map<string, Actor>();
   private activity!: VillageActivity;
@@ -193,6 +196,10 @@ export class World {
   private marker: Mesh;
   private routeDots: Mesh[] = [];
   private strideTime = 0;
+  private walkRamp = 0;
+  private pendingRotation = 0;
+  private cameraReturn?: { from: CameraPose; to: CameraPose; t: number };
+  private lastPace = 1;
   private path: Point[] = [];
   private destination?: string;
   private keys = new Set<string>();
@@ -520,7 +527,10 @@ export class World {
         this.state.region === 'capernaum' ? -4 : -10,
       );
       if (this.state.region === 'sheltered-cove') {
-        this.lakeCompany = new Actor(this.library.instantiate('villager', 'cove-resting-company'));
+        this.lakeCompany = new Actor(
+          this.library.instantiate('villager', 'cove-resting-company'),
+          true,
+        );
         this.lakeCompany.root.position.set(-5, 0.08, 7);
         this.lakeCompany.root.rotation.y = Math.PI;
       }
@@ -675,7 +685,7 @@ export class World {
       interactionId,
     );
     const anchor = model.root;
-    if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model));
+    if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model, true));
     anchor.position.set(
       p.x,
       p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : groundHeight(this.state.region, p),
@@ -685,14 +695,26 @@ export class World {
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
-    if (['olive', 'cypress', 'palm'].includes(p.asset))
+    if (['olive', 'cypress', 'palm'].includes(p.asset)) {
+      // Each view-blocking tree owns a material so it can dissolve on its own.
+      const fade = anchor.getChildMeshes().flatMap((mesh) => {
+        const source = mesh.material as StandardMaterial | null;
+        if (!source) return [];
+        const material = source.clone(source.name + ':fade:' + this.occluders.length);
+        const plugin = stylePlugin(material);
+        plugin.configure(WIND_SHAPES[p.asset], true);
+        mesh.material = material;
+        return [plugin];
+      });
       this.occluders.push({
         node: anchor,
         height: 3.5 * (p.scale ?? 1),
         x: p.x,
         z: p.z,
-        scaleY: anchor.scaling.y,
+        fade,
+        amount: 1,
       });
+    }
     return anchor;
   }
 
@@ -883,7 +905,9 @@ export class World {
   walkTo(target: Point): boolean {
     if (this.paused) return false;
     const cell = this.grid.nearest(target, 3);
-    const path = cell ? findPath(this.grid, this.position, cell) : [];
+    const path = cell
+      ? smoothPath(this.grid, this.position, findPath(this.grid, this.position, cell))
+      : [];
     if (!path.length) {
       this.callbacks.notice(
         this.travelerBoat
@@ -909,7 +933,11 @@ export class World {
       this.callbacks.interact(id);
       return;
     }
-    const path = approachPath(this.grid, this.position, target);
+    const path = smoothPath(
+      this.grid,
+      this.position,
+      approachPath(this.grid, this.position, target),
+    );
     if (!path.length) {
       this.callbacks.notice('There is no clear path to that place.');
       return;
@@ -941,6 +969,7 @@ export class World {
       .sort((a, b) => distance(a, this.position) - distance(b, this.position))[0];
   }
   stop(): void {
+    this.walkRamp = 0;
     this.path = [];
     this.destination = undefined;
     this.marker.setEnabled(false);
@@ -948,12 +977,39 @@ export class World {
     this.poseTraveler(false, 0);
     this.keys.clear();
   }
+  /** Route dots every 1.6 m along the remaining straight legs. */
   private showRoute(): void {
+    const points: Point[] = [];
+    let at = this.position;
+    let carry = 1.6;
+    for (const next of this.path) {
+      const d = distance(at, next);
+      while (carry <= d && points.length < this.routeDots.length) {
+        const t = carry / d;
+        points.push({ x: at.x + (next.x - at.x) * t, z: at.z + (next.z - at.z) * t });
+        carry += 1.6;
+      }
+      carry -= d;
+      at = next;
+    }
     this.routeDots.forEach((dot, i) => {
-      const point = this.path[i * 2];
+      const point = points[i];
       dot.setEnabled(Boolean(point) && this.guidance === 'full');
       if (point) dot.position.set(point.x, groundHeight(this.state.region, point) + 0.04, point.z);
     });
+  }
+  /** Ease into a walk and settle on arrival; never changes the route or its destination. */
+  private pace(dt: number): number {
+    this.walkRamp = Math.min(1, this.walkRamp + dt * 5);
+    let remaining = 0,
+      at = this.position;
+    for (const next of this.path) {
+      remaining += distance(at, next);
+      at = next;
+      if (remaining > 1.5) break;
+    }
+    this.lastPace = this.walkRamp * Math.min(1, 0.4 + remaining / 1.4);
+    return this.lastPace;
   }
   private poseTraveler(moving: boolean, dt: number): void {
     if (!this.playerModel) return;
@@ -1051,12 +1107,18 @@ export class World {
     if (this.state.region === 'galilee-water')
       return new Vector3(this.position.x * 0.65, 0, this.position.z * 0.65 + 2);
     if (this.layout?.inside) return new Vector3(0, 0, 0);
-    if (this.layout)
+    if (this.layout) {
+      // The land beyond each region is dressed now, so the view may follow further out.
+      const reach = this.layout.bounds.max - 9;
       return new Vector3(
-        Math.max(-5, Math.min(5, this.position.x)),
+        Math.max(-reach, Math.min(reach, this.position.x)),
         groundHeight(this.state.region, this.position),
-        Math.max(-4, Math.min(6, this.position.z + 3)),
+        Math.max(
+          -reach + 1,
+          Math.min(reach + 1, this.position.z + this.layout.camera.targetOffset * 2),
+        ),
       );
+    }
     return new Vector3(this.position.x, 0, this.position.z + 2);
   }
   resetCamera(): void {
@@ -1064,12 +1126,15 @@ export class World {
       this.workView.frame();
       return;
     }
+    this.pendingRotation = 0;
     this.camera.alpha = -Math.PI / 2 - 0.45;
     this.camera.beta = this.layout?.camera.beta ?? 0.78;
     this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
   }
+  /** Rotation buttons ease through a quarter of a turn step instead of jumping. */
   rotate(direction: number): void {
-    this.camera.alpha += direction * 0.2;
+    if (this.reducedMotion) this.camera.alpha += direction * 0.3;
+    else this.pendingRotation += direction * 0.3;
   }
   zoom(direction: number): void {
     this.camera.radius = Math.max(
@@ -1122,6 +1187,11 @@ export class World {
       this.connection?.tick(dt);
       this.galilee?.tick(dt);
       this.lakeCompany?.sample('Sit', dt, this.reducedMotion);
+      // Nearby people glance at the traveler; conversations direct their own gaze.
+      const head = new Vector3(this.position.x, this.player.position.y + 1.6, this.position.z);
+      for (const actor of this.actors.values())
+        if (!this.conversationView?.active)
+          actor.lookAt(distance(this.position, actor.root.position) < 4.5 ? head : null);
       for (const [id, actor] of this.actors)
         if ((id !== 'amos' || !this.neighborhood) && !this.everyday?.owns(id))
           actor.tick(dt, this.reducedMotion);
@@ -1159,6 +1229,7 @@ export class World {
           this.position,
           this.path,
           dt *
+            this.pace(dt) *
             (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
               ? 0.44
               : 1),
@@ -1186,7 +1257,9 @@ export class World {
         this.position.z,
       );
       this.actorPlayer.setStrideSpeed(
-        this.destination === 'amos-waypoint' || this.destination === 'neri-meeting' ? 1.43 : 3.25,
+        (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
+          ? 1.43
+          : 3.25) * (this.path.length ? Math.max(0.45, this.lastPace) : 1),
       );
       this.poseTraveler(moving && !this.paused, dt);
       const target = this.cameraTarget();
@@ -1209,6 +1282,21 @@ export class World {
     this.lastRender = now;
     this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
     if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
+    if (this.cameraReturn) {
+      const r = this.cameraReturn;
+      r.t = Math.min(1, r.t + Math.min(elapsed, 0.1) / 0.7);
+      const e = r.t * r.t * (3 - 2 * r.t);
+      this.camera.alpha = r.from.alpha + (r.to.alpha - r.from.alpha) * e;
+      this.camera.beta = r.from.beta + (r.to.beta - r.from.beta) * e;
+      this.camera.radius = r.from.radius + (r.to.radius - r.from.radius) * e;
+      Vector3.LerpToRef(r.from.target, r.to.target, e, this.camera.target);
+      if (r.t >= 1) this.cameraReturn = undefined;
+    }
+    if (Math.abs(this.pendingRotation) > 0.0005) {
+      const step = this.pendingRotation * (1 - Math.exp(-Math.min(elapsed, 0.1) * 10));
+      this.camera.alpha += step;
+      this.pendingRotation -= step;
+    }
     if (this.active) this.conversationView?.tick(Math.min(elapsed, 0.1), this.reducedMotion);
     // Consume slow frames in collision-safe steps; discard only long suspension gaps.
     let remaining = Math.min(elapsed, 0.25);
@@ -1241,7 +1329,11 @@ export class World {
           node.position.x * Math.cos(this.camera.alpha) +
             node.position.z * Math.sin(this.camera.alpha) >
           1;
-        node.scaling.y = towardCamera ? 0.22 : 1;
+        const target = towardCamera ? 0.22 : 1;
+        node.scaling.y = this.reducedMotion
+          ? target
+          : node.scaling.y +
+            (target - node.scaling.y) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 9));
       }
     }
     // Lower only foliage crossing the camera-to-traveler sightline; retain its trunk and collision.
@@ -1259,7 +1351,12 @@ export class World {
         t < 1 &&
         separation < 1.25 &&
         groundHeight(this.state.region, o) + o.height > rayHeight;
-      o.node.scaling.y = o.scaleY * (blocks ? 0.38 : 1);
+      // Dissolve rather than shrink: silhouette and collision stay put, the traveler shows through.
+      const target = blocks ? 0.3 : 1;
+      o.amount = this.reducedMotion
+        ? target
+        : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
+      for (const plugin of o.fade) plugin.fade = o.amount;
     }
     const companion = this.neighborhood?.position();
     if (companion)
@@ -1387,9 +1484,16 @@ export class World {
   }
   setConversation(id?: string, rect?: ScreenRect, paused = false): void {
     if (!id || this.travelerBoat) {
-      this.conversationView?.clear();
+      if (this.conversationView?.active && !this.reducedMotion) {
+        // Restore the exact bookmark, then glide there from the conversation framing.
+        const from = cameraPose(this.camera);
+        this.conversationView.clear();
+        this.cameraReturn = { from, to: cameraPose(this.camera), t: 0 };
+        applyCameraPose(this.camera, from);
+      } else this.conversationView?.clear();
       return;
     }
+    this.cameraReturn = undefined;
     const actor =
       id === 'neri'
         ? this.road?.conversationActor

@@ -1,5 +1,6 @@
 import type { ScreenRect } from '../../game/presence';
-import { applyCameraPose, frameSubject } from '../presentation/framing';
+import { frameSubject } from '../presentation/framing';
+import { ShotDirector } from '../presentation/shots';
 import { backdropTerrain, paintGround, wornPaths } from '../presentation/ground';
 import { StageEnvironment } from '../environment/stage';
 import { GroundCover } from '../environment/cover';
@@ -45,6 +46,8 @@ export class NainRegion implements RegionView {
   private reduced = false;
   private low = false;
   private stage: StageEnvironment;
+  private shots!: ShotDirector;
+  private composed = false;
   private cover?: GroundCover;
   private coverQuality?: 'high' | 'low';
   constructor(
@@ -63,6 +66,7 @@ export class NainRegion implements RegionView {
       this.scene,
     );
     this.camera.minZ = 0.1;
+    this.shots = new ShotDirector(this.camera);
     this.camera.maxZ = 100;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('nain-account'), {
       sky: 120,
@@ -144,8 +148,9 @@ export class NainRegion implements RegionView {
     const id = this.state.road.chapter.checkpoint ?? 'approach',
       c = compositions[id];
     const canvas = this.engine.getRenderingCanvas()!;
-    applyCameraPose(
-      this.camera,
+    // Checkpoints ease between framed shots; a first or restored composition is immediate.
+    this.shots.shot(
+      id,
       frameSubject(
         this.camera,
         canvas.clientWidth,
@@ -156,7 +161,11 @@ export class NainRegion implements RegionView {
         c.beta,
         this.readingBounds,
       ),
+      {
+        instant: !this.composed || this.reduced,
+      },
     );
+    this.composed = true;
     const approaching = id === 'approach',
       restored = id === 'wonder' || (id === 'restored' && (this.reduced || this.time >= 2.5));
     const z = approaching
@@ -257,6 +266,7 @@ export class NainRegion implements RegionView {
     this.compose();
     this.engine.getRenderingCanvas()!.dataset.nainTime =
       this.state.road.chapter.checkpoint + ':' + this.time.toFixed(2);
+    this.shots.tick(dt, { running: !this.paused, reduced: this.reduced });
     this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);
     this.scene.render();
