@@ -113,8 +113,8 @@ export const environmentProfiles: Record<RegionId | 'title', EnvironmentProfile>
   'roof-account': {
     ...morning,
     label: 'A crowded house',
-    sun: { azimuth: 2.5, elevation: 1.05, color: '#ffe3b4', intensity: 0.95, disc: 0 },
-    fill: { sky: '#eedfc6', ground: '#86674a', intensity: 0.68 },
+    sun: { azimuth: 2.5, elevation: 0.95, color: '#fff0d6', intensity: 0.78, disc: 0 },
+    fill: { sky: '#e3ddd0', ground: '#7a6650', intensity: 0.55 },
     fog: { color: '#cfc3a8', density: 0.004 },
     grade: { exposure: 1.03, contrast: 1.08, saturation: 1.04, warmth: 0.32, vignette: 0.42 },
     shadow: { darkness: 0.74, extent: 14 },

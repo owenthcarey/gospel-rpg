@@ -143,7 +143,7 @@ export class RoofRegion implements RegionView {
     });
     const floor = MeshBuilder.CreateGround('house-floor', { width: 16, height: 20 }, this.scene);
     const material = new StandardMaterial('earthen-floor', this.scene);
-    material.diffuseColor = Color3.FromHexString('#ded1b3').toLinearSpace();
+    material.diffuseColor = Color3.FromHexString('#a39478');
     material.specularColor = Color3.Black();
     floor.material = material;
     floor.receiveShadows = true;

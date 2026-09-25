@@ -603,23 +603,44 @@ export class World {
             { x: 0, z: 3, halfX: 14, halfZ: 11 },
             { x: 0, z: 513, halfX: 1000, halfZ: 500 },
           ],
-      coast: afloat ? 0 : 1,
+      coast: 1,
     });
     this.stage.attachWater(this.water);
     if (afloat) {
-      const sand = this.material('crossing-sand', '#b6ac87');
-      for (const [x, z, width, height] of [
-        [-40, 0, 36, 100],
-        [40, 0, 36, 100],
-        [-5, 3, 5, 4],
-      ]) {
+      // Banks and the islet share the water shader's irregular coast, so foam meets real land.
+      const box = (p: Point, cx: number, cz: number, hx: number, hz: number) => {
+        const ex = Math.abs(p.x - cx) - hx,
+          ez = Math.abs(p.z - cz) - hz;
+        return Math.hypot(Math.max(ex, 0), Math.max(ez, 0)) + Math.min(Math.max(ex, ez), 0);
+      };
+      const land = (p: Point) =>
+        Math.min(box(p, -40, 0, 18, 50), box(p, 40, 0, 18, 50), box(p, -5, 3, 2.5, 2)) -
+          coastMargin(p) <
+        0;
+      for (const [x, z, width, depth] of [
+        [-42, 0, 44, 110],
+        [42, 0, 44, 110],
+        [-5, 3, 12, 11],
+      ] as const) {
         const bank = MeshBuilder.CreateGround(
           'crossing-bank',
-          { width: width!, height: height! },
+          { width, height: depth, subdivisions: Math.round(Math.max(width, depth) / 1.2) },
           this.scene,
         );
-        bank.position.set(x!, 0.01, z!);
-        bank.material = sand;
+        bank.position.set(x, 0, z);
+        const positions = bank.getVerticesData(VertexBuffer.PositionKind)!;
+        for (let i = 0; i < positions.length; i += 3) {
+          const p = { x: positions[i]! + x, z: positions[i + 2]! + z };
+          const inland = Math.max(0, Math.abs(p.x) - 26);
+          positions[i + 1] = land(p) ? 0.02 + Math.min(1.6, inland * 0.12) : -0.4;
+        }
+        const normals: number[] = [];
+        VertexData.ComputeNormals(positions, bank.getIndices()!, normals);
+        bank.setVerticesData(VertexBuffer.PositionKind, positions);
+        bank.setVerticesData(VertexBuffer.NormalKind, normals);
+        bank.material = this.material('crossing-bank-earth', '#ffffff');
+        paintGround(bank, 'shore', land);
+        bank.receiveShadows = true;
         bank.isPickable = false;
       }
     }
