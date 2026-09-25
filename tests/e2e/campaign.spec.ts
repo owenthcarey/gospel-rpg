@@ -362,7 +362,8 @@ test('the borrowed handle opens the passage and an indoor table accepts bread fi
     info.project.name === 'mobile-chromium',
     'Alternate action order is also covered by unit tests on the shared reducer.',
   );
-  test.setTimeout(240_000);
+  // CI's software renderer needs room for every trip, delivery and final export.
+  test.setTimeout(process.env.CI ? 360_000 : 240_000);
   await ready(page, Buffer.from(JSON.stringify(makeSave(district()))));
   await visit(page, 'amos');
   await doAction(page, 'walk-accept');

@@ -19,6 +19,8 @@ export default defineConfig({
   projects: [
     {
       name: 'firefox',
+      // Hosted Firefox completed the action but exhausted two minutes during reload.
+      timeout: process.env.CI ? 240_000 : 120_000,
       use: { ...devices['Desktop Firefox'], viewport: { width: 1280, height: 800 } },
     },
     {
