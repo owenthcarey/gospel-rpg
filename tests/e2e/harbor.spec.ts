@@ -13,7 +13,8 @@ async function act(page: Page, id: string) {
 test('an early traveler reopens the northern landing, recovers failed tests and remembers patient work', async ({
   page,
 }, info) => {
-  test.setTimeout(240_000);
+  // The hosted run took 210 seconds; keep margin for slower software-rendering hosts.
+  test.setTimeout(process.env.CI ? 360_000 : 240_000);
   await ready(page);
   await visit(page, 'eliab');
   await act(page, 'accept');
@@ -98,7 +99,8 @@ test('southern work survives export and reload, supports keyboard inspection and
 test('all four village spaces retain visible additions and remain inside High and Low render budgets', async ({
   page,
 }, info) => {
-  test.setTimeout(300_000);
+  // Eight 120-frame software-rendering samples nearly consume five minutes in CI.
+  test.setTimeout(process.env.CI ? 450_000 : 300_000);
   const records: Record<string, unknown> = {};
   for (const region of ['capernaum', 'capernaum-lanes', 'gathering-house', 'bakehouse'] as const) {
     const s = harborAction(

@@ -233,7 +233,8 @@ test('the landing bench supports both material routes, visible repair, pause, sa
 test('a carried pouch has a usable return route while journal travel preserves a roof checkpoint', async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  // The hosted desktop run left only six seconds under the old three-minute limit.
+  test.setTimeout(process.env.CI ? 300_000 : 180_000);
   await page.goto('/');
   await page.getByRole('button', { name: 'Saves & settings' }).click();
   await page.locator('[data-setting="quality"]').selectOption('low');
