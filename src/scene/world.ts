@@ -7,6 +7,7 @@ import {
   shorelineBank,
   paintGround,
   backdropTerrain,
+  coastMargin,
   groundColor,
   type GroundStyle,
 } from './presentation/ground';
@@ -102,6 +103,16 @@ export interface ScreenLabel {
   visible: boolean;
 }
 
+/** Height of a regular ground grid at a point, from its own vertices (nearest sample). */
+function floorHeight(mesh: Mesh, p: Point): number {
+  const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+  const count = Math.round(Math.sqrt(positions.length / 3));
+  const size = mesh.getBoundingInfo().boundingBox.extendSize;
+  const i = Math.round(((p.x + size.x) / (size.x * 2)) * (count - 1));
+  const j = Math.round(((p.z + size.z) / (size.z * 2)) * (count - 1));
+  const k = (Math.max(0, Math.min(count - 1, j)) * count + Math.max(0, Math.min(count - 1, i))) * 3;
+  return positions[k + 1] ?? 0;
+}
 function groundStyle(region: string): GroundStyle {
   if (['galilean-road', 'roadside-farm', 'nain-gate'].includes(region)) return 'dry';
   if (['reed-landing', 'sheltered-cove'].includes(region)) return 'shore';
@@ -232,8 +243,8 @@ export class World {
       const floor = MeshBuilder.CreateGround(
         'walkable-terrain',
         {
-          width: inside ? 16 : 100,
-          height: inside ? 16 : 100,
+          width: inside ? 12.6 : 100,
+          height: inside ? 12.6 : 100,
           subdivisions: inside ? 1 : 100,
         },
         this.scene,
@@ -246,7 +257,7 @@ export class World {
       if (inside) {
         // Use the same lighting path as the worn surfaces; a diffuse color is
         // clamped before vertex color in StandardMaterial and would make the base brighter.
-        const earth = Color3.FromHexString('#cebc9c').toLinearSpace();
+        const earth = Color3.FromHexString('#b4a283');
         floor.setVerticesData(
           VertexBuffer.ColorKind,
           Array.from({ length: floor.getTotalVertices() }, () => [
@@ -257,15 +268,32 @@ export class World {
           ]).flat(),
         );
       } else
-        paintGround(floor, groundStyle(initial.region), shore ? this.layout.terrain : undefined);
+        paintGround(
+          floor,
+          groundStyle(initial.region),
+          shore ? (p) => floorHeight(floor, p) > -0.01 : undefined,
+        );
       wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
         groundHeight(initial.region, p),
       );
+      if (inside) {
+        // The lane outside the doorway: the room sits in a street, not in empty space.
+        const lane = MeshBuilder.CreateGround(
+          'surrounding-lane',
+          { width: 60, height: 60, subdivisions: 40 },
+          this.scene,
+        );
+        lane.position.y = -0.03;
+        lane.material = this.material('surrounding-lane-earth', '#ffffff');
+        paintGround(lane, 'lane');
+        lane.receiveShadows = true;
+        lane.isPickable = false;
+      }
       if (inside)
         groundMosaic(
           this.scene,
           'regional-earth',
-          this.layout.bounds,
+          { min: -5.8, max: 5.8 },
           this.layout.terrain,
           (p) => groundHeight(initial.region, p),
           true,
@@ -278,11 +306,11 @@ export class World {
           style: groundStyle(initial.region),
           base: (p) => groundHeight(initial.region, p),
           water: shore
-            ? (p) => p.z < 17
+            ? (p) => p.z < 13 && !(Math.abs(p.x) < 14 && p.z > -8)
             : initial.region === 'galilean-road'
               ? (p) => p.x > 30 && p.z < 0 && p.z > -40
               : undefined,
-          rise: shore ? (p) => Math.min(1, Math.max(0, (p.z - 18) / 10)) : undefined,
+          rise: shore ? (p) => Math.min(1, Math.max(0, (p.z - 14) / 10)) : undefined,
         });
       if (isLakeRegion(initial.region)) this.makeCrossingTerrain();
       if (initial.region === 'galilean-road') {
@@ -351,8 +379,18 @@ export class World {
         node.position.y = groundHeight(this.state.region, p) + (p.y ?? 0);
         node.scaling.x *= p.scaleX ?? 1;
         if (p.cutaway) this.cutaways.push({ node, kind: p.cutaway });
+        if (p.asset === 'oven')
+          this.stage.atmosphere.addSmoke(new Vector3(p.x, node.position.y + 1.25, p.z), 0.7);
       }
-    } else for (const p of [...buildings, ...trees, ...props]) this.place(p);
+    } else {
+      for (const p of [...buildings, ...trees, ...props]) this.place(p);
+      // Courtyard ovens behind two homes: a quiet sign of an ordinary morning.
+      for (const [x, z] of [
+        [-10.5, 7.5],
+        [-16, -7],
+      ])
+        this.stage.atmosphere.addSmoke(new Vector3(x!, 0.9, z!), 0.9);
+    }
     for (const person of this.layout
       ? isLakeRegion(this.state.region)
         ? localLakePlaces(this.state)
@@ -466,10 +504,22 @@ export class World {
       name: 'crossing-water',
       width: 160,
       depth: 160,
-      z: afloat ? 0 : -74,
+      z: afloat ? 0 : -60,
       y: afloat ? -0.04 : -0.12,
       interactive: afloat,
+      land: afloat
+        ? [
+            { x: -40, z: 0, halfX: 18, halfZ: 50 },
+            { x: 40, z: 0, halfX: 18, halfZ: 50 },
+            { x: -5, z: 3, halfX: 2.5, halfZ: 2 },
+          ]
+        : [
+            { x: 0, z: 3, halfX: 14, halfZ: 11 },
+            { x: 0, z: 513, halfX: 1000, halfZ: 500 },
+          ],
+      coast: afloat ? 0 : 1,
     });
+    this.stage.attachWater(this.water);
     if (afloat) {
       const sand = this.material('crossing-sand', '#b6ac87');
       for (const [x, z, width, height] of [
@@ -487,6 +537,20 @@ export class World {
         bank.isPickable = false;
       }
     }
+  }
+  /** Cosmetic rings around floating hulls; the steered boat's rings strengthen while moving. */
+  private hullRipples() {
+    const hulls = [
+      ...this.boats.map((node) => ({ node, strength: 0.35 })),
+      ...(this.mooredBoat?.isEnabled() ? [{ node: this.mooredBoat, strength: 0.3 }] : []),
+      ...(this.travelerBoat
+        ? [{ node: this.player, strength: this.path.length || this.keys.size ? 0.9 : 0.4 }]
+        : []),
+    ];
+    return hulls.map(({ node, strength }) => {
+      const at = node.getAbsolutePosition();
+      return { x: at.x, z: at.z, radius: 1.5, strength };
+    });
   }
   get atmosphere(): string {
     return this.stage.label;
@@ -529,15 +593,17 @@ export class World {
   /** Slope unwalkable floor down under the lake so the water meets a real bank. */
   private shapeShore(mesh: Mesh): void {
     const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
-    const land = this.layout!.terrain;
+    // Land continues behind the landing; only its lake-facing sides fall away.
+    const land = (p: Point) => this.layout!.terrain(p) || p.z > 13;
     for (let i = 0; i < positions.length; i += 3) {
       const p = { x: positions[i]!, z: positions[i + 2]! };
       if (land(p)) continue;
-      let nearest = 4;
-      for (let dz = -3.5; dz <= 3.5; dz += 0.5)
-        for (let dx = -3.5; dx <= 3.5; dx += 0.5)
+      let nearest = 7;
+      for (let dz = -6; dz <= 6; dz += 0.5)
+        for (let dx = -6; dx <= 6; dx += 0.5)
           if (land({ x: p.x + dx, z: p.z + dz })) nearest = Math.min(nearest, Math.hypot(dx, dz));
-      positions[i + 1] = -0.55 * Math.min(1, nearest / 2.5);
+      const beyond = nearest - coastMargin(p);
+      positions[i + 1] = beyond <= 0 ? 0 : -0.55 * Math.min(1, beyond / 2.5);
     }
     const normals: number[] = [];
     VertexData.ComputeNormals(positions, mesh.getIndices()!, normals);
@@ -612,8 +678,10 @@ export class World {
       depth: 180,
       x: 45,
       z: 5,
-      shore: 8,
+      land: [{ x: 9.3 - 500, z: 0, halfX: 500, halfZ: 1000 }],
+      wobble: { amplitude: 1.5, frequency: 0.16 },
     });
+    this.stage.attachWater(this.water);
   }
 
   private makePaths(): void {
@@ -822,8 +890,12 @@ export class World {
       this.seatedAction = undefined;
       this.playerModel.position.set(0, 0, 0);
     }
-    if (moving && !this.reducedMotion) this.strideTime += dt;
-    else this.strideTime = 0;
+    if (moving && !this.reducedMotion) {
+      const before = Math.floor(this.strideTime / 0.4);
+      this.strideTime += dt;
+      if (Math.floor(this.strideTime / 0.4) !== before)
+        this.stage.atmosphere.footstep(this.player.position.add(new Vector3(0, 0.05, 0)));
+    } else this.strideTime = 0;
     const clip = this.state.campaign.carrying
       ? 'Carry'
       : (this.neighborhood?.playerClip(moving) ??
@@ -1051,6 +1123,7 @@ export class World {
       });
     }
     this.water?.tick(this.time, this.reducedMotion);
+    this.water?.setRipples(this.hullRipples());
     this.actionFeedback?.tick(
       Math.min(elapsed, 0.1),
       this.active && !this.paused,
@@ -1100,7 +1173,7 @@ export class World {
       : '';
     if (neri)
       this.destinations = this.destinations.map((p) => (p.id === 'neri' ? { ...p, ...neri } : p));
-    this.stage.setFocus(this.camera.target);
+    this.stage.setView(this.camera.target);
     this.stage.tick(Math.min(elapsed, 0.1), this.active && !this.paused);
     this.scene.render();
     const playback = this.actorPlayer.playback;

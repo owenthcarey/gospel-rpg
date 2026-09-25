@@ -18,7 +18,9 @@ import type { Settings } from '../../game/types';
 import { SkyDome } from './sky';
 import { horizonRings, type HorizonOptions } from './horizon';
 import { ContactShadows } from './contact';
+import { Atmosphere } from './atmosphere';
 import { matte, StylePlugin } from './matte';
+import type { WaterPresentation } from '../presentation/water';
 
 export interface StageOptions {
   /** Sky dome radius; omit for enclosed rooms. */
@@ -48,6 +50,7 @@ export class StageEnvironment {
   readonly fill: HemisphericLight;
   readonly shadow: ShadowGenerator;
   readonly contact: ContactShadows;
+  readonly atmosphere: Atmosphere;
   private sky?: SkyDome;
   private horizon?: Mesh;
   private pipeline?: DefaultRenderingPipeline;
@@ -58,6 +61,7 @@ export class StageEnvironment {
   private time = 0;
   private focus = new Vector3();
   private curves = new ColorCurves();
+  private waters: WaterPresentation[] = [];
   constructor(
     readonly scene: Scene,
     private camera: Camera,
@@ -82,6 +86,7 @@ export class StageEnvironment {
     if (options.horizon && profile.horizon)
       this.horizon = horizonRings(scene, { ...options.horizon, colors: profile.horizon });
     this.contact = new ContactShadows(scene, options.ground ?? (() => 0));
+    this.atmosphere = new Atmosphere(scene, profile);
     const config = scene.imageProcessingConfiguration;
     config.toneMappingEnabled = true;
     config.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_KHR_PBR_NEUTRAL;
@@ -141,14 +146,27 @@ export class StageEnvironment {
     this.curves.shadowsHue = warm >= 0 ? 215 : 30;
     this.curves.shadowsDensity = Math.abs(warm) * 14;
     this.sky?.apply(p, direction, Boolean(this.pipeline));
+    for (const water of this.waters)
+      water.applyEnvironment(p, direction.scale(-1), Boolean(this.pipeline));
     if (this.pipeline) this.pipeline.bloomWeight = p.bloom;
+    this.atmosphere?.setProfile(p);
     this.placeSun();
+  }
+  /** Water shares the stage's sky, sun, fog and output color space. */
+  attachWater(water: WaterPresentation): void {
+    this.waters.push(water);
+    water.applyEnvironment(this.current, this.sun.direction.scale(-1), Boolean(this.pipeline));
   }
   /** Keep the sharp shadow volume centered on what the player is looking at. */
   setFocus(point: Vector3): void {
     if (this.options.shadowCenter) return;
     this.focus.copyFrom(point);
     this.placeSun();
+  }
+  /** Ambient particles and birds follow the view even where the shadow volume is fixed. */
+  setView(point: Vector3): void {
+    this.atmosphere.setFocus(point);
+    this.setFocus(point);
   }
   private placeSun(): void {
     const direction = this.sun.direction.normalizeToNew();
@@ -172,12 +190,14 @@ export class StageEnvironment {
     this.sky?.setTime(this.time);
     StylePlugin.setWind(this.time, this.reduced ? 0 : this.current.wind);
     this.contact.update();
+    this.atmosphere.tick(dt, running);
   }
   applySettings(settings: Pick<Settings, 'quality' | 'reducedMotion'>): void {
     this.reduced = settings.reducedMotion;
     const high = settings.quality !== 'low';
     this.scene.shadowsEnabled = high;
     this.contact.setStrength(high ? 0.55 : 1);
+    this.atmosphere.applySettings(!high, this.reduced);
     if (high && !this.pipeline) {
       this.pipeline = new DefaultRenderingPipeline(
         'stage-grade',
@@ -211,6 +231,7 @@ export class StageEnvironment {
     this.horizon?.material?.dispose();
     this.horizon?.dispose();
     this.contact.dispose();
+    this.atmosphere.dispose();
     this.shadow.dispose();
     StylePlugin.setWind(0, 0);
   }

@@ -18,7 +18,7 @@ export function wornAreas(
     indices: number[] = [],
     colors: number[] = [];
   const shades = (
-    inside ? ['#d6c19a', '#d0be9b', '#cebc9c'] : ['#cfc8ae', '#cdc6ad', '#cac4ac']
+    inside ? ['#dcd2bf', '#d9cfbc', '#d7cdba'] : ['#cfc8ae', '#cdc6ad', '#cac4ac']
   ).map((hex) => Color3.FromHexString(hex).toLinearSpace());
   for (const [x, z, width, depth] of areas) {
     const base = positions.length / 3;
@@ -187,7 +187,7 @@ export function groundMosaic(
   const palette = (
     paletteHex ??
     (inside
-      ? ['#cdbb9c', '#cebd9d', '#cebc9b', '#cfbd9d']
+      ? ['#d7cdba', '#d9cfbc', '#d5cbb8', '#dad0bd']
       : ['#b1b38b', '#b5b68b', '#b8b68a', '#afaf85', '#b6b58a'])
   ).map((c) => Color3.FromHexString(c).toLinearSpace());
   const step = inside ? 1.6 : 2.1;
@@ -259,12 +259,22 @@ export function fbm(x: number, z: number, octaves = 4): number {
   return value / total;
 }
 
-export type GroundStyle = 'village' | 'dry' | 'shore';
+/** Irregular coast margin shared with the water shader's shore distance. */
+export function coastMargin(p: Point): number {
+  return (
+    1.2 +
+    0.8 * Math.sin(p.x * 0.35 + Math.sin(p.z * 0.21) * 2) +
+    0.45 * Math.sin(p.z * 0.47 + p.x * 0.13)
+  );
+}
+
+export type GroundStyle = 'village' | 'dry' | 'shore' | 'lane';
 const GROUND_PALETTES: Record<GroundStyle, readonly [string, string, string, string]> = {
   // lush, dry, earth, distant
   village: ['#85925f', '#a39c6c', '#8f7b5a', '#8a9478'],
   dry: ['#8e955f', '#b0a370', '#9a8160', '#949778'],
-  shore: ['#8a965f', '#a9a072', '#9a8765', '#8b9679'],
+  shore: ['#8a965f', '#9d9a6e', '#958464', '#8b9679'],
+  lane: ['#9d8d6f', '#a49474', '#8c7b62', '#948a72'],
 };
 /** Broad painted variation shared by the playable floor and the backdrop, so they meet seamlessly. */
 export function groundColor(p: Point, style: GroundStyle, rise = 0): Color3 {

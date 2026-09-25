@@ -81,6 +81,7 @@ export class StormRegion implements RegionView {
       y: -0.2,
       storm: true,
     });
+    this.stage.attachWater(this.water);
     this.flood = MeshBuilder.CreateGround(
       'water-inside-hull',
       { width: 0.85, height: 2.2 },
@@ -149,6 +150,7 @@ export class StormRegion implements RegionView {
           : 1 - Math.min(this.time / 3, 1)
         : 0;
     this.stage.blend(stormProfile, rough);
+    this.stage.atmosphere.setIntensity(rough);
     this.sea.diffuseColor = Color3.Lerp(
       Color3.FromHexString('#6098a5').toLinearSpace(),
       Color3.FromHexString('#3c586b').toLinearSpace(),
@@ -184,6 +186,7 @@ export class StormRegion implements RegionView {
     this.water.setStorm(rough);
     this.water.quality(this.low);
     this.water.tick(this.time, this.reduced);
+    this.water.setRipples([{ x: 0, z: 0, radius: 2.2, strength: 0.4 + rough * 0.5 }]);
     this.others.forEach((b) => b.root.setEnabled(id !== 'waking'));
     const alpha = id === 'waking' ? -1.5 : -1.05,
       beta = 0.9;
@@ -228,6 +231,7 @@ export class StormRegion implements RegionView {
     this.compose();
     this.engine.getRenderingCanvas()!.dataset.stormTime =
       this.state.lake.chapter.checkpoint + ':' + this.time.toFixed(2);
+    this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);
     this.scene.render();
   }

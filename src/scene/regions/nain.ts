@@ -244,6 +244,7 @@ export class NainRegion implements RegionView {
     this.compose();
     this.engine.getRenderingCanvas()!.dataset.nainTime =
       this.state.road.chapter.checkpoint + ':' + this.time.toFixed(2);
+    this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);
     this.scene.render();
   }

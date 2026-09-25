@@ -307,6 +307,7 @@ export class RoofRegion implements RegionView {
     this.last = now;
     if (!this.paused) this.time += dt;
     this.compose(this.paused ? 0 : dt);
+    this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);
     this.scene.render();
   }

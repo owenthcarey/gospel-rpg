@@ -90,8 +90,9 @@ export class LakeRegion implements RegionView {
       x: 25,
       z: 5,
       y: -0.16,
-      shore: -11,
+      shore: -12,
     });
+    this.stage.attachWater(this.water);
     const shore = MeshBuilder.CreateGround('distant-shore', { width: 30, height: 100 }, this.scene);
     shore.position.set(-27, 0.01, 0);
     shore.material = this.material('shore-sand', '#ffffff');
@@ -308,6 +309,14 @@ export class LakeRegion implements RegionView {
     }
     this.stageOars();
     this.water.tick(this.time, this.reduced);
+    this.water.setRipples(
+      this.boats.map((b) => ({
+        x: b.root.position.x,
+        z: b.root.position.z,
+        radius: 1.9,
+        strength: t < 1 ? 0.8 : 0.4,
+      })),
+    );
     this.scene.metadata = {
       ...this.scene.metadata,
       lake: { checkpoint: this.checkpoint, time: this.time, entrance: t, extent: c.extent },
@@ -401,7 +410,7 @@ export class LakeRegion implements RegionView {
       for (const actor of this.extras) actor.tick(dt, this.reduced);
     } else this.positionScene(0);
     this.stageOars();
-    this.stage.setFocus(this.camera.target);
+    this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);
     this.scene.render();
     this.dirty = false;
