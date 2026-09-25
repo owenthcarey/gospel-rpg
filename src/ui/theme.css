@@ -209,3 +209,10 @@
     bottom: calc(44dvh + 18px);
   }
 }
+
+@media (max-width: 640px) {
+  /* Phone reading text grows; inscription labels keep their proportion. */
+  :root .panel-body p.eyebrow {
+    font-size: 10.5px;
+  }
+}
