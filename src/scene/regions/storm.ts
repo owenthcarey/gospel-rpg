@@ -1,15 +1,14 @@
 import type { ScreenRect } from '../../game/presence';
 import { applyCameraPose, frameSubject } from '../presentation/framing';
 import { WaterPresentation } from '../presentation/water';
+import { StageEnvironment } from '../environment/stage';
+import { environmentFor, stormProfile } from '../../content/environment';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
-import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
-import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
-import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
@@ -49,6 +48,7 @@ export class StormRegion implements RegionView {
   private paused = true;
   private reduced = false;
   private low = false;
+  private stage: StageEnvironment;
   constructor(
     private engine: Engine,
     state: GameState,
@@ -66,15 +66,13 @@ export class StormRegion implements RegionView {
     );
     this.camera.minZ = 0.1;
     this.camera.maxZ = 150;
-    const sky = new HemisphericLight('evening-sky', new Vector3(0, 1, 0), this.scene);
-    sky.intensity = 0.8;
-    const sun = new DirectionalLight('evening-light', new Vector3(0.4, -1, 0.6), this.scene);
-    sun.position.set(-12, 20, -12);
-    sun.intensity = 0.55;
-    const shadows = new ShadowGenerator(1024, sun);
-    shadows.usePercentageCloserFiltering = true;
-    shadows.normalBias = 0.04;
-    this.library = new AssetLibrary(this.scene, shadows);
+    this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('storm-account'), {
+      sky: 140,
+      horizon: { center: { x: 0, z: 10 }, radius: 62, seed: 23 },
+      ground: () => -0.2,
+      shadowCenter: new Vector3(0, 0, 0),
+    });
+    this.library = new AssetLibrary(this.scene, this.stage.shadow);
     this.sea = this.material('storm-sea', '#6098a5');
     this.water = new WaterPresentation(this.scene, {
       name: 'storm-water',
@@ -92,10 +90,7 @@ export class StormRegion implements RegionView {
     this.flood.isPickable = false;
   }
   private material(name: string, hex: string): StandardMaterial {
-    const m = new StandardMaterial(name, this.scene);
-    m.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
-    m.specularColor = Color3.Black();
-    return m;
+    return this.stage.material(name, hex);
   }
   async load(progress: (message: string) => void): Promise<void> {
     await this.library.load(STORM_ASSETS, (n, total) =>
@@ -140,10 +135,10 @@ export class StormRegion implements RegionView {
       rock.position.set(-25 + i * 15, -0.1, 28);
       rock.scaling.setAll(2);
     }
-    this.stage();
+    this.compose();
     await this.scene.whenReadyAsync();
   }
-  private stage(): void {
+  private compose(): void {
     if (!this.boat) return;
     const id = this.state.lake.chapter.checkpoint ?? 'evening';
     const rough = ['storm', 'waking'].includes(id)
@@ -153,11 +148,7 @@ export class StormRegion implements RegionView {
           ? 0
           : 1 - Math.min(this.time / 3, 1)
         : 0;
-    this.scene.clearColor = Color4.Lerp(
-      new Color4(0.65, 0.74, 0.75, 1),
-      new Color4(0.28, 0.36, 0.43, 1),
-      rough,
-    );
+    this.stage.blend(stormProfile, rough);
     this.sea.diffuseColor = Color3.Lerp(
       Color3.FromHexString('#6098a5').toLinearSpace(),
       Color3.FromHexString('#3c586b').toLinearSpace(),
@@ -219,7 +210,7 @@ export class StormRegion implements RegionView {
   update(state: GameState): void {
     if (this.state.lake.chapter.checkpoint !== state.lake.chapter.checkpoint) this.time = 0;
     this.state = structuredClone(state);
-    this.stage();
+    this.compose();
   }
   setReadingBounds(rect?: ScreenRect): void {
     this.readingBounds = rect;
@@ -234,9 +225,10 @@ export class StormRegion implements RegionView {
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
     if (!this.paused && !this.reduced) this.time += dt;
-    this.stage();
+    this.compose();
     this.engine.getRenderingCanvas()!.dataset.stormTime =
       this.state.lake.chapter.checkpoint + ':' + this.time.toFixed(2);
+    this.stage.tick(dt, !this.paused);
     this.scene.render();
   }
   getPosition(): Point {
@@ -245,8 +237,8 @@ export class StormRegion implements RegionView {
   applySettings(s: Settings): void {
     this.reduced = s.reducedMotion;
     this.low = s.quality === 'low';
-    this.scene.shadowsEnabled = !this.low;
-    this.stage();
+    this.stage.applySettings(s);
+    this.compose();
   }
   setPaused(v: boolean): void {
     this.paused = v;
@@ -261,6 +253,7 @@ export class StormRegion implements RegionView {
   dispose(): void {
     this.water.dispose();
     this.library.dispose();
+    this.stage.dispose();
     this.scene.dispose();
   }
 }

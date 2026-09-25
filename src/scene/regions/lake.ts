@@ -4,19 +4,18 @@ import { frameSubject } from '../presentation/framing';
 import { boatSupport } from '../actors/boat';
 import type { LinesMesh } from '@babylonjs/core/Meshes/linesMesh';
 import { fitOar, handGrip } from '../presentation/attachments';
-import { groundMosaic, shorelineBank } from '../presentation/ground';
+import { backdropTerrain, groundMosaic, shorelineBank } from '../presentation/ground';
+import { StageEnvironment } from '../environment/stage';
+import { environmentFor } from '../../content/environment';
 import { WaterPresentation } from '../presentation/water';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
-import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
-import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
-import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
+import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
-import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { GameState, Point, Settings } from '../../game/types';
 import { LAKE_ASSETS, type ActorAsset } from '../../content/assets';
@@ -30,6 +29,7 @@ export class LakeRegion implements RegionView {
   readonly camera: ArcRotateCamera;
   private library: AssetLibrary;
   private shadow: ShadowGenerator;
+  private stage: StageEnvironment;
   private boats: Model[] = [];
   private actors = new Map<string, Actor>();
   private extras: Actor[] = [];
@@ -58,10 +58,6 @@ export class LakeRegion implements RegionView {
   ) {
     this.shorePosition = { ...state.position };
     this.scene = new Scene(engine);
-    this.scene.clearColor = new Color4(0.58, 0.72, 0.72, 1);
-    this.scene.fogMode = Scene.FOGMODE_EXP2;
-    this.scene.fogColor = new Color3(0.58, 0.72, 0.72);
-    this.scene.fogDensity = 0.008;
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
       'lake-camera',
@@ -74,27 +70,17 @@ export class LakeRegion implements RegionView {
     this.camera.fov = 0.65;
     this.camera.minZ = 0.1;
     this.camera.maxZ = 160;
-    const sky = new HemisphericLight('lake-sky', new Vector3(0, 1, 0), this.scene);
-    sky.intensity = 0.6;
-    sky.diffuse = new Color3(0.94, 0.96, 1);
-    sky.groundColor = new Color3(0.42, 0.38, 0.24);
-    const sun = new DirectionalLight('lake-sun', new Vector3(0.6, -1.5, 0.8), this.scene);
-    sun.position.set(-20, 30, -15);
-    sun.intensity = 0.72;
-    sun.diffuse = new Color3(1, 0.97, 0.88);
-    this.shadow = new ShadowGenerator(1024, sun);
-    this.shadow.usePercentageCloserFiltering = true;
-    this.shadow.darkness = 0.22;
-    this.shadow.bias = 0.002;
+    this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('lake-gennesaret'), {
+      sky: 150,
+      horizon: { center: { x: 8, z: 4 }, radius: 70, seed: 5 },
+      ground: (x) => (x < -12 ? 0 : -0.16),
+    });
+    this.shadow = this.stage.shadow;
     this.library = new AssetLibrary(this.scene, this.shadow);
     this.environment();
   }
   private material(name: string, hex: string, alpha = 1): StandardMaterial {
-    const material = new StandardMaterial(name, this.scene);
-    material.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
-    material.specularColor = Color3.Black();
-    material.alpha = alpha;
-    return material;
+    return this.stage.material(name, hex, alpha);
   }
   private environment(): void {
     this.water = new WaterPresentation(this.scene, {
@@ -126,21 +112,12 @@ export class LakeRegion implements RegionView {
       false,
       ['#c5b89b', '#c7ba9c', '#c6b99a', '#c7b99b'],
     );
-    const hillMaterial = this.material('lake-hills', '#9fae86');
-    const hills: Mesh[] = [];
-    for (let i = 0; i < 10; i++) {
-      const hill = MeshBuilder.CreateIcoSphere(
-        'lake-hill',
-        { radius: 1, subdivisions: 1 },
-        this.scene,
-      );
-      hill.position.set(-45 + i * 10, -3, 40 + (i % 3) * 3);
-      hill.scaling.set(12, 6 + (i % 4), 10);
-      hill.material = hillMaterial;
-      hill.isPickable = false;
-      hills.push(hill);
-    }
-    Mesh.MergeMeshes(hills, true, true);
+    backdropTerrain(this.scene, {
+      reserve: { minX: -42, maxX: 60, minZ: -40, maxZ: 40 },
+      size: 220,
+      style: 'shore',
+      water: (p) => p.x > -13,
+    });
   }
   async load(progress: (message: string) => void): Promise<void> {
     await this.library.load(LAKE_ASSETS, (loaded, total) =>
@@ -222,6 +199,7 @@ export class LakeRegion implements RegionView {
       );
       actor.root.position.set(-12.4 - (i % 2) * 1.1, 0, -3.4 + Math.floor(i / 2) * 1.55);
       actor.root.rotation.y = Math.PI / 2;
+      this.stage.contact.add(actor.root, 0.4);
       this.extras.push(actor);
     }
     for (let i = 0; i < 8; i++) {
@@ -423,13 +401,15 @@ export class LakeRegion implements RegionView {
       for (const actor of this.extras) actor.tick(dt, this.reduced);
     } else this.positionScene(0);
     this.stageOars();
+    this.stage.setFocus(this.camera.target);
+    this.stage.tick(dt, !this.paused);
     this.scene.render();
     this.dirty = false;
   }
   applySettings(settings: Settings): void {
     this.reduced = settings.reducedMotion;
     this.water.quality(settings.quality === 'low');
-    this.scene.shadowsEnabled = settings.quality === 'high';
+    this.stage.applySettings(settings);
     this.extras.forEach((actor, i) => actor.root.setEnabled(settings.quality === 'high' || i < 4));
     if (this.reduced) {
       this.entrance = 4;
@@ -455,6 +435,7 @@ export class LakeRegion implements RegionView {
     for (const actor of [...this.actors.values(), ...this.extras]) actor.dispose();
     this.water.dispose();
     this.library.dispose();
+    this.stage.dispose();
     this.scene.dispose();
   }
 }

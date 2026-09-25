@@ -60,6 +60,8 @@ export class GameRuntime {
     this.engine.onContextRestoredObservable.add(() => {
       this.graphicsReady = true;
     });
+    // TEMP(rfc011): development inspection handle.
+    if (import.meta.env.DEV) (window as unknown as { __runtime: GameRuntime }).__runtime = this;
     this.resize = () => this.engine.resize();
     window.addEventListener('resize', this.resize);
     this.engine.runRenderLoop(() => {

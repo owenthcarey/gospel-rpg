@@ -2,7 +2,7 @@
   "name": "gospel-rpg",
   "version": "0.2.0",
   "private": true,
-  "description": "The Way \u2014 a single-player journey through first-century Galilee",
+  "description": "The Way — a single-player journey through first-century Galilee",
   "type": "module",
   "engines": {
     "node": "^22.13.0 || >=24.0.0"
@@ -37,7 +37,8 @@
     "assets:inspect:capernaum": "python3 tools/build_assets.py --inspect-capernaum",
     "fixtures:harbor": "node tools/generate_harbor_fixtures.mjs",
     "assets:build:presence": "python3 tools/build_assets.py --presence",
-    "assets:inspect:presence": "python3 tools/build_assets.py --inspect-presence"
+    "assets:inspect:presence": "python3 tools/build_assets.py --inspect-presence",
+    "capture:presentation": "playwright test --config=playwright.capture.config.ts"
   },
   "dependencies": {
     "@babylonjs/core": "9.23.0",

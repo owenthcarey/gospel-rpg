@@ -1,7 +1,15 @@
 import { ActionFeedback } from './presentation/action';
 import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
-import { wornPaths, groundMosaic, shorelineBank } from './presentation/ground';
+import {
+  wornPaths,
+  groundMosaic,
+  shorelineBank,
+  paintGround,
+  backdropTerrain,
+  groundColor,
+  type GroundStyle,
+} from './presentation/ground';
 import { ConversationPresentation } from './presentation/conversation';
 import { turnToward, type ScreenRect } from '../game/presence';
 import { HarborPresentation, dressVillage } from './harbor';
@@ -19,12 +27,11 @@ import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { ArcRotateCameraPointersInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import { Vector3, Matrix } from '@babylonjs/core/Maths/math.vector';
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
-import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
-import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
-import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
-import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
+import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { StageEnvironment } from './environment/stage';
+import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
@@ -95,6 +102,12 @@ export interface ScreenLabel {
   visible: boolean;
 }
 
+function groundStyle(region: string): GroundStyle {
+  if (['galilean-road', 'roadside-farm', 'nain-gate'].includes(region)) return 'dry';
+  if (['reed-landing', 'sheltered-cove'].includes(region)) return 'shore';
+  return 'village';
+}
+
 export class World {
   grid: WalkGrid;
   private layout?: ExplorationLayout;
@@ -115,6 +128,7 @@ export class World {
   readonly scene: Scene;
   readonly camera: ArcRotateCamera;
   private shadow: ShadowGenerator;
+  private stage: StageEnvironment;
   private library: AssetLibrary;
   private actorPlayer!: Actor;
   private galilee?: GalileeActivity;
@@ -171,10 +185,6 @@ export class World {
       : new WalkGrid(obstacles, isLand);
     this.engine = engine;
     this.scene = new Scene(this.engine);
-    this.scene.clearColor = new Color4(0.7, 0.78, 0.73, 1);
-    this.scene.fogMode = Scene.FOGMODE_EXP2;
-    this.scene.fogColor = new Color3(0.7, 0.78, 0.73);
-    this.scene.fogDensity = 0.01;
     this.scene.collisionsEnabled = false;
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
@@ -188,7 +198,7 @@ export class World {
     this.camera.lowerRadiusLimit = 16;
     this.camera.upperRadiusLimit = 46;
     this.camera.lowerBetaLimit = 0.42;
-    this.camera.upperBetaLimit = 1.16;
+    this.camera.upperBetaLimit = 1.32;
     this.camera.panningSensibility = 0;
     this.camera.wheelDeltaPercentage = 0.015;
     this.camera.minZ = 0.2;
@@ -203,65 +213,77 @@ export class World {
       pointers.angularSensibilityY = 1000;
       pointers.pinchDeltaPercentage = 0.01;
     }
-    const sky = new HemisphericLight('soft-sky', new Vector3(0, 1, 0), this.scene);
-    sky.intensity = 0.6;
-    sky.diffuse = new Color3(0.94, 0.96, 1);
-    sky.groundColor = new Color3(0.36, 0.31, 0.2);
-    const sun = new DirectionalLight('morning-sun', new Vector3(0.7, -1.5, 0.8), this.scene);
-    sun.position.set(-22, 38, -20);
-    sun.intensity = 0.72;
-    sun.diffuse = new Color3(1, 0.97, 0.88);
-    sun.shadowMinZ = 1;
-    sun.shadowMaxZ = 100;
-    sun.autoCalcShadowZBounds = true;
-    this.shadow = new ShadowGenerator(1024, sun);
-    this.shadow.usePercentageCloserFiltering = true;
-    this.shadow.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
-    this.shadow.darkness = 0.25;
-    this.shadow.bias = 0.002;
-    this.shadow.normalBias = 0.04;
+    const region = initial.region;
+    this.stage = new StageEnvironment(this.scene, this.camera, environmentFor(region), {
+      sky: 200,
+      horizon:
+        region === 'galilee-water' || this.layout?.inside
+          ? undefined
+          : this.layout
+            ? { center: { x: 0, z: 0 }, radius: 88, seed: region.length * 7 }
+            : { center: { x: -10, z: 3 }, radius: 92, seed: 11 },
+      ground: (x, z) => (region === 'galilee-water' ? -0.05 : groundHeight(region, { x, z })),
+    });
+    this.shadow = this.stage.shadow;
     this.library = new AssetLibrary(this.scene, this.shadow);
     if (this.layout) {
+      const inside = this.layout.inside;
+      const shore = isLakeRegion(initial.region) && initial.region !== 'galilee-water';
       const floor = MeshBuilder.CreateGround(
         'walkable-terrain',
         {
-          width: this.layout.inside ? 16 : 100,
-          height: this.layout.inside ? 16 : 100,
-          subdivisions: this.layout.height ? 100 : 1,
+          width: inside ? 16 : 100,
+          height: inside ? 16 : 100,
+          subdivisions: inside ? 1 : 100,
         },
         this.scene,
       );
-      const groundColor = Color3.FromHexString(
-        initial.region === 'galilee-water' ? '#659caa' : this.layout.inside ? '#cebc9c' : '#afb18a',
-      ).toLinearSpace();
       floor.material = this.material('neighborhood-ground', '#ffffff');
-      // Use the same lighting path as the worn surfaces; a diffuse color is
-      // clamped before vertex color in StandardMaterial and would make the base brighter.
-      floor.setVerticesData(
-        VertexBuffer.ColorKind,
-        Array.from({ length: floor.getTotalVertices() }, () => [
-          groundColor.r,
-          groundColor.g,
-          groundColor.b,
-          1,
-        ]).flat(),
-      );
       floor.receiveShadows = true;
       floor.metadata = { ground: true };
       if (this.layout.height) this.conformToGround(floor);
+      if (shore) this.shapeShore(floor);
+      if (inside) {
+        // Use the same lighting path as the worn surfaces; a diffuse color is
+        // clamped before vertex color in StandardMaterial and would make the base brighter.
+        const earth = Color3.FromHexString('#cebc9c').toLinearSpace();
+        floor.setVerticesData(
+          VertexBuffer.ColorKind,
+          Array.from({ length: floor.getTotalVertices() }, () => [
+            earth.r,
+            earth.g,
+            earth.b,
+            1,
+          ]).flat(),
+        );
+      } else
+        paintGround(floor, groundStyle(initial.region), shore ? this.layout.terrain : undefined);
       wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
         groundHeight(initial.region, p),
       );
-      if (initial.region !== 'galilee-water')
+      if (inside)
         groundMosaic(
           this.scene,
           'regional-earth',
           this.layout.bounds,
           this.layout.terrain,
           (p) => groundHeight(initial.region, p),
-          this.layout.inside,
+          true,
         );
-      else floor.setEnabled(false);
+      if (initial.region === 'galilee-water') floor.setEnabled(false);
+      else if (!inside)
+        backdropTerrain(this.scene, {
+          reserve: { minX: -24, maxX: 24, minZ: -24, maxZ: 24 },
+          size: 260,
+          style: groundStyle(initial.region),
+          base: (p) => groundHeight(initial.region, p),
+          water: shore
+            ? (p) => p.z < 17
+            : initial.region === 'galilean-road'
+              ? (p) => p.x > 30 && p.z < 0 && p.z > -40
+              : undefined,
+          rise: shore ? (p) => Math.min(1, Math.max(0, (p.z - 18) / 10)) : undefined,
+        });
       if (isLakeRegion(initial.region)) this.makeCrossingTerrain();
       if (initial.region === 'galilean-road') {
         const lake = MeshBuilder.CreateGround(
@@ -276,16 +298,17 @@ export class World {
       this.camera.lowerRadiusLimit = this.layout.camera.min;
       this.camera.upperRadiusLimit = this.layout.camera.max;
       this.resetCamera();
-      if (this.layout.inside) {
-        this.scene.fogDensity = 0;
-        sky.intensity = 0.8;
-      }
     } else {
       this.makeTerrain();
+      backdropTerrain(this.scene, {
+        reserve: { minX: -42, maxX: 12, minZ: -36, maxZ: 42 },
+        size: 280,
+        style: 'village',
+        water: (p) => p.x > shoreline(p.z) - 0.6,
+      });
       this.makeWater();
       this.makePaths();
       this.makeDocks();
-      this.makeDistantLandscape();
     }
     this.marker = MeshBuilder.CreateTorus(
       'walk-destination',
@@ -444,7 +467,7 @@ export class World {
       width: 160,
       depth: 160,
       z: afloat ? 0 : -74,
-      y: afloat ? -0.04 : 0.006,
+      y: afloat ? -0.04 : -0.12,
       interactive: afloat,
     });
     if (afloat) {
@@ -465,16 +488,15 @@ export class World {
       }
     }
   }
+  get atmosphere(): string {
+    return this.stage.label;
+  }
   getBoatHeading(): number | undefined {
     return this.travelerBoat ? normalizeHeading(this.player.rotation.y) : undefined;
   }
 
   private material(name: string, hex: string, alpha = 1): StandardMaterial {
-    const m = new StandardMaterial(name, this.scene);
-    m.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
-    m.specularColor = Color3.Black();
-    m.alpha = alpha;
-    return m;
+    return this.stage.material(name, hex, alpha);
   }
   private place(p: Placement, interactionId?: string): TransformNode {
     const model = this.library.instantiate(
@@ -504,6 +526,25 @@ export class World {
     return anchor;
   }
 
+  /** Slope unwalkable floor down under the lake so the water meets a real bank. */
+  private shapeShore(mesh: Mesh): void {
+    const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+    const land = this.layout!.terrain;
+    for (let i = 0; i < positions.length; i += 3) {
+      const p = { x: positions[i]!, z: positions[i + 2]! };
+      if (land(p)) continue;
+      let nearest = 4;
+      for (let dz = -3.5; dz <= 3.5; dz += 0.5)
+        for (let dx = -3.5; dx <= 3.5; dx += 0.5)
+          if (land({ x: p.x + dx, z: p.z + dz })) nearest = Math.min(nearest, Math.hypot(dx, dz));
+      positions[i + 1] = -0.55 * Math.min(1, nearest / 2.5);
+    }
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, mesh.getIndices()!, normals);
+    mesh.setVerticesData(VertexBuffer.PositionKind, positions);
+    mesh.setVerticesData(VertexBuffer.NormalKind, normals);
+    mesh.refreshBoundingInfo();
+  }
   private conformToGround(mesh: Mesh, offset = 0): void {
     const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
     const world = mesh.computeWorldMatrix(true);
@@ -524,9 +565,7 @@ export class World {
     const positions: number[] = [],
       indices: number[] = [],
       colors: number[] = [];
-    const sand = Color3.FromHexString('#cebd98'),
-      grass = Color3.FromHexString('#a8ad87'),
-      dry = Color3.FromHexString('#b8b38b');
+    const sand = Color3.FromHexString('#b8a882');
     for (let z = -36; z < 42; z += 2) {
       for (let x = -42; x < 12; x += 2) {
         const edge0 = shoreline(z),
@@ -540,10 +579,10 @@ export class World {
         positions.push(left0, 0, z, right0, 0, z, left1, 0, z + 2, right1, 0, z + 2);
         // Babylon's left-handed front faces wind clockwise when viewed from above.
         indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
-        const grassy = x < -9 || (z > 10 && x < 4) || z < -12;
-        const color = (x > edge0 - 3 ? sand : grassy ? grass : dry)
-          .scale(0.96 + this.random(x * 7 + z * 13) * 0.08)
-          .toLinearSpace();
+        const color =
+          x > edge0 - 3
+            ? sand.scale(0.96 + this.random(x * 7 + z * 13) * 0.08)
+            : groundColor({ x: x + 1, z: z + 1 }, 'village');
         for (let i = 0; i < 4; i++) colors.push(color.r, color.g, color.b, 1);
       }
     }
@@ -586,7 +625,6 @@ export class World {
       [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
     ];
     wornPaths(this.scene, 'village-footpaths', segments);
-    groundMosaic(this.scene, 'village-earth', { min: -28, max: 28 }, isLand, () => 0);
     const pebbleMat = this.material('path-pebbles', '#b9ab83');
     const pebbles: Mesh[] = [];
     for (let i = 0; i < 48; i++) {
@@ -652,30 +690,6 @@ export class World {
       }
     this.mergeStatic(planks, 'jetty-planks');
     this.mergeStatic(posts, 'jetty-posts', true);
-  }
-
-  private makeDistantLandscape(): void {
-    const materials = ['#a5b491', '#99ac8b', '#b1bc98'].map((c, i) =>
-      this.material(`distant-hill-${i}`, c),
-    );
-    const hills: Mesh[][] = [[], [], []];
-    for (let i = 0; i < 17; i++) {
-      const hill = MeshBuilder.CreateIcoSphere(
-        `distant-hill-${i}`,
-        { radius: 1, subdivisions: 1, flat: true },
-        this.scene,
-      );
-      hill.position.set(-58 + i * 8, -2, 43 + this.random(i) * 14);
-      hill.scaling.set(
-        10 + this.random(i + 3) * 6,
-        5 + this.random(i + 5) * 8,
-        10 + this.random(i + 7) * 6,
-      );
-      hill.material = materials[i % 3]!;
-      hill.isPickable = false;
-      hills[i % 3]!.push(hill);
-    }
-    hills.forEach((meshes, i) => this.mergeStatic(meshes, 'distant-hills-' + i));
   }
 
   private bindInput(): void {
@@ -921,7 +935,7 @@ export class World {
     }
     this.water?.quality(settings.quality === 'low');
     this.water?.tick(this.time, this.reducedMotion);
-    this.scene.shadowsEnabled = settings.quality === 'high';
+    this.stage.applySettings(settings);
   }
   private simulate(dt: number): void {
     if (!this.paused && !document.hidden) {
@@ -1086,6 +1100,8 @@ export class World {
       : '';
     if (neri)
       this.destinations = this.destinations.map((p) => (p.id === 'neri' ? { ...p, ...neri } : p));
+    this.stage.setFocus(this.camera.target);
+    this.stage.tick(Math.min(elapsed, 0.1), this.active && !this.paused);
     this.scene.render();
     const playback = this.actorPlayer.playback;
     this.canvas.dataset.boatHeading = String(this.getBoatHeading() ?? '');
@@ -1261,6 +1277,7 @@ export class World {
     this.neighborhood?.dispose();
     this.everyday?.dispose();
     this.library.dispose();
+    this.stage.dispose();
     this.scene.dispose();
   }
 }

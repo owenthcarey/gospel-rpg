@@ -1,13 +1,13 @@
 import type { ScreenRect } from '../../game/presence';
 import { applyCameraPose, frameSubject } from '../presentation/framing';
+import { backdropTerrain, paintGround } from '../presentation/ground';
+import { StageEnvironment } from '../environment/stage';
+import { environmentFor } from '../../content/environment';
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3, Quaternion } from '@babylonjs/core/Maths/math.vector';
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
-import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
-import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
-import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
@@ -95,13 +95,13 @@ export class RoofRegion implements RegionView {
   private paused = true;
   private reduced = false;
   private low = false;
+  private stage: StageEnvironment;
   constructor(
     private engine: Engine,
     state: GameState,
   ) {
     this.state = structuredClone(state);
     this.scene = new Scene(engine);
-    this.scene.clearColor = new Color4(0.69, 0.66, 0.54, 1);
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
       'roof-camera',
@@ -113,17 +113,27 @@ export class RoofRegion implements RegionView {
     );
     this.camera.minZ = 0.1;
     this.camera.maxZ = 80;
-    const sky = new HemisphericLight('room-bounce', new Vector3(0, 1, 0), this.scene);
-    sky.intensity = 0.8;
-    sky.groundColor = new Color3(0.4, 0.32, 0.22);
-    const sun = new DirectionalLight('roof-light', new Vector3(0.3, -1, 0.5), this.scene);
-    sun.position.set(-8, 15, -8);
-    sun.intensity = 0.65;
-    const shadow = new ShadowGenerator(1024, sun);
-    shadow.usePercentageCloserFiltering = true;
-    shadow.bias = 0.003;
-    shadow.normalBias = 0.04;
-    this.library = new AssetLibrary(this.scene, shadow);
+    this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('roof-account'), {
+      sky: 75,
+      horizon: { center: { x: 0, z: 0 }, radius: 48, seed: 17 },
+      shadowCenter: new Vector3(0, 0, 0),
+    });
+    this.library = new AssetLibrary(this.scene, this.stage.shadow);
+    const lane = MeshBuilder.CreateGround(
+      'house-surroundings',
+      { width: 60, height: 60, subdivisions: 60 },
+      this.scene,
+    );
+    lane.material = this.stage.material('surrounding-earth', '#ffffff');
+    lane.position.y = -0.02;
+    paintGround(lane, 'village');
+    lane.receiveShadows = true;
+    lane.isPickable = false;
+    backdropTerrain(this.scene, {
+      reserve: { minX: -18, maxX: 18, minZ: -18, maxZ: 18 },
+      size: 150,
+      style: 'village',
+    });
     const floor = MeshBuilder.CreateGround('house-floor', { width: 16, height: 20 }, this.scene);
     const material = new StandardMaterial('earthen-floor', this.scene);
     material.diffuseColor = Color3.FromHexString('#ded1b3').toLinearSpace();
@@ -196,9 +206,9 @@ export class RoofRegion implements RegionView {
     const changed = this.state.campaign.roof.checkpoint !== state.campaign.roof.checkpoint;
     this.state = structuredClone(state);
     if (changed) this.time = 0;
-    this.stage(0);
+    this.compose(0);
   }
-  private stage(dt: number): void {
+  private compose(dt: number): void {
     const id = this.state.campaign.roof.checkpoint ?? 'house';
     const c = compositions[id];
     const canvas = this.engine.getRenderingCanvas()!;
@@ -296,7 +306,8 @@ export class RoofRegion implements RegionView {
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
     if (!this.paused) this.time += dt;
-    this.stage(this.paused ? 0 : dt);
+    this.compose(this.paused ? 0 : dt);
+    this.stage.tick(dt, !this.paused);
     this.scene.render();
   }
   getPosition(): Point {
@@ -305,8 +316,8 @@ export class RoofRegion implements RegionView {
   applySettings(s: Settings): void {
     this.reduced = s.reducedMotion;
     this.low = s.quality === 'low';
-    this.scene.shadowsEnabled = !this.low;
-    this.stage(0);
+    this.stage.applySettings(s);
+    this.compose(0);
   }
   setPaused(value: boolean): void {
     this.paused = value;
@@ -320,6 +331,7 @@ export class RoofRegion implements RegionView {
   }
   dispose(): void {
     this.library.dispose();
+    this.stage.dispose();
     this.scene.dispose();
   }
 }
