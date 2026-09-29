@@ -16,6 +16,7 @@ import type { NainSceneId } from '../../game/road/types';
 import { AssetLibrary, type Model } from '../assets';
 import { Actor } from '../actors/actor';
 import type { RegionView } from './types';
+import { PausedCadence } from '../presentation/cadence';
 
 interface Composition {
   alpha: number;
@@ -42,6 +43,7 @@ export class NainRegion implements RegionView {
   private time = 0;
   private readingBounds?: ScreenRect;
   private last = 0;
+  private cadence = new PausedCadence();
   private paused = true;
   private reduced = false;
   private low = false;
@@ -259,9 +261,10 @@ export class NainRegion implements RegionView {
       return;
     }
     const now = performance.now();
-    if (this.paused && now - this.last < 100) return;
+    if (this.paused && !this.cadence.due(now)) return;
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
+    this.cadence.rendered(now);
     if (!this.paused && !this.reduced) this.time = Math.min(6, this.time + dt);
     this.compose();
     this.engine.getRenderingCanvas()!.dataset.nainTime =

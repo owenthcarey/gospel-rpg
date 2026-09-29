@@ -83,6 +83,7 @@ import {
 } from '../content/region';
 import { distance, findPath, WalkGrid } from '../game/pathfinding';
 import { newGame, type GameState, type Point, type Settings } from '../game/types';
+import { PausedCadence } from './presentation/cadence';
 
 export interface WorldCallbacks {
   requestNavigate?: (id: string) => void;
@@ -219,6 +220,7 @@ export class World {
   private time = 0;
   private lastFrame = 0;
   private lastRender = 0;
+  private cadence = new PausedCadence();
   private cameraAspectScale = 1;
   private position: Point = { x: -1, z: -3 };
   private cleanup: (() => void)[] = [];
@@ -1324,11 +1326,12 @@ export class World {
       document.hidden ||
       (this.paused &&
         (!this.conversationView?.animated || this.reducedMotion) &&
-        now - this.lastRender < 100)
+        !this.cadence.due(now))
     )
       return;
     const elapsed = this.lastRender ? (now - this.lastRender) / 1000 : 0;
     this.lastRender = now;
+    this.cadence.rendered(now);
     this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
     if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
     if (this.cameraReturn) {

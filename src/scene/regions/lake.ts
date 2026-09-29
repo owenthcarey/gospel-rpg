@@ -23,6 +23,7 @@ import { LAKE_ASSETS, type ActorAsset } from '../../content/assets';
 import { AssetLibrary, type Model } from '../assets';
 import { Actor } from '../actors/actor';
 import type { RegionView } from './types';
+import { PausedCadence } from '../presentation/cadence';
 
 /** Disposable presentation region. No spatial player input, physics or quest rewards. */
 export class LakeRegion implements RegionView {
@@ -48,6 +49,7 @@ export class LakeRegion implements RegionView {
   private readingBounds?: ScreenRect;
   private checkpoint = '';
   private last = 0;
+  private cadence = new PausedCadence();
   private time = 0;
   private shorePosition: Point;
   private disposed = false;
@@ -415,9 +417,10 @@ export class LakeRegion implements RegionView {
   renderFrame(): void {
     if (this.disposed || document.hidden) return;
     const now = performance.now();
-    if (this.paused && !this.dirty && now - this.last < 100) return;
+    if (this.paused && !this.dirty && !this.cadence.due(now)) return;
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
+    this.cadence.rendered(now);
     if (!this.paused) {
       if (!this.reduced) this.time += dt;
       this.positionScene(dt);

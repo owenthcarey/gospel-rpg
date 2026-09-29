@@ -19,6 +19,7 @@ import { AssetLibrary, type Model } from '../assets';
 import { Actor } from '../actors/actor';
 import { boatSupport } from '../actors/boat';
 import type { RegionView } from './types';
+import { PausedCadence } from '../presentation/cadence';
 
 export const STORM_ASSETS: readonly AssetId[] = [
   'boat',
@@ -46,6 +47,7 @@ export class StormRegion implements RegionView {
   private time = 0;
   private readingBounds?: ScreenRect;
   private last = 0;
+  private cadence = new PausedCadence();
   private paused = true;
   private reduced = false;
   private low = false;
@@ -242,9 +244,10 @@ export class StormRegion implements RegionView {
       this.last = now;
       return;
     }
-    if (this.paused && now - this.last < 100) return;
+    if (this.paused && !this.cadence.due(now)) return;
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
+    this.cadence.rendered(now);
     if (!this.paused && !this.reduced) this.time += dt;
     this.compose();
     this.engine.getRenderingCanvas()!.dataset.stormTime =
