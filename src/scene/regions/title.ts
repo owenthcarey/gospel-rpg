@@ -160,8 +160,10 @@ export class TitleView {
   }
   applySettings(settings: Settings): void {
     this.reduced = settings.reducedMotion;
-    this.water.quality(settings.quality === 'low');
-    this.stage.applySettings(settings);
+    // A decorative backdrop must never slow the first interaction: CPU renderers get Low.
+    const low = settings.quality === 'low' || this.stage.software;
+    this.water.quality(low);
+    this.stage.applySettings({ ...settings, quality: low ? 'low' : 'high' });
   }
   setPaused(value: boolean): void {
     this.paused = value;

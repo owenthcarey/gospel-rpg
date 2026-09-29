@@ -88,6 +88,11 @@ void main(void) {
   // Fine moving ripples perturb the broad wave normal.
   float eye = length(cameraPosition - vWater);
   // Fine ripples fade with distance so far water keeps one coherent sun path instead of aliasing.
+#ifdef LOW
+  // Low compiles without fine ripples or value noise: CPU rasterizers shade every pixel.
+  float detail = 0.0;
+  vec3 n = normalize(vNormal);
+#else
   float detail = (1.0 - smoothstep(18.0, 70.0, eye)) * (1.0 - lowDetail);
   // Irregular drifting ripples (noise, not sines) so glints scatter instead of tiling.
   vec2 r1 = vec2(0.0), r2 = vec2(0.0);
@@ -98,10 +103,15 @@ void main(void) {
     r2 = vec2(noise(q2) - noise(q2 + vec2(0.3, 0.0)), noise(q2) - noise(q2 + vec2(0.0, 0.3))) * 2.6;
   }
   vec3 n = normalize(vNormal + vec3(r1 * 0.045 + r2 * 0.025, 0.0).xzy * (1.0 + storm) * detail);
+#endif
   vec3 view = normalize(cameraPosition - vWater);
   float d = shoreDistance(p);
   float shallow = 1.0 - smoothstep(0.0, 7.0, d);
+#ifdef LOW
+  float broad = 0.5 + 0.25 * sin(p.x * 0.11 + sin(p.y * 0.07) * 1.7) + 0.2 * sin(p.y * 0.17 - p.x * 0.05);
+#else
   float broad = noise(p * 0.07) * 0.5 + noise(p * 0.19 + 7.0) * 0.5;
+#endif
   vec3 color = mix(deepColor, shallowColor, clamp(shallow * 0.85 + broad * 0.12, 0.0, 0.92));
   color *= 0.8 + 0.25 * max(dot(n, toSun), 0.0);
   // Sky reflection at glancing angles.
@@ -115,8 +125,13 @@ void main(void) {
   // Lapping foam along every shore, broken by drifting noise.
   float lap = sin(t * 1.25 - d * 3.5) * 0.5 + 0.5;
   float edge = 1.0 - smoothstep(0.0, 0.35 + lap * 0.45, d);
+#ifdef LOW
+  float grain = 0.5 + 0.5 * sin(p.x * 2.3 + t * 0.4 + sin(p.y * 1.9 - t * 0.3));
+#else
   float grain = noise(p * 2.6 + vec2(t * 0.15, -t * 0.1));
+#endif
   float foam = edge * smoothstep(0.25, 0.6, grain + edge * 0.45);
+#ifndef LOW
   // Rings around hulls and wading people.
   for (int i = 0; i < ${MAX_RIPPLES}; i++) {
     if (float(i) >= rippleCount || lowDetail > 0.5) break;
@@ -124,8 +139,14 @@ void main(void) {
     if (rd > 0.0 && rd < 2.4)
       foam += ripples[i].w * smoothstep(0.8, 1.0, sin(rd * 5.0 - t * 2.6 + grain * 2.5)) * (1.0 - rd / 2.4) * 0.35;
   }
+#endif
   // Whitecaps on storm crests.
-  float crest = smoothstep(0.55, 0.95, vWave) * smoothstep(0.35, 0.7, noise(p * 0.9 + t * 0.3));
+#ifdef LOW
+  float breakup = 0.5 + 0.5 * sin(p.x * 0.9 + t * 0.3 + sin(p.y * 0.8) * 2.0);
+#else
+  float breakup = noise(p * 0.9 + t * 0.3);
+#endif
+  float crest = smoothstep(0.55, 0.95, vWave) * smoothstep(0.35, 0.7, breakup);
   foam += crest * storm * 0.9;
   color = mix(color, foamColor, clamp(foam, 0.0, 1.0));
   float visibility = exp(-pow(eye * fogDensity, 2.0));
@@ -287,8 +308,11 @@ export class WaterPresentation {
     this.material.setFloat('rippleCount', Math.min(MAX_RIPPLES, ripples.length));
   }
   quality(low: boolean): void {
+    if (low === this.low) return;
     this.low = low;
     this.material.setFloat('lowDetail', low ? 1 : 0);
+    // A separate compiled variant: Low drops value noise and ripple rings entirely.
+    this.material.options.defines = low ? ['#define LOW'] : [];
   }
   tick(time: number, reduced: boolean): void {
     this.material.setFloat('time', reduced ? 0 : time);

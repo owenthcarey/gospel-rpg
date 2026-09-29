@@ -348,7 +348,7 @@ export function backdropTerrain(
       colors.push(c.r, c.g, c.b, 1);
     }
   // Quads well inside the reserve lie under the region's own ground: skip them so they cost
-  // neither vertices nor (unsorted, overdrawn) fragments.
+  // neither vertices nor overdrawn fragments (opaque meshes draw in material order, not depth).
   const hidden = (x: number, z: number) =>
     Math.min(x - reserve.minX, reserve.maxX - x, z - reserve.minZ, reserve.maxZ - z) >= step;
   for (let j = 0; j < n; j++)

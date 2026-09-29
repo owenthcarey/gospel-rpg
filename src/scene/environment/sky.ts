@@ -38,9 +38,18 @@ float noise(vec2 p) {
   return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
              mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
+#ifdef LOW
+#define OCTAVES 2
+#else
+#define OCTAVES 4
+#endif
 float fbm(vec2 p) {
   float v = 0.0, a = 0.5;
-  for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + 11.7; a *= 0.5; }
+  for (int i = 0; i < OCTAVES; i++) { v += a * noise(p); p = p * 2.03 + 11.7; a *= 0.5; }
+#ifdef LOW
+  // The omitted octaves average 0.75 of the next amplitude; keep the same mean cover.
+  v += a * 0.75;
+#endif
   return v;
 }
 void main(void) {
@@ -116,6 +125,10 @@ export class SkyDome {
     m.setFloat('disc', profile.sun.disc);
     m.setFloat('clouds', profile.clouds);
     m.setFloat('linearOutput', linearOutput ? 1 : 0);
+  }
+  /** Low compiles two cloud octaves instead of four. */
+  quality(low: boolean): void {
+    this.material.options.defines = low ? ['#define LOW'] : [];
   }
   setTime(time: number): void {
     this.material.setFloat('time', time);

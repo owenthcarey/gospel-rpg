@@ -404,6 +404,7 @@ async function updateSetting(key: keyof Settings, value: string | boolean): Prom
   audio.set(settings);
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
   document.documentElement.dataset.textSize = settings.textSize;
+  document.documentElement.dataset.quality = settings.quality;
   await saves.saveSettings(settings);
 }
 async function loadFile(file: File): Promise<void> {
@@ -1098,6 +1099,7 @@ async function boot(): Promise<void> {
   void world.showTitle().catch((error) => console.warn('Title view unavailable', error));
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
   document.documentElement.dataset.textSize = settings.textSize;
+  document.documentElement.dataset.quality = settings.quality;
   const autosave = await saves.load('auto').catch(() => {
     ui.toast('The autosave could not be read. You can import a backup in Settings.');
     return null;

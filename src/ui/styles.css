@@ -2598,3 +2598,13 @@ kbd {
   stroke-width: 3;
   paint-order: stroke;
 }
+
+/* ── Low quality ───────────────────────────────────────────────────────────── */
+/* A blur over the live canvas is recomputed every frame. Low is for weaker and CPU-rendered
+   devices, so it keeps the tinted surfaces without the blur. */
+html[data-quality='low'] *,
+html[data-quality='low'] *::before,
+html[data-quality='low'] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}

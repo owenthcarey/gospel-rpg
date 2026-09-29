@@ -21,6 +21,10 @@ test('a first journey opens with a skippable cold open, then a veiled arrival an
   await page.goto('/');
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-title', 'true');
   expect(models).toEqual([]);
+  // Like the other journeys, this flow runs at Low so software-rendered CI can keep pace.
+  await page.getByRole('button', { name: 'Saves & settings' }).click();
+  await page.locator('[data-setting="quality"]').selectOption('low');
+  await page.getByRole('button', { name: 'Close menu', exact: true }).click();
   await page.getByRole('button', { name: 'Begin your journey', exact: true }).click();
   const opening = page.getByRole('dialog', { name: 'Opening' });
   await expect(opening).toBeVisible();

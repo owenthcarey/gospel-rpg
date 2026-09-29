@@ -9,6 +9,7 @@ import { ColorCurves } from '@babylonjs/core/Materials/colorCurves';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
+import { RenderingGroup } from '@babylonjs/core/Rendering/renderingGroup';
 import type { Camera } from '@babylonjs/core/Cameras/camera';
 import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
@@ -76,13 +77,23 @@ export class StageEnvironment {
     this.sun.shadowMaxZ = 160;
     this.sun.autoUpdateExtends = false;
     this.sun.autoCalcShadowZBounds = false;
-    this.shadow = new ShadowGenerator(this.software() ? 1024 : 2048, this.sun);
+    this.shadow = new ShadowGenerator(this.software ? 1024 : 2048, this.sun);
     this.shadow.usePercentageCloserFiltering = true;
     this.shadow.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
     this.shadow.bias = 0.0015;
     this.shadow.normalBias = 0.03;
     this.shadow.transparencyShadow = false;
-    if (options.sky && !profile.interior) this.sky = new SkyDome(scene, options.sky);
+    if (options.sky && !profile.interior) {
+      const sky = (this.sky = new SkyDome(scene, options.sky));
+      // Opaque meshes draw in material order, which would put the early sky first and shade
+      // every pixel. Drawn last, the far-plane dome fills only what nothing else covers.
+      scene.setRenderingOrder(
+        0,
+        (a, b) =>
+          Number(a.getMesh() === sky.mesh) - Number(b.getMesh() === sky.mesh) ||
+          RenderingGroup.PainterSortCompare(a, b),
+      );
+    }
     if (options.horizon && profile.horizon)
       this.horizon = horizonRings(scene, { ...options.horizon, colors: profile.horizon });
     this.contact = new ContactShadows(scene, options.ground ?? (() => 0));
@@ -211,6 +222,7 @@ export class StageEnvironment {
     this.scene.shadowsEnabled = high;
     this.contact.setStrength(high ? 0.55 : 1);
     this.atmosphere.applySettings(!high, this.reduced);
+    this.sky?.quality(!high);
     if (high && !this.pipeline) {
       this.pipeline = new DefaultRenderingPipeline(
         'stage-grade',
@@ -219,7 +231,7 @@ export class StageEnvironment {
         [this.camera],
         true,
       );
-      const software = this.software();
+      const software = this.software;
       this.pipeline.samples = software ? 1 : 4;
       this.pipeline.fxaaEnabled = true;
       this.pipeline.imageProcessingEnabled = true;
@@ -236,7 +248,7 @@ export class StageEnvironment {
     this.apply(this.current);
   }
   /** True on CPU rasterizers (for example SwiftShader), where fill rate is scarce. */
-  private software(): boolean {
+  get software(): boolean {
     const engine = this.scene.getEngine() as { getGlInfo?: () => { renderer: string } };
     return /swiftshader|llvmpipe|software/i.test(engine.getGlInfo?.().renderer ?? '');
   }

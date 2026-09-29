@@ -150,13 +150,14 @@ export class GameRuntime {
   async showTitle(): Promise<void> {
     if (this.view || this.title || this.disposed) return;
     const title = new TitleView(this.engine);
+    // Settings first, so shaders compile once for the quality actually shown.
+    if (this.settings) title.applySettings(this.settings);
     await title.load();
     if (this.view || this.disposed) {
       title.dispose();
       return;
     }
     this.title = title;
-    if (this.settings) title.applySettings(this.settings);
     title.setPaused(this.paused && Boolean(this.view));
     this.canvas.dataset.title = 'true';
   }
