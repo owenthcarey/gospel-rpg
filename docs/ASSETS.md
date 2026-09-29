@@ -1,6 +1,6 @@
 # Asset production
 
-The 94 checked-in GLBs and fifteen matching WebP portraits are ready to use. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
+The 98 checked-in GLBs and fifteen matching WebP portraits are ready to use. RFC-011 rebuilt the whole catalog through Blender MCP with baked shading, new people and vegetation; see [A World in Light](#a-world-in-light-rfc-011) below. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -14,17 +14,21 @@ BLENDER_BIN=/path/to/blender npm run assets:build
 
 The recipe uses Blender 4.2+ APIs; the checked-in exports were verified with 5.2.1. Rebuilding with another version requires the asset tests and visual checks below.
 
-Via Blender MCP's Python execution tool:
+`npm run assets:build` runs, in order, `generate_kit.py`, `capernaum.py`, `presence.py`, `characters.py` and `vegetation.py` headlessly, then the pure-Python finalize: `pack_palette.py`, `prune_channels.py` and `compact_glb.py` over every model. Later recipes replace earlier exports with the same name. `npm run assets:build -- --rfc011` reruns only the RFC-011 recipes and the finalize.
+
+Via Blender MCP's Python execution tool (the RFC-011 production path), run each recipe in the live session; every recipe creates its own workshop scene and restores the scene that was open:
 
 ```python
-import os, sys, importlib
-os.environ['GOSPEL_RPG_ROOT'] = '/absolute/path/to/gospel-rpg'
-sys.path.insert(0, os.path.join(os.environ['GOSPEL_RPG_ROOT'], 'tools/blender'))
-import rigging
-importlib.reload(rigging)  # Pick up edits in an already-running Blender session.
-recipe = os.path.join(os.environ['GOSPEL_RPG_ROOT'], 'tools/blender/generate_kit.py')
-exec(compile(open(recipe).read(), recipe, 'exec'))
+import os, sys, runpy
+root = '/absolute/path/to/gospel-rpg'
+os.environ['GOSPEL_RPG_ROOT'] = root
+for name in ['kit_common', 'shading', 'rigging', 'characters']:
+    sys.modules.pop(name, None)  # Pick up recipe edits in an already-running session.
+for recipe in ['generate_kit.py', 'capernaum.py', 'presence.py', 'characters.py', 'vegetation.py']:
+    runpy.run_path(os.path.join(root, 'tools/blender', recipe), run_name='__main__')
 ```
+
+Long recipes can outlast the MCP request timeout while Blender keeps working; wait for `assets/source/people-kit.blend` or the model timestamps before finalizing. Then run the finalize from the repository with `python3 -c` (see `finalize()` in `tools/build_assets.py`) and render portraits with `characters.portraits()` through MCP.
 
 ## Model contracts
 
@@ -105,7 +109,7 @@ npm run assets:inspect:galilee
 npm run test -- tests/unit/assets.test.ts tests/unit/galilee-staging.test.ts
 ```
 
-`inspect_galilee.py` independently imports the shipped GLBs, preserves unrelated scenes, and produces kit, connected-channel and resting-place sheets and a hashed byte inventory. The [original channel](verification/living-galilee-channel.png), [historical inventory](verification/living-galilee-assets.json) and [later refined sheets](verification/rfc008/README.md#assets-and-reproducibility) remain in the selected gallery. The same script can run through Blender MCP with `GOSPEL_RPG_ROOT` set. `GOSPEL_REVIEW_OUTPUT` selects another output directory.
+`inspect_galilee.py` independently imports the shipped GLBs, preserves unrelated scenes, and produces kit, connected-channel and resting-place sheets and a hashed byte inventory. The original channel sheet (retired from the gallery in RFC-011 and kept in Git history), [historical inventory](verification/living-galilee-assets.json) and [later refined sheets](verification/rfc008/README.md#assets-and-reproducibility) remain in the selected gallery. The same script can run through Blender MCP with `GOSPEL_RPG_ROOT` set. `GOSPEL_REVIEW_OUTPUT` selects another output directory.
 
 The functional channel basis is north/east in game coordinates. Babylon reflects the static import's X axis: bent pieces receive a quarter-turn basis correction before applying the saved turn, and receiving basins face west after a half-turn. Every rendered opening is measured against the solver in tests. Water follows only tested ports and connects through the basin's low inlet. The screen uses authored north/east/south/west sockets; its footprint updates navigation. Mat, jar and screen previews disappear as supplies are placed. Completed travelers use the existing seated/kneeling clips, leaving real companions untouched.
 
@@ -188,3 +192,19 @@ The resulting **94 models total 6,706,812 bytes (6.40 MiB)** against the explici
 `pack_palette.py` uses core glTF component types: normalized byte colors (maximum channel error 1/510), exactly preserved rigid 0/1 skin weights, and removal of unused UV data from these untextured exports. It does not quantize positions, normals or animation. It requires a single local buffer, untextured materials and non-interleaved supported attributes; it is a recipe for this kit, not a general glTF optimizer. No runtime decoder or compression extension is introduced. Asset, skin, attachment and existing solver/contact tests run against the final packed files.
 
 `inspect_presence.py` independently imports all nineteen shipped GLBs in a separate review scene, renders the kit and featured people, and records hashes and imported mesh/material/triangle counts. `presence.py` also renders portraits from independently imported exports, so the portrait identity is tied to the actual game model. Browser checks remain necessary for lighting, wrapper orientation, camera composition and model-to-world contact. The [review guide](verification/rfc010/README.md) distinguishes Blender inspection, runtime evidence and outstanding human/device review.
+
+## A World in Light (RFC-011)
+
+**Execution path.** The connected Blender MCP server is the Blender Lab connector, which talks to the Blender Lab **MCP** add-on on port 9876. A different third-party add-on ("MCP for Blender", BlenderMCP 1.6) had been listening on the same port with an incompatible protocol, so every call timed out until it was replaced. All RFC-011 recipes were then developed, previewed (isolated `rfc011-workshop` renders) and run through MCP in Blender 5.2.1 LTS, with the user's open scene restored after each run. `npm run assets:build` reproduces the same order headlessly.
+
+**Shared helpers.** `kit_common.py` owns the palette, primitive builders (`box`, `cone`, `ico`, `beam`), surfaces of revolution (`lathe`), body-following cloth panels (`drape`), palette-colour export and static export. Recipes import it instead of executing or parsing one another. `generate_kit.py`, `presence.py`, `characters.py` and `vegetation.py` use it; `capernaum.py` keeps its own palette.
+
+**Baked shading.** `shading.py` multiplies every export's COLOR_0 by deterministic ray-cast ambient occlusion (a fixed 20-ray Fibonacci hemisphere through a BVH), a grime gradient near the ground for grounded objects, a sky lift on up-facing faces and a small per-face tone jitter on faceted surfaces. Smooth faces bake per vertex so shared vertices stay merged. Held and hanging props skip ground occlusion. There are no textures, render engine or random state.
+
+**People.** `characters.py` builds all fifteen actors from declarative specs — girth, shoulders, head proportions, skin, hair colour and style (short, curly, long, receding, bound), beard, head cover (mantle veil or scarf), mantle drapes, apron, sash, satchel — on the unchanged twelve-bone rig and joint names. Hands are rigid to the forearms; seat, foot, rail, cushion and oar contacts keep their verified dimensions (the robe stays near-circular because reclining and seated supports rest on its back, and Jesus's hair cap keeps its original extent for the cushion). `rigging.py` maps the new parts to bones, splits veils between head and body, bakes shading on each skin and re-authors Idle (breathing, weight shift, glance), Walk and Carry (heel strike, passing bob, hip twist, shoulder counter-rotation, knee lift), Gesture, Greet, Listen and Respond. Portraits are 288 × 336 WebP head-and-shoulders renders from the exported files.
+
+**Vegetation and ground cover.** `vegetation.py` rebuilds the olive (twisted trunk, root flare, jittered canopies), palm (ringed curving trunk, drooping fronds including dry ones, dates), cypress, reeds and rock, and adds `grass_tuft`, `shrub`, `flowers` and `pebbles`, which the runtime scatters with thin instances.
+
+**Byte recovery.** `prune_channels.py` removes animation channels whose values equal the node's rest transform in every clip (so switching clips can never leave a stale pose) and collects unreferenced accessors. Animation outputs remain float, geometry and moving channels are untouched, and every imported-geometry contact test passes. `KHR_mesh_quantization` is registered in the loader but was not needed. The 98-model catalog is **5,467,552 bytes** (previously 6,706,812 for 94 models) against the unchanged 7.5 MiB cap; portraits total about 100 KB against 384 KiB.
+
+**Sources.** `assets/source/people-kit.blend` and `assets/source/vegetation-kit.blend` join the existing workshops. Build reports are written to ignored `artifacts/rfc011/`.

@@ -67,6 +67,8 @@ export interface Settings {
   effectsVolume: number;
   quality: 'low' | 'high';
   reducedMotion: boolean;
+  /** The optional cold open has been shown in this browser (RFC-011). Presentation only. */
+  openingSeen?: boolean;
 }
 export const DEFAULT_SETTINGS: Settings = {
   guidance: 'full',

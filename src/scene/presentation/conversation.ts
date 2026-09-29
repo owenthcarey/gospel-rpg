@@ -116,6 +116,7 @@ export class ConversationPresentation {
         continue;
       }
       actor.turnTo(other, reduced ? 10 : dt, 8);
+      actor.lookAt(other.add(new Vector3(0, 1.6, 0)));
       actor.sample(
         speaking && !reduced
           ? time < 1.4
@@ -134,6 +135,7 @@ export class ConversationPresentation {
   clear(): void {
     for (const person of [this.speaker, this.listener]) {
       if (!person) continue;
+      person.actor.lookAt(null);
       person.actor.root.rotation.y = person.heading;
       person.actor.restorePose(person.clip);
     }

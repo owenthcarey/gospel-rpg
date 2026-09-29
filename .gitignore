@@ -25,3 +25,7 @@ __pycache__/
 /artifacts/reviews/
 
 /artifacts/rfc010/
+
+/artifacts/rfc011/
+
+/.claude/

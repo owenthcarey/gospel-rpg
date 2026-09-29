@@ -9,7 +9,7 @@ Keep a small, useful gallery in Git alongside compact measurements and test outc
 - Keep selected review images that establish distinct behavior, geometry, accessibility layouts or meaningful before/after comparisons. Usually four to six images suffice for a milestone.
 - Keep structured verification records, measurements and portable save fixtures. Historical source/model hashes describe the original run; they are not promises that today's files still have those bytes.
 
-The current gallery contains **48 images / 29.97 MiB**. Its total budget is **30 MiB**. Each collection has its own count and byte budget in the manifest, with defaults capped at six files and 6 MiB. A larger collection requires an `exceptionReason`; the twelve-image Capernaum gallery preserves four before/after pairs, two phone solutions and two independent Blender reviews. Budget changes require an explicit, explained manifest edit.
+The current gallery contains **53 images / 28.67 MiB**. Its total budget is **30 MiB**. Each collection has its own count and byte budget in the manifest, with defaults capped at six files and 6 MiB. A larger collection requires an `exceptionReason`; the twelve-image Capernaum gallery preserves four before/after pairs, two phone solutions and two independent Blender reviews. Budget changes require an explicit, explained manifest edit.
 
 ## Generate, review, select
 
@@ -22,7 +22,7 @@ The current gallery contains **48 images / 29.97 MiB**. Its total budget is **30
 
 The check rejects unlisted binaries outside the game-model, production-portrait, Blender-source and automated-baseline directories; missing or ignored declared images; duplicate entries; changed bytes or checksums; exceeded budgets; broken local Markdown file links; and missing media references in verification JSON. It checks file targets, not Markdown heading fragments or external URLs. It never regenerates the manifest automatically.
 
-The earlier maintenance pass curated the gallery from 83 to 42 images; RFC-010 adds six selected images within the same total ceiling. Removed captures remain available in Git history; this cleanup reduces the current checkout and limits future growth without rewriting published history.
+The earlier maintenance pass curated the gallery from 83 to 42 images; RFC-010 adds six selected images within the same total ceiling. RFC-011 retires the superseded original channel sheet and adds six compact WebP images. Removed captures remain available in Git history; this cleanup reduces the current checkout and limits future growth without rewriting published history.
 
 ## Selected galleries
 
@@ -49,11 +49,10 @@ The following images are retained for distinct review purposes. Full generation 
 
 ### Living Galilee
 
-| Evidence                                                               | Purpose                                                 |
-| ---------------------------------------------------------------------- | ------------------------------------------------------- |
-| [living-galilee-channel.png](living-galilee-channel.png)               | Original channel geometry before the later refinements. |
-| [living-galilee-shelter-phone.png](living-galilee-shelter-phone.png)   | Completed resting place at phone width.                 |
-| [living-galilee-spring-desktop.png](living-galilee-spring-desktop.png) | Completed spring in the actual desktop game.            |
+| Evidence                                                               | Purpose                                      |
+| ---------------------------------------------------------------------- | -------------------------------------------- |
+| [living-galilee-shelter-phone.png](living-galilee-shelter-phone.png)   | Completed resting place at phone width.      |
+| [living-galilee-spring-desktop.png](living-galilee-spring-desktop.png) | Completed spring in the actual desktop game. |
 
 ### Across the Lake
 
@@ -117,3 +116,16 @@ The [presentation review](rfc010/README.md) connects final-export Blender inspec
 | [lake-partners-desktop.png](rfc010/lake-partners-desktop.png) | Both loaded boats, working net and unobscured reading.       |
 | [kit.webp](rfc010/kit.webp)                                   | Independently imported architecture and principal people.    |
 | [people.webp](rfc010/people.webp)                             | Distinct faces, garments and silhouettes.                    |
+
+### A World in Light
+
+The [RFC-011 review](rfc011/README.md) pairs same-camera captures from before and after the milestone with the new title view and a Blender MCP review of the rebuilt people.
+
+| Evidence                                          | Purpose                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------- |
+| [shore-before.webp](rfc011/shore-before.webp)     | Capernaum shore before RFC-011, same save and camera.         |
+| [shore-after.webp](rfc011/shore-after.webp)       | The same shore after RFC-011, with the new interface.         |
+| [road-before.webp](rfc011/road-before.webp)       | The Galilean road before RFC-011.                             |
+| [farm-after.webp](rfc011/farm-after.webp)         | The roadside farm after RFC-011.                              |
+| [title.webp](rfc011/title.webp)                   | The model-free title view at dawn.                            |
+| [people-blender.webp](rfc011/people-blender.webp) | Eight rebuilt people, independently imported from their GLBs. |

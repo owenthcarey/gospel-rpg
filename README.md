@@ -20,6 +20,8 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **The Way, Brought to Life** gives Capernaum worn paths, a softer shoreline, detailed houses and inhabited interiors. Refined characters turn toward one another, greet and listen, with matching portraits and a camera that makes room for the reading panel. All ten Into the Deep scenes have complete, responsive compositions, supported boats and clearer net work; shared water and framing improvements extend through the later chapters. Progress remains compatible with save v11. See [RFC-010](docs/rfcs/010-the-way-brought-to-life.md) and the [presentation review guide](docs/verification/rfc010/README.md).
 
+**A World in Light** gives the whole journey a finished look. A living dawn over the lake opens the game, a first journey begins with a short narrated cold open and an establishing sweep over Capernaum, and every place now has its own light: graded morning, afternoon, evening and storm skies, horizon hills, fog, sharp contact-grounded shadows, lit water with foam and reflections, swaying olives and reeds, grass and flowers, birds, hearth smoke and drifting light. All fifteen people were rebuilt in Blender with hands, faces, hair, veils and mantles and fuller movement; they glance at you as you pass. Gospel scenes ease between compositions, places announce themselves with title cards, and a crafted interface with new typography, ornament and motion replaces the old web styling. Progress remains compatible with save v11. See [RFC-011](docs/rfcs/011-a-world-in-light.md) and the [review guide](docs/verification/rfc011/README.md).
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -31,7 +33,7 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. Select **Begin your journey**, then speak with **Simon** or select **Follow the path**. After the opening net-and-bread errand, return to Simon to begin **Into the Deep**. Existing completed saves can continue here immediately. Speak with **Ezra** or open the journal for **An ordinary morning**, an independent village story. The episode is unhurried: lake scenes advance when you choose, and can be paused, left and resumed, or finished with a summary.
+Open the URL printed by Vite. Select **Begin your journey** (a first journey plays a short, skippable opening; **Settings → Watch the opening again** replays it), then speak with **Simon** or select **Follow the path**. After the opening net-and-bread errand, return to Simon to begin **Into the Deep**. Existing completed saves can continue here immediately. Speak with **Ezra** or open the journal for **An ordinary morning**, an independent village story. The episode is unhurried: lake scenes advance when you choose, and can be paused, left and resumed, or finished with a summary.
 
 | Control                                 | Action                                   |
 | --------------------------------------- | ---------------------------------------- |
@@ -62,7 +64,7 @@ Open the URL printed by Vite. Select **Begin your journey**, then speak with **S
 - **Through the Roof:** eight narrated Gospel scenes, three aftermath visits and a chosen reflection; explorable lanes and two enterable buildings.
 - **Four independent neighborhood stories:** investigate Ruth’s missing sewing pouch, repair the landing bench with cord or a brace, choose a walking route with Amos, or a table location with Hannah; carry bread and water, clear a passage, and return to visible results.
 - **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
-- **94 original Blender assets**, fifteen skinned character variants, nineteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling. Passage markers and refined landing edges help identify deliberate crossings.
+- **98 original Blender assets** with baked ambient occlusion, fifteen individually built people on a shared skinned rig, nineteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling, plus scattered grass, shrubs, flowers and pebbles. Passage markers and refined landing edges help identify deliberate crossings.
 - A compact nearby-action tray for practical tasks, distinct pick-up/put-down/repair/sit motions, stationary holding, persistent repaired benches and seated table company.
 - A journal organized into **Stories, People, Places, and Memories**, with story/status filters, investigation evidence, destinations, a journey recap and a completed-account replay library.
 - A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.
@@ -91,7 +93,7 @@ After your Chapter IV reflection, open **Journal → The way home**. Visit **Roo
 
 Use **Journal → Replay Gospel scenes** to revisit a completed account. Replay has its own saved reading place; it leaves the ordinary journey unchanged. **Journey recap** gathers your last memory, unfinished stories, carried object, waiting companions and saved route. Continue shows a compact recap before loading. A restored route waits for **Resume route**; it never moves the traveler on its own.
 
-This delivers four bounded Gospel chapters, eleven optional stories and an optional closing interlude. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/010-the-way-brought-to-life.md), and [verification record](docs/VERIFICATION.md).
+This delivers four bounded Gospel chapters, eleven optional stories and an optional closing interlude. More of Galilee/Judea, unrestricted sailing, offline caching and full device/accessibility review remain ahead. See the [roadmap](docs/ROADMAP.md), [current milestone RFC](docs/rfcs/011-a-world-in-light.md), and [verification record](docs/VERIFICATION.md).
 
 For a guided review and portable example saves, see the [playtest guide](docs/PLAYTEST.md).
 
@@ -113,7 +115,7 @@ npm run preview          # Serve the production build
 
 Use `npm run fixtures:connection` for portable v10 route, replay and homecoming examples, and `npm run assets:inspect:connection` to review shipped passage/landing assets and actual Babylon poses in Blender. Historical fixture and asset-review commands remain available.
 
-Use `npm run format`, `npm run test:watch`, and `npm run assets:build` as needed. Dependencies are pinned; the lockfile is committed.
+Use `npm run format`, `npm run test:watch`, and `npm run assets:build` as needed. `npm run capture:presentation` (with `CAPTURE_LABEL`/`CAPTURE_ONLY`) records same-camera captures and draw calls of every reference region into ignored `artifacts/rfc011/captures/`. Dependencies are pinned; the lockfile is committed.
 
 | Location                           | Responsibility                                    |
 | ---------------------------------- | ------------------------------------------------- |

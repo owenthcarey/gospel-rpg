@@ -1,5 +1,6 @@
 import type { AnimationGroup } from '@babylonjs/core/Animations/animationGroup';
 import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Space } from '@babylonjs/core/Maths/math.axis';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { ActorClip } from '../../content/assets';
 import type { Point } from '../../game/types';
@@ -21,6 +22,9 @@ export class Actor {
   private sampledFrame = 0;
   private blendTime = 0;
   private strideRate = 1;
+  private lookTarget: Vector3 | null = null;
+  private lookYaw = 0;
+  private head?: TransformNode | null;
   private previousPose: {
     target: TransformNode;
     position: Vector3;
@@ -73,6 +77,7 @@ export class Actor {
       this.current!.goToFrame(this.sampledFrame);
       if (frame < this.current!.to) {
         this.blendPose(dt, still);
+        this.applyLook(dt, still);
         return;
       }
     }
@@ -87,6 +92,36 @@ export class Actor {
       this.current.from + (still ? 0 : (this.elapsed * fps) % Math.max(length, 1));
     this.current.goToFrame(this.sampledFrame);
     this.blendPose(dt, still);
+    this.applyLook(dt, still);
+  }
+  /**
+   * Glance toward a world point, or back to the clip's own heading with `null`. Cosmetic:
+   * only the head turns, bounded, and only while an exploration actor is sampled.
+   */
+  lookAt(point: Vector3 | null): void {
+    this.lookTarget = point;
+  }
+  private applyLook(dt: number, still: boolean): void {
+    if (!this.lookTarget && Math.abs(this.lookYaw) < 0.001) return;
+    if (this.head === undefined) {
+      try {
+        this.head = this.model.socket('head');
+      } catch {
+        this.head = null;
+      }
+    }
+    if (!this.head) return;
+    let desired = 0;
+    if (this.lookTarget && !still) {
+      const at = this.root.getAbsolutePosition();
+      const toward = Math.atan2(this.lookTarget.x - at.x, this.lookTarget.z - at.z);
+      let delta = toward - (this.root.rotation.y - Math.PI);
+      delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+      // Beyond a comfortable glance the body would turn instead; stay forward.
+      desired = Math.abs(delta) < 1.6 ? Math.max(-0.7, Math.min(0.7, delta)) : 0;
+    }
+    this.lookYaw = still ? 0 : this.lookYaw + (desired - this.lookYaw) * (1 - Math.exp(-dt * 5));
+    if (Math.abs(this.lookYaw) >= 0.001) this.head.rotate(Vector3.Up(), this.lookYaw, Space.WORLD);
   }
   /** Simulation-time transition; exact presentation poses bypass this opt-in exploration blend. */
   private blendPose(dt: number, still: boolean): void {

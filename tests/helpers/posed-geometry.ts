@@ -48,3 +48,9 @@ export function bakedGeometry(scene: Scene) {
       };
     });
 }
+/** Smallest distance between two vertex sets, without spreading every pair onto the stack. */
+export function nearestDistance(a: readonly Vector3[], b: readonly Vector3[]): number {
+  let best = Infinity;
+  for (const p of a) for (const q of b) best = Math.min(best, Vector3.DistanceSquared(p, q));
+  return Math.sqrt(best);
+}

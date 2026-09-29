@@ -118,7 +118,13 @@ export const PROP_ASSETS = [
   'supply_rack',
   'resting_mat',
   'reed_screen',
+  'grass_tuft',
+  'shrub',
+  'flowers',
+  'pebbles',
 ] as const;
+/** RFC-011 ground cover, scattered with thin instances outside walkable space. */
+export const GROUND_COVER = ['grass_tuft', 'shrub', 'flowers', 'pebbles'] as const;
 export type AssetId = ActorAsset | (typeof PROP_ASSETS)[number];
 export interface AssetDefinition {
   id: AssetId;
@@ -196,6 +202,7 @@ export const ROOF_ASSETS: readonly AssetId[] = [
   'mat_flat',
   'mat_rolled',
   'bench',
+  ...GROUND_COVER,
 ];
 export const LAKE_ASSETS: readonly AssetId[] = [
   'boat',
@@ -214,6 +221,7 @@ export const LAKE_ASSETS: readonly AssetId[] = [
   'rock',
   'palm',
   'house',
+  ...GROUND_COVER,
 ];
 export const NAIN_ASSETS: readonly AssetId[] = [
   'jesus',
@@ -228,6 +236,7 @@ export const NAIN_ASSETS: readonly AssetId[] = [
   'low_wall',
   'olive',
   'rock',
+  ...GROUND_COVER,
 ];
 export function isActorAsset(id: string): id is ActorAsset {
   return ACTOR_ASSETS.some((candidate) => candidate === id);

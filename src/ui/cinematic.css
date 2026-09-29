@@ -1,0 +1,396 @@
+/* Cold open, chapter cards and travel veil (RFC-011). Opacity and transform only. */
+
+/* ── Cold open ─────────────────────────────────────────────────────────────── */
+.cold-open {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-cream);
+  animation: fade-in 900ms var(--ease-soft) both;
+}
+.cold-open.is-exiting {
+  pointer-events: none;
+  animation: fade-out 700ms var(--ease-soft) both;
+}
+.cold-open-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 55% at 50% 50%, rgba(8, 13, 10, 0.62), rgba(8, 13, 10, 0.4) 70%),
+    linear-gradient(rgba(8, 13, 10, 0.4), transparent 30%, transparent 70%, rgba(8, 13, 10, 0.5));
+}
+/* The HUD and title copy recede while the opening plays (the dialog is modal). */
+.has-cold-open > #ui {
+  opacity: 0;
+  transition: opacity 600ms var(--ease-soft);
+}
+.cold-open-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 9vh;
+  background: #050806;
+  animation: bar-in 1200ms var(--ease-out) both;
+}
+.cold-open-bar.is-top {
+  top: 0;
+  transform-origin: top;
+}
+.cold-open-bar.is-bottom {
+  bottom: 0;
+  transform-origin: bottom;
+}
+.cold-open-stage {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: calc(9vh + 24px) 24px 24px;
+  cursor: pointer;
+}
+.cold-open-card {
+  max-width: 720px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  opacity: 0;
+  transform: translateY(10px);
+}
+.cold-open-card.is-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 1100ms var(--ease-soft),
+    transform 1400ms var(--ease-out);
+}
+.cold-open-card.is-leaving {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 700ms var(--ease-soft),
+    transform 700ms var(--ease-in);
+}
+.cold-open-ornament {
+  width: 180px;
+  color: var(--gold-300);
+}
+.cold-open-eyebrow {
+  font:
+    600 13px/1.4 var(--font-display),
+    serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+}
+.cold-open-text {
+  font:
+    400 clamp(23px, 2.6vw, 34px) / 1.45 var(--font-serif),
+    serif;
+  color: var(--gold-100);
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgba(5, 9, 7, 0.8);
+}
+.cold-open-footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 9vh;
+  padding: 10px 32px;
+}
+.cold-open-provenance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font:
+    italic 14px/1.3 var(--font-serif),
+    serif;
+  color: var(--text-cream-2);
+}
+.cold-open-provenance .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--gold-300);
+}
+.cold-open-progress {
+  display: flex;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cold-open-progress li {
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(224, 194, 131, 0.55);
+  transition: background-color 400ms var(--ease-soft);
+}
+.cold-open-progress li.is-done,
+.cold-open-progress li.is-current {
+  background: var(--gold-300);
+}
+.cold-open-progress li.is-current {
+  box-shadow: 0 0 8px var(--gold-300);
+}
+.cold-open-actions {
+  display: flex;
+  gap: 8px;
+}
+.cold-open-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(224, 194, 131, 0.4);
+  background: rgba(15, 24, 19, 0.6);
+  color: var(--gold-100);
+  font-size: 14px;
+  font-weight: 500;
+}
+.cold-open-actions button:hover {
+  background: rgba(238, 215, 160, 0.14);
+  border-color: var(--gold-300);
+}
+.cold-open-actions .icon {
+  width: 16px;
+  height: 16px;
+}
+.cold-open.is-reduced .cold-open-card {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* ── Chapter card ──────────────────────────────────────────────────────────── */
+.chapter-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 16vh;
+  z-index: 70;
+  display: flex;
+  justify-content: center;
+  padding: 26px 24px 30px;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(10, 17, 14, 0.6),
+    rgba(10, 17, 14, 0.32) 60%,
+    transparent
+  );
+  opacity: 0;
+}
+.chapter-card.is-in {
+  opacity: 1;
+  transition: opacity 700ms var(--ease-soft);
+}
+.chapter-card.is-out {
+  opacity: 0;
+  transition: opacity 900ms var(--ease-soft);
+}
+.chapter-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  transform: translateY(8px);
+  transition: transform 1200ms var(--ease-out);
+}
+.chapter-card.is-in .chapter-card-inner {
+  transform: none;
+}
+.chapter-card-eyebrow {
+  font:
+    600 12px/1.3 var(--font-display),
+    serif;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+  text-shadow: 0 1px 10px rgba(5, 9, 7, 0.9);
+}
+.chapter-card-rule {
+  width: 240px;
+  color: var(--gold-300);
+}
+.chapter-card-title {
+  font:
+    500 clamp(34px, 4.4vw, 56px) / 1.05 var(--font-serif),
+    serif;
+  color: var(--gold-100);
+  text-shadow: 0 2px 26px rgba(5, 9, 7, 0.85);
+}
+.chapter-card-reference {
+  font:
+    italic 17px/1.3 var(--font-serif),
+    serif;
+  color: var(--text-cream-2);
+  text-shadow: 0 1px 10px rgba(5, 9, 7, 0.9);
+}
+.chapter-card.is-reduced,
+.chapter-card.is-reduced .chapter-card-inner {
+  transition: none;
+  transform: none;
+}
+
+/* ── Veil ──────────────────────────────────────────────────────────────────── */
+.veil {
+  --veil-tint: #1a2620;
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  color: var(--text-cream);
+  background-color: var(--veil-tint);
+  background-image:
+    radial-gradient(80% 60% at 50% 45%, rgba(224, 194, 131, 0.14), transparent 70%),
+    radial-gradient(140% 110% at 50% 50%, transparent 45%, rgba(5, 9, 7, 0.6));
+  opacity: 0;
+  transition: opacity 350ms var(--ease-soft);
+}
+.veil.is-covered {
+  opacity: 1;
+}
+.veil.is-revealing {
+  pointer-events: none;
+  opacity: 0;
+  transition-duration: 450ms;
+}
+.veil.is-reduced {
+  transition: none;
+}
+.veil-composition {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+  transform: translateY(6px);
+  transition: transform 700ms var(--ease-out);
+}
+.veil.is-covered .veil-composition {
+  transform: none;
+}
+.veil-mark {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 8px;
+  color: var(--gold-300);
+}
+.veil-mark svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.veil-ring {
+  inset: -8px !important;
+  width: calc(100% + 16px) !important;
+  height: calc(100% + 16px) !important;
+  color: var(--gold-200);
+  animation: ring-turn 2.8s linear infinite;
+}
+.veil-eyebrow {
+  font:
+    600 11px/1.3 var(--font-display),
+    serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+}
+.veil-title {
+  font:
+    500 clamp(32px, 4vw, 48px) / 1.05 var(--font-serif),
+    serif;
+  color: var(--gold-100);
+}
+.veil:not(.has-title) .veil-title,
+.veil:not(.has-title) .veil-rule {
+  display: none;
+}
+.veil-rule {
+  width: 200px;
+  color: var(--gold-300);
+}
+.veil-line {
+  max-width: 460px;
+  font:
+    italic 18px/1.5 var(--font-serif),
+    serif;
+  color: var(--text-cream-2);
+}
+.veil.is-reduced .veil-ring {
+  animation: none;
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes bar-in {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .cold-open-footer {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px 16px 14px;
+  }
+  .cold-open-provenance {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+  }
+  .cold-open-progress {
+    order: 0;
+  }
+  .cold-open-actions {
+    order: 1;
+  }
+  .cold-open-bar {
+    height: 7vh;
+  }
+  .chapter-card {
+    top: 12vh;
+  }
+}
+@media (max-height: 500px) {
+  .cold-open-bar {
+    height: 6vh;
+  }
+  .cold-open-text {
+    font-size: 21px;
+  }
+  .cold-open-footer {
+    min-height: 0;
+    padding: 6px 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cold-open-card,
+  .chapter-card,
+  .chapter-card-inner,
+  .veil,
+  .veil-composition {
+    transition: none !important;
+    transform: none !important;
+  }
+  .veil-ring {
+    animation: none !important;
+  }
+}

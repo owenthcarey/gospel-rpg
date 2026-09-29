@@ -1,0 +1,823 @@
+{
+  "baselineCommit": "d388fec",
+  "models": {
+    "amos": {
+      "bytes": 208928,
+      "sha256": "6b43101a0a2d4e93702fb2bf4859bf0eb787fd016252504f98420b01b15c5c13"
+    },
+    "amphora": {
+      "bytes": 14728,
+      "sha256": "bdaa0bfe04bd191513e58babaf09208b3ecb0fc12f8ec221808a2eee21bf452c"
+    },
+    "basket_empty": {
+      "bytes": 68952,
+      "sha256": "b04fa52c0ff2a17ef41b6820b6e6cce37d589aa21b6192d54499a1d75f7e23ff"
+    },
+    "basket_fish": {
+      "bytes": 100272,
+      "sha256": "d2d256a3fa68c09960f825a0d0455b953ca75f705a9c85e547c4f55e90d6b877"
+    },
+    "bearer": {
+      "bytes": 209344,
+      "sha256": "1f23a1c43d7392ac347b4f25d47a5f81b17990e8a54b3b7cfb6ee193b302f127"
+    },
+    "bench": {
+      "bytes": 6924,
+      "sha256": "9cce61ec1a00083f31654e985fceca5b065c8d6ef3ffdb045b1a3b3615eb3d72"
+    },
+    "bench_braced": {
+      "bytes": 18388,
+      "sha256": "77113fc779073e03ee8d1304360e66124560bfc78f5db475ffc79922949c699c"
+    },
+    "bench_lashed": {
+      "bytes": 22036,
+      "sha256": "d1d507a0ab78e811c7a3af9462e338c4cfcf852de10b222a2ffc37c7e2f00c90"
+    },
+    "bench_loose": {
+      "bytes": 17292,
+      "sha256": "8cab79f36f38aea46419eb0ccef5c81f811100757e47a0788e50d165d0c7cdf4"
+    },
+    "bench_pieces": {
+      "bytes": 9784,
+      "sha256": "1491c7817c189798b792a755a335730239be7894367fb51ba4bce9878078f0fd"
+    },
+    "boat": {
+      "bytes": 51036,
+      "sha256": "4243401f5f863be3fab721ef3b876206d8ee3fcdc5ff02c8ddda6171d66aefb4"
+    },
+    "boat_cushion": {
+      "bytes": 4760,
+      "sha256": "a64b4bb2690617793524de7760e1d73ef06f6831443900d5ca09ab36892c6fb8"
+    },
+    "bread_basket": {
+      "bytes": 77656,
+      "sha256": "52725cff06b06072911d06f749a720f6f553f3aff3791821eb28901f92a8c295"
+    },
+    "bread_board": {
+      "bytes": 10012,
+      "sha256": "0e6d64b2516cd208c1000cb11e798bfb0451ec5b2677c1a0c35ba9f77e8af613"
+    },
+    "bread_bundle": {
+      "bytes": 9276,
+      "sha256": "4a934afb29526e156bd0a166afbe875a762e5068fdfcd6263a6ca61bddead928"
+    },
+    "cart_handle": {
+      "bytes": 4488,
+      "sha256": "6a2662481fcf7cd1376f8131573de7efad6422bc921aca6cf45db43b9017c20c"
+    },
+    "channel_bend": {
+      "bytes": 7664,
+      "sha256": "4c09031fa21bde98376db8a48fdda7db9c485ba07dfbfd2d72500ce8720d6b89"
+    },
+    "channel_scoop": {
+      "bytes": 4452,
+      "sha256": "b84d0be20a386fb05138be00b260206eb8259118acea8ec4be5b7d22b0bbec92"
+    },
+    "channel_straight": {
+      "bytes": 4788,
+      "sha256": "5b8b67decfe9a7c08888b2dcfaf183ec78eadfb5f5582c9092226e056e87677b"
+    },
+    "courtyard_planter": {
+      "bytes": 34376,
+      "sha256": "67a4219455bc60c457f4327a5d7241c4ede570f3367142b52c35f6798d944418"
+    },
+    "cove_headland": {
+      "bytes": 18624,
+      "sha256": "69be984152bd6035f3d985b04c861219ffdb5c43e81583a1a96870201ba34f1e"
+    },
+    "crate": {
+      "bytes": 8372,
+      "sha256": "795d003394cf9b1e557970b764451cff175a6b5daf117207f8bf403ebe2dd044"
+    },
+    "crossing_plank": {
+      "bytes": 12744,
+      "sha256": "87e801e6578eb4565ee69d6bc986c2cb724222ed8d3664e14a4782cacc9caa64"
+    },
+    "cypress": {
+      "bytes": 13648,
+      "sha256": "5bf83de793c90a114d96180ddc9a1814a52ed3854969a64b13606f9e5be2a0bf"
+    },
+    "door_awning": {
+      "bytes": 6992,
+      "sha256": "0697ce1d81bc4d690b8cf1e3d2eacf83a7efbc33de679a062abc4768fde889d4"
+    },
+    "doorway": {
+      "bytes": 9728,
+      "sha256": "6c1c52132dab821534ae11b9cbc8bad638e0572b3bf20a79887ac797abd171e3"
+    },
+    "exterior_steps": {
+      "bytes": 8380,
+      "sha256": "86afdbe34c0dfffdef1329c4c2c12f9485562b06ce188efcf55075b560409e11"
+    },
+    "farm_shelter": {
+      "bytes": 19220,
+      "sha256": "8a7aa31177a4569ed2087f7c91c48c4e39f360a675227b1a45bcf6d57b4c782d"
+    },
+    "flour_sack": {
+      "bytes": 9644,
+      "sha256": "7b760751ab75f71c525890bab0a5e32659e0ba9dc1ebc90f756340bcffd536d7"
+    },
+    "flowers": {
+      "bytes": 14132,
+      "sha256": "def5ffd308920f42ac69f1f8f316148dbab575e523ea2989d751cfc72db8e302"
+    },
+    "gate": {
+      "bytes": 5520,
+      "sha256": "13badfee4522b841db456ea4d5f1e88991a4dbc6eda29794c0c836bc1abd31af"
+    },
+    "grass_tuft": {
+      "bytes": 3388,
+      "sha256": "4fdf7bbb96299bbde6ab4d4a148fee7a864f7f4c022f9b8ee1b58481757fa497"
+    },
+    "handcart": {
+      "bytes": 7768,
+      "sha256": "cad4c47a658a618151819d096087b515cd24f7bae872d97f12b79373f2c709f9"
+    },
+    "hannah": {
+      "bytes": 218184,
+      "sha256": "ce9a7ffaf2d94d4643ee2a7e763a1e538fdb24425aa35a780b011419da8328da"
+    },
+    "harbor_bollard": {
+      "bytes": 19244,
+      "sha256": "4f0d7d8a580adc95b80d0e8e15320fbfd7232b04528932dab66f96678e8b0f8e"
+    },
+    "healed_man": {
+      "bytes": 207584,
+      "sha256": "28f9904cb278ab93c460dc1ae676335e496cd6d807f41d3a3790cf581497da96"
+    },
+    "house": {
+      "bytes": 188348,
+      "sha256": "9a06f08280a18126735efda33f918fd7bba5d3c83b7f09570690ee01b7cc28b3"
+    },
+    "house_large": {
+      "bytes": 238464,
+      "sha256": "09e47c1974ec5a69109cbfd63c9f1d9cfb2249c4c64c141782a68c18bef3ec29"
+    },
+    "james": {
+      "bytes": 208948,
+      "sha256": "8caa6c49f7dc8f9e54a4e6c7a9e5e312ab7128d9cb31ec07972cc5d990d6765d"
+    },
+    "jesus": {
+      "bytes": 218164,
+      "sha256": "c31b635ed294898605113ad1585c58fc23fbe5e45c3ed40a422ec72d12187d3f"
+    },
+    "john": {
+      "bytes": 222692,
+      "sha256": "48c1c5657ca432929dc74af15d3cd9f2de4a57b15022a410edf966f5c78a8a53"
+    },
+    "jug": {
+      "bytes": 8868,
+      "sha256": "ab98b0632515bddbcf6ebea2cf3f1553046894812fd214cfe8f277ef38919b77"
+    },
+    "landing_mat": {
+      "bytes": 11768,
+      "sha256": "f805bf78ee8e1098c5101c8b893cb195696c9b606b579aee9f2c7892f9c2915f"
+    },
+    "landing_pier": {
+      "bytes": 20408,
+      "sha256": "aee2f7aa4abd71cea5a2471d400041ca6ea03a605813551b8e1ad9332472c69e"
+    },
+    "lashing_cord": {
+      "bytes": 41632,
+      "sha256": "d728afb5bb106a9dfffee9d7eed11021644ff24d2d476ce670cd56f790300338"
+    },
+    "leah": {
+      "bytes": 215172,
+      "sha256": "0d2662f81dd942f0c8f5e95b5dfabf5269c46963c68338ad1e434a22cf73210d"
+    },
+    "low_wall": {
+      "bytes": 6904,
+      "sha256": "4a0aceee362f4da35dfc66e511c9e92202bca1b17d51792736307129f6ecf6ec"
+    },
+    "market": {
+      "bytes": 33552,
+      "sha256": "86816d238d1edd12a8b4f6c4743e90324db053e23fa54cd5c64afc7700636c3c"
+    },
+    "mat_flat": {
+      "bytes": 19408,
+      "sha256": "0b235272b00341148c48a833cb351ad48c00b7a85215e943a840fa379a0997fd"
+    },
+    "mat_rolled": {
+      "bytes": 9132,
+      "sha256": "f45a289b1ec1d26847a5c68bd580b92133241b5cb9a3c33978b2cdf9054076bc"
+    },
+    "mending_cloth": {
+      "bytes": 16372,
+      "sha256": "9a2b2f7c24e51370fc205a7da4b167083e9fd1c21bd0527c030f5f66779ab6a6"
+    },
+    "miriam": {
+      "bytes": 214560,
+      "sha256": "b2758c855bcd8729a82301a0984d5c8332efee7d3f2460e41a3f87ca0f579855"
+    },
+    "mooring": {
+      "bytes": 54712,
+      "sha256": "7980913e9cfc2b7320d6237d759e1b343233fd3669196bed6019a48fde171852"
+    },
+    "net_cast": {
+      "bytes": 106060,
+      "sha256": "9b43ebaae84c3557a2d304b98713444424f120571fdba1e1ac48d3683a5db3c0"
+    },
+    "net_folded": {
+      "bytes": 15416,
+      "sha256": "672480cd188aae61aa91dd53ed9fd43bd478b8e85676b1310efea20ccc98255a"
+    },
+    "net_full": {
+      "bytes": 140860,
+      "sha256": "aada587b7866d6a3926ead5cb61199b91e6403a057bfd989e888aa351ae43c11"
+    },
+    "net_workbench": {
+      "bytes": 17064,
+      "sha256": "59ca494f5da0556a7c62ff59b00775a6682815fb809209d1800811b20ef07f27"
+    },
+    "nets": {
+      "bytes": 24128,
+      "sha256": "130f9837b1934cb1e5f8446746f2ce015b57799ac9bc3bc6f826ae9664a5cf51"
+    },
+    "oar": {
+      "bytes": 5156,
+      "sha256": "524393b50acf221e3b4e7c94750fcbb6d2d482abdb076d5464d03511cd0090e2"
+    },
+    "olive": {
+      "bytes": 47600,
+      "sha256": "b81b03c176e86fd0046bb620c7ffdc094186f0414ed4c44578be588fce36cd65"
+    },
+    "oven": {
+      "bytes": 13936,
+      "sha256": "0dbf4a446f6c55bc624d25bd1e653b3ef783b8dfae9e37cdbbddde122dd8260c"
+    },
+    "palm": {
+      "bytes": 38596,
+      "sha256": "7785d10d44ebc1474764ef3215c49f6e800503800fcfdd27db119216af4e926d"
+    },
+    "passage_marker": {
+      "bytes": 10188,
+      "sha256": "089d02a0d568dc151e6df4c3f5f350f475608b1b103424d0c88e97fbde2a135d"
+    },
+    "pebbles": {
+      "bytes": 11676,
+      "sha256": "07d934ef29f2e44a99c176ec522331ebd79c0df3d5a6bd6ac3b4308b1b1fffc3"
+    },
+    "procession_frame": {
+      "bytes": 22728,
+      "sha256": "db32b49f49caddacd539de0826ea7de77da980066b05eccd2b802a0bf75d2c33"
+    },
+    "quay_stones": {
+      "bytes": 15500,
+      "sha256": "7fad299c69159b43c4d4b1d5614896d829030471d38af0b55dddc6df056256e0"
+    },
+    "reed_bank": {
+      "bytes": 28940,
+      "sha256": "6ef5d087028950c6a2385388c16df29edbdf8abc483a691cb91900fa4c63df55"
+    },
+    "reed_screen": {
+      "bytes": 21060,
+      "sha256": "c36996b76c0e2b17d365a579fc5a0225cd76ca858ed3193aae7ab52e148e5b9b"
+    },
+    "reeds": {
+      "bytes": 23616,
+      "sha256": "9a3d9aa0c32e2d958cc272926977c0a78eb51d3ba38811d8580fddf099991e21"
+    },
+    "resting_mat": {
+      "bytes": 10524,
+      "sha256": "06219e08be31344224be591916978cfd28fe8016858caa5f688dbdf1dc665171"
+    },
+    "rock": {
+      "bytes": 4704,
+      "sha256": "63a2380f2f1273c68bdbf5b3e5a4f4a870569fe60031fdd10408b7c58444d0fd"
+    },
+    "roof_opening": {
+      "bytes": 6244,
+      "sha256": "790e7438419ca726250db49844ba89ba5c4f818bda4d34a727698750bbfd8852"
+    },
+    "roof_panel": {
+      "bytes": 5172,
+      "sha256": "1796c2251f2f73cbc6eb1fdb04505ed4a718e084767e94a2133830f3aa9456d9"
+    },
+    "room_wall": {
+      "bytes": 41888,
+      "sha256": "517d1fc297778e7406f0b4b3e627344a7931870d062d2c6e2d0423e8ad626a28"
+    },
+    "ruth": {
+      "bytes": 211536,
+      "sha256": "a69bf08fc123602accb8664df9b884fca29fc41a8d4a608d1c7f3b95a71837a9"
+    },
+    "sewing_pouch": {
+      "bytes": 18572,
+      "sha256": "1ab3bcce1aff149b8d81022eafa86ce9571a5064d0a1e4179d891040a1cbdda3"
+    },
+    "shelf": {
+      "bytes": 4772,
+      "sha256": "650adb159aa27f1ce84858a34c7f9d07bd4c4ce50ba7e3343b92be4fdd3ae306"
+    },
+    "shrub": {
+      "bytes": 12576,
+      "sha256": "58dad21d034a2a16c1aecba5189c4c4950a7089775e38feef65fe90872c07733"
+    },
+    "simon": {
+      "bytes": 226760,
+      "sha256": "7cfe7f45b8897538b4c41eb16637c4f7e4e1a3f35e36cf988676828691d04591"
+    },
+    "split_olive": {
+      "bytes": 20580,
+      "sha256": "4acd7eec08aa4444e2a0e38b649be50af34908b827de9e26faa6c6e904dcdda4"
+    },
+    "split_rock": {
+      "bytes": 6436,
+      "sha256": "f001e632b288601829e23fe930989c5196e1225c0fecac2a63792de756e698ad"
+    },
+    "spring_marker": {
+      "bytes": 14652,
+      "sha256": "676bfc0f5ddbfea157ffde3ec585487c8c1e67b54844345f703d80848a10b27e"
+    },
+    "stone_threshold": {
+      "bytes": 9760,
+      "sha256": "f24f3f6cc2ac6f9de1fbd66e5373f8a46dd77f529d892bf5edbc3dc2bc47715d"
+    },
+    "stool": {
+      "bytes": 6924,
+      "sha256": "127795b3756fa6278358e326b99a5f96d693675b131a888cf35bd23c039b3429"
+    },
+    "supply_rack": {
+      "bytes": 10604,
+      "sha256": "c253466b751b05256c51102c7dee111796e75ca9e25233bb90e29b2fe0e828e9"
+    },
+    "terrace_marker": {
+      "bytes": 13452,
+      "sha256": "7cc92d129790fddd04b6e2e87eab3a131745b11ae26f9deeab93f86c40647c03"
+    },
+    "terrace_wall": {
+      "bytes": 69772,
+      "sha256": "345c5ca595d409007ae607932d43ce22d63bdfd8bde0950eb83744878641c630"
+    },
+    "thread_clue": {
+      "bytes": 7328,
+      "sha256": "cdf85ebf4db05822311dea4e2e8c9c3c6a8d2a83554eceb49a6a21b71cf47032"
+    },
+    "town_gate": {
+      "bytes": 159188,
+      "sha256": "4ca4278c71525248d63e4b408af2f8dcb335b6f4a05056186177ac2004b944b9"
+    },
+    "traveler": {
+      "bytes": 213060,
+      "sha256": "265cb66788701b73f91701bfc5ee0b1849ae8459f92e08c7b26100c469567659"
+    },
+    "villager": {
+      "bytes": 208960,
+      "sha256": "56954955afd7a3a1eac066178a1573dd4a44ccb17f7d9eb64fef42d4c9f7c449"
+    },
+    "wall_footing": {
+      "bytes": 24092,
+      "sha256": "3cf65187de9fb3926671a9ee6f626ac537e4c3b50a2d48f475dd018557848615"
+    },
+    "water_basin": {
+      "bytes": 6952,
+      "sha256": "2a916e6b7deccfb204dd7928b4bf207ceb559dfb76de55e64fddf95c3bbc73dc"
+    },
+    "well": {
+      "bytes": 36324,
+      "sha256": "3f488f91edd67ff2d7b2ea03f5f97204a7106078c7c91257d0cf730844bd4d58"
+    },
+    "widow": {
+      "bytes": 214556,
+      "sha256": "dcebceae44f48f57418d3e815f89444ddb9a4cfb263f762e028f3cc94ddb9cc2"
+    },
+    "wood_brace": {
+      "bytes": 6912,
+      "sha256": "4cec7a1ef556ecc98641c2df6c7a2989f6cad1620e37621a75f870e3bbabf6ef"
+    },
+    "worktable": {
+      "bytes": 6896,
+      "sha256": "7471ecc0bb3ca59d59e6241d2d5977e85956b4acd28a62f2f198882de87a4118"
+    },
+    "young_man": {
+      "bytes": 227148,
+      "sha256": "d078211f6194fc63a3db3c939a25b3e2ea4088172fccb1c76eec712faac87df6"
+    }
+  },
+  "portraits": {
+    "amos": {
+      "bytes": 6436,
+      "sha256": "d6a4d9061aad4babdb569097781256463ec16e7e769bae77fe0f83c4a30def81"
+    },
+    "bearer": {
+      "bytes": 6366,
+      "sha256": "a4357385e2615cf5469aaf44bfaf2026c77b78aff87048fd5d64a81051425f3e"
+    },
+    "hannah": {
+      "bytes": 7198,
+      "sha256": "18c3df15c1aef03c81532d4ffccdc33592aaa6573883e4f6bd76c0b6383af357"
+    },
+    "healed_man": {
+      "bytes": 6150,
+      "sha256": "bcccc58ad26cb89a5ffa2e066b943e5ccd0a3747bb5dc6c965dd5606e718f895"
+    },
+    "james": {
+      "bytes": 6622,
+      "sha256": "3a077349e5f13a14dc98167e3345df0b8e3dd7d3a8f4aae7db3306f0c9386c3b"
+    },
+    "jesus": {
+      "bytes": 5788,
+      "sha256": "edc2a6f9d5ec3c714b21d0726136b771c0c7c95b5b0e1a1f10d35e1d4325c1f2"
+    },
+    "john": {
+      "bytes": 7904,
+      "sha256": "ce9efa09eba0dd407d1da57abd83c0ada713a281b30541a9036bc517542a5af2"
+    },
+    "leah": {
+      "bytes": 7450,
+      "sha256": "c3cd17f80de0d0efcdb7eb337baa7177cabd0c05e37a6fc631e69f781c417913"
+    },
+    "miriam": {
+      "bytes": 6736,
+      "sha256": "6a612bf5c942fde94ec1741b9c4ab268521483ae3aa67739b6102decd64688d7"
+    },
+    "ruth": {
+      "bytes": 7574,
+      "sha256": "ad2334ea80dcce2c4e090ccdd051d08f808c588d33fd3c9a2da07120b8576f33"
+    },
+    "simon": {
+      "bytes": 7554,
+      "sha256": "44a38d2a7f86ab37c3bd7627910a3d7107d4d5dab50b5b0b4d6dad7cd238c1c3"
+    },
+    "traveler": {
+      "bytes": 6700,
+      "sha256": "3d415ce98246aa993a44b7c90df95a63e4ca612f36b913513508eb79e22d5015"
+    },
+    "villager": {
+      "bytes": 6426,
+      "sha256": "700f76ecd28534291fb9b818c412f04a154a0b0ec517ab6804c76147cc0938d8"
+    },
+    "widow": {
+      "bytes": 6078,
+      "sha256": "2f36c201aa08038b4e3634c3e78afad90fd618fe4eb4b11fd53b9f1d534cb455"
+    },
+    "young_man": {
+      "bytes": 7186,
+      "sha256": "b71ba1d1745c61c738a516f4d8427610350ff2787a671974dc25989b4cffc64c"
+    }
+  },
+  "portraitBytes": 102168,
+  "regions": {
+    "capernaum": {
+      "assets": [
+        "traveler",
+        "simon",
+        "miriam",
+        "jesus",
+        "villager",
+        "james",
+        "john",
+        "house",
+        "house_large",
+        "market",
+        "olive",
+        "cypress",
+        "palm",
+        "boat",
+        "nets",
+        "crate",
+        "amphora",
+        "reeds",
+        "rock",
+        "well",
+        "basket_empty",
+        "basket_fish",
+        "net_folded",
+        "oar",
+        "bread_bundle",
+        "mooring",
+        "landing_mat",
+        "net_workbench",
+        "door_awning",
+        "stone_threshold",
+        "wall_footing",
+        "harbor_bollard",
+        "quay_stones",
+        "crossing_plank",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "bench_loose",
+        "bench_lashed",
+        "bench_braced",
+        "bench_pieces",
+        "grass_tuft",
+        "shrub",
+        "flowers",
+        "pebbles"
+      ],
+      "bytes": 2920832,
+      "baselineBytes": 2699000,
+      "addedBytes": 221832
+    },
+    "capernaum-lanes": {
+      "assets": [
+        "door_awning",
+        "stone_threshold",
+        "courtyard_planter",
+        "wall_footing",
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "thread_clue",
+        "villager",
+        "house_large",
+        "doorway",
+        "exterior_steps",
+        "low_wall",
+        "olive",
+        "cypress",
+        "well",
+        "worktable",
+        "bench",
+        "amphora",
+        "crate",
+        "rock",
+        "house",
+        "landing_mat",
+        "ruth",
+        "amos",
+        "gate",
+        "handcart",
+        "grass_tuft",
+        "shrub",
+        "flowers",
+        "pebbles"
+      ],
+      "bytes": 1787232,
+      "baselineBytes": 1563144,
+      "addedBytes": 224088
+    },
+    "gathering-house": {
+      "assets": [
+        "stone_threshold",
+        "villager",
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "room_wall",
+        "doorway",
+        "roof_opening",
+        "roof_panel",
+        "bench",
+        "stool",
+        "amphora"
+      ],
+      "bytes": 727740,
+      "baselineBytes": 763308,
+      "addedBytes": -35568
+    },
+    "bakehouse": {
+      "assets": [
+        "stone_threshold",
+        "worktable",
+        "bread_board",
+        "courtyard_planter",
+        "wall_footing",
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "mending_cloth",
+        "villager",
+        "room_wall",
+        "doorway",
+        "roof_opening",
+        "roof_panel",
+        "oven",
+        "bench",
+        "shelf",
+        "flour_sack",
+        "hannah"
+      ],
+      "bytes": 1044372,
+      "baselineBytes": 1087336,
+      "addedBytes": -42964
+    },
+    "galilean-road": {
+      "assets": [
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "channel_straight",
+        "channel_bend",
+        "water_basin",
+        "supply_rack",
+        "spring_marker",
+        "rock",
+        "villager",
+        "olive",
+        "terrace_marker",
+        "terrace_wall",
+        "cypress",
+        "ruth",
+        "amos",
+        "grass_tuft",
+        "shrub",
+        "flowers",
+        "pebbles"
+      ],
+      "bytes": 1282444,
+      "baselineBytes": 1270016,
+      "addedBytes": 12428
+    },
+    "roadside-farm": {
+      "assets": [
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "leah",
+        "supply_rack",
+        "bench",
+        "villager",
+        "house_large",
+        "farm_shelter",
+        "split_olive",
+        "terrace_marker",
+        "worktable",
+        "olive",
+        "amphora",
+        "flour_sack",
+        "low_wall",
+        "amos",
+        "grass_tuft",
+        "shrub",
+        "flowers",
+        "pebbles"
+      ],
+      "bytes": 1487260,
+      "baselineBytes": 1317276,
+      "addedBytes": 169984
+    },
+    "nain-gate": {
+      "assets": [
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "town_gate",
+        "house",
+        "bench",
+        "olive",
+        "amphora",
+        "low_wall",
+        "hannah",
+        "amos",
+        "grass_tuft",
+        "shrub",
+        "flowers",
+        "pebbles"
+      ],
+      "bytes": 1309988,
+      "baselineBytes": 1190972,
+      "addedBytes": 119016
+    },
+    "galilee-water": {
+      "assets": [
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "split_rock",
+        "cove_headland",
+        "reed_bank",
+        "landing_pier",
+        "olive",
+        "rock",
+        "farm_shelter",
+        "house",
+        "boat",
+        "oar",
+        "villager"
+      ],
+      "bytes": 1016844,
+      "baselineBytes": 974360,
+      "addedBytes": 42484
+    },
+    "reed-landing": {
+      "assets": [
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "landing_pier",
+        "olive",
+        "bench",
+        "rock",
+        "reed_bank",
+        "split_rock",
+        "boat",
+        "oar",
+        "villager",
+        "grass_tuft",
+        "shrub",
+        "flowers",
+        "pebbles"
+      ],
+      "bytes": 839348,
+      "baselineBytes": 842860,
+      "addedBytes": -3512
+    },
+    "sheltered-cove": {
+      "assets": [
+        "traveler",
+        "passage_marker",
+        "channel_scoop",
+        "resting_mat",
+        "jug",
+        "reed_screen",
+        "bread_basket",
+        "cart_handle",
+        "sewing_pouch",
+        "lashing_cord",
+        "wood_brace",
+        "landing_pier",
+        "olive",
+        "bench",
+        "rock",
+        "farm_shelter",
+        "cove_headland",
+        "amphora",
+        "reed_bank",
+        "miriam",
+        "boat",
+        "oar",
+        "villager",
+        "grass_tuft",
+        "shrub",
+        "flowers",
+        "pebbles"
+      ],
+      "bytes": 1100044,
+      "baselineBytes": 1095340,
+      "addedBytes": 4704
+    }
+  }
+}

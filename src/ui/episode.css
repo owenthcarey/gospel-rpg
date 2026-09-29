@@ -100,7 +100,7 @@
 }
 .saved-reflection strong {
   font:
-    24px Georgia,
+    24px var(--font-serif),
     serif;
 }
 .saved-reflection p {
@@ -129,6 +129,7 @@
 .scene-mode .minimap-wrap {
   display: none;
 }
+/* The Gospel reading surface: a composed parchment leaf beside the tableau. */
 .scene-controls {
   pointer-events: auto;
   position: absolute;
@@ -139,112 +140,218 @@
   max-height: calc(100dvh - 125px);
   display: flex;
   flex-direction: column;
-  background: #f0ecd9f5;
-  color: #343e32;
-  border: 1px solid #fff7dd;
-  border-radius: 7px;
-  box-shadow: 0 14px 60px #14272245;
+  background-color: var(--parch-100);
+  background-image:
+    var(--paper-grain), radial-gradient(130% 80% at 50% 0, var(--parch-0), transparent 60%);
+  color: var(--fg);
+  border: 1px solid #fff6df;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    var(--shadow-panel),
+    0 0 0 1px rgba(60, 44, 16, 0.35);
+  animation: panel-in var(--dur-slow) var(--ease-out) both;
 }
 .scene-controls[hidden] {
   display: none;
 }
+/* An open reading panel sits above the scene leaf, which is inert meanwhile. */
+#ui:has(> #overlay.panel-overlay) > .scene-controls {
+  z-index: 2;
+}
 .scene-heading {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 14px;
+  padding: 22px 26px 10px;
 }
 .scene-heading .eyebrow {
-  color: #626d53;
-  font-size: 10px;
+  font-size: 10.5px;
+  color: var(--accent);
 }
 .scene-heading h1 {
   font:
-    30px/1.15 Georgia,
+    500 31px/1.1 var(--font-serif),
     serif;
-  margin: 7px 0 0;
-  color: #344330;
+  margin: 6px 0 0;
+  color: var(--fg);
+}
+.scene-ornament {
+  width: 130px;
+  margin-top: 8px;
 }
 .scene-pause {
   align-self: flex-start;
-  background: #d9ddcaaa;
-  border: 1px solid #b6bda6;
-  color: #394532;
-  min-height: 44px;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  flex-shrink: 0;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-line);
+  color: var(--btn-fg);
+  min-height: 40px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.scene-pause:hover {
+  border-color: var(--accent);
+  background: var(--btn-hover);
+}
+.scene-pause[aria-pressed='true'] {
+  background: var(--moss);
+  border-color: var(--moss);
+  color: var(--gold-100);
 }
 .scene-progress {
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 5px;
-  padding: 0 24px 8px;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 26px 10px;
 }
 .scene-progress span {
-  height: 3px;
-  background: #c4c9b5;
+  height: 2px;
+  background: rgba(109, 82, 34, 0.18);
   flex: 1;
+  border-radius: 1px;
 }
 .scene-progress span.reached {
-  background: #8b7742;
+  background: var(--gold-500);
+}
+.scene-progress span.current {
+  height: 3px;
+  background: var(--bronze-700);
+  box-shadow: 0 0 6px rgba(169, 133, 70, 0.6);
 }
 .scene-reading {
-  padding: 4px 24px 12px;
+  position: relative;
+  z-index: 1;
+  padding: 6px 26px 14px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+  scrollbar-color: #b9a57a transparent;
   min-height: 60px;
 }
+.scene-reading:focus-visible {
+  outline-offset: -2px;
+}
 .scene-caption {
-  padding: 8px 0;
+  padding: 10px 0;
 }
 .scene-caption + .scene-caption {
-  border-top: 1px solid #b7bea144;
-  margin-top: 7px;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
 }
 .caption-source {
-  font-size: 11px;
-  letter-spacing: 0.025em;
-  color: #687350;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--fg-2);
   margin: 0 0 8px;
-  line-height: 1.5;
+  line-height: 1.4;
 }
+.caption-source .icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+/* Original narration: quieter sans, clearly not scripture. */
 .scene-caption > p:last-child {
-  font-size: 15px;
-  line-height: 1.65;
+  font:
+    400 16px/1.6 var(--font-sans),
+    sans-serif;
+  color: var(--fg-2);
   margin: 0;
+}
+/* World English Bible: composed serif with a gilded rule and initial. */
+.scripture-caption {
+  position: relative;
+  padding-left: 16px;
+}
+.scripture-caption::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: linear-gradient(var(--gold-400), rgba(203, 166, 98, 0.2));
+}
+.scripture-caption .caption-source {
+  color: var(--accent);
+  font-weight: 500;
 }
 .scripture-caption > p:last-child {
   font:
-    19px/1.55 Georgia,
+    400 20px/1.55 var(--font-serif),
     serif;
-  color: #34482e;
+  color: #283823;
+}
+.scripture-caption > p:last-child::first-letter {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5em;
+  line-height: 1;
+  color: var(--bronze-700);
+  padding-right: 1px;
 }
 .scene-observation {
   margin: 14px 0 2px;
-  background: #c3c9ad33;
-  border-radius: 4px;
+  background: rgba(255, 252, 243, 0.55);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
 }
 .scene-observation summary {
-  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
   min-height: 44px;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  list-style: none;
+}
+.scene-observation summary::-webkit-details-marker {
+  display: none;
+}
+.scene-observation summary::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--accent);
+  border-bottom: 1.5px solid var(--accent);
+  transform: rotate(-45deg);
+  transition: transform var(--dur) var(--ease-out);
+}
+.scene-observation[open] summary::before {
+  transform: rotate(45deg);
 }
 .scene-observation p {
-  padding: 0 12px 12px;
-  font-size: 14px;
-  line-height: 1.6;
+  padding: 0 14px 12px;
+  font:
+    italic 16px/1.6 var(--font-serif),
+    serif;
+  color: var(--fg-2);
 }
 .scene-footer {
-  padding: 14px 24px 16px;
-  border-top: 1px solid #b7bea166;
+  position: relative;
+  z-index: 1;
+  padding: 14px 26px 16px;
+  border-top: 1px solid var(--line);
+  background: rgba(232, 219, 189, 0.4);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 .scene-continue {
   width: 100%;
   min-height: 46px;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: 15px;
 }
 .scene-secondary {
   display: flex;
@@ -255,78 +362,98 @@
 }
 .scene-secondary button {
   min-height: 44px;
-  color: #4b5c3d;
-  font-size: 12px;
+  color: var(--accent);
+  font-size: 14px;
 }
 .scene-save-note {
-  font-size: 11px;
-  color: #6c755c;
-  line-height: 1.5;
+  font:
+    italic 13px/1.5 var(--font-serif),
+    serif;
+  color: var(--fg-2);
   margin: 4px 0 0;
 }
 .transcript {
   display: grid;
-  gap: 24px;
-  margin-top: 28px;
+  gap: 22px;
+  margin-top: 26px;
 }
 .transcript-beat {
-  padding: 24px;
-  background: #eee9d733;
-  border: 1px solid #b6bea044;
-  border-radius: 4px;
+  padding: 24px 26px;
+  background: rgba(255, 252, 243, 0.55);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   scroll-margin: 20px;
 }
 .transcript-beat.current-beat {
-  border-color: #aa8f4b;
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px rgba(203, 166, 98, 0.18);
 }
 .transcript-beat h3 {
   font:
-    28px Georgia,
+    500 27px/1.15 var(--font-serif),
     serif;
-  margin: 10px 0 20px;
+  margin: 8px 0 18px;
 }
 .transcript-beat p:not(.caption-source) {
-  font-size: 16px;
-  line-height: 1.75;
-  margin: 0 0 18px;
+  font:
+    400 17px/1.65 var(--font-serif),
+    serif;
+  margin: 0 0 16px;
 }
 .transcript-beat .caption-source {
   margin-top: 14px;
-  font-size: 12px;
+  font-size: 13px;
 }
 .transcript-notice {
-  border-left: 2px solid #a9b78b;
+  border-left: 2px solid var(--sage);
   padding-left: 16px;
-  color: #6d745e;
+  color: var(--fg-2);
+  font-style: italic;
 }
 .source-link {
   display: inline-flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   min-height: 44px;
-  color: #52613a;
+  color: var(--accent);
+  text-underline-offset: 4px;
+}
+.source-link .icon {
+  width: 16px;
 }
 .summary-account {
   margin: 22px 0;
-  padding: 20px;
-  border: 1px solid #a5b18b66;
-  border-radius: 4px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 252, 243, 0.55);
 }
 .summary-account p {
-  font-size: 16px;
-  line-height: 1.7;
-  margin-bottom: 16px;
+  font:
+    400 17px/1.65 var(--font-serif),
+    serif;
+  margin-bottom: 14px;
 }
-.diagnostics-table {
+.diagnostics-table,
+.asset-diagnostics {
   width: 100%;
-  margin-top: 20px;
+  margin-top: 18px;
   border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 .diagnostics-table th,
-.diagnostics-table td {
-  padding: 10px;
+.diagnostics-table td,
+.asset-diagnostics th,
+.asset-diagnostics td {
+  padding: 8px 10px;
   text-align: left;
-  border-bottom: 1px solid #acb49d66;
+  border-bottom: 1px solid var(--line);
+}
+.diagnostics-table th,
+.asset-diagnostics thead th {
+  font-weight: 600;
+  color: var(--fg);
 }
 #loading[hidden] {
   display: none;

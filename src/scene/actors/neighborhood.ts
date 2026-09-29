@@ -44,7 +44,7 @@ export class NeighborhoodActivity {
         [1, 12, 7],
         [2, 8, 7],
       ] as const) {
-        const actor = new Actor(library.instantiate('villager', 'street-neighbor-' + i));
+        const actor = new Actor(library.instantiate('villager', 'street-neighbor-' + i), true);
         actor.root.position.set(x, 0, z);
         this.crowd.push({ actor, a: { x, z }, b: { x, z: z + 2 }, period: 12 + i * 4 });
       }
@@ -112,7 +112,9 @@ export class NeighborhoodActivity {
       if (moving) {
         const t = phase < 0.25 ? phase * 4 : 2 - phase * 4;
         c.actor.root.position.z = c.a.z + (c.b.z - c.a.z) * t;
-        c.actor.root.rotation.y = phase < 0.25 ? Math.PI : 0;
+        // Turn around at each end of the walk rather than flipping in place.
+        const toward = phase < 0.25 ? c.b : c.a;
+        c.actor.turnTo({ x: c.actor.root.position.x, z: toward.z }, this.still ? 10 : dt, 7);
       }
       c.actor.sample(moving ? 'Walk' : 'Idle', dt, this.still);
     }
@@ -129,7 +131,7 @@ export class NeighborhoodActivity {
       const step = stepPath(position, this.path, dt * 0.52);
       this.path = step.path;
       amos.root.position.set(step.position.x, 0, step.position.z);
-      if (step.facing) amos.face(step.facing);
+      if (step.facing) amos.turnTo(step.facing, this.still ? 10 : dt, 9);
       amos.sample('Walk', dt, this.still);
     } else amos.sample('Idle', dt, this.still);
     if (

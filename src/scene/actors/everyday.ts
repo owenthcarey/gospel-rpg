@@ -55,7 +55,8 @@ export class EverydayActivity {
         s.actor.root.position.set(pose.position.x, pose.clip === 'Sit' ? 0.14 : 0, pose.position.z);
       const clip = s.active ? pose.clip : 'Idle';
       const acknowledge = clip === 'Idle' && distance(player, s.actor.root.position) < 3;
-      s.actor.face(acknowledge ? player : pose.facing);
+      // Acknowledge the traveler with an unhurried turn; reduced motion settles immediately.
+      s.actor.turnTo(acknowledge ? player : pose.facing, this.still || dt === 0 ? 10 : dt, 5);
       s.actor.sample(clip, dt, this.still);
     }
   }

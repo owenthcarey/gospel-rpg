@@ -211,3 +211,32 @@ Use the [focused presentation guide](verification/rfc010/README.md) alongside th
 7. Return after a reload with a carried object, a waiting companion and an unfinished route. Check that presentation has changed no durable progress. Export a save and verify the expected story, companion and boat state.
 
 Record task completion, points of confusion, discomfort, perceived pacing and any visual defect with the scene, device, browser, graphics setting and text size. Physical touch, screen-reader, human pacing, historical/editorial and sustained GPU reviews are still external acceptance work. Automated browser viewports and geometry measurements do not substitute for those results.
+
+## A World in Light
+
+A 30–45 minute focused review of RFC-011. Play in a normal browser (automation skips the cold open). Use a fresh browser profile for the first-run section, then any saves from `tests/fixtures/saves/` for the rest. Record what you actually observed; automation does not establish comfort, readability or pacing.
+
+**First run**
+
+1. Open the game and watch the title view for 20 seconds. Does the dawn over the lake read as the Sea of Galilee rather than an empty backdrop? Is the welcome text comfortable to read over it?
+2. Select **Begin your journey**. Read the cold open at your own pace, try **Continue**, then start again in a new profile and try **Skip** and Escape. Is the narration clearly original and unhurried, and is it obvious how to leave it?
+3. After the veil, watch the establishing move into Capernaum. Does it orient you (lake, boats, Simon) and hand control back naturally? Does the "Northern shore · Capernaum" title card get in the way of anything?
+4. **Settings → Watch the opening again** replays it without changing your journey.
+
+**The world**
+
+5. Walk the shore, lanes, road, farm and Nain gate at High, then Low. Note any place where light, fog or colour makes people, labels or paths hard to read, or where ground cover hides something you needed to see.
+6. Walk around trees and buildings. Do dissolving trees and lowering walls keep the traveler visible without feeling glitchy?
+7. Approach two or three villagers. Do their glances feel natural or distracting? Open and close a conversation: is the camera's return comfortable?
+8. Row across the lake. Do foam, reflections and ripples help you judge the shore and your heading?
+
+**Gospel accounts**
+
+9. Read at least three scenes in each account. Do the eased camera moves support the reading, and does selecting Continue during a move feel responsive? In Peace, be still, is the storm's rain, darkness and shake powerful but not uncomfortable? Try with **Reduced motion** on.
+10. Is scripture still clearly distinguished from original narration in the new reading surface?
+
+**Interface**
+
+11. Check the journal, map, satchel, settings and dialogue at standard and large text, on a phone if possible. Is anything cramped, low-contrast or hard to find?
+
+Report device, browser, quality setting and the region or scene for each note.

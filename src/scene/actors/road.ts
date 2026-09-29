@@ -20,7 +20,7 @@ export class RoadActivity {
     private grid: () => WalkGrid,
     private checkpoint: (step: number) => void,
   ) {
-    this.actor = new Actor(library.instantiate('amos', 'neri', 'neri'));
+    this.actor = new Actor(library.instantiate('amos', 'neri', 'neri'), true);
     this.actor.root.setEnabled(false);
   }
   update(s: GameState): void {
@@ -82,9 +82,7 @@ export class RoadActivity {
         groundHeight(this.region, step.position),
         step.position.z,
       );
-      if (step.facing) {
-        this.actor.face(step.facing);
-      }
+      if (step.facing) this.actor.turnTo(step.facing, this.still ? 10 : dt, 9);
     }
     this.actor.sample(c.stage === 'complete' ? 'Sit' : moving ? 'Walk' : 'Idle', dt, this.still);
     if (target && distance(player, target) > 2.6) this.requested = -1;

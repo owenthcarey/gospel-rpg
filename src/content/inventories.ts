@@ -1,7 +1,7 @@
 import { isLakeRegion } from '../game/lake/types';
 import { lakePlaces } from './lake/places';
 import { galileePlaces } from './galilee/places';
-import { VILLAGE_ASSETS, type AssetId } from './assets';
+import { GROUND_COVER, VILLAGE_ASSETS, type AssetId } from './assets';
 import { campaignLayout } from './campaign/layouts';
 import { neighborhoodPlaces } from './campaign/places';
 import { heldAssets, lifeRegionAssets } from './life/presentation';
@@ -10,8 +10,15 @@ import { isRoadRegion } from '../game/road/types';
 import { roadPlaces } from './road/places';
 import { villageAssets } from './harbor/scenery';
 
-/** Interiors only load their own architecture, actors and activity props. */
+/** RFC-011: outdoor spaces also scatter the shared ground-cover kit. */
 export function explorationAssets(region: ExplorationRegion): AssetId[] {
+  const base = regionAssets(region);
+  const outdoor =
+    region !== 'galilee-water' && region !== 'gathering-house' && region !== 'bakehouse';
+  return outdoor ? [...new Set([...base, ...GROUND_COVER])] : base;
+}
+/** Interiors only load their own architecture, actors and activity props. */
+function regionAssets(region: ExplorationRegion): AssetId[] {
   const shared = [
     ...villageAssets(region),
     'traveler' as const,

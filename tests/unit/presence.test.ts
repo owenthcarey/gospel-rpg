@@ -179,7 +179,8 @@ describe('scene-owned presence', () => {
     }
     lake.dispose();
     expect(lake.scene.isDisposed).toBe(true);
-  });
+    // Loads the complete lake presentation and inspects imported skins on the CPU.
+  }, 15_000);
   it('bounds cosmetic time and turns without crossing the long side of a heading wrap', () => {
     const clock = new PresentationClock();
     expect(clock.advance(10, true)).toBe(0.1);

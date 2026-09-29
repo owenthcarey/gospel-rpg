@@ -4,6 +4,7 @@ Uses a separate scene; existing user scenes are preserved. All dimensions are me
 Each GLB is exported at the origin, with applied transforms and named materials.
 """
 import bpy
+import json
 import math
 import os
 import random
@@ -23,132 +24,24 @@ from rigging import export_character
 OUT = os.environ.get("GOSPEL_MODEL_OUTPUT", os.path.join(ROOT, "public/assets/models"))
 os.makedirs(OUT, exist_ok=True)
 random.seed(41)
-scene = bpy.data.scenes.new("The Way - asset workshop")
-bpy.context.window.scene = scene
-scene.world = bpy.data.worlds.new("Galilee daylight")
-scene.world.color = (0.65, 0.72, 0.78)
-
-def mat(name, color):
-    m = bpy.data.materials.new("way_" + name)
-    m.diffuse_color = (*color, 1)
-    m.use_nodes = True
-    p = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-    p.inputs["Base Color"].default_value = (*color, 1)
-    p.inputs["Roughness"].default_value = 0.95
-    return m
-
-M = {
-    "plaster": mat("warm_lime", (0.68, 0.57, 0.39)),
-    "stone": mat("basalt", (0.26, 0.29, 0.26)),
-    "sandstone": mat("sandstone", (0.56, 0.46, 0.30)),
-    "roof": mat("earthen_roof", (0.45, 0.37, 0.24)),
-    "wood": mat("olive_wood", (0.27, 0.17, 0.09)),
-    "lightwood": mat("sun_bleached_wood", (0.52, 0.36, 0.19)),
-    "dark": mat("shadow", (0.09, 0.12, 0.11)),
-    "leaf": mat("olive_leaf", (0.29, 0.39, 0.18)),
-    "leaflight": mat("olive_silver", (0.39, 0.46, 0.25)),
-    "leafdark": mat("olive_shade", (0.20, 0.29, 0.15)),
-    "terra": mat("terracotta", (0.60, 0.28, 0.14)),
-    "rope": mat("flax", (0.62, 0.51, 0.31)),
-    "cloth": mat("natural_linen", (0.86, 0.78, 0.57)),
-    "teal": mat("dyed_teal", (0.17, 0.36, 0.34)),
-    "red": mat("ochre_cloth", (0.57, 0.23, 0.12)),
-    "skin": mat("warm_skin", (0.56, 0.34, 0.20)),
-    "hair": mat("dark_hair", (0.12, 0.09, 0.06)),
-    "bread": mat("baked_bread", (0.75, 0.49, 0.21)),
-}
-parts = []
-
-
-def finish(obj, name, material):
-    obj.name = name
-    obj.data.materials.append(M[material])
-    parts.append(obj)
-    return obj
-
-def box(name, pos, size, material, bevel=0):
-    bpy.ops.mesh.primitive_cube_add(size=1, location=pos)
-    o = bpy.context.object
-    o.dimensions = size
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    if bevel:
-        mod = o.modifiers.new("worn_edges", "BEVEL")
-        mod.width = bevel
-        mod.segments = 1
-        bpy.ops.object.modifier_apply(modifier=mod.name)
-    return finish(o, name, material)
-
-def cone(name, pos, r1, r2, depth, material, vertices=8):
-    bpy.ops.mesh.primitive_cone_add(vertices=vertices, radius1=r1, radius2=r2, depth=depth, location=pos)
-    return finish(bpy.context.object, name, material)
-
-def ico(name, pos, size, material, subdivisions=1):
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=subdivisions, radius=1, location=pos)
-    o = bpy.context.object
-    o.scale = size
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    return finish(o, name, material)
-
-def beam(name, a, b, radius, material):
-    delta = Vector(b) - Vector(a)
-    o = cone(name, (Vector(a) + Vector(b)) / 2, radius, radius * .88, delta.length, material, 6)
-    o.rotation_mode = "QUATERNION"
-    o.rotation_quaternion = delta.to_track_quat("Z", "Y")
-    return o
+import kit_common
+from kit_common import M, parts, mat, finish, box, cone, ico, beam
+scene = kit_common.begin("The Way - asset workshop")
+SHADING = []
 
 def export(name):
     if name in ["traveler", "simon", "miriam", "jesus", "villager", "james", "john", "hannah", "amos", "ruth", "bearer", "healed_man", "widow", "young_man", "leah"]:
+        # Legacy actor passes remain for historical sub-recipes; characters.py replaces them.
         export_character(name, parts, scene, OUT, len(exports))
         exports.append(name)
         return
-    bpy.ops.object.select_all(action="DESELECT")
-    for o in parts:
-        o.select_set(True)
-    bpy.context.view_layer.objects.active = parts[0]
-    if len(parts) > 1:
-        bpy.ops.object.join()
-    o = bpy.context.object
-    o.name = name
-    scene.cursor.location = (0, 0, 0)
-    bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
-    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    colors = o.data.color_attributes.new(name="Color", type="FLOAT_COLOR", domain="CORNER")
-    for poly in o.data.polygons:
-        color = o.data.materials[poly.material_index].diffuse_color
-        for loop in poly.loop_indices:
-            colors.data[loop].color = color
-        poly.material_index = 0
-    o.data.materials.clear()
-    if "way_vertex_palette" not in bpy.data.materials:
-        palette = bpy.data.materials.new("way_vertex_palette")
-        palette.diffuse_color = (1, 1, 1, 1)
-        palette.use_nodes = True
-        shader = next(n for n in palette.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
-        shader.inputs["Roughness"].default_value = .95
-    palette = bpy.data.materials["way_vertex_palette"]
-    if not any(n.type == "VERTEX_COLOR" for n in palette.node_tree.nodes):
-        vertex = palette.node_tree.nodes.new("ShaderNodeVertexColor")
-        vertex.name = "Palette colors"
-        vertex.layer_name = "Color"
-        palette.node_tree.links.new(vertex.outputs["Color"], next(n for n in palette.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Base Color"])
-    o.data.materials.append(palette)
-    socket_nodes = []
-    if name == "boat":
-        for socket_name, position in [
-            ("seat_front", (0, -1.15, .46)), ("seat_middle", (0, 0, .46)),
-            ("seat_back", (0, 1.05, .46)), ("net_socket", (.8, .2, .5)),
-            ("oar_left", (-.72, -.2, .66)), ("oar_right", (.72, -.2, .66)),
-        ]:
-            socket = bpy.data.objects.new(socket_name, None)
-            scene.collection.objects.link(socket)
-            socket.parent = o
-            socket.location = position
-            socket.select_set(True)
-            socket_nodes.append(socket)
-    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, name + ".glb"), export_format="GLB", use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False, export_yup=True)
-    o.location = ((len(exports) % 5) * 7, (len(exports) // 5) * 7, 0)
+    sockets = [
+        ("seat_front", (0, -1.15, .46)), ("seat_middle", (0, 0, .46)),
+        ("seat_back", (0, 1.05, .46)), ("net_socket", (.8, .2, .5)),
+        ("oar_left", (-.72, -.2, .66)), ("oar_right", (.72, -.2, .66)),
+    ] if name == "boat" else []
+    kit_common.export_static(name, OUT, sockets, report=SHADING)
     exports.append(name)
-    parts.clear()
 
 exports = []
 
@@ -413,6 +306,9 @@ from compact_glb import compact_kit
 compact_kit(OUT)
 
 scene.render.engine = "BLENDER_EEVEE_NEXT" if bpy.app.version < (5, 0, 0) else "BLENDER_EEVEE"
+os.makedirs(os.path.join(ROOT, "artifacts/rfc011"), exist_ok=True)
+with open(os.path.join(ROOT, "artifacts/rfc011/kit-shading.json"), "w") as report:
+    json.dump(SHADING, report, indent=1)
 os.makedirs(os.path.join(ROOT,"assets/source"),exist_ok=True)
 # Save only the workshop and its dependencies, never unrelated open user scenes.
 bpy.data.libraries.write(os.path.join(ROOT,"assets/source/galilee-kit.blend"), {scene}, fake_user=True, compress=True)

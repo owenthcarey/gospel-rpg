@@ -6,15 +6,17 @@
 .journey-companion {
   margin: 1.4rem 0;
   padding: 1.25rem;
-  border: 1px solid var(--border, #b8ad8e);
-  border-radius: 12px;
-  background: #2a4034;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: rgba(255, 252, 243, 0.55);
 }
 .road-evidence blockquote {
   margin: 1rem 0;
   padding: 0.85rem 1rem;
-  border-left: 3px solid #9c7a40;
+  border-left: 3px solid var(--gold-500);
   line-height: 1.65;
+  font-family: var(--font-serif);
+  font-size: 1.05em;
 }
 .evidence-cards,
 .journey-destinations {
@@ -25,9 +27,9 @@
 .evidence-cards article,
 .journey-destinations article {
   padding: 1rem;
-  border: 1px solid #b7aa855c;
-  border-radius: 8px;
-  background: #22372d;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--parch-50);
 }
 .evidence-cards h4,
 .journey-destinations h3 {
@@ -35,7 +37,7 @@
 }
 .road-hint {
   margin-top: 1.2rem;
-  border-top: 1px solid #b7aa8566;
+  border-top: 1px solid var(--line);
   padding-top: 1rem;
 }
 .road-hint h4 {
@@ -62,8 +64,8 @@
   color: var(--muted);
 }
 .remembered-detail {
-  color: #d6dca5;
-  font-weight: 600;
+  color: var(--moss);
+  font-weight: 700;
 }
 .route-interpretation {
   display: grid;
@@ -81,9 +83,9 @@
   white-space: normal;
 }
 .interpretation-feedback {
-  border-left: 3px solid #967842;
+  border-left: 3px solid var(--gold-500);
   padding: 0.8rem 1rem;
-  background: #34483a;
+  background: rgba(255, 252, 243, 0.6);
   line-height: 1.65;
 }
 .company-route {
@@ -103,8 +105,8 @@
   color: var(--muted);
 }
 .company-route .current {
-  color: var(--gold);
-  border-left: 3px solid #a6803c;
+  color: var(--accent);
+  border-left: 3px solid var(--gold-500);
   padding-left: 0.65rem;
 }
 .map-tabs {
@@ -113,19 +115,16 @@
   flex-wrap: wrap;
   margin-bottom: 1rem;
 }
-.map-tabs [aria-pressed='true'] {
-  background: #354f43;
-  color: #fff3cf;
-}
 .journey-map {
   display: block;
   width: 100%;
   margin: 1.3rem 0;
 }
 .journey-guidance {
-  padding: 1rem;
-  border-left: 3px solid #997338;
-  background: #314a3b;
+  padding: 1rem 1.1rem;
+  border-left: 3px solid var(--gold-500);
+  background: rgba(255, 252, 243, 0.6);
+  border-radius: 0 var(--radius) var(--radius) 0;
 }
 .journey-guidance p {
   margin: 0.5rem 0;

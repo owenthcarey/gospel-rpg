@@ -67,6 +67,12 @@ test('southern work survives export and reload, supports keyboard inspection and
   await page.getByRole('button', { name: 'Show a more specific hint' }).click();
   await settled(page);
   await page.locator('[data-work-id="turn"]').focus();
+  // The hint's re-render restores focus a frame later; it must not take back a control the
+  // traveler has focused since.
+  await page.evaluate(
+    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+  );
+  await expect(page.locator('[data-work-id="turn"]')).toBeFocused();
   await page.keyboard.press('Enter');
   await settled(page);
   const save = await exported(page);

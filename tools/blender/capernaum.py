@@ -12,6 +12,9 @@ from mathutils import Vector
 
 ROOT = Path(os.environ.get('GOSPEL_RPG_ROOT') or Path(__file__).resolve().parents[2])
 OUT = Path(os.environ.get('GOSPEL_MODEL_OUTPUT', ROOT / 'public/assets/models'))
+import sys
+sys.path.insert(0, str(ROOT / 'tools/blender'))
+from shading import bake_vertex_shading
 OUT.mkdir(parents=True, exist_ok=True)
 prior = bpy.context.window.scene
 try:
@@ -82,6 +85,7 @@ try:
         vertex.layer_name='Color'
         m.node_tree.links.new(vertex.outputs['Color'],shader.inputs['Base Color'])
         o.data.materials.append(m)
+        bake_vertex_shading(o, name)
         bpy.ops.export_scene.gltf(filepath=str(OUT/(name+'.glb')),export_format='GLB',use_selection=True,use_active_scene=True,export_cameras=False,export_lights=False,export_yup=True)
         o.location=((len(exports)%3)*3.4,(len(exports)//3)*3.4,0)
         exports.append(name)
@@ -163,8 +167,9 @@ try:
     (ROOT/'assets/source').mkdir(parents=True,exist_ok=True)
     bpy.data.libraries.write(str(ROOT/'assets/source/capernaum-kit.blend'),{scene},fake_user=True,compress=True)
     report={'blender':bpy.app.version_string,'assets':exports,'bytes':sum((OUT/(n+'.glb')).stat().st_size for n in exports),'source':'assets/source/capernaum-kit.blend','preservedScene':prior.name}
-    (ROOT/'docs/verification/rfc009').mkdir(parents=True,exist_ok=True)
-    (ROOT/'docs/verification/rfc009/kit-generation.json').write_text(json.dumps(report,indent=2)+'\n')
+    # Build reports are review artifacts; the RFC-009 evidence record stays historical.
+    (ROOT/'artifacts/rfc011').mkdir(parents=True,exist_ok=True)
+    (ROOT/'artifacts/rfc011/capernaum-kit.json').write_text(json.dumps(report,indent=2)+'\n')
     bpy.context.window.scene=prior
     print(json.dumps(report))
 finally:
