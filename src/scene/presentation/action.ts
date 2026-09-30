@@ -20,8 +20,8 @@ export class ActionFeedback {
       scene,
     );
     this.material = new StandardMaterial('work-accent-matte', scene);
-    this.material.diffuseColor = Color3.FromHexString('#e7cf94').toLinearSpace();
-    this.material.emissiveColor = Color3.FromHexString('#95805a').toLinearSpace();
+    this.material.diffuseColor = Color3.FromHexString('#e7cf94');
+    this.material.emissiveColor = Color3.FromHexString('#95805a');
     this.material.specularColor = Color3.Black();
     this.ring.material = this.material;
     this.ring.isPickable = false;

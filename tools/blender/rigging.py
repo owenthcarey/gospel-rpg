@@ -104,8 +104,8 @@ def export_character(name, parts, scene, output, grid_index):
         vertex.layer_name = "Color"
         palette.node_tree.links.new(vertex.outputs["Color"], shader.inputs["Base Color"])
     skin.data.materials.append(palette)
-    # RFC-011: occlusion under the chin, arms and hem, baked in the shared rest pose.
-    bake_vertex_shading(skin, name, reach=.3, strength=.5, jitter=.02)
+    # A restrained contact shade retains the broad garment colors through every pose.
+    bake_vertex_shading(skin, name, reach=.3, strength=.24, grounded=False, jitter=.01)
     modifier = skin.modifiers.new("Shared character skeleton", "ARMATURE")
     modifier.object = rig
     # Carry point is a deliberately stable root-space grip for two-handed baskets.

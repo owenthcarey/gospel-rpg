@@ -57,19 +57,19 @@ void main(void) {
   float up = clamp(d.y, 0.0, 1.0);
   vec3 color = mix(horizon, zenith, pow(up, 0.5));
   float toward = max(dot(d, sunDirection), 0.0);
-  color += glow * pow(toward, 6.0) * 0.5 * (1.0 - up * 0.7);
+  color = mix(color, glow, pow(toward, 8.0) * 0.12 * (1.0 - up * 0.7));
   // Painterly cloud banks, projected onto a distant ceiling and drifting slowly.
   vec2 uv = d.xz / max(d.y + 0.12, 0.06) * 0.55 + vec2(time * 0.006, time * 0.0025);
   float n = fbm(uv * 1.3);
   float cover = smoothstep(0.62 - clouds * 0.3, 0.86 - clouds * 0.18, n) * smoothstep(0.0, 0.16, d.y);
   vec3 cloud = mix(mix(horizon, vec3(1.0), 0.6), sunColor, 0.18 + pow(toward, 4.0) * 0.4);
   cloud *= 0.92 + 0.12 * smoothstep(0.5, 0.9, n);
-  color = mix(color, cloud, cover * 0.85);
+  color = mix(color, cloud, floor(cover * 3.0 + 0.5) / 3.0 * 0.7);
   // The horizon band and everything below it dissolve into the scene fog.
   color = mix(color, fogColor, smoothstep(0.1, -0.03, d.y));
   // The disc sits in front of the haze so a low sun still reads warm and bright.
   float sun = smoothstep(0.99955 - disc * 0.00025, 0.99985, toward) * step(0.001, disc);
-  color += sunColor * sun * (1.0 - cover * 0.8) * step(-0.01, d.y) * 2.2;
+  color = mix(color, sunColor, sun * (1.0 - cover * 0.5) * step(-0.01, d.y));
   gl_FragColor = vec4(linearOutput > 0.5 ? pow(max(color, 0.0), vec3(2.2)) : min(color, 1.0), 1.0);
 }`;
 

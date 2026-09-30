@@ -184,7 +184,7 @@ def palette_colors(o):
     return colors
 
 
-def export_static(name, out, sockets=(), shade=True, report=None, strength=.62):
+def export_static(name, out, sockets=(), shade=True, report=None, strength=.36):
     """Join the pending parts at the origin and export one palette-colored GLB."""
     from shading import bake_vertex_shading
     scene = STATE['scene']

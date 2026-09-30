@@ -117,10 +117,10 @@ export function stylePlugin(material: Material): StylePlugin {
   );
 }
 
-/** Matte convention for procedural surfaces. Colors stay in the established linear-input convention. */
+/** Matte convention for procedural surfaces. Colors use the same display-space palette as imported vertex colors. */
 export function matte(scene: Scene, name: string, hex: string, alpha = 1): StandardMaterial {
   const m = new StandardMaterial(name, scene);
-  m.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
+  m.diffuseColor = Color3.FromHexString(hex);
   m.specularColor = Color3.Black();
   m.alpha = alpha;
   return m;

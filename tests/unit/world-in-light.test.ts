@@ -3,7 +3,12 @@ import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
 import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { ShotDirector } from '../../src/scene/presentation/shots';
+import { ContactShadows } from '../../src/scene/environment/contact';
+import { floorHeight } from '../../src/scene/presentation/ground';
 import {
   blendProfiles,
   environmentProfiles,
@@ -105,6 +110,91 @@ describe('RFC-011 environment profiles', () => {
     expect(mid.fog.color).toMatch(/^#[0-9a-f]{6}$/);
     expect(mid.particles).toEqual(stormProfile.particles);
     expect(blendProfiles(calm, stormProfile, 0.4).particles).toEqual(calm.particles);
+  });
+});
+
+describe('contact shadow visibility', () => {
+  it('never draws the source disc when all casters are absent, disabled or disposed', () => {
+    const { engine, scene } = studio();
+    const shadows = new ContactShadows(scene, () => 0);
+    shadows.setStrength(0.55);
+    shadows.update();
+    expect(shadows.mesh.isVisible).toBe(false);
+    const caster = new TransformNode('caster', scene);
+    caster.position.set(4, 0, 6);
+    caster.computeWorldMatrix(true);
+    shadows.add(caster);
+    shadows.update();
+    expect(shadows.mesh.isVisible).toBe(true);
+    expect(shadows.mesh.thinInstanceCount).toBe(1);
+    caster.setEnabled(false);
+    shadows.update();
+    expect(shadows.mesh.isVisible).toBe(false);
+    caster.setEnabled(true);
+    shadows.update();
+    expect(shadows.mesh.isVisible).toBe(true);
+    shadows.setStrength(0);
+    expect(shadows.mesh.isEnabled()).toBe(false);
+    shadows.setStrength(1);
+    shadows.update();
+    expect(shadows.mesh.isEnabled()).toBe(true);
+    expect(shadows.mesh.isVisible).toBe(true);
+    shadows.remove(caster);
+    shadows.update();
+    expect(shadows.mesh.isVisible).toBe(false);
+    shadows.add(caster);
+    caster.dispose();
+    shadows.update();
+    expect(shadows.mesh.isVisible).toBe(false);
+    shadows.dispose();
+    engine.dispose();
+  });
+});
+
+describe('ground height sampling', () => {
+  function shoreFloor(scene: Scene) {
+    const floor = MeshBuilder.CreateGround(
+      'asymmetric-shore',
+      { width: 26, height: 26, subdivisions: 26 },
+      scene,
+    );
+    const positions = floor.getVerticesData(VertexBuffer.PositionKind)!;
+    for (let i = 0; i < positions.length; i += 3)
+      positions[i + 1] = positions[i + 2]! > 0 ? 0.1 : -0.55;
+    floor.setVerticesData(VertexBuffer.PositionKind, positions);
+    floor.refreshBoundingInfo();
+    return floor;
+  }
+  it('samples the real north and south rows of a Babylon ground mesh', () => {
+    const { engine, scene } = studio();
+    const floor = shoreFloor(scene);
+    expect(floorHeight(floor, { x: 0, z: 4 })).toBeCloseTo(0.1);
+    expect(floorHeight(floor, { x: 0, z: -4 })).toBeCloseTo(-0.55);
+    expect(floorHeight(floor, { x: 100, z: 100 })).toBeCloseTo(0.1);
+    expect(floorHeight(floor, { x: -100, z: -100 })).toBeCloseTo(-0.55);
+    engine.dispose();
+  });
+  it('keeps actual cover placements off the submerged southern shore at both qualities', () => {
+    const { engine, scene } = studio();
+    const floor = shoreFloor(scene);
+    for (const quality of ['high', 'low'] as const) {
+      const placements = coverPlacements(
+        {
+          radius: 12,
+          height: () => 0,
+          allowed: (p) => floorHeight(floor, p) > -0.01,
+        },
+        quality,
+      );
+      let total = 0;
+      for (const id of GROUND_COVER)
+        for (const matrix of placements[id]) {
+          expect(matrix.getTranslation().z).toBeGreaterThanOrEqual(0.5);
+          total++;
+        }
+      expect(total).toBeGreaterThan(0);
+    }
+    engine.dispose();
   });
 });
 

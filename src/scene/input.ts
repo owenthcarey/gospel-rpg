@@ -70,8 +70,11 @@ export function bindExplorationInput(input: ExplorationInput): () => void {
   window.addEventListener('keyup', up);
   window.addEventListener('blur', clear);
   canvas.addEventListener('contextmenu', context);
-  const pointerDown = (e: PointerEvent) =>
+  const pointerDown = (e: PointerEvent) => {
+    // Keep the scroll button available for orbiting instead of browser autoscroll.
+    if (e.button === 1) e.preventDefault();
     gesture.down(e.pointerId, e.clientX, e.clientY, e.button);
+  };
   const pointerMove = (e: PointerEvent) => gesture.move(e.pointerId, e.clientX, e.clientY);
   const pointerUp = (e: PointerEvent) => gesture.up(e.pointerId, e.clientX, e.clientY);
   canvas.addEventListener('pointerdown', pointerDown, true);

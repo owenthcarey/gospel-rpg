@@ -42,7 +42,7 @@ export function coverPlacements(
     Matrix[]
   >;
   const seed = options.seed ?? 1;
-  const density = (options.density ?? 1) * (quality === 'low' ? 0.3 : 1);
+  const density = (options.density ?? 1) * 0.72 * (quality === 'low' ? 0.3 : 1);
   const step = 1.15;
   const center = options.center ?? { x: 0, z: 0 };
   const cap = CAPS[quality];
@@ -72,7 +72,7 @@ export function coverPlacements(
         }
       }
       if (id === 'pebbles' && nearPath > 3.5) id = 'grass_tuft';
-      const scale = (id === 'grass_tuft' ? 1.35 : 0.85) + hash(p.x + 1, p.z, seed) * 0.7;
+      const scale = (id === 'grass_tuft' ? 0.88 : 0.78) + hash(p.x + 1, p.z, seed) * 0.42;
       out[id].push(
         Matrix.Compose(
           new Vector3(scale, scale * (0.85 + hash(p.x, p.z + 2, seed) * 0.3), scale),

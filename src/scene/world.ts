@@ -1,4 +1,5 @@
 import { ActionFeedback } from './presentation/action';
+import { InteractionFeedback } from './interaction';
 import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
 import {
@@ -9,6 +10,7 @@ import {
   backdropTerrain,
   coastMargin,
   groundColor,
+  floorHeight,
   type GroundStyle,
 } from './presentation/ground';
 import { ConversationPresentation } from './presentation/conversation';
@@ -113,16 +115,6 @@ export interface ScreenLabel {
   visible: boolean;
 }
 
-/** Height of a regular ground grid at a point, from its own vertices (nearest sample). */
-function floorHeight(mesh: Mesh, p: Point): number {
-  const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
-  const count = Math.round(Math.sqrt(positions.length / 3));
-  const size = mesh.getBoundingInfo().boundingBox.extendSize;
-  const i = Math.round(((p.x + size.x) / (size.x * 2)) * (count - 1));
-  const j = Math.round(((p.z + size.z) / (size.z * 2)) * (count - 1));
-  const k = (Math.max(0, Math.min(count - 1, j)) * count + Math.max(0, Math.min(count - 1, i))) * 3;
-  return positions[k + 1] ?? 0;
-}
 const VILLAGE_PATHS: [Point, Point, number][] = [
   [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
   [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
@@ -201,6 +193,7 @@ export class World {
   private player!: TransformNode;
   private playerModel!: TransformNode;
   private marker: Mesh;
+  private interactionFeedback?: InteractionFeedback;
   private routeDots: Mesh[] = [];
   private strideTime = 0;
   private walkRamp = 0;
@@ -262,11 +255,12 @@ export class World {
     this.camera.minZ = 0.2;
     this.camera.maxZ = 220;
     this.camera.fov = 0.7;
+    this.camera.inertia = 0.72;
 
     this.camera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
     const pointers = this.camera.inputs.attached.pointers;
     if (pointers instanceof ArcRotateCameraPointersInput) {
-      pointers.buttons = [2];
+      pointers.buttons = [1, 2];
       pointers.angularSensibilityX = 1000;
       pointers.angularSensibilityY = 1000;
       pointers.pinchDeltaPercentage = 0.01;
@@ -325,17 +319,26 @@ export class World {
         groundHeight(initial.region, p),
       );
       if (inside) {
-        // The lane outside the doorway: the room sits in a street, not in empty space.
+        // A darker cutaway surround gives the room an edge; the pale doorstep keeps
+        // the doorway connected to the village without an empty field of room color.
         const lane = MeshBuilder.CreateGround(
           'surrounding-lane',
           { width: 60, height: 60, subdivisions: 40 },
           this.scene,
         );
         lane.position.y = -0.03;
-        lane.material = this.material('surrounding-lane-earth', '#ffffff');
-        paintGround(lane, 'lane');
+        lane.material = this.material('surrounding-lane-stone', '#555448');
         lane.receiveShadows = true;
         lane.isPickable = false;
+        const doorstep = MeshBuilder.CreateGround(
+          'exterior-doorstep',
+          { width: 2.8, height: 4 },
+          this.scene,
+        );
+        doorstep.position.set(0, -0.02, -8.1);
+        doorstep.material = this.material('doorstep-earth', '#a18f68');
+        doorstep.receiveShadows = true;
+        doorstep.isPickable = false;
       }
       if (inside)
         groundMosaic(
@@ -939,19 +942,29 @@ export class World {
   }
 
   private bindInput(): void {
+    const navigate = (id: string) =>
+      this.callbacks.requestNavigate ? this.callbacks.requestNavigate(id) : this.navigate(id);
+    const walk = (point: Point) => {
+      this.callbacks.manualMove?.();
+      this.walkTo(point);
+    };
+    this.interactionFeedback = new InteractionFeedback({
+      scene: this.scene,
+      canvas: this.canvas,
+      paused: () => this.paused,
+      place: (id) => this.destinations.find((p) => p.id === id),
+      navigate,
+      walk,
+    });
     this.cleanup.push(
       bindExplorationInput({
         scene: this.scene,
         canvas: this.canvas,
         keys: this.keys,
         paused: () => this.paused,
-        navigate: (id) =>
-          this.callbacks.requestNavigate ? this.callbacks.requestNavigate(id) : this.navigate(id),
+        navigate,
         manualMove: this.callbacks.manualMove,
-        walk: (point) => {
-          this.callbacks.manualMove?.();
-          this.walkTo(point);
-        },
+        walk,
         nearest: () => this.nearest()?.id,
         resetCamera: () => this.resetCamera(),
         notice: this.callbacks.notice,
@@ -1130,6 +1143,7 @@ export class World {
   }
   setPaused(value: boolean): void {
     this.paused = value;
+    this.interactionFeedback?.setPaused(value);
     if (value) this.stop();
   }
   setPosition(p: Point, snap = false): void {
@@ -1598,6 +1612,7 @@ export class World {
     }
   }
   dispose(): void {
+    this.interactionFeedback?.dispose();
     this.actionFeedback?.dispose();
     this.water?.dispose();
     this.conversationView?.dispose();

@@ -312,11 +312,24 @@ describe('scene-owned presence', () => {
       () => true,
       () => 0,
     );
+    const interior = groundMosaic(
+      scene,
+      'test-interior-earth',
+      { min: -5, max: 5 },
+      () => true,
+      () => 0,
+      true,
+    );
+    const interiorPositions = interior.getVerticesData('position')!;
+    for (let i = 0; i < interiorPositions.length; i += 3) {
+      expect(Math.abs(interiorPositions[i]!)).toBeLessThanOrEqual(5);
+      expect(Math.abs(interiorPositions[i + 2]!)).toBeLessThanOrEqual(5);
+    }
     const path = wornPaths(scene, 'test-path', [
       [{ x: 0, z: 0 }, { x: 0, z: 5 }, 2],
       [{ x: 0, z: 0 }, { x: 0, z: 0 }, 2],
     ]);
-    for (const mesh of [mosaic, path]) {
+    for (const mesh of [mosaic, interior, path]) {
       const p = mesh.getVerticesData('position')!,
         normals = mesh.getVerticesData('normal')!;
       expect(p.every(Number.isFinite)).toBe(true);

@@ -4,8 +4,6 @@ import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
 import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
 import { DefaultRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline';
 import '@babylonjs/core/PostProcesses/RenderPipeline/postProcessRenderPipelineManagerSceneComponent';
-import { ImageProcessingConfiguration } from '@babylonjs/core/Materials/imageProcessingConfiguration';
-import { ColorCurves } from '@babylonjs/core/Materials/colorCurves';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
@@ -42,8 +40,8 @@ export function sunDirection(profile: EnvironmentProfile): Vector3 {
 }
 
 /**
- * One scene-owned look: lights, shadows, sky, horizon, fog, grading, post-processing and contact
- * shadows, built from an environment profile. Every region and the title view use it, so a
+ * One scene-owned look: matte light, sky, horizon, distance fog and ground contact.
+ * Every region and the title view use it, so a
  * lighting feature is one change. Disposed with its scene; never saved.
  */
 export class StageEnvironment {
@@ -61,7 +59,6 @@ export class StageEnvironment {
   private reduced = false;
   private time = 0;
   private focus = new Vector3();
-  private curves = new ColorCurves();
   private waters: WaterPresentation[] = [];
   constructor(
     readonly scene: Scene,
@@ -79,7 +76,7 @@ export class StageEnvironment {
     this.sun.autoCalcShadowZBounds = false;
     this.shadow = new ShadowGenerator(this.software ? 1024 : 2048, this.sun);
     this.shadow.usePercentageCloserFiltering = true;
-    this.shadow.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
+    this.shadow.filteringQuality = ShadowGenerator.QUALITY_LOW;
     this.shadow.bias = 0.0015;
     this.shadow.normalBias = 0.03;
     this.shadow.transparencyShadow = false;
@@ -99,13 +96,12 @@ export class StageEnvironment {
     this.contact = new ContactShadows(scene, options.ground ?? (() => 0));
     this.atmosphere = new Atmosphere(scene, profile);
     const config = scene.imageProcessingConfiguration;
-    config.toneMappingEnabled = true;
-    config.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_KHR_PBR_NEUTRAL;
-    config.colorCurvesEnabled = true;
-    config.colorCurves = this.curves;
-    config.vignetteEnabled = true;
-    config.vignetteBlendMode = ImageProcessingConfiguration.VIGNETTEMODE_MULTIPLY;
-    config.vignetteColor = new Color4(0.12, 0.09, 0.05, 1);
+    // Classic material colors and polygon planes stay readable all the way to the frame edge.
+    config.exposure = 1;
+    config.contrast = 1;
+    config.toneMappingEnabled = false;
+    config.colorCurvesEnabled = false;
+    config.vignetteEnabled = false;
     if (options.shadowCenter) this.focus.copyFrom(options.shadowCenter);
     this.apply(profile);
   }
@@ -145,21 +141,8 @@ export class StageEnvironment {
     this.fill.intensity = p.fill.intensity;
     this.shadow.darkness = 1 - p.shadow.darkness;
     this.sun.shadowFrustumSize = p.shadow.extent * 2;
-    const config = scene.imageProcessingConfiguration;
-    config.exposure = p.grade.exposure;
-    config.contrast = p.grade.contrast;
-    config.vignetteWeight = p.grade.vignette * 3.2;
-    config.vignetteStretch = 0.4;
-    this.curves.globalSaturation = (p.grade.saturation - 1) * 100;
-    const warm = p.grade.warmth;
-    this.curves.highlightsHue = warm >= 0 ? 38 : 205;
-    this.curves.highlightsDensity = Math.abs(warm) * 18;
-    this.curves.shadowsHue = warm >= 0 ? 215 : 30;
-    this.curves.shadowsDensity = Math.abs(warm) * 14;
     this.sky?.apply(p, direction, Boolean(this.pipeline));
-    for (const water of this.waters)
-      water.applyEnvironment(p, direction.scale(-1), Boolean(this.pipeline));
-    if (this.pipeline) this.pipeline.bloomWeight = p.bloom;
+    for (const water of this.waters) water.applyEnvironment(p, Boolean(this.pipeline));
     this.atmosphere?.setProfile(p);
     this.placeSun();
   }
@@ -176,10 +159,10 @@ export class StageEnvironment {
       a * 0.6,
     );
   }
-  /** Water shares the stage's sky, sun, fog and output color space. */
+  /** Water shares the stage's distance fog and output color space. */
   attachWater(water: WaterPresentation): void {
     this.waters.push(water);
-    water.applyEnvironment(this.current, this.sun.direction.scale(-1), Boolean(this.pipeline));
+    water.applyEnvironment(this.current, Boolean(this.pipeline));
   }
   /** Keep the sharp shadow volume centered on what the player is looking at. */
   setFocus(point: Vector3): void {
@@ -225,7 +208,7 @@ export class StageEnvironment {
     this.sky?.quality(!high);
     if (high && !this.pipeline) {
       this.pipeline = new DefaultRenderingPipeline(
-        'stage-grade',
+        'stage-antialias',
         true,
         this.scene,
         [this.camera],
@@ -233,13 +216,9 @@ export class StageEnvironment {
       );
       const software = this.software;
       this.pipeline.samples = software ? 1 : 4;
-      this.pipeline.fxaaEnabled = true;
+      this.pipeline.fxaaEnabled = false;
       this.pipeline.imageProcessingEnabled = true;
-      // CPU rasterizers keep the grade and anti-aliasing but skip the blur passes.
-      this.pipeline.bloomEnabled = !software;
-      this.pipeline.bloomThreshold = 0.82;
-      this.pipeline.bloomKernel = 48;
-      this.pipeline.bloomScale = 0.5;
+      this.pipeline.bloomEnabled = false;
     } else if (!high && this.pipeline) {
       this.pipeline.dispose();
       this.pipeline = undefined;

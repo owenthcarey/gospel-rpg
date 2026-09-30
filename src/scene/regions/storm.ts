@@ -164,8 +164,8 @@ export class StormRegion implements RegionView {
     this.stage.illuminate(this.reduced || rough < 0.8 ? 0 : pulse * (rough - 0.8) * 5);
     this.stage.atmosphere.setIntensity(rough);
     this.sea.diffuseColor = Color3.Lerp(
-      Color3.FromHexString('#6098a5').toLinearSpace(),
-      Color3.FromHexString('#3c586b').toLinearSpace(),
+      Color3.FromHexString('#6098a5'),
+      Color3.FromHexString('#3c586b'),
       rough,
     );
     this.boat.root.position.set(

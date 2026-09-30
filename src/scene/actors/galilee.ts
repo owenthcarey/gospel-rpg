@@ -29,8 +29,8 @@ export class GalileeActivity {
     private region: ExplorationRegion,
   ) {
     this.material = new StandardMaterial('galilee-water', scene);
-    this.material.diffuseColor = Color3.FromHexString('#4a9fa5').toLinearSpace();
-    this.material.emissiveColor = Color3.FromHexString('#234f56').toLinearSpace();
+    this.material.diffuseColor = Color3.FromHexString('#4a9fa5');
+    this.material.emissiveColor = Color3.FromHexString('#234f56');
     this.material.specularColor = Color3.Black();
     if (region === 'galilean-road') {
       for (const id of CHANNEL_IDS) {

@@ -15,17 +15,17 @@ interface AmbientDefinition {
   rate: number;
   build(system: ParticleSystem): void;
 }
-/** Soft round sprite generated at runtime; no downloaded image or canvas. */
+/** Small faceted particle sprite; smoke and weather use the same restrained matte shape. */
 function spriteTexture(scene: Scene): RawTexture {
-  const size = 32;
+  const size = 16;
   const data = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
       const r = Math.hypot(x + 0.5 - size / 2, y + 0.5 - size / 2) / (size / 2);
-      const a = Math.max(0, 1 - r);
+      const a = r < 0.64 ? 0.8 : r < 0.88 ? 0.34 : 0;
       const i = (y * size + x) * 4;
       data[i] = data[i + 1] = data[i + 2] = 255;
-      data[i + 3] = Math.round(255 * a * a * (3 - 2 * a));
+      data[i + 3] = Math.round(255 * a);
     }
   const texture = RawTexture.CreateRGBATexture(data, size, size, scene, false);
   texture.hasAlpha = true;
@@ -97,16 +97,16 @@ const AMBIENT: Record<AmbientParticles, AmbientDefinition> = {
     },
   },
   spray: {
-    capacity: 160,
-    rate: 70,
+    capacity: 90,
+    rate: 32,
     build(s) {
       s.minEmitBox = new Vector3(-2.2, 0, -2.2);
       s.maxEmitBox = new Vector3(2.2, 0.3, 2.2);
       s.color1 = new Color4(0.86, 0.92, 0.94, 0.4);
       s.color2 = new Color4(0.78, 0.86, 0.9, 0.25);
       s.colorDead = new Color4(0.8, 0.88, 0.9, 0);
-      s.minSize = 0.1;
-      s.maxSize = 0.3;
+      s.minSize = 0.035;
+      s.maxSize = 0.12;
       s.minScaleY = 0.6;
       s.maxScaleY = 1.8;
       s.minLifeTime = 0.6;
@@ -347,18 +347,18 @@ export class Atmosphere {
     s.emitter = at.clone();
     s.minEmitBox = new Vector3(-0.08, 0, -0.08);
     s.maxEmitBox = new Vector3(0.08, 0.1, 0.08);
-    s.color1 = new Color4(0.86, 0.84, 0.8, 0.28);
-    s.color2 = new Color4(0.76, 0.74, 0.7, 0.2);
+    s.color1 = new Color4(0.7, 0.67, 0.59, 0.18);
+    s.color2 = new Color4(0.62, 0.59, 0.52, 0.12);
     s.colorDead = new Color4(0.8, 0.8, 0.78, 0);
-    s.minSize = 0.25 * scale;
-    s.maxSize = 0.55 * scale;
+    s.minSize = 0.12 * scale;
+    s.maxSize = 0.28 * scale;
     s.minLifeTime = 3;
     s.maxLifeTime = 5;
     s.direction1 = new Vector3(0.05, 0.5, 0.02);
     s.direction2 = new Vector3(0.25, 0.8, 0.12);
     s.minEmitPower = 0.35;
     s.maxEmitPower = 0.55;
-    s.emitRate = this.low ? 3 : 6;
+    s.emitRate = this.low ? 2 : 4;
     s.addSizeGradient(0, 0.4);
     s.addSizeGradient(1, 1.8);
     s.blendMode = ParticleSystem.BLENDMODE_STANDARD;
@@ -402,7 +402,7 @@ export class Atmosphere {
       else if (!system.isStarted()) system.start();
     }
     for (const s of this.smoke) {
-      s.emitRate = low ? 3 : 6;
+      s.emitRate = low ? 2 : 4;
       if (reduced) s.stop();
       else if (!s.isStarted()) s.start();
     }

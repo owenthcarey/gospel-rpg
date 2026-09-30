@@ -19,7 +19,7 @@ export function boatSupport(
   seat.position.set(0, y, z);
   seat.isPickable = false;
   const material = new StandardMaterial(name + '-wood', parent.getScene());
-  material.diffuseColor = Color3.FromHexString('#aa8e5e').toLinearSpace();
+  material.diffuseColor = Color3.FromHexString('#aa8e5e');
   material.specularColor = Color3.Black();
   seat.material = material;
 }

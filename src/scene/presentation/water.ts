@@ -16,7 +16,6 @@ uniform mat4 world;
 uniform float time;
 uniform float strength;
 varying vec3 vWater;
-varying vec3 vNormal;
 varying float vWave;
 void main(void) {
   vec3 p = position;
@@ -24,13 +23,10 @@ void main(void) {
   float a = w.x * .56 + w.z * .31 - time * 1.2;
   float b = w.z * .85 - w.x * .17 + time * .72;
   float c = w.x * 1.6 + w.z * .8 - time * 1.9;
-  // The same profile as waterHeight() in game/presence, with its analytic slope.
+  // The same broad wave phase as waterHeight() keeps storm hulls on the surface.
   float wave = sin(a) * .62 + sin(b) * .24 + sin(c) * .14;
-  float dx = cos(a) * .62 * .56 - cos(b) * .24 * .17 + cos(c) * .14 * 1.6;
-  float dz = cos(a) * .62 * .31 + cos(b) * .24 * .85 + cos(c) * .14 * .8;
   p.y += wave * strength;
   vWater = vec3(w.x, w.y + wave * strength, w.z);
-  vNormal = normalize(vec3(-dx * strength * 2.2, 1.0, -dz * strength * 2.2));
   vWave = wave;
   gl_Position = worldViewProjection * vec4(p, 1.0);
 }`;
@@ -40,10 +36,6 @@ precision highp float;
 uniform vec3 deepColor;
 uniform vec3 shallowColor;
 uniform vec3 foamColor;
-uniform vec3 skyZenith;
-uniform vec3 skyHorizon;
-uniform vec3 sunColor;
-uniform vec3 toSun;
 uniform vec3 fogColor;
 uniform float fogDensity;
 uniform vec3 cameraPosition;
@@ -60,15 +52,8 @@ uniform float coast;
 uniform vec4 ripples[${MAX_RIPPLES}];
 uniform float rippleCount;
 varying vec3 vWater;
-varying vec3 vNormal;
 varying float vWave;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float noise(vec2 p) {
-  vec2 i = floor(p), f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
-}
 float shoreDistance(vec2 p) {
   float d = 1000.0;
   for (int i = 0; i < ${MAX_LAND}; i++) {
@@ -85,69 +70,37 @@ float shoreDistance(vec2 p) {
 void main(void) {
   vec2 p = vWater.xz;
   float t = still > 0.5 ? 0.0 : time;
-  // Fine moving ripples perturb the broad wave normal.
   float eye = length(cameraPosition - vWater);
-  // Fine ripples fade with distance so far water keeps one coherent sun path instead of aliasing.
-#ifdef LOW
-  // Low compiles without fine ripples or value noise: CPU rasterizers shade every pixel.
-  float detail = 0.0;
-  vec3 n = normalize(vNormal);
-#else
-  float detail = (1.0 - smoothstep(18.0, 70.0, eye)) * (1.0 - lowDetail);
-  // Irregular drifting ripples (noise, not sines) so glints scatter instead of tiling.
-  vec2 r1 = vec2(0.0), r2 = vec2(0.0);
-  if (detail > 0.001) {
-    vec2 q1 = p * 1.3 + vec2(t * 0.35, -t * 0.22);
-    vec2 q2 = p * 2.9 + vec2(-t * 0.5, t * 0.41) + 11.0;
-    r1 = vec2(noise(q1) - noise(q1 + vec2(0.35, 0.0)), noise(q1) - noise(q1 + vec2(0.0, 0.35))) * 3.2;
-    r2 = vec2(noise(q2) - noise(q2 + vec2(0.3, 0.0)), noise(q2) - noise(q2 + vec2(0.0, 0.3))) * 2.6;
-  }
-  vec3 n = normalize(vNormal + vec3(r1 * 0.045 + r2 * 0.025, 0.0).xzy * (1.0 + storm) * detail);
-#endif
-  vec3 view = normalize(cameraPosition - vWater);
   float d = shoreDistance(p);
-  float shallow = 1.0 - smoothstep(0.0, 7.0, d);
-#ifdef LOW
-  float broad = 0.5 + 0.25 * sin(p.x * 0.11 + sin(p.y * 0.07) * 1.7) + 0.2 * sin(p.y * 0.17 - p.x * 0.05);
-#else
-  float broad = noise(p * 0.07) * 0.5 + noise(p * 0.19 + 7.0) * 0.5;
-#endif
-  vec3 color = mix(deepColor, shallowColor, clamp(shallow * 0.85 + broad * 0.12, 0.0, 0.92));
-  color *= 0.8 + 0.25 * max(dot(n, toSun), 0.0);
-  // Sky reflection at glancing angles.
-  vec3 reflected = reflect(-view, n);
-  vec3 sky = mix(skyHorizon, skyZenith, clamp(reflected.y * 1.6, 0.0, 1.0));
-  float fresnel = pow(1.0 - max(dot(n, view), 0.0), 3.0);
-  color = mix(color, sky, fresnel * 0.6);
-  // Crisp sun glints rather than streaks.
-  float glint = pow(max(dot(reflect(-toSun, n), view), 0.0), mix(24.0, 140.0, detail));
-  color += sunColor * smoothstep(0.25, 0.75, glint) * (1.0 - storm * 0.8) * mix(0.7, 1.4, detail);
-  // Lapping foam along every shore, broken by drifting noise.
-  float lap = sin(t * 1.25 - d * 3.5) * 0.5 + 0.5;
-  float edge = 1.0 - smoothstep(0.0, 0.35 + lap * 0.45, d);
-#ifdef LOW
-  float grain = 0.5 + 0.5 * sin(p.x * 2.3 + t * 0.4 + sin(p.y * 1.9 - t * 0.3));
-#else
-  float grain = noise(p * 2.6 + vec2(t * 0.15, -t * 0.1));
-#endif
-  float foam = edge * smoothstep(0.25, 0.6, grain + edge * 0.45);
+  // Broad blue color bands make the lake read as a game surface at any viewing angle.
+  float shallow = 1.0 - smoothstep(0.0, 4.5, d);
+  shallow = floor(shallow * 3.0 + 0.5) / 3.0;
+  vec2 tile = floor(p * 0.65);
+  float variation = (hash(tile) - 0.5) * 0.035;
+  vec3 color = mix(deepColor, shallowColor, shallow * 0.78);
+  color *= 0.97 + variation + step(0.35, vWave) * storm * 0.06;
+  // Short painted ripple strokes, never reflections or a photographic sun path.
+  vec2 strokes = vec2(p.x * 0.8 + p.y * 0.22, p.y * 1.15 - p.x * 0.12);
+  float phase = strokes.y - t * 0.12;
+  vec2 cell = floor(vec2(strokes.x, phase));
+  float line = step(0.91, fract(phase)) * step(0.16, fract(strokes.x)) * step(fract(strokes.x), 0.7);
+  line *= step(0.68, hash(cell)) * (1.0 - smoothstep(35.0, 80.0, eye));
+  color = mix(color, shallowColor, line * 0.22 * (1.0 - storm * 0.4));
+  // Broken cream-colored foam at the bank and around active hulls.
+  float lap = sin(t * 0.85 - d * 3.5) * 0.5 + 0.5;
+  float edge = 1.0 - smoothstep(0.0, 0.2 + lap * 0.2, d);
+  float grain = hash(floor(p * 2.2 + vec2(t * 0.06, 0.0)));
+  float foam = edge * step(0.32, grain + edge * 0.2) * 0.6;
 #ifndef LOW
-  // Rings around hulls and wading people.
   for (int i = 0; i < ${MAX_RIPPLES}; i++) {
     if (float(i) >= rippleCount || lowDetail > 0.5) break;
     float rd = length(p - ripples[i].xy) - ripples[i].z;
-    if (rd > 0.0 && rd < 2.4)
-      foam += ripples[i].w * smoothstep(0.8, 1.0, sin(rd * 5.0 - t * 2.6 + grain * 2.5)) * (1.0 - rd / 2.4) * 0.35;
+    if (rd > 0.0 && rd < 1.8)
+      foam += ripples[i].w * step(0.92, fract(rd * 1.25 - t * 0.32)) * (1.0 - rd / 1.8) * 0.28;
   }
 #endif
-  // Whitecaps on storm crests.
-#ifdef LOW
-  float breakup = 0.5 + 0.5 * sin(p.x * 0.9 + t * 0.3 + sin(p.y * 0.8) * 2.0);
-#else
-  float breakup = noise(p * 0.9 + t * 0.3);
-#endif
-  float crest = smoothstep(0.55, 0.95, vWave) * smoothstep(0.35, 0.7, breakup);
-  foam += crest * storm * 0.9;
+  float crest = step(0.35, vWave) * line;
+  foam += crest * storm * 0.65;
   color = mix(color, foamColor, clamp(foam, 0.0, 1.0));
   float visibility = exp(-pow(eye * fogDensity, 2.0));
   color = mix(fogColor, color, clamp(visibility, 0.0, 1.0));
@@ -221,10 +174,6 @@ export class WaterPresentation {
           'deepColor',
           'shallowColor',
           'foamColor',
-          'skyZenith',
-          'skyHorizon',
-          'sunColor',
-          'toSun',
           'fogColor',
           'fogDensity',
           'linearOutput',
@@ -258,22 +207,14 @@ export class WaterPresentation {
     this.material.setFloat('lowDetail', 0);
     this.stormy = options.storm ?? false;
     this.material.setVector3('cameraPosition', Vector3.Zero());
-    this.applyEnvironment(undefined, new Vector3(0.3, 0.8, 0.4), false);
+    this.applyEnvironment(undefined, false);
     this.setStorm(options.storm ? 1 : 0);
     this.tick(0, true);
   }
-  /** Shares the stage's sky, sun, fog and output space. */
-  applyEnvironment(
-    profile: EnvironmentProfile | undefined,
-    toSun: Vector3,
-    linearOutput: boolean,
-  ): void {
+  /** Shares the stage's distance fog and output color space. */
+  applyEnvironment(profile: EnvironmentProfile | undefined, linearOutput: boolean): void {
     this.profile = profile;
     const m = this.material;
-    m.setColor3('skyZenith', Color3.FromHexString(profile?.sky.zenith ?? '#7fa6c0'));
-    m.setColor3('skyHorizon', Color3.FromHexString(profile?.sky.horizon ?? '#dfe6d8'));
-    m.setColor3('sunColor', Color3.FromHexString(profile?.sun.color ?? '#fff0d0'));
-    m.setVector3('toSun', toSun.normalizeToNew());
     m.setColor3('fogColor', Color3.FromHexString(profile?.fog.color ?? '#cfdcd4'));
     m.setFloat('fogDensity', profile?.fog.density ?? 0.008);
     m.setFloat('linearOutput', linearOutput ? 1 : 0);
@@ -285,15 +226,15 @@ export class WaterPresentation {
     m.setFloat('storm', this.stormy ? this.storm : 0);
     m.setColor3(
       'deepColor',
-      Color3.Lerp(Color3.FromHexString('#2c6272'), Color3.FromHexString('#1d3440'), this.storm),
+      Color3.Lerp(Color3.FromHexString('#346c95'), Color3.FromHexString('#2e475b'), this.storm),
     );
     m.setColor3(
       'shallowColor',
-      Color3.Lerp(Color3.FromHexString('#6fae9e'), Color3.FromHexString('#3f6470'), this.storm),
+      Color3.Lerp(Color3.FromHexString('#5c9ca8'), Color3.FromHexString('#537782'), this.storm),
     );
     m.setColor3(
       'foamColor',
-      Color3.Lerp(Color3.FromHexString('#e6efe2'), Color3.FromHexString('#c9d7d6'), this.storm),
+      Color3.Lerp(Color3.FromHexString('#d4e0cd'), Color3.FromHexString('#b9c9ca'), this.storm),
     );
   }
   /** Cosmetic rings, for example around a moving hull. Never affects navigation. */
@@ -311,13 +252,13 @@ export class WaterPresentation {
     if (low === this.low) return;
     this.low = low;
     this.material.setFloat('lowDetail', low ? 1 : 0);
-    // A separate compiled variant: Low drops value noise and ripple rings entirely.
+    // Low drops cosmetic rings around moving hulls and wading people.
     this.material.options.defines = low ? ['#define LOW'] : [];
   }
   tick(time: number, reduced: boolean): void {
     this.material.setFloat('time', reduced ? 0 : time);
     this.material.setFloat('still', reduced ? 1 : 0);
-    this.material.setFloat('strength', this.low ? this.storm * 0.12 : 0.018 + this.storm * 0.2);
+    this.material.setFloat('strength', this.low ? this.storm * 0.12 : 0.008 + this.storm * 0.2);
     const camera = this.mesh.getScene().activeCamera;
     if (camera) this.material.setVector3('cameraPosition', camera.globalPosition);
   }

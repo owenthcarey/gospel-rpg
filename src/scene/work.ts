@@ -78,7 +78,7 @@ export class WorkPresentation {
   }
   private material(name: string, hex: string): StandardMaterial {
     const material = new StandardMaterial(name, this.scene);
-    material.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
+    material.diffuseColor = Color3.FromHexString(hex);
     material.emissiveColor = material.diffuseColor.scale(0.25);
     material.specularColor = Color3.Black();
     return material;
@@ -131,9 +131,7 @@ export class WorkPresentation {
         state.galilee.shelter.site === target.site &&
         state.galilee.shelter.placed.includes('screen') &&
         direction === 2;
-      this.approachMaterial.diffuseColor = Color3.FromHexString(
-        blocked ? '#c28269' : '#99c4ad',
-      ).toLinearSpace();
+      this.approachMaterial.diffuseColor = Color3.FromHexString(blocked ? '#c28269' : '#99c4ad');
       // A diagonal marking is visible when the proposed or committed approach is blocked.
       this.approach.rotation.y = blocked ? Math.PI / 4 : 0;
       this.approach.scaling.x = blocked ? 0.4 : 1;
@@ -149,9 +147,7 @@ export class WorkPresentation {
       y = groundHeight(s.region, p) + 0.06;
     const angle = (preview.direction * Math.PI) / 2;
     const supported = checkArrangement({ ...s.galilee.shelter, screen: preview.direction }).ready;
-    this.proposal.diffuseColor = Color3.FromHexString(
-      supported ? '#6bccdf' : '#e2b177',
-    ).toLinearSpace();
+    this.proposal.diffuseColor = Color3.FromHexString(supported ? '#6bccdf' : '#e2b177');
     this.preview.forEach((mesh, i) => {
       const top = i >= 6,
         n = i % 6;

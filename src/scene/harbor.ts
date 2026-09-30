@@ -20,7 +20,7 @@ import { wornAreas } from './presentation/ground';
 
 function matte(scene: Scene, name: string, color: string): StandardMaterial {
   const m = new StandardMaterial(name, scene);
-  m.diffuseColor = Color3.FromHexString(color).toLinearSpace();
+  m.diffuseColor = Color3.FromHexString(color);
   m.specularColor = Color3.Black();
   return m;
 }

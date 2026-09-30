@@ -20,7 +20,9 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **The Way, Brought to Life** gives Capernaum worn paths, a softer shoreline, detailed houses and inhabited interiors. Refined characters turn toward one another, greet and listen, with matching portraits and a camera that makes room for the reading panel. All ten Into the Deep scenes have complete, responsive compositions, supported boats and clearer net work; shared water and framing improvements extend through the later chapters. Progress remains compatible with save v11. See [RFC-010](docs/rfcs/010-the-way-brought-to-life.md) and the [presentation review guide](docs/verification/rfc010/README.md).
 
-**A World in Light** gives the whole journey a finished look. A living dawn over the lake opens the game, a first journey begins with a short narrated cold open and an establishing sweep over Capernaum, and every place now has its own light: graded morning, afternoon, evening and storm skies, horizon hills, fog, sharp contact-grounded shadows, lit water with foam and reflections, swaying olives and reeds, grass and flowers, birds, hearth smoke and drifting light. All fifteen people were rebuilt in Blender with hands, faces, hair, veils and mantles and fuller movement; they glance at you as you pass. Gospel scenes ease between compositions, places announce themselves with title cards, and a crafted interface with new typography, ornament and motion replaces the old web styling. Progress remains compatible with save v11. See [RFC-011](docs/rfcs/011-a-world-in-light.md) and the [review guide](docs/verification/rfc011/README.md).
+**A World in Light** introduced a shared stage for every region, a living dawn title view, the narrated first-journey opening, moving foliage and birds, grounded shadows, fuller character animation, camera transitions and place title cards. The classic presentation pass below refines that foundation. Progress remains compatible with save v11. See [RFC-011](docs/rfcs/011-a-world-in-light.md) and the [review guide](docs/verification/rfc011/README.md).
+
+**Classic Galilee** restores the original classic RPG art direction: faceted people and foliage, broad earthy terrain colors, matte blue water, simple lighting, and compact brown beveled interfaces. Hovering previews existing actions; right-click opens **Choose Option**, and the middle mouse button rotates the camera. This presentation pass adds no story content and keeps save v11 compatible.
 
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
@@ -41,7 +43,9 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | Click a name / choose a map destination | Approach and interact                    |
 | WASD / arrow keys                       | Move relative to the camera              |
 | E                                       | Interact nearby                          |
-| Right-drag / two fingers                | Orbit                                    |
+| Right click                             | Choose an existing action                |
+| Shift+F10 on a focused world control    | Open Choose Option with the keyboard     |
+| Middle/right-drag / two fingers         | Orbit                                    |
 | Scroll / pinch / zoom buttons           | Zoom                                     |
 | Q / rotate buttons                      | Rotate                                   |
 | R                                       | Reset camera                             |

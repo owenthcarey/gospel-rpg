@@ -48,7 +48,7 @@ def _hash(v):
     return n - math.floor(n)
 
 
-def bake_vertex_shading(obj, name, reach=None, strength=.62, grounded=None, jitter=.05):
+def bake_vertex_shading(obj, name, reach=None, strength=.36, grounded=None, jitter=.025):
     """Multiply `obj`'s corner color attribute "Color" by baked lighting terms.
 
     `obj` must be a single mesh with applied transforms and an existing corner
@@ -100,11 +100,11 @@ def bake_vertex_shading(obj, name, reach=None, strength=.62, grounded=None, jitt
                             hits += (1 - (t / reach) * .5) * .8
                 ao = 1 - strength * (hits / SAMPLES)
                 cache[key] = ao
-            sky = 1 + .05 * max(0.0, normal.z) - .07 * max(0.0, -normal.z)
+            sky = 1 + .03 * max(0.0, normal.z) - .05 * max(0.0, -normal.z)
             grime = 1.0
             if grounded:
                 height = position.z - ground_z
-                grime = .86 + .14 * min(1.0, height / max(.35, min(1.2, size * .35)))
+                grime = .93 + .07 * min(1.0, height / max(.35, min(1.2, size * .35)))
             factor = max(.28, ao * grime * sky * face_tone)
             darkest = min(darkest, factor)
             c = colors.data[loop_index].color

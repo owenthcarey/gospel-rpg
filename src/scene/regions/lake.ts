@@ -101,7 +101,7 @@ export class LakeRegion implements RegionView {
     const shore = MeshBuilder.CreateGround('distant-shore', { width: 30, height: 100 }, this.scene);
     shore.position.set(-27, 0.01, 0);
     shore.material = this.material('shore-sand', '#ffffff');
-    const sand = Color3.FromHexString('#c6b99b').toLinearSpace();
+    const sand = Color3.FromHexString('#c6b99b');
     shore.setVerticesData(
       'color',
       Array.from({ length: shore.getTotalVertices() }, () => [sand.r, sand.g, sand.b, 1]).flat(),

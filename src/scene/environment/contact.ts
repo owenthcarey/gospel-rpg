@@ -54,6 +54,7 @@ export class ContactShadows {
     this.mesh.metadata = { contactShadows: true };
     this.mesh.thinInstanceSetBuffer('matrix', this.matrices, 16, false);
     this.mesh.thinInstanceCount = 0;
+    this.mesh.isVisible = false;
   }
   add(node: TransformNode, radius = 0.42, length = 1): void {
     if (this.casters.length >= MAX_CASTERS || this.casters.some((c) => c.node === node)) return;
@@ -98,6 +99,9 @@ export class ContactShadows {
       n++;
     }
     this.mesh.thinInstanceCount = n;
+    // With no thin instances Babylon draws the source disc at the origin.
+    // Hide an empty batch, while preserving the real caster instances.
+    this.mesh.isVisible = n > 0;
     this.mesh.thinInstanceBufferUpdated('matrix');
   }
   dispose(): void {

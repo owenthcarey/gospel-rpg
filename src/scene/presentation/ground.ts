@@ -1,5 +1,6 @@
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { Scene } from '@babylonjs/core/scene';
@@ -7,6 +8,18 @@ import type { Point } from '../../game/types';
 import { noise } from '../../game/presence';
 
 export type PathSegment = readonly [Point, Point, number];
+
+/** Height of a square ground grid at a local point, from its own vertices (nearest sample). */
+export function floorHeight(mesh: Mesh, p: Point): number {
+  const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
+  const count = Math.round(Math.sqrt(positions.length / 3));
+  const size = mesh.getBoundingInfo().boundingBox.extendSize;
+  const i = Math.round(((p.x + size.x) / (size.x * 2)) * (count - 1));
+  // Babylon ground rows run from +Z to -Z, opposite to their increasing X columns.
+  const j = Math.round(((size.z - p.z) / (size.z * 2)) * (count - 1));
+  const k = (Math.max(0, Math.min(count - 1, j)) * count + Math.max(0, Math.min(count - 1, i))) * 3;
+  return positions[k + 1] ?? 0;
+}
 
 /** Local wear blends into the same floor palette, instead of reading as a pool of light. */
 export function wornAreas(
@@ -18,8 +31,8 @@ export function wornAreas(
     indices: number[] = [],
     colors: number[] = [];
   const shades = (
-    inside ? ['#dcd2bf', '#d9cfbc', '#d7cdba'] : ['#cfc8ae', '#cdc6ad', '#cac4ac']
-  ).map((hex) => Color3.FromHexString(hex).toLinearSpace());
+    inside ? ['#baaa8d', '#b6a589', '#ae9e84'] : ['#baa376', '#b49d72', '#ae976b']
+  ).map((hex) => Color3.FromHexString(hex));
   for (const [x, z, width, depth] of areas) {
     const base = positions.length / 3;
     for (let ring = 0; ring < 3; ring++) {
@@ -70,9 +83,7 @@ export function shorelineBank(
     indices: number[] = [],
     colors: number[] = [],
     normals: number[] = [];
-  const palette = ['#c7bda1', '#bcb398', '#9eaa97', '#7c9f96'].map((c) =>
-    Color3.FromHexString(c).toLinearSpace(),
-  );
+  const palette = ['#c4b17f', '#b9a77a', '#979675', '#6d8791'].map((c) => Color3.FromHexString(c));
   const count = Math.ceil((to - from) / 0.8);
   for (let i = 0; i <= count; i++) {
     const z = from + ((to - from) * i) / count;
@@ -113,12 +124,12 @@ export function wornPaths(
   name: string,
   segments: readonly PathSegment[],
   height: (p: Point) => number = () => 0,
-  colors = ['#d2c3a9', '#cebea4', '#c3b69f'],
+  colors = ['#bfa373', '#b89b6b', '#a78d62'],
 ): Mesh {
   const positions: number[] = [],
     indices: number[] = [],
     palette: number[] = [];
-  const shades = colors.map((hex) => Color3.FromHexString(hex).toLinearSpace());
+  const shades = colors.map((hex) => Color3.FromHexString(hex));
   for (const [a, b, width] of segments) {
     const length = Math.hypot(b.x - a.x, b.z - a.z);
     if (length < 0.001 || width <= 0) continue;
@@ -187,19 +198,25 @@ export function groundMosaic(
   const palette = (
     paletteHex ??
     (inside
-      ? ['#d7cdba', '#d9cfbc', '#d5cbb8', '#dad0bd']
-      : ['#b1b38b', '#b5b68b', '#b8b68a', '#afaf85', '#b6b58a'])
-  ).map((c) => Color3.FromHexString(c).toLinearSpace());
+      ? ['#b9aa8d', '#b6a789', '#b3a486', '#bdad90']
+      : ['#7b8d51', '#7f9054', '#85935a', '#738449', '#809054'])
+  ).map((c) => Color3.FromHexString(c));
   const step = inside ? 1.6 : 2.1;
   for (let z = bounds.min; z < bounds.max; z += step)
     for (let x = bounds.min; x < bounds.max; x += step) {
       if (!land({ x, z }) || noise(x, z) < 0.42) continue;
       const cx = x + (noise(x + 1, z) - 0.5) * step,
         cz = z + (noise(x, z + 1) - 0.5) * step;
-      const radius = step * (0.38 + noise(x + 2, z) * 0.45),
-        base = positions.length / 3;
+      let radius = step * (0.38 + noise(x + 2, z) * 0.45);
       const center = { x: cx, z: cz };
       if (!land(center)) continue;
+      if (inside) {
+        // Shrink whole patches at the room boundary: clipping a triangle fan can reverse faces.
+        const margin = Math.min(cx - bounds.min, bounds.max - cx, cz - bounds.min, bounds.max - cz);
+        radius = Math.min(radius, margin / 1.1);
+        if (radius < 0.12) continue;
+      }
+      const base = positions.length / 3;
       const color = palette[Math.floor(noise(x, z + 4) * palette.length)]!;
       positions.push(cx, height(center) + 0.004, cz);
       colors.push(color.r, color.g, color.b, 1);
@@ -271,21 +288,24 @@ export function coastMargin(p: Point): number {
 export type GroundStyle = 'village' | 'dry' | 'shore' | 'lane';
 const GROUND_PALETTES: Record<GroundStyle, readonly [string, string, string, string]> = {
   // lush, dry, earth, distant
-  village: ['#7f8b5f', '#9f9870', '#8c7a5b', '#879178'],
-  dry: ['#848b60', '#a49a74', '#978063', '#8f9278'],
-  shore: ['#8a965f', '#9d9a6e', '#958464', '#8b9679'],
-  lane: ['#9d8d6f', '#a49474', '#8c7b62', '#948a72'],
+  village: ['#678144', '#879452', '#947b52', '#6c8059'],
+  dry: ['#788748', '#a99c63', '#987c51', '#8c946a'],
+  shore: ['#738c48', '#939d58', '#9b855b', '#758960'],
+  lane: ['#a08c68', '#b09a74', '#927957', '#9b8c70'],
 };
 /** Broad painted variation shared by the playable floor and the backdrop, so they meet seamlessly. */
 export function groundColor(p: Point, style: GroundStyle, rise = 0): Color3 {
   const [lush, dry, earth, far] = GROUND_PALETTES[style].map((hex) => Color3.FromHexString(hex));
-  const broad = fbm(p.x * 0.045 + 3, p.z * 0.045 - 7);
-  const fine = fbm(p.x * 0.21 - 11, p.z * 0.21 + 5, 3);
+  // Paint broad, discrete earth tones rather than a continuous noisy color wash.
+  const x = Math.floor(p.x / 2) * 2,
+    z = Math.floor(p.z / 2) * 2;
+  const broad = Math.floor(fbm(x * 0.045 + 3, z * 0.045 - 7) * 6) / 6;
+  const fine = Math.floor(fbm(x * 0.21 - 11, z * 0.21 + 5, 3) * 5) / 5;
   let color = Color3.Lerp(lush!, dry!, Math.min(1, Math.max(0, (broad - 0.36) / 0.3)));
   color = Color3.Lerp(color, earth!, Math.max(0, (fine - 0.6) / 0.25) * 0.55);
   color = color.scale(0.95 + fine * 0.1);
   if (rise > 0) color = Color3.Lerp(color, far!, Math.min(0.7, rise * 0.12));
-  // Display-space colors: chosen as they should read under the neutral grade.
+  // Display-space colors shared by the floor, paths, procedural props and imported geometry.
   return color;
 }
 
@@ -294,8 +314,8 @@ export function paintGround(mesh: Mesh, style: GroundStyle, land?: (p: Point) =>
   const positions = mesh.getVerticesData('position')!;
   const world = mesh.computeWorldMatrix(true).asArray();
   const colors: number[] = [];
-  const sand = Color3.FromHexString('#b3a47d'),
-    wet = Color3.FromHexString('#7d7a60');
+  const sand = Color3.FromHexString('#c2ad7d'),
+    wet = Color3.FromHexString('#8a8768');
   for (let i = 0; i < positions.length; i += 3) {
     const x = positions[i]! + world[12]!,
       z = positions[i + 2]! + world[14]!;
@@ -325,7 +345,7 @@ export function backdropTerrain(
   },
 ): Mesh {
   const { reserve, size } = options;
-  const step = 2;
+  const step = 3;
   const n = Math.ceil(size / step);
   const positions: number[] = [],
     indices: number[] = [],
@@ -369,6 +389,7 @@ export function backdropTerrain(
   VertexData.ComputeNormals(positions, indices, normals);
   data.normals = normals;
   data.applyToMesh(mesh);
+  mesh.convertToFlatShadedMesh();
   const material = new StandardMaterial('backdrop-earth', scene);
   material.diffuseColor = Color3.White();
   material.specularColor = Color3.Black();
