@@ -64,3 +64,97 @@ test('right drags orbit without opening an option menu and menus fit short viewp
   await expect(page.locator('.world-action-hint')).toBeHidden();
   await page.keyboard.up('q');
 });
+
+test('accepted walks and object actions get distinct markers while drags and held presses stay quiet', async ({
+  page,
+}, info) => {
+  await ready(page);
+  const flash = page.locator('.world-click-feedback');
+  const menu = page.getByRole('menu', { name: 'Choose Option' });
+  const canvas = page.locator('#game-canvas');
+  const box = (await canvas.boundingBox())!;
+  let ground: { x: number; y: number } | undefined;
+  // Find bare ground through the shipped picking/menu path, rather than reaching into the scene.
+  for (const [u, v] of [
+    [0.35, 0.55],
+    [0.5, 0.55],
+    [0.65, 0.55],
+    [0.5, 0.7],
+    [0.35, 0.7],
+  ]) {
+    const point = { x: box.x + box.width * u!, y: box.y + box.height * v! };
+    await page.mouse.click(point.x, point.y, { button: 'right' });
+    if (!(await menu.isVisible())) continue;
+    const options = await menu.getByRole('menuitem').allTextContents();
+    await menu.getByRole('menuitem', { name: 'Cancel' }).click();
+    if (options.length === 2 && options[0] === 'Walk here') {
+      ground = point;
+      break;
+    }
+  }
+  expect(ground, 'a visible bare-ground pick is required').toBeDefined();
+  const point = ground!;
+  await page.mouse.move(point.x, point.y);
+  await page.mouse.down();
+  await expect(flash).toBeHidden();
+  await page.mouse.up();
+  await expect(flash).toHaveAttribute('data-kind', 'ground');
+  await expect(flash).toBeVisible();
+  await page.keyboard.press('j');
+  await page.keyboard.press('Escape');
+  await settled(page);
+  await expect(flash).toBeHidden();
+
+  await page.mouse.move(point.x, point.y);
+  await page.mouse.down();
+  await page.mouse.move(point.x + 24, point.y + 10, { steps: 3 });
+  await page.mouse.move(point.x, point.y, { steps: 3 });
+  await page.mouse.up();
+  await expect(flash).toBeHidden();
+
+  const before = await page.locator('#minimap-player').getAttribute('transform');
+  await page.mouse.down();
+  await page.keyboard.press('j');
+  await page.keyboard.press('Escape');
+  await settled(page);
+  await page.mouse.up();
+  // Observe several rendered frames after the stale release, beyond the marker's lifetime.
+  await page.waitForTimeout(600);
+  await expect(flash).toBeHidden();
+  await expect(page.locator('#minimap-player')).toHaveAttribute('transform', before!);
+
+  const simon = page.locator('.world-label[data-value="simon"]');
+  const labelBox = (await simon.boundingBox())!;
+  const labelPoint = {
+    x: labelBox.x + labelBox.width / 2,
+    y: labelBox.y + labelBox.height / 2,
+  };
+  await page.mouse.move(labelPoint.x, labelPoint.y);
+  await page.mouse.down();
+  await page.keyboard.press('j');
+  await page.keyboard.press('Escape');
+  await settled(page);
+  await page.mouse.up();
+  await page.waitForTimeout(600);
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(flash).toBeHidden();
+  await expect(page.locator('#minimap-player')).toHaveAttribute('transform', before!);
+  if (info.project.name === 'mobile-chromium') {
+    await page.touchscreen.tap(point.x, point.y);
+    await expect(flash).toHaveAttribute('data-kind', 'ground');
+    await expect(flash).toBeVisible();
+    await page.keyboard.press('j');
+    await page.keyboard.press('Escape');
+    await settled(page);
+  }
+  await simon.click({ button: 'right' });
+  await menu.getByRole('menuitem', { name: 'Cancel' }).click();
+  await expect(flash).toBeHidden();
+  if (info.project.name === 'mobile-chromium') {
+    const touchBox = (await simon.boundingBox())!;
+    await page.touchscreen.tap(touchBox.x + touchBox.width / 2, touchBox.y + touchBox.height / 2);
+  } else await simon.click();
+  await expect(flash).toHaveAttribute('data-kind', 'object');
+  await expect(page.getByRole('dialog')).toContainText('Simon');
+  await settled(page);
+});

@@ -1,6 +1,8 @@
 import type { Scene } from '@babylonjs/core/scene';
 import type { Point } from '../game/types';
 import type { Interactable } from '../content/region';
+import type { ScreenClick } from './input';
+import { TapGesture } from '../game/gestures';
 import '../ui/interaction.css';
 
 export const interactionVerb = (kind: Interactable['kind']) =>
@@ -19,8 +21,8 @@ interface InteractionOptions {
   canvas: HTMLCanvasElement;
   paused: () => boolean;
   place: (id: string) => Interactable | undefined;
-  navigate: (id: string) => void;
-  walk: (point: Point) => void;
+  navigate: (id: string, click?: ScreenClick) => void;
+  walk: (point: Point, click?: ScreenClick) => void;
 }
 
 /** Cosmetic action previews and a deliberate right-click alternative to the default click. */
@@ -29,6 +31,10 @@ export class InteractionFeedback {
   private menu = document.createElement('div');
   private flash = document.createElement('div');
   private origin?: { x: number; y: number; moved: boolean };
+  private pending?: { id: string; click: ScreenClick };
+  private labelGesture = new TapGesture();
+  private labelPointer?: number;
+  private disposed = false;
   private lastPick = 0;
   private returnFocus?: HTMLElement;
   private timer?: ReturnType<typeof setTimeout>;
@@ -48,6 +54,7 @@ export class InteractionFeedback {
     document.addEventListener('pointerdown', this.down, true);
     document.addEventListener('pointermove', this.move, true);
     document.addEventListener('pointerup', this.up, true);
+    document.addEventListener('click', this.click, true);
     document.addEventListener('pointercancel', this.clear);
     document.addEventListener('contextmenu', this.context);
     document.addEventListener('keydown', this.key, true);
@@ -70,13 +77,45 @@ export class InteractionFeedback {
   private down = (e: PointerEvent) => {
     if (this.menu.contains(e.target as Node)) return;
     this.close(false);
+    this.pending = undefined;
     const label = this.label(e.target);
     if (this.input.paused() || (e.target !== this.input.canvas && !label)) return;
     this.clearHover();
+    this.labelGesture.down(e.pointerId, e.clientX, e.clientY, e.button);
+    if (label && e.button === 0) this.labelPointer = e.pointerId;
     if (e.button === 2) this.origin = { x: e.clientX, y: e.clientY, moved: false };
-    else if (e.button === 0 && e.pointerType !== 'touch') this.showClick(e.clientX, e.clientY);
   };
+  private click = (e: MouseEvent) => {
+    const label = this.label(e.target);
+    // Keyboard activation has no pointer position and keeps its regular focus feedback.
+    if (label && e.detail === 0) {
+      this.pending = undefined;
+      this.labelGesture.clear();
+      this.labelPointer = undefined;
+    }
+    if (label && !label.hasAttribute('disabled') && e.button === 0 && e.detail > 0) {
+      const allowed =
+        this.labelPointer !== undefined && this.labelGesture.consume(this.labelPointer);
+      this.labelPointer = undefined;
+      if (!allowed || this.input.paused()) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+      this.prepareNavigate(label.dataset.value!, { x: e.clientX, y: e.clientY });
+    }
+  };
+  prepareNavigate(id: string, click?: ScreenClick) {
+    this.pending = !this.input.paused() && click ? { id, click } : undefined;
+  }
+  completeNavigate(id: string, accepted: boolean) {
+    const pending = this.pending;
+    if (pending?.id !== id) return;
+    this.pending = undefined;
+    if (accepted) this.accepted('object', pending.click);
+  }
   private move = (e: PointerEvent) => {
+    this.labelGesture.move(e.pointerId, e.clientX, e.clientY);
     if (this.origin && Math.hypot(e.clientX - this.origin.x, e.clientY - this.origin.y) > 8)
       this.origin.moved = true;
     if (this.input.paused() || e.buttons || !this.menu.hidden || e.pointerType === 'touch') {
@@ -103,14 +142,15 @@ export class InteractionFeedback {
     this.position(this.hint, e.clientX + 16, e.clientY + 18);
   };
   private up = (e: PointerEvent) => {
+    this.labelGesture.up(e.pointerId, e.clientX, e.clientY);
     const origin = this.origin;
     this.origin = undefined;
     if (e.button !== 2 || !origin || origin.moved || this.input.paused()) return;
     // A drag that returns to its starting point is still a drag.
     if (Math.hypot(e.clientX - origin.x, e.clientY - origin.y) > 8) return;
-    this.open(e.clientX, e.clientY, e.target);
+    this.open(e.clientX, e.clientY, e.target, { x: e.clientX, y: e.clientY });
   };
-  private open(x: number, y: number, target: EventTarget | null) {
+  private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
     const label = this.label(target);
     const pick = this.pick(x, y);
     const id = label?.dataset.value ?? pick?.pickedMesh?.metadata?.interactionId;
@@ -126,8 +166,8 @@ export class InteractionFeedback {
     heading.textContent = 'Choose Option';
     this.menu.append(heading);
     this.returnFocus = label ?? this.input.canvas;
-    if (place) this.option(place, () => this.input.navigate(place.id));
-    if (ground || place) this.option('Walk here', () => this.input.walk(ground ?? place!));
+    if (place) this.option(place, () => this.input.navigate(place.id, click));
+    if (ground || place) this.option('Walk here', () => this.input.walk(ground ?? place!, click));
     this.option('Cancel', () => {});
     this.menu.hidden = false;
     this.hint.hidden = true;
@@ -202,11 +242,13 @@ export class InteractionFeedback {
     )
       e.preventDefault();
   };
-  private showClick(x: number, y: number) {
+  accepted(kind: 'ground' | 'object', click: ScreenClick) {
+    if (this.disposed || this.input.paused()) return;
     if (this.timer) clearTimeout(this.timer);
     this.flash.hidden = false;
-    this.flash.style.left = x + 'px';
-    this.flash.style.top = y + 'px';
+    this.flash.dataset.kind = kind;
+    this.flash.style.left = click.x + 'px';
+    this.flash.style.top = click.y + 'px';
     this.timer = setTimeout(() => {
       this.flash.hidden = true;
     }, 260);
@@ -218,6 +260,9 @@ export class InteractionFeedback {
   }
   private clear = () => {
     this.origin = undefined;
+    this.pending = undefined;
+    this.labelGesture.clear();
+    this.labelPointer = undefined;
     this.close(false);
     this.clearHover();
     this.flash.hidden = true;
@@ -232,11 +277,13 @@ export class InteractionFeedback {
   }
   dispose() {
     this.clear();
+    this.disposed = true;
     if (this.timer) clearTimeout(this.timer);
     this.releaseView?.();
     document.removeEventListener('pointerdown', this.down, true);
     document.removeEventListener('pointermove', this.move, true);
     document.removeEventListener('pointerup', this.up, true);
+    document.removeEventListener('click', this.click, true);
     document.removeEventListener('pointercancel', this.clear);
     document.removeEventListener('contextmenu', this.context);
     document.removeEventListener('keydown', this.key, true);

@@ -30,6 +30,13 @@ for module in (shading, kit_common):
     importlib.reload(module)
 from kit_common import box, cone, ico, beam, lathe, finish, smooth, STATE
 
+# Olive-only linear colors keep the broad silver crowns leafy under the game's
+# daylight. Shared leaf materials remain unchanged for palms and ground cover.
+OLIVE_PALETTE = {
+    'olive_canopy': ('olive_canopy', (.22, .32, .12)),
+    'olive_canopy_light': ('olive_silver_canopy', (.29, .39, .18)),
+}
+
 
 def jitter(obj, rng, amount, keep_base=None):
     """Displace vertices deterministically, optionally pinning those below a height."""
@@ -65,6 +72,8 @@ prior = bpy.context.window.scene
 original = sorted(o.name for o in prior.objects)
 try:
     scene = kit_common.begin('The Way - RFC-011 vegetation workshop')
+    for key, (name, color) in OLIVE_PALETTE.items():
+        kit_common.M[key] = kit_common.mat(name, color)
     shaded = []
 
     def export(name, **kwargs):
@@ -87,9 +96,9 @@ try:
         beam('olive_branch', mid, end, .075, 'wood', 6, .7)
         leaf = end + Vector((math.cos(a) * .16, math.sin(a) * .16, .27))
         cluster = ico('olive_leaf_cluster', leaf, (.73, .67, .46),
-                      'leaf' if branch % 2 else 'leaflight', 1)
+                      'olive_canopy' if branch % 2 else 'olive_canopy_light', 1)
         jitter(cluster, rng, .035)
-    jitter(ico('olive_top', top + Vector((.08, -.05, .95)), (.75, .69, .42), 'leaflight', 1), rng, .035)
+    jitter(ico('olive_top', top + Vector((.08, -.05, .95)), (.75, .69, .42), 'olive_canopy_light', 1), rng, .035)
     export('olive')
 
     # Palm: a ringed, gently curving trunk with drooping, notched fronds and a date cluster.

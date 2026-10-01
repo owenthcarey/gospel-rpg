@@ -4,6 +4,22 @@
 
 ## Classic presentation polish · 2026-09-30
 
+### Reading, foliage and accepted clicks
+
+The journal now presents compact opportunity and status rows while retaining the existing descriptions and direct actions. Named statuses remain visible on phones, Large reading size is preserved, and blue dialogue answers use recessed parchment rows with 44 px phone targets. Number badges scale with the Journey atlas for early and fully connected maps across 390 px and 320 px portrait and 844×390 landscape layouts. The readability check waits for modal entry to settle and requires an effective glyph size of at least 14 px.
+
+Walking shows a yellow click marker only after a valid ground tap and successful path request. Accepted person/object/place navigation shows a red marker after a reachable path or nearby interaction is found. Drags, canceled options, decorative geometry, rejected paths and keyboard activation stay quiet. Opening a panel cancels held canvas and label presses, including a native label click that would otherwise fire after the panel closed. Existing keyboard and context-menu actions use the same navigation behavior.
+
+Olive leaves use a darker local palette; all 972 positions/normals and 1,392 indices remain byte-identical, and the trunk colors are unchanged. The model catalog is now **5,766,800 bytes**, within the existing 7.5 MiB ceiling. Road/farm ground gains one batched layer of broad, flat paint fitted to the original terrain triangles. The original floor sampling grids and path heights are preserved; the floor returns to the shared backdrop palette before the ±24 m reserve boundary.
+
+Evidence retention, TypeScript, ESLint, production build, formatting and whitespace checks pass. The complete unit suite passes **623 checks in 37 files** with `npm run test -- --maxWorkers=2`. The unrestricted local run exceeded time limits in seven unrelated tests during concurrent host work; limiting workers passed without changing assertions or time limits. The expanded Firefox/WebKit gate passes **all four checks**, one worker and no retries (1.3 minutes), including held-label cancellation followed by normal pointer activation.
+
+Focused Chromium verification covers **19 passing desktop/phone cases**, with one intentional device-specific skip, one worker and no retries. Eighteen checks passed in the final 4.7-minute selection; the atlas case then passed its targeted rerun (8.6 seconds) after correcting entry-animation timing and increasing badge sizes. Coverage includes native phone taps, accepted-click colors, drag and held-press cancellation on canvas and labels, Choose Option, rotating minimap navigation, saved satchel ownership, named status readability, existing story tracking and blue-answer contrast. A preceding **19-pass/three-skip** selection verified both unchanged static image references and their missing-geometry negative controls.
+
+Ten final High/Low captures settle to one scene. Draw calls are **145/81** at Capernaum, **69/32** on the road, **73/42** at the farm, **53/31** at Nain and **37/24** at the cove. The road/farm increment is exactly one draw per quality; their former palette seam is absent. Desktop and phone Large journal, named-status register and dialogue captures pass independent visual review. Full captures stay ignored under `artifacts/rfc011/captures/classic-reading-final/` and `artifacts/reviews/`; no permanent gallery was added.
+
+The prior follow-up commit `333f59e` passed every job in its [Quality CI run](https://github.com/owenthcarey/gospel-rpg/actions/runs/36794505210), including the complete planned browser groups, continuous journey and compatibility gate. No storyline, scripture, gameplay reducer, save schema, collision or navigation destination changed in this batch.
+
 ### Controls, items and maps follow-up
 
 The player-centered minimap now turns with the camera, resolves taps back into world coordinates and shows the actual reachable destination until arrival. Its compass faces north, and keyboard activation still opens local destinations. Pause, visibility and region changes discard held presses; manual camera commands release arrival/conversation transitions, and label placement reserves the compass's protruding edge.

@@ -4,13 +4,19 @@ import { createHash } from 'node:crypto';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
 import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { AssetLibrary } from '../../src/scene/assets';
 import { Actor } from '../../src/scene/actors/actor';
 import { ConversationPresentation } from '../../src/scene/presentation/conversation';
 import { applyCameraPose, frameSubject } from '../../src/scene/presentation/framing';
 import { ActionFeedback } from '../../src/scene/presentation/action';
-import { groundMosaic, wornPaths } from '../../src/scene/presentation/ground';
+import {
+  floorHeight,
+  groundMosaic,
+  paintGround,
+  wornPaths,
+} from '../../src/scene/presentation/ground';
 import {
   angleDelta,
   compositionArea,
@@ -325,6 +331,115 @@ describe('scene-owned presence', () => {
       expect(swatches[1]).toEqual(swatches[0]);
       expect(swatches[2]).toEqual(swatches[0]);
     }
+  });
+  it('fits broad flat paint to the existing curved floor without changing its sampling grid', () => {
+    const { scene } = studio();
+    const floor = MeshBuilder.CreateGround(
+      'painted-floor',
+      { width: 24, height: 24, subdivisions: 24 },
+      scene,
+    );
+    const source = floor.getVerticesData('position')!;
+    for (let i = 0; i < source.length; i += 3)
+      source[i + 1] = source[i]! * 0.08 + Math.sin(source[i + 2]! * 0.5) * 0.4;
+    floor.setVerticesData('position', source);
+    const indices = [...floor.getIndices()!];
+    const samples = [
+      { x: 3, z: 7 },
+      { x: -4, z: -8 },
+    ].map((p) => floorHeight(floor, p));
+    const count = scene.meshes.length;
+    paintGround(floor, 'dry', undefined, { mosaic: true });
+    expect(scene.meshes.length).toBe(count + 1);
+    paintGround(floor, 'dry', undefined, { mosaic: true });
+    expect(scene.meshes.length).toBe(count + 1);
+    expect(floor.getVerticesData('position')).toEqual(source);
+    expect([...floor.getIndices()!]).toEqual(indices);
+    expect(
+      [
+        { x: 3, z: 7 },
+        { x: -4, z: -8 },
+      ].map((p) => floorHeight(floor, p)),
+    ).toEqual(samples);
+    const paint = scene.getMeshByName('painted-floor-paint')!;
+    expect(paint.isPickable).toBe(false);
+    const positions = paint.getVerticesData('position')!,
+      colors = paint.getVerticesData('color')!,
+      paintedFaces = paint.getIndices()!;
+    expect(paintedFaces.length).toBeGreaterThan(0);
+    expect(positions.every(Number.isFinite)).toBe(true);
+    expect(
+      paint
+        .getVerticesData('normal')!
+        .filter((_, i) => i % 3 === 1)
+        .every((y) => y > 0),
+    ).toBe(true);
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i]!,
+        y = positions[i + 1]!,
+        z = positions[i + 2]!;
+      expect(Math.abs(x)).toBeLessThanOrEqual(12);
+      expect(Math.abs(z)).toBeLessThanOrEqual(12);
+      // Babylon's height query excludes the right and bottom boundary; sample just inside them.
+      const height = floor.getHeightAtCoordinates(Math.min(x, 12 - 1e-7), Math.max(z, -12 + 1e-7));
+      expect(y - height).toBeCloseTo(0.004, 5);
+    }
+    for (let i = 0; i < paintedFaces.length; i += 3) {
+      const swatches = [0, 1, 2].map((n) =>
+        colors.slice(paintedFaces[i + n]! * 4, paintedFaces[i + n]! * 4 + 4),
+      );
+      expect(swatches[1]).toEqual(swatches[0]);
+      expect(swatches[2]).toEqual(swatches[0]);
+    }
+    paintGround(floor, 'dry');
+    expect(scene.meshes.length).toBe(count);
+  });
+  it('returns flat paint to the shared backdrop palette before the reserve boundary', () => {
+    const { scene } = studio();
+    const floor = MeshBuilder.CreateGround(
+      'reserved-floor',
+      { width: 60, height: 60, subdivisions: 60 },
+      scene,
+    );
+    paintGround(floor, 'dry');
+    const natural = [...floor.getVerticesData('color')!];
+    const source = [...floor.getVerticesData('position')!];
+    const indices = [...floor.getIndices()!];
+    const count = scene.meshes.length;
+    paintGround(floor, 'dry', undefined, {
+      mosaic: true,
+      reserve: { minX: -24, maxX: 24, minZ: -24, maxZ: 24 },
+    });
+    const colors = floor.getVerticesData('color')!;
+    const swatch = (x: number, z: number, values = colors) => {
+      const index = source.findIndex((p, i) => i % 3 === 0 && p === x && source[i + 2] === z);
+      return values.slice((index / 3) * 4, (index / 3) * 4 + 4);
+    };
+    const flat = swatch(0, 0);
+    expect(swatch(18, 0)).toEqual(flat);
+    expect(swatch(-18, 18)).toEqual(flat);
+    for (const [x, z] of [
+      [24, 0],
+      [-24, 0],
+      [0, 24],
+      [0, -24],
+      [30, 30],
+    ])
+      expect(swatch(x!, z!)).toEqual(swatch(x!, z!, natural));
+    const mid = swatch(21, 0),
+      outer = swatch(21, 0, natural);
+    for (let channel = 0; channel < 4; channel++)
+      expect(mid[channel]).toBeCloseTo((flat[channel]! + outer[channel]!) / 2, 6);
+    const paint = scene.getMeshByName('reserved-floor-paint')!;
+    const positions = paint.getVerticesData('position')!;
+    expect(paint.getIndices()!.length).toBeGreaterThan(0);
+    for (let i = 0; i < positions.length; i += 3) {
+      expect(Math.abs(positions[i]!)).toBeLessThanOrEqual(18);
+      expect(Math.abs(positions[i + 2]!)).toBeLessThanOrEqual(18);
+    }
+    expect(scene.meshes.length).toBe(count + 1);
+    expect(floor.getVerticesData('position')).toEqual(source);
+    expect([...floor.getIndices()!]).toEqual(indices);
   });
   it('gives ground patches and path ribbons upward normals without making accents interactive', () => {
     const { scene } = studio();

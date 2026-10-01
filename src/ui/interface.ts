@@ -81,6 +81,7 @@ import './fonts';
 import './theme.css';
 import { MinimapControls, mapPoint } from './minimap';
 import './satchel-map.css';
+import './classic-reading.css';
 
 export type Panel =
   | 'work'

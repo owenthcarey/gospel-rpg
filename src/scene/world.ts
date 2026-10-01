@@ -65,7 +65,7 @@ import type { ExplorationRegion } from '../game/campaign/types';
 import type { ActionMotion } from '../content/campaign/actions';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
-import { bindExplorationInput } from './input';
+import { bindExplorationInput, type ExplorationInputBinding, type ScreenClick } from './input';
 import { approachPath, stepPath, clearancePosition, smoothPath } from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader';
@@ -195,6 +195,7 @@ export class World {
   private playerModel!: TransformNode;
   private marker: Mesh;
   private interactionFeedback?: InteractionFeedback;
+  private explorationInput?: ExplorationInputBinding;
   private routeDots: Mesh[] = [];
   private strideTime = 0;
   private walkRamp = 0;
@@ -315,6 +316,10 @@ export class World {
           floor,
           groundStyle(initial.region),
           shore ? (p) => floorHeight(floor, p) > -0.01 : undefined,
+          {
+            mosaic: ['galilean-road', 'roadside-farm'].includes(initial.region),
+            reserve: { minX: -24, maxX: 24, minZ: -24, maxZ: 24 },
+          },
         );
       wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
         groundHeight(initial.region, p),
@@ -943,11 +948,14 @@ export class World {
   }
 
   private bindInput(): void {
-    const navigate = (id: string) =>
-      this.callbacks.requestNavigate ? this.callbacks.requestNavigate(id) : this.navigate(id);
-    const walk = (point: Point) => {
+    const navigate = (id: string, click?: ScreenClick) => {
+      this.interactionFeedback?.prepareNavigate(id, click);
+      if (this.callbacks.requestNavigate) this.callbacks.requestNavigate(id);
+      else this.navigate(id);
+    };
+    const walk = (point: Point, click?: ScreenClick) => {
       this.callbacks.manualMove?.();
-      this.walkTo(point);
+      if (this.walkTo(point) && click) this.interactionFeedback?.accepted('ground', click);
     };
     this.interactionFeedback = new InteractionFeedback({
       scene: this.scene,
@@ -957,20 +965,19 @@ export class World {
       navigate,
       walk,
     });
-    this.cleanup.push(
-      bindExplorationInput({
-        scene: this.scene,
-        canvas: this.canvas,
-        keys: this.keys,
-        paused: () => this.paused,
-        navigate,
-        manualMove: this.callbacks.manualMove,
-        walk,
-        nearest: () => this.nearest()?.id,
-        resetCamera: () => this.resetCamera(),
-        notice: this.callbacks.notice,
-      }),
-    );
+    this.explorationInput = bindExplorationInput({
+      scene: this.scene,
+      canvas: this.canvas,
+      keys: this.keys,
+      paused: () => this.paused,
+      navigate,
+      manualMove: this.callbacks.manualMove,
+      walk,
+      nearest: () => this.nearest()?.id,
+      resetCamera: () => this.resetCamera(),
+      notice: this.callbacks.notice,
+    });
+    this.cleanup.push(() => this.explorationInput?.dispose());
   }
 
   walkTo(target: Point): boolean {
@@ -995,12 +1002,19 @@ export class World {
     return true;
   }
   navigate(id: string): void {
-    if (this.paused) return;
+    if (this.paused) {
+      this.interactionFeedback?.completeNavigate(id, false);
+      return;
+    }
     const target = this.destinations.find((p) => p.id === id);
-    if (!target) return;
+    if (!target) {
+      this.interactionFeedback?.completeNavigate(id, false);
+      return;
+    }
     if (distance(this.position, target) < 2.35) {
       this.stop();
       this.face(target);
+      this.interactionFeedback?.completeNavigate(id, true);
       this.callbacks.interact(id);
       return;
     }
@@ -1010,6 +1024,7 @@ export class World {
       approachPath(this.grid, this.position, target),
     );
     if (!path.length) {
+      this.interactionFeedback?.completeNavigate(id, false);
       this.callbacks.notice('There is no clear path to that place.');
       return;
     }
@@ -1019,6 +1034,7 @@ export class World {
     this.marker.position.set(end.x, groundHeight(this.state.region, end) + 0.045, end.z);
     this.marker.setEnabled(true);
     this.showRoute();
+    this.interactionFeedback?.completeNavigate(id, true);
   }
 
   private face(target: Point, dt?: number): void {
@@ -1145,6 +1161,7 @@ export class World {
   setPaused(value: boolean): void {
     this.paused = value;
     this.interactionFeedback?.setPaused(value);
+    if (value) this.explorationInput?.clear();
     if (value) this.stop();
   }
   setPosition(p: Point, snap = false): void {

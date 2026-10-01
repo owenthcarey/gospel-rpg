@@ -8,6 +8,13 @@ import type { Point } from '../../game/types';
 import { noise } from '../../game/presence';
 
 export type PathSegment = readonly [Point, Point, number];
+export interface GroundReserve {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+const groundPaintLayers = new WeakMap<Mesh, Mesh>();
 
 /** Height of a square ground grid at a local point, from its own vertices (nearest sample). */
 export function floorHeight(mesh: Mesh, p: Point): number {
@@ -203,6 +210,7 @@ export function groundMosaic(
   height: (p: Point) => number,
   inside = false,
   paletteHex?: readonly string[],
+  options: { step?: number; coverage?: number; surface?: Mesh } = {},
 ): Mesh {
   const positions: number[] = [],
     indices: number[] = [],
@@ -213,13 +221,40 @@ export function groundMosaic(
       ? ['#b9aa8d', '#b6a789', '#b3a486', '#bdad90']
       : ['#7b8d51', '#7f9054', '#85935a', '#738449', '#809054'])
   ).map((c) => Color3.FromHexString(c));
-  const step = inside ? 1.6 : 2.1;
+  const step = options.step ?? (inside ? 1.6 : 2.1);
+  const surface = options.surface;
+  const surfacePositions = surface?.getVerticesData(VertexBuffer.PositionKind);
+  const surfaceIndices = surface?.getIndices();
+  const surfaceWorld = surface?.computeWorldMatrix(true).asArray();
+  const triangles =
+    surfacePositions && surfaceIndices && surfaceWorld
+      ? Array.from({ length: surfaceIndices.length / 3 }, (_, i) => {
+          const points = [0, 1, 2].map((n) => {
+            const k = surfaceIndices[i * 3 + n]! * 3;
+            return {
+              x: surfacePositions[k]! + surfaceWorld[12]!,
+              y: surfacePositions[k + 1]! + surfaceWorld[13]!,
+              z: surfacePositions[k + 2]! + surfaceWorld[14]!,
+            };
+          });
+          return {
+            points,
+            minX: Math.min(...points.map((p) => p.x)),
+            maxX: Math.max(...points.map((p) => p.x)),
+            minZ: Math.min(...points.map((p) => p.z)),
+            maxZ: Math.max(...points.map((p) => p.z)),
+          };
+        })
+      : undefined;
   for (let z = bounds.min; z < bounds.max; z += step)
     for (let x = bounds.min; x < bounds.max; x += step) {
-      if (!land({ x, z }) || noise(x, z) < 0.42) continue;
-      const cx = x + (noise(x + 1, z) - 0.5) * step,
-        cz = z + (noise(x, z + 1) - 0.5) * step;
-      let radius = step * (0.38 + noise(x + 2, z) * 0.45);
+      if (!land({ x, z }) || noise(x, z) < 1 - (options.coverage ?? 0.58)) continue;
+      const cx =
+          x + (triangles ? 0.5 + (noise(x + 1, z) - 0.5) * 0.12 : noise(x + 1, z) - 0.5) * step,
+        cz = z + (triangles ? 0.5 + (noise(x, z + 1) - 0.5) * 0.12 : noise(x, z + 1) - 0.5) * step;
+      // Surface paint stays inside each broad cell, avoiding coplanar overlapping patches.
+      let radius =
+        step * (triangles ? 0.36 + noise(x + 2, z) * 0.08 : 0.38 + noise(x + 2, z) * 0.45);
       const center = { x: cx, z: cz };
       if (!land(center)) continue;
       if (inside) {
@@ -228,14 +263,66 @@ export function groundMosaic(
         radius = Math.min(radius, margin / 1.1);
         if (radius < 0.12) continue;
       }
-      const base = positions.length / 3;
       const color = palette[Math.floor(noise(x, z + 4) * palette.length)]!;
+      const outline = Array.from({ length: 8 }, (_, i) => {
+        const a = (i * Math.PI) / 4,
+          r = radius * (triangles ? 0.86 + noise(x + i, z) * 0.12 : 0.7 + noise(x + i, z) * 0.4);
+        return { x: cx + Math.cos(a) * r, z: cz + Math.sin(a) * r };
+      });
+      if (triangles) {
+        // Keep whole patches on their permitted surface, including any flat paint reserve.
+        if (!outline.every(land)) continue;
+        const minX = Math.min(...outline.map((p) => p.x)),
+          maxX = Math.max(...outline.map((p) => p.x)),
+          minZ = Math.min(...outline.map((p) => p.z)),
+          maxZ = Math.max(...outline.map((p) => p.z));
+        // Clip the paint to the existing floor triangles instead of spanning a hill with a fan.
+        // Interpolating each cut edge preserves the exact ground plane beneath the patch.
+        for (const triangle of triangles) {
+          if (
+            triangle.maxX < minX ||
+            triangle.minX > maxX ||
+            triangle.maxZ < minZ ||
+            triangle.minZ > maxZ
+          )
+            continue;
+          let polygon = triangle.points;
+          for (let edge = 0; edge < outline.length && polygon.length; edge++) {
+            const a = outline[edge]!,
+              b = outline[(edge + 1) % outline.length]!;
+            const side = (p: Point) => (b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x);
+            const clipped: typeof polygon = [];
+            for (let n = 0; n < polygon.length; n++) {
+              const start = polygon[n]!,
+                end = polygon[(n + 1) % polygon.length]!;
+              const from = side(start),
+                to = side(end);
+              if (from >= 0) clipped.push(start);
+              if (from >= 0 !== to >= 0) {
+                const t = from / (from - to);
+                clipped.push({
+                  x: start.x + (end.x - start.x) * t,
+                  y: start.y + (end.y - start.y) * t,
+                  z: start.z + (end.z - start.z) * t,
+                });
+              }
+            }
+            polygon = clipped;
+          }
+          if (polygon.length < 3) continue;
+          const base = positions.length / 3;
+          for (const p of polygon) {
+            positions.push(p.x, p.y + 0.004, p.z);
+            colors.push(color.r, color.g, color.b, 1);
+          }
+          for (let i = 1; i < polygon.length - 1; i++) indices.push(base, base + i, base + i + 1);
+        }
+        continue;
+      }
+      const base = positions.length / 3;
       positions.push(cx, height(center) + 0.004, cz);
       colors.push(color.r, color.g, color.b, 1);
-      for (let i = 0; i < 8; i++) {
-        const a = (i * Math.PI) / 4,
-          r = radius * (0.7 + noise(x + i, z) * 0.4);
-        const p = { x: cx + Math.cos(a) * r, z: cz + Math.sin(a) * r };
+      for (const [i, p] of outline.entries()) {
         positions.push(p.x, height(p) + 0.004, p.z);
         colors.push(color.r, color.g, color.b, 1);
         indices.push(base, base + 1 + i, base + 1 + ((i + 1) % 8));
@@ -322,16 +409,35 @@ export function groundColor(p: Point, style: GroundStyle, rise = 0): Color3 {
 }
 
 /** Repaint a playable floor with the shared ground palette; positions are unchanged. */
-export function paintGround(mesh: Mesh, style: GroundStyle, land?: (p: Point) => boolean): void {
+export function paintGround(
+  mesh: Mesh,
+  style: GroundStyle,
+  land?: (p: Point) => boolean,
+  options: { mosaic?: boolean; reserve?: GroundReserve } = {},
+): void {
+  groundPaintLayers.get(mesh)?.dispose(false, true);
+  groundPaintLayers.delete(mesh);
   const positions = mesh.getVerticesData('position')!;
   const world = mesh.computeWorldMatrix(true).asArray();
   const colors: number[] = [];
   const sand = Color3.FromHexString('#c2ad7d'),
     wet = Color3.FromHexString('#8a8768');
+  const base = Color3.FromHexString(GROUND_PALETTES[style][0]).scale(1.02);
+  const transitionWidth = 6;
+  const distanceToEdge = (p: Point) => {
+    const reserve = options.reserve;
+    return reserve
+      ? Math.min(p.x - reserve.minX, reserve.maxX - p.x, p.z - reserve.minZ, reserve.maxZ - p.z)
+      : Infinity;
+  };
   for (let i = 0; i < positions.length; i += 3) {
     const x = positions[i]! + world[12]!,
       z = positions[i + 2]! + world[14]!;
-    let c = groundColor({ x, z }, style);
+    const p = { x, z };
+    const borderMix = Math.max(0, Math.min(1, 1 - distanceToEdge(p) / transitionWidth));
+    let c = options.mosaic && borderMix === 0 ? base : groundColor(p, style);
+    // Return to the shared palette where backdrop hills rise above the playable floor.
+    if (options.mosaic && borderMix > 0 && borderMix < 1) c = Color3.Lerp(base, c, borderMix);
     // A pale strand at the water's edge, darkening where the bank slopes under.
     if (land && !land({ x, z })) c = Color3.Lerp(sand, wet, Math.min(1, -positions[i + 1]! * 2.2));
     else if (land && [1, -1].some((d) => !land({ x: x + d, z }) || !land({ x, z: z + d })))
@@ -339,6 +445,26 @@ export function paintGround(mesh: Mesh, style: GroundStyle, land?: (p: Point) =>
     colors.push(c.r, c.g, c.b, 1);
   }
   mesh.setVerticesData('color', colors);
+  if (options.mosaic) {
+    const bounds = mesh.getBoundingInfo().boundingBox;
+    const dry = Color3.FromHexString(GROUND_PALETTES[style][1]);
+    const paint = groundMosaic(
+      mesh.getScene(),
+      mesh.name + '-paint',
+      {
+        min: Math.max(bounds.minimumWorld.x, bounds.minimumWorld.z),
+        max: Math.min(bounds.maximumWorld.x, bounds.maximumWorld.z),
+      },
+      (p) => (!land || land(p)) && distanceToEdge(p) >= transitionWidth,
+      () => 0,
+      false,
+      [base.scale(0.96), base.scale(1.04), Color3.Lerp(base, dry, 0.12)].map((c) =>
+        c.toHexString(),
+      ),
+      { step: 6, coverage: 0.38, surface: mesh },
+    );
+    groundPaintLayers.set(mesh, paint);
+  }
 }
 
 /**
@@ -348,7 +474,7 @@ export function paintGround(mesh: Mesh, style: GroundStyle, land?: (p: Point) =>
 export function backdropTerrain(
   scene: Scene,
   options: {
-    reserve: { minX: number; maxX: number; minZ: number; maxZ: number };
+    reserve: GroundReserve;
     size: number;
     style: GroundStyle;
     base?: (p: Point) => number;

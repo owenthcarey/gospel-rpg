@@ -206,6 +206,9 @@ test('return encounters, recap and journal statuses remain usable with skipped s
     page.locator('[data-action="journal-status"][data-value="available"]'),
   ).toBeFocused();
   await expect(page.locator('.connection-stories')).toContainText('The way home');
+  const namedStatus = page.locator('.story-register .status-pill');
+  await expect(namedStatus).toBeVisible();
+  await expect(namedStatus).toHaveText('available');
   for (const selector of ['h3', '.eyebrow', '.status-pill', 'button'])
     contrast['status-' + selector] = await readableContrast(
       page,

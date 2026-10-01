@@ -2,20 +2,28 @@ import { TapGesture } from '../game/gestures';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import type { Scene } from '@babylonjs/core/scene';
 import type { Point } from '../game/types';
+export interface ScreenClick {
+  x: number;
+  y: number;
+}
+export interface ExplorationInputBinding {
+  dispose: () => void;
+  clear: () => void;
+}
 export interface ExplorationInput {
   scene: Scene;
   canvas: HTMLCanvasElement;
   keys: Set<string>;
   paused: () => boolean;
-  navigate: (id: string) => void;
-  walk: (point: Point) => void;
+  navigate: (id: string, click?: ScreenClick) => void;
+  walk: (point: Point, click?: ScreenClick) => void;
   nearest: () => string | undefined;
   resetCamera: () => void;
   manualMove?: () => void;
   notice: (message: string) => void;
 }
 /** Every listener/observer installed here has a matching region-disposal cleanup. */
-export function bindExplorationInput(input: ExplorationInput): () => void {
+export function bindExplorationInput(input: ExplorationInput): ExplorationInputBinding {
   const { keys, canvas, scene } = input;
   const gesture = new TapGesture();
   const down = (event: KeyboardEvent) => {
@@ -73,10 +81,17 @@ export function bindExplorationInput(input: ExplorationInput): () => void {
   const pointerDown = (e: PointerEvent) => {
     // Keep the scroll button available for orbiting instead of browser autoscroll.
     if (e.button === 1) e.preventDefault();
+    if (input.paused()) {
+      clear();
+      return;
+    }
     gesture.down(e.pointerId, e.clientX, e.clientY, e.button);
   };
   const pointerMove = (e: PointerEvent) => gesture.move(e.pointerId, e.clientX, e.clientY);
-  const pointerUp = (e: PointerEvent) => gesture.up(e.pointerId, e.clientX, e.clientY);
+  const pointerUp = (e: PointerEvent) => {
+    if (input.paused()) clear();
+    else gesture.up(e.pointerId, e.clientX, e.clientY);
+  };
   canvas.addEventListener('pointerdown', pointerDown, true);
   window.addEventListener('pointermove', pointerMove, true);
   window.addEventListener('pointerup', pointerUp, true);
@@ -88,11 +103,12 @@ export function bindExplorationInput(input: ExplorationInput): () => void {
     const pick = info.pickInfo;
     if (!pick?.hit) return;
     const id = pick.pickedMesh?.metadata?.interactionId as string | undefined;
-    if (id) input.navigate(id);
+    const click = { x: info.event.clientX, y: info.event.clientY };
+    if (id) input.navigate(id, click);
     else if (pick.pickedPoint && pick.pickedMesh?.metadata?.ground)
-      input.walk({ x: pick.pickedPoint.x, z: pick.pickedPoint.z });
+      input.walk({ x: pick.pickedPoint.x, z: pick.pickedPoint.z }, click);
   });
-  return () => {
+  const dispose = () => {
     window.removeEventListener('keydown', down);
     window.removeEventListener('keyup', up);
     window.removeEventListener('blur', clear);
@@ -104,4 +120,5 @@ export function bindExplorationInput(input: ExplorationInput): () => void {
     scene.onPointerObservable.remove(pointer);
     clear();
   };
+  return { dispose, clear };
 }

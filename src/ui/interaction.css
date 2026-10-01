@@ -60,6 +60,8 @@
   color: #ffdb66;
 }
 .world-click-feedback {
+  --click-color: #f5dc35;
+  --click-rim: #30260c;
   position: fixed;
   z-index: 30;
   width: 17px;
@@ -74,14 +76,18 @@
   left: 7px;
   width: 3px;
   height: 17px;
-  background: #f5dc35;
+  background: var(--click-color);
   box-shadow:
-    1px 0 #30260c,
-    -1px 0 #30260c;
+    1px 0 var(--click-rim),
+    -1px 0 var(--click-rim);
   transform: rotate(45deg);
 }
 .world-click-feedback::after {
   transform: rotate(-45deg);
+}
+.world-click-feedback[data-kind='object'] {
+  --click-color: #ed3d2e;
+  --click-rim: #471209;
 }
 .world-action-hint[hidden],
 .world-option-menu[hidden],

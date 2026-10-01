@@ -28,9 +28,12 @@ test('the journey overview prioritizes local play and deliberately follows the c
   await expect(page.locator('.opportunity')).toHaveCount(3);
   await expect(page.locator('.journey-overview')).not.toContainText('Room under the olives');
   await readableContrast(page, '.opportunity p');
+  await readableContrast(page, '.quest-state');
   await page.screenshot({ path: info.outputPath('fresh-journey-overview.png') });
   await page.locator('[data-action="follow-story"][data-value="village"]').click();
   await expect(page.getByRole('dialog')).toContainText('Ezra');
+  await readableContrast(page, '.dialogue-choices button');
+  await readableContrast(page, '.dialogue-choices .choice-index');
   await page.getByRole('button', { name: 'Leave conversation' }).click();
   await expect(page.locator('.objective-toggle')).toHaveAttribute('aria-expanded', 'true');
   const s = await exported(page);
@@ -44,6 +47,51 @@ test('the journey overview prioritizes local play and deliberately follows the c
   await act(page, 'journal-category', 'overview');
   await act(page, 'open-story', 'main');
   await expect(page.locator('[data-journal-filter]')).toHaveValue('main');
+});
+
+test('phone atlas numbers stay readable across early and fully connected journeys', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'mobile-chromium', 'Measures the phone atlas scaling.');
+  const sizes = [
+    { width: 390, height: 844 },
+    { width: 320, height: 844 },
+    { width: 844, height: 390 },
+  ];
+  for (const state of [undefined, completedJourney()]) {
+    await page.setViewportSize(sizes[0]!);
+    await ready(page, state);
+    await page.locator('.toolbar [data-action="map"]').click();
+    await page.getByRole('button', { name: 'Journey map', exact: true }).click();
+    const labels = page.locator('.journey-map-number');
+    await expect(labels).toHaveCount(state ? 10 : 1);
+    for (const viewport of sizes) {
+      await page.setViewportSize(viewport);
+      // The panel entry transform also scales its SVG until the modal has settled.
+      await expect(page.locator('#overlay')).toHaveCSS('opacity', '1');
+      await expect(page.locator('.panel')).toHaveCSS('opacity', '1');
+      await expect
+        .poll(
+          () =>
+            labels.evaluateAll((nodes) => {
+              if (!nodes.length) return 0;
+              return Math.min(
+                ...nodes.map((node) => {
+                  const matrix = (node as SVGTextElement).getScreenCTM()!;
+                  return (
+                    parseFloat(getComputedStyle(node).fontSize) * Math.hypot(matrix.a, matrix.b)
+                  );
+                }),
+              );
+            }),
+          { message: `Smallest atlas number at ${viewport.width}×${viewport.height}` },
+        )
+        .toBeGreaterThanOrEqual(14);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+      ).toBe(false);
+    }
+  }
 });
 
 test('focused spring work keeps reading, keyboard focus, framing and interrupted orientation', async ({

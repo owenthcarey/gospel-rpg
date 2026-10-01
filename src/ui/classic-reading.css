@@ -1,0 +1,309 @@
+/* Quest registers and blue answer rows share the existing authored reading surfaces. */
+:root .journey-overview .overview-intro {
+  margin: 10px 0 15px;
+}
+:root .journey-overview .overview-intro h3 {
+  font: 700 18px/1.35 var(--font-sans);
+  margin: 5px 0;
+}
+:root .journey-overview .overview-intro p:not(.eyebrow) {
+  font-size: 14px;
+  margin: 0;
+}
+:root .journey-overview > section > h3 {
+  margin: 17px 0 9px;
+  font-size: 16px;
+}
+:root .journey-overview .opportunity-list {
+  gap: 8px;
+}
+:root .journey-overview .opportunity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 14px;
+  padding: 11px 13px;
+  border: 1px solid #8c6b42;
+  border-left: 3px solid #765039;
+  background: var(--stone-grain), #c5ae82;
+  box-shadow:
+    inset 1px 1px #e4cda0,
+    inset -1px -1px #9b7a4c;
+}
+:root .journey-overview .opportunity[data-story-status='in-progress'] {
+  border-left-color: #796017;
+}
+:root .journey-overview .current-opportunity {
+  padding: 13px;
+  margin-bottom: 15px;
+  border: 2px solid #70542f;
+  border-left: 4px solid #70542f;
+  background-color: #cbb78f;
+}
+:root .quest-row-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+:root .quest-row-heading > div {
+  min-width: 0;
+}
+:root .opportunity .quest-row-heading h3 {
+  margin: 4px 0 0;
+  color: var(--text-ink);
+  font: 700 15px/1.35 var(--font-sans);
+}
+:root .current-opportunity .quest-row-heading h3 {
+  font-size: 18px;
+}
+:root .opportunity .quest-row-heading .eyebrow {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text-ink);
+}
+:root .quest-state {
+  flex-shrink: 0;
+  padding: 4px 7px;
+  border: 1px solid #725533;
+  background: #44301c;
+  color: #ffb69b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+:root [data-story-status='in-progress'] .quest-state {
+  color: #ffe08a;
+}
+:root .opportunity .quest-row-description p {
+  margin: 0;
+  color: var(--text-ink);
+  font-size: 14px;
+  line-height: 1.45;
+}
+:root .opportunity .quest-row-description .opportunity-place {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+:root .opportunity .opportunity-place .icon {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
+}
+:root .opportunity .story-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-self: end;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+:root .opportunity .story-actions .secondary-button {
+  min-height: 42px;
+  padding: 8px 11px;
+  margin: 0;
+  font-size: 13px;
+}
+:root .journey-overview .elsewhere-stories {
+  margin-top: 15px;
+}
+:root .story-register {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+}
+:root .story-register > article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px 12px;
+  border: 2px solid #745737;
+  border-radius: 0;
+  color: #f0d79a;
+  background: var(--stone-grain), #44301c;
+  box-shadow:
+    inset 1px 1px #8d7049,
+    inset -1px -1px #261a10;
+}
+:root .story-register > article > header {
+  min-width: 0;
+}
+:root .story-register .eyebrow {
+  display: block;
+  margin: 0 0 5px;
+  color: #f0d79a;
+  font-size: 10px;
+  line-height: 1.4;
+}
+:root .story-register h3 {
+  margin: 0;
+  color: #cbbfa4;
+  font: 700 15px/1.35 var(--font-sans);
+}
+:root .story-register .status-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0;
+  padding: 4px 7px;
+  color: #cbbfa4;
+  background: #44301c;
+  border: 1px solid #8d7049;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+  box-shadow: none;
+}
+:root .story-register [data-story-status='available'] h3,
+:root .story-register [data-story-status='available'] .status-pill {
+  color: #ffb69b;
+}
+:root .story-register [data-story-status='in-progress'] h3,
+:root .story-register [data-story-status='in-progress'] .status-pill {
+  color: #ffe08a;
+}
+:root .story-register [data-story-status='complete'] h3,
+:root .story-register [data-story-status='complete'] .status-pill {
+  color: #b7d894;
+}
+:root .story-register .story-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+}
+:root .story-register .story-actions .secondary-button {
+  min-height: 42px;
+  padding: 8px 11px;
+  margin: 0;
+  font-size: 13px;
+}
+:root .dialogue-choices {
+  gap: 0;
+  padding: 3px;
+  border: 2px solid #8a6d44;
+  background: var(--stone-grain), #c5ae82;
+  box-shadow: var(--bevel-sunken);
+}
+:root .dialogue-choices button,
+:root .conversation-overlay .dialogue-choices button {
+  min-height: 42px;
+  padding: 8px 10px;
+  gap: 9px;
+  color: #102e56;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #a58a5e;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: none;
+}
+:root .dialogue-choices button:last-child {
+  border-bottom: 0;
+}
+:root .dialogue-choices button:hover,
+:root .conversation-overlay .dialogue-choices button:hover,
+:root .dialogue-choices button:focus-visible,
+:root .conversation-overlay .dialogue-choices button:focus-visible {
+  color: #0c2a51;
+  background: #dfcba3;
+  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transform: none;
+}
+:root .dialogue-choices button:focus-visible {
+  outline: 2px solid #102e56;
+  outline-offset: -2px;
+}
+:root .dialogue-choices .choice-index {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font-size: 14px;
+}
+:root .dialogue-choices button .icon {
+  color: inherit;
+  opacity: 1;
+}
+:root .dialogue-choices button:hover .icon,
+:root .dialogue-choices button:focus-visible .icon {
+  transform: none;
+}
+:root[data-text-size='large'] .opportunity .quest-row-heading h3,
+:root[data-text-size='large'] .opportunity .quest-row-description p,
+:root[data-text-size='large'] .journey-overview .overview-intro p:not(.eyebrow),
+:root[data-text-size='large'] .story-register h3 {
+  font-size: 17px;
+}
+:root[data-text-size='large'] .current-opportunity .quest-row-heading h3 {
+  font-size: 20px;
+}
+:root[data-text-size='large'] .quest-state,
+:root[data-text-size='large'] .opportunity .quest-row-description .opportunity-place,
+:root[data-text-size='large'] .story-register .status-pill {
+  font-size: 14px;
+}
+:root[data-text-size='large'] .opportunity .story-actions .secondary-button,
+:root[data-text-size='large'] .story-register .story-actions .secondary-button,
+:root[data-text-size='large'] .dialogue-choices button,
+:root[data-text-size='large'] .conversation-overlay .dialogue-choices button {
+  font-size: 16px;
+}
+@media (max-width: 699px) {
+  :root .journey-overview .opportunity {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    padding: 11px;
+  }
+  :root .quest-row-heading {
+    gap: 8px;
+  }
+  :root .opportunity .quest-row-heading h3 {
+    font-size: 16px;
+  }
+  :root .opportunity .story-actions {
+    width: 100%;
+  }
+  :root .opportunity .story-actions .secondary-button {
+    flex: 1;
+    min-height: 44px;
+    white-space: normal;
+  }
+  :root .story-register > article {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 11px;
+    padding: 11px;
+  }
+  :root .story-register h3 {
+    font-size: 16px;
+  }
+  :root .story-register .story-actions {
+    grid-column: 1 / -1;
+  }
+  :root .story-register .story-actions .secondary-button {
+    flex: 1;
+    min-height: 44px;
+    white-space: normal;
+  }
+  :root .dialogue-choices button,
+  :root .conversation-overlay .dialogue-choices button {
+    min-height: 44px;
+    font-size: 15px;
+    padding: 8px;
+  }
+}

@@ -523,6 +523,12 @@
   :root .journey-map-number {
     font-size: 20px;
   }
+  :root .journey-map-badge {
+    /* Leave room above 14px after the atlas viewBox scales to the phone. */
+    transform: scale(calc(var(--journey-map-units) / 420));
+    transform-box: fill-box;
+    transform-origin: center;
+  }
   :root .journey-destination {
     padding: 12px;
   }
@@ -531,5 +537,20 @@
   }
   :root .journey-destination p {
     font-size: 14px;
+  }
+}
+@media (max-width: 379px) {
+  :root .journey-map-badge {
+    transform: scale(calc(var(--journey-map-units) / 330));
+  }
+}
+@media (pointer: coarse) and (max-height: 500px) and (min-width: 700px) {
+  :root .journey-map-number {
+    font-size: 20px;
+  }
+  :root .journey-map-badge {
+    transform: scale(calc(var(--journey-map-units) / 460));
+    transform-box: fill-box;
+    transform-origin: center;
   }
 }
