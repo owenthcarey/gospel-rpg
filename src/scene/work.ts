@@ -2,7 +2,9 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Viewport } from '@babylonjs/core/Maths/math.viewport';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { Scene } from '@babylonjs/core/scene';
@@ -49,21 +51,17 @@ export class WorkPresentation {
     this.gold = this.material('work-selection-gold', '#e9c36a');
     this.proposal = this.material('work-proposal-blue', '#6bccdf');
     this.approachMaterial = this.material('work-approach', '#99c4ad');
-    this.ring = MeshBuilder.CreateTorus(
+    this.ring = CreateTorus(
       'selected-work-target',
       { diameter: 1.3, thickness: 0.035, tessellation: 32 },
       scene,
     );
     this.ring.material = this.gold;
-    this.approach = MeshBuilder.CreateGround(
-      'work-southern-approach',
-      { width: 1, height: 1.6 },
-      scene,
-    );
+    this.approach = CreateGround('work-southern-approach', { width: 1, height: 1.6 }, scene);
     this.approach.material = this.approachMaterial;
     // A broken outline distinguishes proposed placement from solid, placed furniture.
     for (let i = 0; i < 18; i++) {
-      const part = MeshBuilder.CreateBox(
+      const part = CreateBox(
         'work-screen-preview-' + i,
         { width: i < 12 ? 0.24 : 0.045, height: i < 12 ? 0.045 : 0.38, depth: 0.045 },
         scene,

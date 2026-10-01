@@ -1,9 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { parseStoryCommand } from '../../src/game/commands';
+import { parseStoryCommand, requiresWorldView, requiresWorldEvent } from '../../src/game/commands';
 import { noticeFor, motionFor } from '../../src/content/notices';
 import { newGame } from '../../src/game/types';
 
 describe('interface commands and notices (RFC-011 main split)', () => {
+  it('keeps physical work and travel paused while leaving reading and hints usable', () => {
+    expect(requiresWorldView('galilee-screen', '2')).toBe(true);
+    expect(requiresWorldView('harbor-action', 'plank-turn|0')).toBe(true);
+    expect(requiresWorldView('travel', 'rest-breeze')).toBe(true);
+    expect(requiresWorldView('harbor-action', 'hint')).toBe(false);
+    expect(requiresWorldView('galilee-hint')).toBe(false);
+    expect(requiresWorldView('work-inspect')).toBe(false);
+    expect(requiresWorldView('work-preview-cancel')).toBe(false);
+    expect(requiresWorldView('export')).toBe(false);
+    expect(requiresWorldEvent({ type: 'collect', item: 'bread' })).toBe(true);
+    expect(requiresWorldEvent({ type: 'harbor-action', id: 'hint' })).toBe(false);
+    expect(requiresWorldEvent()).toBe(false);
+  });
   it('turns untrusted data values into typed events only when they are known', () => {
     expect(parseStoryCommand('galilee-turn', 'north:2')).toBeDefined();
     expect(parseStoryCommand('galilee-turn', 'zz:2')).toBeUndefined();

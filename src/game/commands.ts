@@ -22,6 +22,47 @@ import {
 const member = <T extends string>(list: readonly T[], value: string | undefined): value is T =>
   list.some((id) => id === value);
 
+const WORLD_COMMANDS = new Set([
+  'galilee-action',
+  'galilee-turn',
+  'galilee-screen',
+  'campaign-action',
+  'episode-action',
+  'road-action',
+  'road-route',
+  'lake-action',
+  'collect',
+  'deliver',
+  'journey',
+  'quick-action',
+  'work-act',
+  'work-visit',
+  'work-preview',
+  'work-preview-apply',
+  'work-frame',
+  'navigate',
+  'travel',
+  'nearest',
+  'route-resume',
+  'follow-story',
+  'rotate-left',
+  'rotate-right',
+  'zoom-in',
+  'zoom-out',
+  'reset-camera',
+  'face-north',
+]);
+
+/** Physical commands need a visible world; reading and hints remain available during recovery. */
+export function requiresWorldView(name: string, value?: string): boolean {
+  if (name === 'harbor-action') return value?.split('|')[0] !== 'hint';
+  return WORLD_COMMANDS.has(name);
+}
+
+export function requiresWorldEvent(event?: GameEvent): boolean {
+  return !!event && requiresWorldView(event.type, 'id' in event ? event.id : undefined);
+}
+
 /**
  * Translate an interface command and its untrusted `data-value` into a typed story event.
  * Unknown names or values return undefined; reducers still apply every guard.

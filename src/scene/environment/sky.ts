@@ -1,5 +1,5 @@
 import { ShaderMaterial } from '@babylonjs/core/Materials/shaderMaterial';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateSphere } from '@babylonjs/core/Meshes/Builders/sphereBuilder';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
@@ -78,7 +78,7 @@ export class SkyDome {
   readonly mesh: Mesh;
   readonly material: ShaderMaterial;
   constructor(scene: Scene, radius: number) {
-    this.mesh = MeshBuilder.CreateSphere(
+    this.mesh = CreateSphere(
       'sky-dome',
       { diameter: radius * 2, segments: 20, sideOrientation: Mesh.BACKSIDE },
       scene,

@@ -13,7 +13,16 @@ interface Gltf {
     translation?: number[];
     scale?: number[];
   }[];
-  meshes: { primitives: { indices: number; attributes: Record<string, number> }[] }[];
+  meshes: {
+    primitives: {
+      indices: number;
+      attributes: Record<string, number>;
+      material?: number;
+      mode?: number;
+    }[];
+  }[];
+  materials: { doubleSided?: boolean; alphaMode?: string }[];
+  textures?: unknown[];
   accessors: {
     count: number;
     min?: number[];
@@ -63,6 +72,17 @@ describe('the complete original asset manifest', () => {
     for (const buffer of gltf.buffers) expect(buffer.uri).toBeUndefined();
     for (const image of gltf.images ?? []) expect(image.uri).toBeUndefined();
     const primitives = gltf.meshes.flatMap((mesh) => mesh.primitives);
+    // The production importer supplies one opaque, double-sided vertex-color matte.
+    // Keep that catalog convention explicit before skipping authored PBR materials.
+    expect(gltf.materials).toHaveLength(1);
+    expect(gltf.materials[0]!.doubleSided).toBe(true);
+    expect(gltf.materials[0]!.alphaMode ?? 'OPAQUE').toBe('OPAQUE');
+    expect(gltf.textures ?? []).toHaveLength(0);
+    for (const primitive of primitives) {
+      expect(primitive.material).toBe(0);
+      expect(primitive.mode ?? 4).toBe(4);
+      expect(primitive.attributes.COLOR_0).toBeDefined();
+    }
     const triangles = primitives.reduce(
       (count, primitive) => count + gltf.accessors[primitive.indices]!.count / 3,
       0,

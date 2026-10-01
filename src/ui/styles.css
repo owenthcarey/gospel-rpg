@@ -76,18 +76,7 @@
   --gold: var(--gold-300);
   --muted: var(--fg-3);
 
-  /* Ornamented corners (inline SVG, no downloads). */
-  --corner-gold-tl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b670' stroke-width='1.1' stroke-linecap='round'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%23d8b670' stroke='none'/%3E%3C/svg%3E");
-  --corner-gold-tr: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b670' stroke-width='1.1' stroke-linecap='round'%3E%3Cg transform='matrix(-1 0 0 1 24 0)'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%23d8b670' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-  --corner-gold-bl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b670' stroke-width='1.1' stroke-linecap='round'%3E%3Cg transform='matrix(1 0 0 -1 0 24)'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%23d8b670' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-  --corner-gold-br: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b670' stroke-width='1.1' stroke-linecap='round'%3E%3Cg transform='matrix(-1 0 0 -1 24 24)'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%23d8b670' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-  --corner-bronze-tl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b7a3e' stroke-width='1.1' stroke-linecap='round'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%239b7a3e' stroke='none'/%3E%3C/svg%3E");
-  --corner-bronze-tr: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b7a3e' stroke-width='1.1' stroke-linecap='round'%3E%3Cg transform='matrix(-1 0 0 1 24 0)'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%239b7a3e' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-  --corner-bronze-bl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b7a3e' stroke-width='1.1' stroke-linecap='round'%3E%3Cg transform='matrix(1 0 0 -1 0 24)'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%239b7a3e' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-  --corner-bronze-br: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b7a3e' stroke-width='1.1' stroke-linecap='round'%3E%3Cg transform='matrix(-1 0 0 -1 24 24)'%3E%3Cpath d='M1.5 22V8A6.5 6.5 0 0 1 8 1.5h14'/%3E%3Cpath d='M5 15V9.6A4.6 4.6 0 0 1 9.6 5H15' opacity='.55'/%3E%3Cpath d='m8 5.2 2.8 2.8L8 10.8 5.2 8Z' fill='%239b7a3e' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
-  --corner-size: 22px;
-  /* Faint laid-paper fibres for parchment; a single inline SVG noise tile. */
-  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .16 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --paper-grain: var(--stone-grain);
 
   font-family: var(--font-sans);
   color: var(--fg);
@@ -302,34 +291,6 @@ kbd {
   width: 100%;
   height: 100%;
 }
-.panel::after,
-.dialogue-box::after,
-.scene-controls::after,
-.quest-card::after,
-.welcome-panel::after,
-.work-panel::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  pointer-events: none;
-  border-radius: calc(var(--radius-lg) - 4px);
-  border: 1px solid var(--line);
-  background:
-    var(--corner-bronze-tl) top left / var(--corner-size) no-repeat,
-    var(--corner-bronze-tr) top right / var(--corner-size) no-repeat,
-    var(--corner-bronze-bl) bottom left / var(--corner-size) no-repeat,
-    var(--corner-bronze-br) bottom right / var(--corner-size) no-repeat;
-}
-.quest-card::after,
-.welcome-panel::after,
-.work-panel::after {
-  background:
-    var(--corner-gold-tl) top left / var(--corner-size) no-repeat,
-    var(--corner-gold-tr) top right / var(--corner-size) no-repeat,
-    var(--corner-gold-bl) bottom left / var(--corner-size) no-repeat,
-    var(--corner-gold-br) bottom right / var(--corner-size) no-repeat;
-}
-
 /* ── Logo ──────────────────────────────────────────────────────────────────── */
 .logo {
   display: inline-flex;
@@ -1571,21 +1532,6 @@ kbd {
 }
 
 /* Satchel */
-.inventory-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.inventory-item,
-.empty-slot {
-  min-height: 178px;
-  background: rgba(255, 252, 243, 0.6);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  position: relative;
-  padding: 18px;
-  box-shadow: inset 0 0 0 3px rgba(242, 232, 208, 0.6);
-}
 .item-art {
   height: 74px;
   display: grid;
@@ -1598,61 +1544,6 @@ kbd {
   height: 52px;
   width: 52px;
   stroke-width: 1.1;
-}
-.inventory-item .eyebrow {
-  font-size: 9px;
-}
-.inventory-item h3 {
-  font-size: 20px;
-  margin-top: 6px;
-}
-.inventory-item p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--fg-2);
-  margin-top: 8px;
-}
-.item-count {
-  position: absolute;
-  top: 14px;
-  right: 15px;
-  font:
-    600 12px var(--font-display),
-    serif;
-  color: var(--accent);
-}
-.empty-slot {
-  border-style: dashed;
-  border-color: var(--line-strong);
-  display: grid;
-  place-items: center;
-  color: rgba(109, 82, 34, 0.45);
-  background: transparent;
-  box-shadow: none;
-}
-.empty-slot .icon {
-  width: 22px;
-  height: 22px;
-}
-.inventory-note {
-  font:
-    italic 15px/1.6 var(--font-serif),
-    serif;
-  color: var(--fg-2);
-  margin-top: 20px;
-}
-.inventory-capacity {
-  font-size: 13px;
-  color: var(--accent);
-  display: flex;
-  gap: 9px;
-  align-items: center;
-  padding-top: 16px;
-  margin-top: 16px;
-  border-top: 1px solid var(--line);
-}
-.inventory-capacity .icon {
-  width: 17px;
 }
 
 /* Map */
@@ -1805,6 +1696,9 @@ kbd {
   margin-bottom: 8px;
   font-size: 22px;
 }
+.settings-grid > div {
+  min-width: 0;
+}
 .setting-row {
   display: flex;
   justify-content: space-between;
@@ -1823,6 +1717,9 @@ kbd {
   line-height: 1.45;
   color: var(--fg-2);
   margin-top: 3px;
+}
+.setting-row > span:not(.audio-control) {
+  min-width: 0;
 }
 .setting-row .icon {
   width: 16px;
@@ -1898,6 +1795,7 @@ kbd {
   height: 24px;
   background: transparent;
   cursor: pointer;
+  scroll-margin-block: 20px;
 }
 .setting-row input[type='range']::-webkit-slider-runnable-track {
   height: 4px;
@@ -2449,6 +2347,20 @@ kbd {
 /* ── Audio settings ────────────────────────────────────────────────────────── */
 .audio-settings {
   margin-bottom: 1.8rem;
+}
+.audio-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.audio-control output {
+  color: var(--fg-2);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  margin-right: 2px;
 }
 .soundtrack-note {
   padding: 1rem 1.1rem;

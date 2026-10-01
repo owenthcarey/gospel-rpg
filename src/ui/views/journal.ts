@@ -73,7 +73,7 @@ export function journalPeople(s: GameState): string {
             : p.id === 'amos' && s.campaign.walk.stage === 'complete'
               ? 'Your walk is remembered. Amos remains in the courtyard.'
               : p.role;
-      return `<article><h3>${esc(p.name)}</h3><p>${esc(detail)}</p><p class="content-note">${['simon', 'jesus', 'james', 'john'].includes(p.id) ? 'Gospel figure · Traveler conversations are dramatized.' : 'Original fictional neighbor.'}</p>${departed ? '<p>The fishermen have followed Jesus. Their account remains in the transcripts.</p>' : `<button class="secondary-button" data-action="travel" data-value="${p.id}">Find ${esc(p.name)}</button>`}</article>`;
+      return `<article><div class="directory-entry-copy"><h3>${esc(p.name)}</h3><p>${esc(detail)}</p><p class="content-note">${['simon', 'jesus', 'james', 'john'].includes(p.id) ? 'Gospel figure · Traveler conversations are dramatized.' : 'Original fictional neighbor.'}</p>${departed ? '<p>The fishermen have followed Jesus. Their account remains in the transcripts.</p>' : ''}</div>${departed ? '' : `<button class="secondary-button" data-action="travel" data-value="${p.id}">Find ${esc(p.name)}</button>`}</article>`;
     })
     .join('')}</div>`;
 }
@@ -83,7 +83,7 @@ export function journalPlaces(s: GameState): string {
   )
     .map(
       (id) =>
-        `<article><h3>${esc(regions[id].title)}</h3><p>${esc(journeyPlaces[id].description)}</p><button class="secondary-button" data-action="travel" data-value="${journeyPlaces[id].destination}">Walk to this place</button></article>`,
+        `<article><div class="directory-entry-copy"><h3>${esc(regions[id].title)}</h3><p>${esc(journeyPlaces[id].description)}</p></div><button class="secondary-button" data-action="travel" data-value="${journeyPlaces[id].destination}">Walk to this place</button></article>`,
     )
     .join('')}</div>`;
 }

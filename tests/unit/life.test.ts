@@ -320,7 +320,8 @@ describe('world and journal continuity', () => {
   it('loads explicit regional inventories and includes every local life asset', () => {
     expect(explorationAssets('gathering-house')).not.toContain('oven');
     expect(explorationAssets('gathering-house')).not.toContain('handcart');
-    expect(explorationAssets('gathering-house').length).toBeLessThanOrEqual(20);
+    // The original 20-model allowance plus four small shelf/storage furnishings.
+    expect(explorationAssets('gathering-house').length).toBeLessThanOrEqual(24);
     expect(explorationAssets('bakehouse')).toContain('mending_cloth');
     expect(explorationAssets('capernaum')).toContain('bench_lashed');
   });

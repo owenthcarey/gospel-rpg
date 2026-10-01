@@ -39,7 +39,10 @@ import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte'
 import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
+import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
@@ -66,10 +69,14 @@ import type { ActionMotion } from '../content/campaign/actions';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput, type ExplorationInputBinding, type ScreenClick } from './input';
-import { approachPath, stepPath, clearancePosition, smoothPath } from '../game/navigation';
+import {
+  approachPath,
+  stepPath,
+  clearancePosition,
+  smoothPath,
+  slideStep,
+} from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
-import '@babylonjs/loaders/glTF/2.0/glTFLoader';
-import '@babylonjs/loaders/glTF/glTFFileLoader';
 import {
   buildings,
   interactables,
@@ -208,7 +215,6 @@ export class World {
   private keys = new Set<string>();
   private paused = true;
   private reducedMotion = false;
-  private waterLines: Mesh[] = [];
   private water?: WaterPresentation;
   private boats: TransformNode[] = [];
   private people = new Map<string, TransformNode>();
@@ -225,6 +231,7 @@ export class World {
     private callbacks: WorldCallbacks,
     engine: Engine,
     initial: GameState = newGame(),
+    quality: Settings['quality'] = 'high',
   ) {
     this.state = structuredClone(initial);
     this.layout = campaignLayout(initial.region);
@@ -271,6 +278,7 @@ export class World {
     });
     const region = initial.region;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor(region), {
+      quality,
       sky: 200,
       horizon:
         region === 'galilee-water' || this.layout?.inside
@@ -285,7 +293,7 @@ export class World {
     if (this.layout) {
       const inside = this.layout.inside;
       const shore = isLakeRegion(initial.region) && initial.region !== 'galilee-water';
-      const floor = MeshBuilder.CreateGround(
+      const floor = CreateGround(
         'walkable-terrain',
         {
           width: inside ? 12.6 : 100,
@@ -323,13 +331,14 @@ export class World {
             reserve: { minX: -24, maxX: 24, minZ: -24, maxZ: 24 },
           },
         );
-      wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
-        groundHeight(initial.region, p),
-      );
+      if (this.layout.paths.length)
+        wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
+          groundHeight(initial.region, p),
+        );
       if (inside) {
         // A darker cutaway surround gives the room an edge; the pale doorstep keeps
         // the doorway connected to the village without an empty field of room color.
-        const lane = MeshBuilder.CreateGround(
+        const lane = CreateGround(
           'surrounding-lane',
           { width: 60, height: 60, subdivisions: 40 },
           this.scene,
@@ -338,11 +347,7 @@ export class World {
         lane.material = this.material('surrounding-lane-stone', '#555448');
         lane.receiveShadows = true;
         lane.isPickable = false;
-        const doorstep = MeshBuilder.CreateGround(
-          'exterior-doorstep',
-          { width: 2.8, height: 4 },
-          this.scene,
-        );
+        const doorstep = CreateGround('exterior-doorstep', { width: 2.8, height: 4 }, this.scene);
         doorstep.position.set(0, -0.02, -8.1);
         doorstep.material = this.material('doorstep-earth', '#a18f68');
         doorstep.receiveShadows = true;
@@ -373,11 +378,7 @@ export class World {
         });
       if (isLakeRegion(initial.region)) this.makeCrossingTerrain();
       if (initial.region === 'galilean-road') {
-        const lake = MeshBuilder.CreateGround(
-          'distant-galilee',
-          { width: 80, height: 38 },
-          this.scene,
-        );
+        const lake = CreateGround('distant-galilee', { width: 80, height: 38 }, this.scene);
         lake.position.set(53, -0.13, -20);
         lake.material = this.material('distant-lake-blue', '#80aaa9');
         lake.isPickable = false;
@@ -397,7 +398,7 @@ export class World {
       this.makePaths();
       this.makeDocks();
     }
-    this.marker = MeshBuilder.CreateTorus(
+    this.marker = CreateTorus(
       'walk-destination',
       { diameter: 0.7, thickness: 0.035, tessellation: 32 },
       this.scene,
@@ -409,11 +410,7 @@ export class World {
     const routeMaterial = this.material('route-gold', '#e8d19a', 0.65);
     routeMaterial.emissiveColor = Color3.FromHexString('#8d7950');
     for (let i = 0; i < 32; i++) {
-      const dot = MeshBuilder.CreateGround(
-        `route-step-${i}`,
-        { width: 0.11, height: 0.11 },
-        this.scene,
-      );
+      const dot = CreateGround(`route-step-${i}`, { width: 0.11, height: 0.11 }, this.scene);
       dot.material = routeMaterial;
       dot.isPickable = false;
       dot.rotation.y = Math.PI / 4;
@@ -491,7 +488,7 @@ export class World {
     this.playerModel.parent = this.player;
     this.conversationView = new ConversationPresentation(this.camera, this.canvas);
     this.actionFeedback = new ActionFeedback(this.scene);
-    const ring = MeshBuilder.CreateTorus(
+    const ring = CreateTorus(
       'player-ring',
       { diameter: 0.92, thickness: 0.025, tessellation: 40 },
       this.scene,
@@ -635,7 +632,7 @@ export class World {
         [42, 0, 44, 110],
         [-5, 3, 12, 11],
       ] as const) {
-        const bank = MeshBuilder.CreateGround(
+        const bank = CreateGround(
           'crossing-bank',
           { width, height: depth, subdivisions: Math.round(Math.max(width, depth) / 1.2) },
           this.scene,
@@ -887,7 +884,7 @@ export class World {
     for (let i = 0; i < 48; i++) {
       const x = -4 + this.random(i + 33) * 2.5,
         z = -22 + this.random(i + 61) * 43;
-      const stone = MeshBuilder.CreateBox(
+      const stone = CreateBox(
         `path-stone-${i}`,
         {
           width: 0.14 + this.random(i) * 0.19,
@@ -922,7 +919,7 @@ export class World {
     const planks: Mesh[] = [],
       posts: Mesh[] = [];
     for (let i = 0; i < 16; i++) {
-      const plank = MeshBuilder.CreateBox(
+      const plank = CreateBox(
         `jetty-plank-${i}`,
         { width: 0.34, height: 0.12, depth: 1.75 },
         this.scene,
@@ -935,7 +932,7 @@ export class World {
     }
     for (const x of [8.2, 10.3, 12.7])
       for (const z of [2, 3.6]) {
-        const post = MeshBuilder.CreateCylinder(
+        const post = CreateCylinder(
           'jetty-post',
           { diameter: 0.16, height: 1.1, tessellation: 6 },
           this.scene,
@@ -1164,8 +1161,11 @@ export class World {
   setPaused(value: boolean): void {
     this.paused = value;
     this.interactionFeedback?.setPaused(value);
-    if (value) this.explorationInput?.clear();
-    if (value) this.stop();
+    if (value) {
+      this.explorationInput?.clear();
+      this.stop();
+      this.stopCameraMotion();
+    }
   }
   setPosition(p: Point, snap = false): void {
     if (this.travelerBoat && snap) this.player.rotation.y = this.state.lake.boat.heading;
@@ -1219,13 +1219,16 @@ export class World {
       return;
     }
     this.finishCameraTransition();
+    this.stopCameraMotion();
+    this.camera.alpha = -Math.PI / 2 - 0.45;
+    this.camera.beta = this.layout?.camera.beta ?? 0.78;
+    this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
+  }
+  private stopCameraMotion(): void {
     this.camera.inertialAlphaOffset = 0;
     this.camera.inertialBetaOffset = 0;
     this.camera.inertialRadiusOffset = 0;
     this.pendingRotation = 0;
-    this.camera.alpha = -Math.PI / 2 - 0.45;
-    this.camera.beta = this.layout?.camera.beta ?? 0.78;
-    this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
   }
   faceNorth(): void {
     if (this.workView?.active) return;
@@ -1285,9 +1288,6 @@ export class World {
           z: person.position.z,
         });
       });
-      this.waterLines.forEach((line) => {
-        line.scaling.x = 1;
-      });
     }
     this.water?.quality(settings.quality === 'low');
     this.water?.tick(this.time, this.reducedMotion);
@@ -1335,11 +1335,8 @@ export class World {
           .add(right.scale(dx))
           .normalize()
           .scale(dt * 3.25);
-        const next = { x: this.position.x + movement.x, z: this.position.z + movement.z };
-        const diagonalSafe =
-          this.grid.walkable({ x: next.x, z: this.position.z }) &&
-          this.grid.walkable({ x: this.position.x, z: next.z });
-        if (this.grid.walkable(next) && diagonalSafe) {
+        const next = slideStep(this.grid, this.position, { x: movement.x, z: movement.z });
+        if (distance(this.position, next) > 0.00001) {
           this.face(next, dt);
           this.position = next;
           moving = true;
@@ -1434,9 +1431,6 @@ export class World {
       this.boats.forEach((boat, i) => {
         boat.position.y = -0.25 + Math.sin(this.time * 1.1 + i) * 0.025;
         boat.rotation.z = Math.sin(this.time * 0.7 + i) * 0.018;
-      });
-      this.waterLines.forEach((line, i) => {
-        line.scaling.x = 0.8 + Math.sin(this.time * 0.65 + i) * 0.22;
       });
     }
     this.water?.tick(this.time, this.reducedMotion);
@@ -1566,6 +1560,10 @@ export class World {
   }
   renderFrame(): void {
     this.render();
+  }
+  refreshFrame(resetClock = true): void {
+    if (resetClock) this.lastRender = 0;
+    this.cadence.invalidate();
   }
   update(state: GameState): void {
     this.state = structuredClone(state);

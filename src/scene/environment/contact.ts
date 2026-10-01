@@ -1,4 +1,4 @@
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateDisc } from '@babylonjs/core/Meshes/Builders/discBuilder';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
@@ -29,7 +29,7 @@ export class ContactShadows {
     scene: Scene,
     private ground: (x: number, z: number) => number,
   ) {
-    this.mesh = MeshBuilder.CreateDisc('contact-shadows', { radius: 1, tessellation: 24 }, scene);
+    this.mesh = CreateDisc('contact-shadows', { radius: 1, tessellation: 24 }, scene);
     this.mesh.rotation.x = Math.PI / 2;
     this.mesh.bakeCurrentTransformIntoVertices();
     const count = this.mesh.getTotalVertices();

@@ -1,5 +1,5 @@
 import { ShaderMaterial } from '@babylonjs/core/Materials/shaderMaterial';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
 import { Color3, Vector2, Vector3 } from '@babylonjs/core/Maths/math';
 import type { Scene } from '@babylonjs/core/scene';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
@@ -148,7 +148,7 @@ export class WaterPresentation {
       storm?: boolean;
     },
   ) {
-    this.mesh = MeshBuilder.CreateGround(
+    this.mesh = CreateGround(
       options.name,
       { width: options.width, height: options.depth, subdivisions: 64 },
       scene,

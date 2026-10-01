@@ -153,6 +153,12 @@ test('all four village spaces retain visible additions and remain inside High an
               : 'stone_threshold';
       const cells = page.locator(`.asset-diagnostics [data-asset="${asset}"] td`);
       expect(Number(await cells.nth(2).textContent())).toBeGreaterThan(0);
+      if (region === 'gathering-house' || region === 'bakehouse') {
+        for (const furnishing of ['shelf', 'jug', 'basket_empty', 'mat_rolled']) {
+          const drawn = page.locator(`.asset-diagnostics [data-asset="${furnishing}"] td`).nth(2);
+          expect(Number(await drawn.textContent())).toBeGreaterThan(0);
+        }
+      }
       records[region + '-' + quality] = { ...rows, cadence, physicalDevice: false };
       await dismiss(page);
       await page.screenshot({ path: info.outputPath(region + '-' + quality + '.png') });

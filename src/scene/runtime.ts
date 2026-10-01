@@ -30,6 +30,8 @@ export class GameRuntime {
   readonly engine: Engine;
   private view?: RegionView;
   private title?: TitleView;
+  private pendingTitle?: TitleView;
+  private titleLoad?: Promise<void>;
   private instrumentation?: SceneInstrumentation;
   private region?: RegionId;
   private settings?: Settings;
@@ -39,6 +41,9 @@ export class GameRuntime {
   private switching = false;
   private diagnosticTimer = 0;
   private resize: () => void;
+  private foreground = () => {
+    if (!document.hidden) this.refreshFrame();
+  };
   constructor(
     private canvas: HTMLCanvasElement,
     private callbacks: WorldCallbacks,
@@ -61,9 +66,24 @@ export class GameRuntime {
     });
     this.engine.onContextRestoredObservable.add(() => {
       this.graphicsReady = true;
+      this.refreshFrame();
     });
-    this.resize = () => this.engine.resize();
+    this.resize = () => {
+      // Orientation, window size and moving between displays can change the pixel budget.
+      const scale =
+        this.settings?.quality === 'low'
+          ? window.innerWidth < 700 || window.matchMedia('(pointer: coarse)').matches
+            ? 1
+            : 1.5
+          : 1 / Math.max(1, Math.min(window.devicePixelRatio, 1.5));
+      if (this.engine.getHardwareScalingLevel() !== scale)
+        this.engine.setHardwareScalingLevel(scale);
+      else this.engine.resize();
+      this.refreshFrame(false);
+    };
     window.addEventListener('resize', this.resize);
+    window.addEventListener('focus', this.foreground);
+    document.addEventListener('visibilitychange', this.foreground);
     this.engine.runRenderLoop(() => {
       if (!this.graphicsReady) return;
       if (this.view) this.view.renderFrame();
@@ -73,6 +93,12 @@ export class GameRuntime {
         this.canvas.dataset.diagnostics = JSON.stringify(this.diagnostics());
       }
     });
+  }
+  private refreshFrame(resetClock = true): void {
+    if (this.disposed) return;
+    this.view?.refreshFrame(resetClock);
+    this.title?.refreshFrame(resetClock);
+    this.pendingTitle?.refreshFrame(resetClock);
   }
   async load(state: GameState, progress: (message: string) => void): Promise<void> {
     state = presentationState(state);
@@ -90,12 +116,13 @@ export class GameRuntime {
     try {
       const definition = regions[state.region];
       progress('Opening ' + definition.title + '…');
-      const explore = () => new World(this.canvas, this.callbacks, this.engine, state);
+      const quality = this.settings?.quality ?? 'high';
+      const explore = () => new World(this.canvas, this.callbacks, this.engine, state, quality);
       const factories: Record<RegionId, () => RegionView> = {
         'galilee-water': explore,
         'reed-landing': explore,
         'sheltered-cove': explore,
-        'storm-account': () => new StormRegion(this.engine, state),
+        'storm-account': () => new StormRegion(this.engine, state, quality),
         capernaum: explore,
         'capernaum-lanes': explore,
         'gathering-house': explore,
@@ -103,14 +130,11 @@ export class GameRuntime {
         'galilean-road': explore,
         'roadside-farm': explore,
         'nain-gate': explore,
-        'nain-account': () => new NainRegion(this.engine, state),
-        'lake-gennesaret': () => new LakeRegion(this.engine, state),
-        'roof-account': () => new RoofRegion(this.engine, state),
+        'nain-account': () => new NainRegion(this.engine, state, quality),
+        'lake-gennesaret': () => new LakeRegion(this.engine, state, quality),
+        'roof-account': () => new RoofRegion(this.engine, state, quality),
       };
       candidate = factories[state.region]();
-      // Materials compile while loading; match the selected quality's shadows from the start so
-      // no shader built for High is drawn once at Low without its shadow map.
-      if (this.settings) candidate.scene.shadowsEnabled = this.settings.quality !== 'low';
       await candidate.load(progress);
       if (this.disposed) throw new Error('Region loading was cancelled.');
       candidate.update(state);
@@ -122,6 +146,7 @@ export class GameRuntime {
       this.region = state.region;
       prior?.dispose();
       this.title?.dispose();
+      this.pendingTitle?.dispose();
       this.title = undefined;
       candidate.activate();
       candidate.setPaused(this.paused);
@@ -147,19 +172,33 @@ export class GameRuntime {
     }
   }
   /** The model-free welcome backdrop; replaced by the first region that opens. */
-  async showTitle(): Promise<void> {
-    if (this.view || this.title || this.disposed) return;
-    const title = new TitleView(this.engine);
-    // Settings first, so shaders compile once for the quality actually shown.
-    if (this.settings) title.applySettings(this.settings);
-    await title.load();
-    if (this.view || this.disposed) {
-      title.dispose();
-      return;
+  showTitle(): Promise<void> {
+    if (this.view || this.title || this.disposed) return Promise.resolve();
+    if (!this.titleLoad)
+      this.titleLoad = this.prepareTitle().finally(() => {
+        this.titleLoad = undefined;
+      });
+    return this.titleLoad;
+  }
+  private async prepareTitle(): Promise<void> {
+    const title = new TitleView(this.engine, this.settings?.quality);
+    this.pendingTitle = title;
+    try {
+      // Apply preferences before compilation and retain choices made during loading.
+      if (this.settings) title.applySettings(this.settings);
+      await title.load();
+      if (this.view || this.disposed) return;
+      if (this.settings) title.applySettings(this.settings);
+      this.title = title;
+      title.setPaused(this.paused && Boolean(this.view));
+      this.canvas.dataset.title = 'true';
+    } catch (error) {
+      // A journey or disposal can legitimately retire the unfinished backdrop.
+      if (!this.view && !this.disposed) throw error;
+    } finally {
+      if (this.pendingTitle === title) this.pendingTitle = undefined;
+      if (this.title !== title) title.dispose();
     }
-    this.title = title;
-    title.setPaused(this.paused && Boolean(this.view));
-    this.canvas.dataset.title = 'true';
   }
   /** The HUD line describing the current stage's hour and weather. */
   atmosphere(): string {
@@ -198,17 +237,10 @@ export class GameRuntime {
   }
   applySettings(settings: Settings): void {
     this.settings = { ...settings };
-    // Low quality still resolves at least one pixel per CSS pixel on a phone.
-    this.engine.setHardwareScalingLevel(
-      settings.quality === 'low'
-        ? window.innerWidth < 700
-          ? 1
-          : 1.5
-        : 1 / Math.min(window.devicePixelRatio, 1.5),
-    );
     this.view?.applySettings(settings);
     this.title?.applySettings(settings);
-    this.engine.resize();
+    this.pendingTitle?.applySettings(settings);
+    this.resize();
   }
   setWorkFocus(
     target?: import('../content/exploration/work').WorkTarget,
@@ -281,10 +313,13 @@ export class GameRuntime {
   dispose(): void {
     this.disposed = true;
     window.removeEventListener('resize', this.resize);
+    window.removeEventListener('focus', this.foreground);
+    document.removeEventListener('visibilitychange', this.foreground);
     this.engine.stopRenderLoop();
     this.instrumentation?.dispose();
     this.view?.dispose();
     this.title?.dispose();
+    this.pendingTitle?.dispose();
     this.engine.dispose();
   }
 }

@@ -34,6 +34,7 @@ export function minimapTarget(
 export class MinimapControls {
   private gesture = new TapGesture();
   private pointer?: number;
+  private touches = new Set<number>();
   private bearing = 0;
   private bounds: MapBounds = { min: -24, max: 24 };
   private center: Point = { x: 0, z: 0 };
@@ -43,27 +44,38 @@ export class MinimapControls {
     private walk: (point: Point) => void,
     private open: () => void,
   ) {
-    wrap.addEventListener('pointerdown', this.down);
+    document.addEventListener('pointerdown', this.down, true);
     window.addEventListener('pointermove', this.move);
     window.addEventListener('pointerup', this.up);
     window.addEventListener('pointercancel', this.clear);
     window.addEventListener('blur', this.clear);
+    document.addEventListener('visibilitychange', this.visibility);
     wrap.addEventListener('click', this.click);
     wrap.addEventListener('contextmenu', this.context);
   }
   private down = (event: PointerEvent) => {
+    if (event.pointerType === 'touch') this.touches.add(event.pointerId);
     if (this.paused) return;
-    if (!(event.target instanceof Element) || !event.target.closest('.minimap')) return;
-    this.pointer = event.pointerId;
-    this.gesture.down(event.pointerId, event.clientX, event.clientY, event.button);
+    if (event.target instanceof Element && event.target.closest('.minimap')) {
+      this.pointer = event.pointerId;
+      this.gesture.down(event.pointerId, event.clientX, event.clientY, event.button);
+    }
+    // A second finger on the world or HUD also owns the sequence. Neither release may walk.
+    if (this.touches.size > 1) this.gesture.reject();
   };
   private move = (event: PointerEvent) =>
     this.gesture.move(event.pointerId, event.clientX, event.clientY);
-  private up = (event: PointerEvent) =>
+  private up = (event: PointerEvent) => {
     this.gesture.up(event.pointerId, event.clientX, event.clientY);
+    this.touches.delete(event.pointerId);
+  };
   private clear = () => {
     this.gesture.clear();
     this.pointer = undefined;
+    this.touches.clear();
+  };
+  private visibility = () => {
+    if (document.hidden) this.clear();
   };
   private context = (event: Event) => {
     if (event.target instanceof Element && event.target.closest('.minimap')) event.preventDefault();
@@ -119,11 +131,12 @@ export class MinimapControls {
   }
   dispose() {
     this.clear();
-    this.wrap.removeEventListener('pointerdown', this.down);
+    document.removeEventListener('pointerdown', this.down, true);
     window.removeEventListener('pointermove', this.move);
     window.removeEventListener('pointerup', this.up);
     window.removeEventListener('pointercancel', this.clear);
     window.removeEventListener('blur', this.clear);
+    document.removeEventListener('visibilitychange', this.visibility);
     this.wrap.removeEventListener('click', this.click);
     this.wrap.removeEventListener('contextmenu', this.context);
   }

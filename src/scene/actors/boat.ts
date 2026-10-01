@@ -1,7 +1,7 @@
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import type { AssetLibrary, Model } from '../assets';
 import type { Actor } from './actor';
@@ -14,7 +14,7 @@ export function boatSupport(
   y: number,
   z: number,
 ): void {
-  const seat = MeshBuilder.CreateBox(name, { width, depth, height: 0.08 }, parent.getScene());
+  const seat = CreateBox(name, { width, depth, height: 0.08 }, parent.getScene());
   seat.parent = parent;
   seat.position.set(0, y, z);
   seat.isPickable = false;

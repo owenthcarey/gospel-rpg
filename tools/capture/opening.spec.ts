@@ -11,6 +11,10 @@ test('capture the opening', async ({ page }) => {
     Object.defineProperty(navigator, 'webdriver', { get: () => false }),
   );
   await page.goto('/');
+  // Static cards keep screenshots deterministic even when a busy GPU delays capture.
+  await page.getByRole('button', { name: 'Saves & settings' }).click();
+  await page.locator('[data-setting="reducedMotion"]').check();
+  await page.getByRole('button', { name: 'Close menu', exact: true }).click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-title', 'true');
   await page.waitForTimeout(2500);
   await page.screenshot({ path: resolve(output, 'opening-01-title.png') });

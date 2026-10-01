@@ -252,6 +252,7 @@ test('screen preview is temporary, readable and usable at large portrait and lan
       : [{ width: 1440, height: 900 }];
   for (const size of sizes) {
     await page.setViewportSize(size);
+    await expect(page.locator('.quest-card')).toBeHidden();
     const details = page.locator('.screen-preview-controls');
     if ((await details.getAttribute('open')) === null) await details.locator('summary').click();
     await act(page, 'work-preview', '0');
@@ -267,6 +268,8 @@ test('screen preview is temporary, readable and usable at large portrait and lan
     );
     const panel = await page.locator('.work-panel').boundingBox();
     expect(panel!.height).toBeLessThanOrEqual(size.height * (size.width < 700 ? 0.46 : 0.92));
+    await expect(page.locator('.chapter-card')).toHaveCount(0);
+    await expect(page.locator('#toast')).toBeHidden();
     await page.screenshot({ path: info.outputPath('screen-preview-' + size.width + '.png') });
   }
   await act(page, 'work-preview-cancel');

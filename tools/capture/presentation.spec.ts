@@ -87,7 +87,9 @@ test('capture reference compositions', async ({ browser }) => {
       await closeMenus(page);
       await page.waitForTimeout(2500);
       records[shot.id + '-' + q] = await diagnostics(page);
-      await page.waitForTimeout(800);
+      // Arrival cards and import notices are transient UI, not part of the reviewed composition.
+      await expect(page.locator('.chapter-card')).toHaveCount(0);
+      await expect(page.locator('#toast')).toBeHidden();
       await page.screenshot({ path: resolve(output, `${shot.id}-${q}.png`) });
       await page.screenshot({
         path: resolve(output, `${shot.id}-${q}-world.png`),

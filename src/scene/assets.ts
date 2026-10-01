@@ -40,6 +40,7 @@ export class AssetLibrary {
             const container = await LoadAssetContainerAsync(
               import.meta.env.BASE_URL + 'assets/models/' + id + '.glb',
               this.scene,
+              { pluginOptions: { gltf: { skipMaterials: true } } },
             );
             if (this.disposed) container.dispose();
             else {

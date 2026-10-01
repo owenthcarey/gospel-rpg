@@ -22,7 +22,7 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **A World in Light** introduced a shared stage for every region, a living dawn title view, the narrated first-journey opening, moving foliage and birds, grounded shadows, fuller character animation, camera transitions and place title cards. The classic presentation pass below refines that foundation. Progress remains compatible with save v11. See [RFC-011](docs/rfcs/011-a-world-in-light.md) and the [review guide](docs/verification/rfc011/README.md).
 
-**Classic Galilee** restores the original classic RPG art direction: faceted people and foliage, broad earthy terrain colors, matte blue water, simple lighting, and compact brown beveled interfaces. Hovering previews existing actions; right-click opens **Choose Option**, and the middle mouse button rotates the camera. The rotating minimap supports click-to-walk and a north compass; the satchel uses original rendered props and an Examine pane. This presentation pass adds no story content and keeps save v11 compatible.
+**Classic Galilee** restores the original classic RPG art direction: faceted people and foliage, broad earthy terrain colors, matte blue water, simple lighting, and compact brown beveled interfaces. Hovering previews existing actions; right-click opens **Choose Option**, and the middle mouse button rotates the camera. The rotating minimap supports click-to-walk and a north compass; the satchel uses original rendered props and an Examine pane. **Messages** keeps recent feedback available after notices fade. Keyboard movement follows walls, and phone camera controls remain usable in either orientation. This presentation pass adds no story content and keeps save v11 compatible.
 
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
@@ -118,6 +118,8 @@ npx playwright install chromium
 npm run test:e2e          # Full episode, legacy stories, migration, recovery and responsive UI
 npm run preview          # Serve the production build
 ```
+
+The native-select cancellation check uses windowed Chromium to exercise its real popup; other cases remain headless. On Linux without a desktop display, install browser dependencies with `npx playwright install --with-deps chromium` and run `xvfb-run --auto-servernum npm run test:e2e`. CI supplies this virtual display using [Playwright's Linux guidance](https://playwright.dev/docs/ci#running-headed).
 
 Use `npm run fixtures:connection` for portable v10 route, replay and homecoming examples, and `npm run assets:inspect:connection` to review shipped passage/landing assets and actual Babylon poses in Blender. Historical fixture and asset-review commands remain available.
 

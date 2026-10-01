@@ -8,6 +8,7 @@ import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { Scene } from '@babylonjs/core/scene';
+import type { Observer } from '@babylonjs/core/Misc/observable';
 import type { AmbientParticles, EnvironmentProfile, Flock } from '../../content/environment';
 
 interface AmbientDefinition {
@@ -207,6 +208,22 @@ class FlockView {
   }
   pose(time: number, center: Vector3): void {
     const p = this.positions;
+    const scene = this.mesh.getScene();
+    const camera = scene.activeCamera;
+    const view = camera?.getViewMatrix().m;
+    const projection = camera?.getProjectionMatrix().m;
+    const engine = scene.getEngine();
+    const width = engine.getRenderWidth(true),
+      height = engine.getRenderHeight(true);
+    // Keep ambient life a small silhouette when its flight path passes close to the camera.
+    const maxSpan = Math.min(width, height) * 0.035;
+    // Include the perspective stretch of a wing passing near the edge of the frame.
+    const focal = projection
+      ? Math.max(width * (Math.abs(projection[0]!) + 1), height * (Math.abs(projection[5]!) + 1)) /
+        2
+      : 0;
+    // A 1.8-size sphere contains the wings, including their flap and perspective depth.
+    const sizePerDepth = maxSpan / (3.6 * focal + 1.8 * maxSpan);
     this.birds.forEach((bird, i) => {
       const a = bird.angle + time * bird.speed;
       const wander = Math.sin(time * 0.13 + bird.phase) * 3;
@@ -222,7 +239,11 @@ class FlockView {
       const flap = Math.sin(time * (this.kind === 'gulls' ? 5 : 13) + bird.phase);
       const glide =
         this.kind === 'gulls' ? 0.35 + 0.65 * Math.max(0, Math.sin(time * 0.5 + bird.phase)) : 1;
-      const s = bird.size;
+      const depth = view
+        ? (x * view[2]! + y * view[6]! + z * view[10]! + view[14]!) *
+          (scene.useRightHandedSystem ? -1 : 1)
+        : Infinity;
+      const s = view ? Math.min(bird.size, Math.max(0, depth) * sizePerDepth) : bird.size;
       const set = (k: number, px: number, py: number, pz: number) => {
         p[(i * 5 + k) * 3] = px;
         p[(i * 5 + k) * 3 + 1] = py;
@@ -256,6 +277,7 @@ export class Atmosphere {
   private pendingSmoke: { at: Vector3; scale: number }[] = [];
   private profile: EnvironmentProfile;
   private flock?: FlockView;
+  private renderObserver: Observer<Scene> | null = null;
   private flockKind: Flock | null = null;
   private time = 0;
   private low = false;
@@ -297,6 +319,10 @@ export class Atmosphere {
     this.setProfile(this.profile);
     for (const { at, scale } of this.pendingSmoke) this.addSmoke(at, scale);
     this.pendingSmoke = [];
+    // Scene consumes queued camera input before this callback; pose once for the view it draws.
+    this.renderObserver = scene.onBeforeRenderObservable.add(() => {
+      if (this.flock && !this.reduced) this.flock.pose(this.time, this.flockCenter);
+    });
   }
   setProfile(profile: EnvironmentProfile): void {
     this.profile = profile;
@@ -390,7 +416,6 @@ export class Atmosphere {
     for (const system of [...this.ambient.values(), ...this.smoke, this.dust])
       system.updateSpeed = speed;
     if (running && !this.reduced) this.time += dt;
-    if (this.flock && !this.reduced) this.flock.pose(this.time, this.flockCenter);
   }
   applySettings(low: boolean, reduced: boolean): void {
     this.low = low;
@@ -411,6 +436,8 @@ export class Atmosphere {
   }
   dispose(): void {
     if (!this.built) return;
+    this.scene.onBeforeRenderObservable.remove(this.renderObserver);
+    this.renderObserver = null;
     for (const s of [...this.ambient.values(), ...this.smoke, this.dust]) s.dispose(false);
     this.flock?.dispose();
     this.sprite.dispose();

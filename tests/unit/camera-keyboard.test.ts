@@ -8,6 +8,10 @@ import { World } from '../../src/scene/world';
 import { bindExplorationInput } from '../../src/scene/input';
 import { PausedCadence } from '../../src/scene/presentation/cadence';
 import { newGame } from '../../src/game/types';
+import { installClassicCameraInput } from '../../src/scene/classic-camera-input';
+import { PointerInfo, PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
+import type { IPointerEvent } from '@babylonjs/core/Events/deviceInputEvents';
+import { PointerInput } from '@babylonjs/core/DeviceInput/InputDevices/deviceEnums';
 
 const engines: NullEngine[] = [];
 const bindings: (() => void)[] = [];
@@ -69,7 +73,6 @@ function studio() {
     routeDots: [],
     marker: { setEnabled() {} },
     boats: [],
-    waterLines: [],
     cutaways: [],
     occluders: [],
     destinations: [],
@@ -142,7 +145,79 @@ function studio() {
   return { camera, fixture, world, keys, key, render, returning, pose, context };
 }
 
+function nativeGestures(camera: ArcRotateCamera, enabled: () => boolean) {
+  const scene = camera.getScene();
+  installClassicCameraInput(camera, { enabled });
+  camera.attachControl(true);
+  const pointer = (
+    type: number,
+    id: number,
+    x: number,
+    y: number,
+    button: number,
+    pointerType = 'mouse',
+  ) => {
+    const event: IPointerEvent = {
+      type: 'pointer',
+      inputIndex: PointerInput.Move,
+      pointerId: id,
+      pointerType,
+      button,
+      buttons: type === PointerEventTypes.POINTERUP ? 0 : button === 2 ? 2 : 1,
+      clientX: x,
+      clientY: y,
+      pageX: x,
+      pageY: y,
+      offsetX: x,
+      offsetY: y,
+      x,
+      y,
+      movementX: 0,
+      movementY: 0,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      shiftKey: false,
+      target: null,
+      preventDefault() {},
+    };
+    scene.onPointerObservable.notifyObservers(new PointerInfo(type, event, null), type);
+  };
+  return {
+    orbit: () => {
+      pointer(PointerEventTypes.POINTERDOWN, 1, 100, 100, 2);
+      pointer(PointerEventTypes.POINTERMOVE, 1, 160, 130, 2);
+      pointer(PointerEventTypes.POINTERUP, 1, 160, 130, 2);
+    },
+    pinch: () => {
+      pointer(PointerEventTypes.POINTERDOWN, 1, 100, 100, 0, 'touch');
+      pointer(PointerEventTypes.POINTERDOWN, 2, 200, 100, 0, 'touch');
+      pointer(PointerEventTypes.POINTERMOVE, 1, 100, 100, 0, 'touch');
+      pointer(PointerEventTypes.POINTERMOVE, 1, 90, 100, 0, 'touch');
+      pointer(PointerEventTypes.POINTERMOVE, 2, 210, 100, 0, 'touch');
+      pointer(PointerEventTypes.POINTERUP, 1, 90, 100, 0, 'touch');
+      pointer(PointerEventTypes.POINTERUP, 2, 210, 100, 0, 'touch');
+    },
+  };
+}
+
 describe('keyboard camera ownership', () => {
+  it('keeps active motion through resize but discards suspension time on foreground return', () => {
+    const { camera, world, key, render } = studio();
+    const initial = camera.alpha;
+    key('keydown');
+    render();
+    world.refreshFrame(false);
+    render();
+    expect(camera.alpha).toBeCloseTo(initial + 0.16, 12);
+    world.refreshFrame();
+    const held = camera.alpha;
+    render(60_000);
+    expect(camera.alpha).toBe(held);
+    render();
+    expect(camera.alpha).toBeCloseTo(held + 0.08, 12);
+  });
+
   it('keeps the Q rotation rate and stops rotating after keyup', () => {
     const { camera, key, render, context } = studio();
     const initial = camera.alpha;
@@ -257,4 +332,76 @@ describe('keyboard camera ownership', () => {
     expect(fixture.pendingRotation).toBeLessThan(0.3);
     expect(camera.alpha).not.toBe(initial);
   });
+});
+
+describe('reading camera ownership', () => {
+  for (const gesture of ['orbit', 'pinch', 'button'] as const)
+    for (const phase of ['queued', 'coasting'] as const)
+      it(
+        'stops ' + phase + ' ' + gesture + ' motion at the current pose when reading begins',
+        () => {
+          const { camera, fixture, world, render, pose, context } = studio();
+          const gestures = nativeGestures(camera, () => !fixture.paused);
+          const initial = pose();
+          if (gesture === 'button') {
+            world.rotate(1);
+            expect(fixture.pendingRotation).toBeGreaterThan(0);
+          } else {
+            gestures[gesture]();
+            expect(
+              gesture === 'orbit'
+                ? camera.movement.rotationAccumulatedPixels.lengthSquared()
+                : camera.movement.zoomAccumulatedPixels,
+            ).toBeGreaterThan(0);
+          }
+          if (phase === 'coasting') {
+            render();
+            expect(pose()).not.toEqual(initial);
+          }
+          const before = pose();
+          const originalContext = context();
+          world.setPaused(true);
+          expect(pose()).toEqual(before);
+          for (let frame = 0; frame < 12; frame++) {
+            render(250);
+            expect(pose()).toEqual(before);
+            expect(context()).toEqual(originalContext);
+          }
+          world.setPaused(false);
+          for (let frame = 0; frame < 4; frame++) {
+            render();
+            expect(pose()).toEqual(before);
+            expect(context()).toEqual(originalContext);
+          }
+        },
+      );
+
+  for (const gesture of ['orbit', 'pinch'] as const)
+    it('accepts a fresh native ' + gesture + ' after reading without resuming old input', () => {
+      const { camera, fixture, world, render, pose, context } = studio();
+      const gestures = nativeGestures(camera, () => !fixture.paused);
+      gestures[gesture]();
+      render();
+      const before = pose();
+      const originalContext = context();
+      world.setPaused(true);
+      gestures[gesture]();
+      render(250);
+      expect(pose()).toEqual(before);
+      world.setPaused(false);
+      render();
+      expect(pose()).toEqual(before);
+      gestures[gesture]();
+      render();
+      if (gesture === 'orbit') {
+        expect(camera.alpha).not.toBe(before.alpha);
+        expect(camera.beta).not.toBe(before.beta);
+        expect(camera.radius).toBe(before.radius);
+      } else {
+        expect(camera.radius).toBeLessThan(before.radius);
+        expect(camera.alpha).toBe(before.alpha);
+        expect(camera.beta).toBe(before.beta);
+      }
+      expect(context()).toEqual(originalContext);
+    });
 });

@@ -1,4 +1,7 @@
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
+import { CreateLines } from '@babylonjs/core/Meshes/Builders/linesBuilder';
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
+import { CreateTube } from '@babylonjs/core/Meshes/Builders/tubeBuilder';
 import type { LinesMesh } from '@babylonjs/core/Meshes/linesMesh';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { Color3, Vector3 } from '@babylonjs/core/Maths/math';
@@ -64,7 +67,7 @@ export class HarborPresentation {
       stones.push(m);
     }
     library.batch('quay_stones', stones);
-    const wet = MeshBuilder.CreateGround('landing-wet-strip', { width: 1.15, height: 3.45 }, scene);
+    const wet = CreateGround('landing-wet-strip', { width: 1.15, height: 3.45 }, scene);
     const center = harborPosition({ x: 1, z: 1 });
     wet.position.set(center.x, 0.018, center.z);
     wet.material = matte(scene, 'landing-water-marks', '#678f91');
@@ -75,7 +78,7 @@ export class HarborPresentation {
     this.jars = library.instantiate('amphora', 'working-jar-cargo', 'harbor-jars');
     this.jars.root.scaling.setAll(0.7);
     const entry = harborPosition({ x: 0, z: 1 });
-    this.rope = MeshBuilder.CreateTube(
+    this.rope = CreateTube(
       'landing-loose-rope',
       {
         path: [
@@ -96,7 +99,7 @@ export class HarborPresentation {
       ['jars', { x: 2, z: -1.1 }],
     ] as const) {
       const p = harborPosition(c),
-        bay = MeshBuilder.CreateTorus(
+        bay = CreateTorus(
           'landing-storage-' + id,
           { diameter: 0.95, thickness: 0.028, tessellation: 20 },
           scene,
@@ -105,7 +108,7 @@ export class HarborPresentation {
       bay.material = this.rope.material;
       bay.isPickable = false;
     }
-    this.route = MeshBuilder.CreateLines(
+    this.route = CreateLines(
       'landing-tested-route',
       { points: [Vector3.Zero(), new Vector3(0.01, 0, 0)], updatable: false },
       scene,
@@ -127,7 +130,7 @@ export class HarborPresentation {
       const p = harborPosition(cell);
       return new Vector3(p.x, 0.27, p.z);
     });
-    this.route = MeshBuilder.CreateLines(
+    this.route = CreateLines(
       'landing-tested-route',
       { points: points.length > 1 ? points : [Vector3.Zero(), new Vector3(0.01, 0, 0)] },
       this.scene,

@@ -510,18 +510,6 @@
   :root .journal-entry p {
     font-size: 15px;
   }
-  :root .inventory-grid {
-    gap: 10px;
-  }
-  :root .inventory-item {
-    padding: 14px;
-  }
-  :root .inventory-item h3 {
-    font-size: 18px;
-  }
-  :root .inventory-item p {
-    font-size: 13px;
-  }
   :root .dialogue-box {
     bottom: 12px;
     max-width: calc(100% - 24px);

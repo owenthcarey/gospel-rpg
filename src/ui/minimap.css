@@ -60,7 +60,7 @@
   background: #51432e;
   color: #ffff00;
 }
-@media (max-width: 699px), (max-height: 540px) {
+@media (max-width: 699px), (max-height: 540px), (pointer: coarse) {
   :root .minimap-wrap {
     --map-size: 108px;
   }
@@ -68,11 +68,11 @@
     width: 44px;
     height: 44px;
     top: -10px;
-    left: -8px;
+    left: calc(100% - 116px);
   }
   :root .minimap-open {
     top: calc(var(--map-size) - 35px);
-    left: 18px;
+    left: calc(100% - 90px);
     width: calc(var(--map-size) - 36px);
     height: 44px;
     min-height: 44px;

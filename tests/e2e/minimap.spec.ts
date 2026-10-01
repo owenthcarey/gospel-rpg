@@ -1,6 +1,43 @@
 import { test, expect } from '@playwright/test';
 import { ready, exported, dismiss, settled, visit } from '../helpers/connection-browser';
 
+test('mixed-surface phone gestures never turn a minimap release into a walk', async ({
+  page,
+}, info) => {
+  test.skip(
+    info.project.name !== 'mobile-chromium',
+    'Native touch ownership uses the phone project',
+  );
+  const session = await page.context().newCDPSession(page);
+  await session.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  await ready(page);
+  const map = page.getByRole('button', { name: 'Walk using minimap' });
+  const mapBox = (await map.boundingBox())!;
+  const canvasBox = (await page.locator('#game-canvas').boundingBox())!;
+  const first = { id: 1, x: mapBox.x + mapBox.width * 0.4, y: mapBox.y + mapBox.height * 0.5 };
+  const second = { id: 2, x: canvasBox.width * 0.5, y: canvasBox.height * 0.5 };
+  const position = await page.locator('#minimap-player').getAttribute('transform');
+  const send = (type: 'touchStart' | 'touchEnd', touchPoints: (typeof first)[]) =>
+    session.send('Input.dispatchTouchEvent', { type, touchPoints });
+  for (const [a, b] of [
+    [first, second],
+    [second, first],
+  ] as const) {
+    await send('touchStart', [a]);
+    await send('touchStart', [a, b]);
+    await send('touchEnd', [b]);
+    await send('touchEnd', []);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#minimap-player')).toHaveAttribute('transform', position!);
+    await expect(page.locator('.minimap-destination')).toBeHidden();
+    await expect(page.getByRole('dialog')).toBeHidden();
+  }
+  await session.detach();
+  // A fresh, deliberate single-finger tap still walks after the rejected sequences.
+  await page.touchscreen.tap(first.x, first.y);
+  await expect(page.locator('.minimap-destination')).toBeVisible();
+});
+
 test('the rotating minimap walks, clears its destination on arrival and keeps map keyboard access', async ({
   page,
 }) => {

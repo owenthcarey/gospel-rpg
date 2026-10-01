@@ -31,12 +31,23 @@ export const capernaumScenery: Record<string, readonly Decor[]> = {
     { asset: 'stone_threshold', x: 0, z: -5.9 },
     { asset: 'stone_threshold', x: -4, z: 2, rotation: Math.PI / 2, scale: 1.3 },
     { asset: 'stone_threshold', x: 4, z: 2, rotation: Math.PI / 2, scale: 1.3 },
+    { asset: 'shelf', x: -2.7, z: 5.4 },
+    { asset: 'jug', x: -3.2, z: 5.4, y: 0.4, scale: 0.65 },
+    { asset: 'jug', x: -2.2, z: 5.4, y: 0.4, scale: 0.65, rotation: Math.PI },
+    { asset: 'jug', x: -2.7, z: 5.4, y: 0.95, scale: 0.65 },
+    { asset: 'mat_rolled', x: -2.7, z: 5.4, y: 1.63, scale: 0.7 },
+    { asset: 'basket_empty', x: -4.9, z: -3.3, scale: 0.9 },
+    { asset: 'mat_rolled', x: -4.9, z: -4.3, y: 0.15, scale: 0.8 },
   ],
   bakehouse: [
     { asset: 'stone_threshold', x: 0, z: -5.9 },
     { asset: 'worktable', x: 2.8, z: 4.5 },
     { asset: 'bread_board', x: 2.8, z: 4.25, y: 0.94 },
     { asset: 'courtyard_planter', x: 4.9, z: 4.8 },
+    { asset: 'jug', x: -4.7, z: -0.5, y: 0.4, scale: 0.65, rotation: Math.PI / 2 },
+    { asset: 'jug', x: -4.7, z: 0.5, y: 0.4, scale: 0.65, rotation: Math.PI / 2 },
+    { asset: 'basket_empty', x: 4.7, z: 1.3, y: 0.95, scale: 0.6 },
+    { asset: 'mat_rolled', x: 4.7, z: 1, y: 1.63, scale: 0.7, rotation: Math.PI / 2 },
     ...course([-4.2, -2.6, -1], 5.7),
   ],
 };
@@ -54,6 +65,11 @@ export const villageObstacles: Record<string, readonly Obstacle[]> = {
   'capernaum-lanes': [
     { x: -11.5, z: 6.25, width: 1, depth: 0.8 },
     { x: 7.5, z: 10.65, width: 1, depth: 0.8 },
+  ],
+  'gathering-house': [
+    { x: -2.7, z: 5.4, width: 1.9, depth: 0.8 },
+    { x: -4.9, z: -3.3, width: 0.9, depth: 0.9 },
+    { x: -4.9, z: -4.3, width: 0.9, depth: 0.5 },
   ],
   bakehouse: [
     { x: 4.9, z: 4.8, width: 1, depth: 0.8 },
