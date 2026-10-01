@@ -1,0 +1,80 @@
+:root .minimap-wrap {
+  --map-size: 152px;
+  --map-bearing: 0deg;
+}
+:root .minimap .map-svg {
+  transform: rotate(var(--map-bearing));
+  transform-origin: center;
+  pointer-events: none;
+}
+:root .minimap {
+  background: #29291e;
+}
+:root .minimap #minimap-player circle {
+  fill: #ffffff;
+  stroke: #28241d;
+  stroke-width: 1.5;
+  r: 3;
+}
+:root .minimap #minimap-player path {
+  display: none;
+}
+:root .minimap-compass,
+:root .minimap-open {
+  position: absolute;
+  z-index: 3;
+  border: 2px solid #9b8053;
+  border-right-color: #3b2f20;
+  border-bottom-color: #3b2f20;
+  color: #f5da76;
+  background: #292216;
+  box-shadow: 0 0 0 1px #17120b;
+  padding: 0;
+  min-height: 36px;
+}
+:root .minimap-compass {
+  width: 36px;
+  height: 36px;
+  top: -9px;
+  left: -6px;
+  border-radius: 50%;
+}
+:root .minimap-compass svg {
+  width: 28px;
+  height: 28px;
+  transform: rotate(var(--map-bearing));
+}
+:root .minimap-open {
+  top: calc(var(--map-size) - 30px);
+  left: 24px;
+  width: calc(var(--map-size) - 48px);
+  height: 30px;
+  min-height: 30px;
+  font:
+    700 10px/1 Arial,
+    sans-serif;
+  text-shadow: 1px 1px #000;
+}
+:root .minimap-compass:hover,
+:root .minimap-open:hover {
+  background: #51432e;
+  color: #ffff00;
+}
+@media (max-width: 699px), (max-height: 540px) {
+  :root .minimap-wrap {
+    --map-size: 108px;
+  }
+  :root .minimap-compass {
+    width: 44px;
+    height: 44px;
+    top: -10px;
+    left: -8px;
+  }
+  :root .minimap-open {
+    top: calc(var(--map-size) - 35px);
+    left: 18px;
+    width: calc(var(--map-size) - 36px);
+    height: 44px;
+    min-height: 44px;
+  }
+}

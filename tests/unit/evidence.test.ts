@@ -53,6 +53,7 @@ describe('permanent review evidence', () => {
     const f = fixture();
     for (const path of [
       'public/assets/models/prop.glb',
+      'public/assets/items/bread.webp',
       'assets/source/kit.blend',
       'tests/e2e/screenshots/spec/reference.png',
     ])

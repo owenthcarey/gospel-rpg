@@ -1,6 +1,6 @@
 # Asset production
 
-The 98 checked-in GLBs and fifteen matching WebP portraits are ready to use. RFC-011 rebuilt the whole catalog through Blender MCP with baked shading, new people and vegetation; see [A World in Light](#a-world-in-light-rfc-011) below. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
+The 98 checked-in GLBs, fifteen matching WebP portraits and twelve transparent item sprites are ready to use. RFC-011 rebuilt the whole catalog through Blender MCP with baked shading, new people and vegetation; see [A World in Light](#a-world-in-light-rfc-011) below. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -14,7 +14,7 @@ BLENDER_BIN=/path/to/blender npm run assets:build
 
 The recipe uses Blender 4.2+ APIs; the checked-in exports were verified with 5.2.1. Rebuilding with another version requires the asset tests and visual checks below.
 
-`npm run assets:build` runs, in order, `generate_kit.py`, `capernaum.py`, `presence.py`, `characters.py` and `vegetation.py` headlessly, then the pure-Python finalize: `pack_palette.py`, `prune_channels.py` and `compact_glb.py` over every model. Later recipes replace earlier exports with the same name. `npm run assets:build -- --rfc011` reruns only the RFC-011 recipes and the finalize.
+`npm run assets:build` runs, in order, `generate_kit.py`, `capernaum.py`, `presence.py`, `characters.py`, `vegetation.py` and `architecture.py` headlessly, then the pure-Python finalize: `pack_palette.py`, `prune_channels.py` and `compact_glb.py` over every model. `item_icons.py` renders the finalized props afterward. Later recipes replace earlier exports with the same name. `npm run assets:build -- --rfc011` reruns only the RFC-011 recipes, the finalize and the item sprites.
 
 Via Blender MCP's Python execution tool (the RFC-011 production path), run each recipe in the live session; every recipe creates its own workshop scene and restores the scene that was open:
 
@@ -51,6 +51,20 @@ Tests inspect every GLB for local buffers, expected model structure, bounds and 
 Inspect the Blender viewport and the actual Babylon view. Check front direction, feet, seated/kneeling height, carried basket, readable net silhouettes, both graphics settings and reduced motion. Phone captions must leave the action visible. Screenshot fixtures exercise lowering, abundance, partners, astonishment and calling on desktop and phone layouts.
 
 Keep geometry near the origin and update collision footprints with changed environment dimensions. Commit the recipe, source `.blend`, and derived GLBs together. Workshop object numbering can vary with other open scenes; reproducibility means the same asset contracts and geometry, not byte-identical Blender metadata. Record external licenses in `CREDITS.md` before adding external assets.
+
+## Inventory item sprites
+
+`tools/blender/item_icons.py` imports the shipped quest and carry props into an isolated Blender workshop and renders **64 × 64** transparent WebP sprites. Oblique orthographic views, the existing vertex palette and a small dark silhouette edge keep the objects readable in compact satchel slots. All geometry is original; the renders use the existing props without modifying models, animations, item identifiers or saved ownership. `assets/source/items-kit.blend` preserves the imported meshes, lighting and camera setup.
+
+The twelve files in `public/assets/items/` total **27,198 bytes**. `src/ui/item-art.ts` maps the two satchel items, the episode basket and all eleven carry identifiers onto these sprites. Empty, filled and resting-place jug identifiers share the jug image. Asset URLs respect the deployment base, and sprites are requested only when an item is displayed.
+
+Rebuild just the sprites with `npm run assets:build -- --items`, or execute `item_icons.py` through Blender MCP using the root and `runpy` pattern above. The recipe restores the previous open scene in `finally`; it writes only its own workshop to the source file. `GOSPEL_ITEM_OUTPUT` can redirect the rendered images, and generation reports stay in ignored `artifacts/rfc011/`.
+
+`tests/unit/item-icons.test.ts` checks that every existing satchel/carried item has an image, no unused sprite files ship, every WebP declares a transparent 64 px canvas, each file stays below 6 KiB and the set stays below **48 KiB**. The evidence checker recognizes only WebP files directly inside this production item directory; review captures still require the review manifest or an ignored artifacts destination.
+
+```sh
+npm run test -- tests/unit/item-icons.test.ts tests/unit/evidence.test.ts
+```
 
 ## Through the Roof kit
 

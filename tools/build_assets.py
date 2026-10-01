@@ -1,4 +1,4 @@
-"""Rebuild the GLB kit with a local Blender executable; no MCP required."""
+"""Rebuild the GLB kit and item sprites with a local Blender executable."""
 import os
 import pathlib
 import shutil
@@ -30,6 +30,7 @@ scripts = {
     '--inspect-lake': 'inspect_crossing.py', '--inspect-connection': 'inspect_connection.py',
     '--capernaum': 'capernaum.py', '--inspect-capernaum': 'inspect_capernaum.py',
     '--presence': 'presence.py', '--inspect-presence': 'inspect_presence.py',
+    '--items': 'item_icons.py',
 }
 if len(sys.argv) > 2 or (len(sys.argv) == 2 and sys.argv[1] not in scripts and sys.argv[1] != '--rfc011'):
     sys.exit('Usage: build_assets.py ['+' | '.join([*scripts, '--rfc011'])+']')
@@ -58,3 +59,6 @@ if not sys.argv[1:] or sys.argv[1] == '--rfc011':
         subprocess.run([blender, '--background', '--python', str(root / 'tools/blender' / recipe)],
                        env=dict(env, GOSPEL_RUN_CHARACTERS='1'), check=True)
     finalize(root / 'public/assets/models')
+    # Sprites render the final exported models, never the temporary workshop parts.
+    subprocess.run([blender, '--background', '--python', str(root / 'tools/blender/item_icons.py')],
+                   env=env, check=True)

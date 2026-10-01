@@ -102,6 +102,20 @@ const ui = new Interface(document.querySelector('#ui')!, {
   },
   workLayout: (rect) => world?.setWorkBounds(rect),
   readingLayout: (rect) => world?.setReadingBounds(rect),
+  walk: (point) => {
+    if (
+      world &&
+      started &&
+      !regionLoading &&
+      !graphicsLost &&
+      !cinematic &&
+      (!ui.panel || ui.panel === 'work')
+    ) {
+      audio.unlock();
+      world.walkTo(point);
+      canvas.focus({ preventScroll: true });
+    }
+  },
   presentationLayout: (id, rect, paused) => world?.setConversation(id, rect, paused),
   importFile: (file) => {
     audio.unlock();
@@ -223,20 +237,22 @@ function pause(): void {
   audio.duck(true);
   clearWorking();
   inspectionWork = undefined;
+  ui.setWorldPaused(true);
   world?.setPaused(true);
   if (started && !regionLoading) void enqueueSave();
 }
 function syncPause(): void {
   audio.duck(ui.panel !== null && ui.panel !== 'work');
-  world?.setPaused(
+  const paused =
     !started ||
-      (ui.panel !== null && ui.panel !== 'work') ||
-      document.hidden ||
-      regionLoading ||
-      graphicsLost ||
-      cinematic ||
-      (isPresenting(state) && scenePaused),
-  );
+    (ui.panel !== null && ui.panel !== 'work') ||
+    document.hidden ||
+    regionLoading ||
+    graphicsLost ||
+    cinematic ||
+    (isPresenting(state) && scenePaused);
+  ui.setWorldPaused(paused);
+  world?.setPaused(paused);
 }
 function snapshot(): GameState {
   const current = structuredClone({
@@ -753,6 +769,9 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'reset-camera':
       world.resetCamera();
       break;
+    case 'face-north':
+      world.faceNorth();
+      break;
     case 'choice': {
       if (!chosen) break;
       // The clicked choice is captured before asynchronous work, never looked up in a later dialogue.
@@ -1071,7 +1090,7 @@ async function boot(): Promise<void> {
     walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
     roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
-    frame: (position, labels, heading, nearest, destination) => {
+    frame: (position, labels, heading, nearest, destination, walkTarget) => {
       audio.movement(
         position,
         started &&
@@ -1082,7 +1101,7 @@ async function boot(): Promise<void> {
           !isPresenting(state),
       );
       state.position = { ...position };
-      ui.frame(position, labels, heading, nearest, destination);
+      ui.frame(position, labels, heading, nearest, destination, walkTarget);
     },
   });
   world.engine.onContextLostObservable.add(() => {

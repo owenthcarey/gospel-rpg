@@ -100,6 +100,7 @@ export interface WorldCallbacks {
     heading: number,
     nearest: string | null,
     destination?: string,
+    walkTarget?: Point,
   ) => void;
 }
 /** The shared lifecycle of optional exploration controllers. Ticks keep their own inputs. */
@@ -1197,17 +1198,48 @@ export class World {
       this.workView.frame();
       return;
     }
+    this.finishCameraTransition();
     this.pendingRotation = 0;
     this.camera.alpha = -Math.PI / 2 - 0.45;
     this.camera.beta = this.layout?.camera.beta ?? 0.78;
     this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
   }
+  faceNorth(): void {
+    if (this.workView?.active) return;
+    this.finishCameraTransition();
+    this.camera.inertialAlphaOffset = 0;
+    const turn = Math.atan2(
+      Math.sin(-Math.PI / 2 - this.camera.alpha),
+      Math.cos(-Math.PI / 2 - this.camera.alpha),
+    );
+    if (this.reducedMotion) {
+      this.pendingRotation = 0;
+      this.camera.alpha += turn;
+    } else this.pendingRotation = turn;
+  }
+  private finishCameraTransition(): void {
+    if (this.arrival) {
+      Object.assign(this.camera, this.arrival.to);
+      [this.camera.upperRadiusLimit, this.camera.upperBetaLimit] = this.arrival.limits;
+      this.arrival = undefined;
+    }
+    if (this.cameraReturn) {
+      const to = this.cameraReturn.to;
+      this.camera.alpha = to.alpha;
+      this.camera.beta = to.beta;
+      this.camera.radius = to.radius;
+      this.camera.target.copyFrom(to.target);
+      this.cameraReturn = undefined;
+    }
+  }
   /** Rotation buttons ease through a quarter of a turn step instead of jumping. */
   rotate(direction: number): void {
+    this.finishCameraTransition();
     if (this.reducedMotion) this.camera.alpha += direction * 0.3;
     else this.pendingRotation += direction * 0.3;
   }
   zoom(direction: number): void {
+    this.finishCameraTransition();
     this.camera.radius = Math.max(
       this.camera.lowerRadiusLimit ?? 16,
       Math.min(this.camera.upperRadiusLimit ?? 46, this.camera.radius + direction * 3),
@@ -1491,6 +1523,7 @@ export class World {
         this.camera.alpha,
         this.nearest()?.id ?? null,
         this.destination,
+        this.path.at(-1),
       );
     }
   }

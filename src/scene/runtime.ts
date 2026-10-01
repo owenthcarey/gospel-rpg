@@ -237,6 +237,14 @@ export class GameRuntime {
   navigate(id: string): void {
     if (isExplorationView(this.view)) this.view.navigate(id);
   }
+  walkTo(point: Point): boolean {
+    if (this.paused || !(this.view instanceof World)) return false;
+    this.callbacks.manualMove?.();
+    return this.view.walkTo(point);
+  }
+  faceNorth(): void {
+    if (this.view instanceof World) this.view.faceNorth();
+  }
   nearest(): ReturnType<World['nearest']> {
     return isExplorationView(this.view) ? this.view.nearest() : undefined;
   }

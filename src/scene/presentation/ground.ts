@@ -118,7 +118,7 @@ export function shorelineBank(
   mesh.isPickable = false;
   return mesh;
 }
-/** Feathered, irregular path ribbons share one opaque vertex-colored mesh and never change collision. */
+/** Irregular paths use solid painted bands in one mesh, with their existing footprint and heights. */
 export function wornPaths(
   scene: Scene,
   name: string,
@@ -130,19 +130,22 @@ export function wornPaths(
     indices: number[] = [],
     palette: number[] = [];
   const shades = colors.map((hex) => Color3.FromHexString(hex));
+  const middle = Color3.Lerp(shades[0]!, shades[1]!, 0.35),
+    edgeShade = Color3.Lerp(shades[1]!, shades[2]!, 0.7);
   for (const [a, b, width] of segments) {
     const length = Math.hypot(b.x - a.x, b.z - a.z);
     if (length < 0.001 || width <= 0) continue;
     const count = Math.max(2, Math.ceil(length / 0.7));
     const nx = -(b.z - a.z) / length,
       nz = (b.x - a.x) / length;
-    const base = positions.length / 3;
+    const rows: { x: number; y: number; z: number }[][] = [];
     for (let i = 0; i <= count; i++) {
       const t = i / count,
         x = a.x + (b.x - a.x) * t,
         z = a.z + (b.z - a.z) * t;
       const bend = Math.sin(t * Math.PI) * Math.sin(t * 8 + a.x) * 0.16;
       const variation = 0.92 + noise(x, z) * 0.2;
+      const row: { x: number; y: number; z: number }[] = [];
       for (let strip = 0; strip < 5; strip++) {
         const edge = [-0.63, -0.44, 0, 0.44, 0.63][strip]!;
         const offset =
@@ -150,18 +153,27 @@ export function wornPaths(
           bend +
           (strip === 0 || strip === 4 ? (noise(x + strip, z) - 0.5) * 0.28 : 0);
         const p = { x: x + nx * offset, z: z + nz * offset };
-        positions.push(p.x, height(p) + 0.022 + (strip === 2 ? 0.003 : 0), p.z);
-        const color = shades[strip === 0 || strip === 4 ? 2 : strip === 2 ? 0 : 1]!.scale(
-          0.96 + noise(x + strip, z) * 0.08,
-        );
-        palette.push(color.r, color.g, color.b, 1);
+        row.push({ ...p, y: height(p) + 0.022 + (strip === 2 ? 0.003 : 0) });
       }
-      if (i < count)
-        for (let j = 0; j < 4; j++) {
-          const q = base + i * 5 + j;
-          indices.push(q, q + 5, q + 1, q + 1, q + 5, q + 6);
-        }
+      rows.push(row);
     }
+    for (let i = 0; i < count; i++)
+      for (let j = 0; j < 4; j++) {
+        const quad = [rows[i]![j]!, rows[i + 1]![j]!, rows[i]![j + 1]!, rows[i + 1]![j + 1]!];
+        const x = (quad[0]!.x + quad[3]!.x) / 2,
+          z = (quad[0]!.z + quad[3]!.z) / 2;
+        // Duplicate boundary vertices so color interpolation cannot blur one band into another.
+        // Broad, quiet variation keeps the path readable without speckled decoration.
+        const color = (j === 0 || j === 3 ? edgeShade : middle).scale(
+          0.98 + noise(Math.floor(x / 3), Math.floor(z / 3)) * 0.04,
+        );
+        const base = positions.length / 3;
+        for (const p of quad) {
+          positions.push(p.x, p.y, p.z);
+          palette.push(color.r, color.g, color.b, 1);
+        }
+        indices.push(base, base + 1, base + 2, base + 2, base + 1, base + 3);
+      }
   }
   const mesh = new Mesh(name, scene),
     data = new VertexData(),

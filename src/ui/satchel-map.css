@@ -1,0 +1,535 @@
+/* Compact, original item renders and a numbered parchment atlas. */
+:root .satchel-capacity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  color: var(--text-ink);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+:root .satchel-capacity > .icon {
+  width: 18px;
+  height: 18px;
+}
+:root .satchel-help {
+  margin-left: auto;
+  font-size: 12px;
+}
+:root .satchel-slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 440px;
+  margin: 0 auto 17px;
+}
+:root .satchel-slot {
+  min-width: 0;
+  text-align: center;
+}
+:root .satchel-slot-button,
+:root .satchel-empty-mark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 80px;
+  padding: 4px;
+  border: 2px solid #3d2c1b;
+  border-radius: 0;
+  color: #efcc7b;
+  background: var(--stone-grain), #5c4930;
+  box-shadow:
+    inset 2px 2px #2d2116,
+    inset -2px -2px #977950;
+}
+:root .satchel-slot-button:hover {
+  border-color: #ac8845;
+  background-color: #685237;
+}
+:root .satchel-slot-button[aria-pressed='true'] {
+  border-color: #eed17b;
+  box-shadow:
+    inset 1px 1px #2d2116,
+    inset -1px -1px #977950,
+    0 0 0 1px #544019;
+}
+:root .satchel-slot-button:focus-visible {
+  outline: 3px solid #143e63;
+  outline-offset: 3px;
+}
+:root .satchel-sprite {
+  display: block;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+:root .satchel-slot-button > .icon,
+:root .satchel-empty-mark > .icon {
+  width: 34px;
+  height: 34px;
+}
+:root .satchel-quantity {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  color: #ffff8b;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+  text-shadow: 1px 1px #171109;
+}
+:root .satchel-slot h3 {
+  margin: 7px 0 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-ink);
+}
+:root .satchel-slot-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--text-ink);
+  font-size: 12px;
+  line-height: 1.4;
+}
+:root .satchel-empty-mark {
+  color: #a18a61;
+  background-color: #58462e;
+}
+:root .satchel-empty-mark .icon {
+  opacity: 0.6;
+}
+:root .satchel-inspection {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 114px;
+  padding: 14px;
+  border: 2px solid #8a6d44;
+  background: var(--stone-grain), #b79e75;
+  box-shadow: var(--bevel-sunken);
+}
+:root .satchel-inspection-art,
+:root .satchel-carried .item-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  padding: 5px;
+  color: #efcc7b;
+  background: var(--stone-grain), #5c4930;
+  border: 1px solid #3d2c1b;
+  box-shadow:
+    inset 1px 1px #2d2116,
+    inset -1px -1px #977950;
+}
+:root .satchel-inspection-art .icon {
+  width: 38px;
+  height: 38px;
+}
+:root .satchel-inspection .eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: var(--text-ink);
+}
+:root .satchel-inspection strong {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.35;
+}
+:root .satchel-inspection p {
+  margin: 7px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+:root .satchel-return {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0 0;
+}
+:root .satchel-return p {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+}
+:root .satchel-return .secondary-button {
+  flex-shrink: 0;
+}
+:root .satchel-carried:empty {
+  display: none;
+}
+:root .satchel-carried.carried-object,
+:root .satchel-carried .carried-object {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  margin: 17px 0 0;
+  border: 2px solid #8a6d44;
+  border-radius: 0;
+  background: var(--stone-grain), #b79e75;
+  box-shadow: var(--bevel-sunken);
+}
+:root .satchel-carried .item-art {
+  flex-shrink: 0;
+  margin: 0;
+}
+:root .satchel-carried h3 {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  margin: 5px 0 0;
+}
+:root .satchel-carried .eyebrow {
+  color: var(--text-ink);
+  font-size: 10px;
+}
+:root .satchel-carried p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 7px 0 12px;
+}
+:root .satchel-carried .secondary-button {
+  margin: 0 5px 5px 0;
+  white-space: normal;
+}
+:root .journey-atlas-surface {
+  color: var(--text-ink);
+}
+:root .journey-guidance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 2px solid #876b42;
+  border-left-width: 4px;
+  border-radius: 0;
+  background: var(--stone-grain), #b79e75;
+  box-shadow: var(--bevel-sunken);
+}
+:root .journey-guidance > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+:root .journey-guidance > div > .icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+:root .journey-guidance strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.4;
+}
+:root .journey-guidance p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+:root .journey-guidance > button {
+  flex-shrink: 0;
+  max-width: 225px;
+  white-space: normal;
+}
+:root .journey-atlas {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(230px, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+:root .journey-chart {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 3px solid #4e3922;
+  background: var(--paper-grain), #c5ae82;
+  box-shadow:
+    inset 1px 1px #f0d7a3,
+    inset -1px -1px #8e6f44;
+}
+:root .journey-chart-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-bottom: 2px solid #332615;
+  color: #f1d890;
+  background: var(--stone-grain), #4d3b25;
+  font-size: 11px;
+  line-height: 1.4;
+}
+:root .journey-chart-title > span:first-child {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+:root .journey-chart .journey-map {
+  width: 100%;
+  max-height: 530px;
+  margin: 0;
+  padding: 8px;
+  overflow: visible;
+}
+:root .journey-map-route {
+  fill: none;
+  stroke: #6b5130;
+  stroke-width: 3;
+  stroke-linecap: square;
+}
+:root .journey-map-route.tracked {
+  stroke: #774113;
+  stroke-width: 5;
+}
+:root .journey-map-marker {
+  fill: #9b7d50;
+  stroke: #4e351d;
+  stroke-width: 2;
+}
+:root .journey-map-place.unvisited .journey-map-marker {
+  fill: #c5ae82;
+  stroke-dasharray: 5 3;
+}
+:root .journey-map-place.here .journey-map-marker {
+  fill: #dec265;
+}
+:root .journey-map-current {
+  fill: none;
+  stroke: #3f3017;
+  stroke-width: 3;
+}
+:root .journey-map-glyph {
+  fill: none;
+  stroke: #382516;
+  stroke-width: 2;
+  stroke-linejoin: miter;
+}
+:root .journey-map-number-back {
+  fill: #44301c;
+  stroke: #efcc78;
+  stroke-width: 1;
+}
+:root .journey-map-number {
+  fill: #ffe599;
+  font: 700 17px var(--font-sans);
+}
+:root .journey-map-label {
+  fill: #382516;
+  font: 700 15px var(--font-sans);
+  paint-order: stroke;
+  stroke: #c5ae82;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+:root .journey-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 11px;
+  border-top: 1px solid #8d7047;
+  color: #382516;
+  background: var(--stone-grain), #b8a077;
+  font-size: 12px;
+  line-height: 1.4;
+}
+:root .journey-map-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+:root .journey-map-legend i {
+  width: 11px;
+  height: 11px;
+  border: 1px solid #4e351d;
+}
+:root .journey-key-here {
+  background: #dec265;
+  box-shadow: 0 0 0 1px #4e351d;
+}
+:root .journey-key-visited {
+  background: #9b7d50;
+}
+:root .journey-map-legend .journey-key-unvisited {
+  background: #c5ae82;
+  border-style: dashed;
+}
+:root .journey-map-legend .journey-key-paths {
+  flex-basis: 100%;
+}
+:root .journey-destinations {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+:root .journey-destination {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 2px solid #91754c;
+  background: var(--stone-grain), #b69d73;
+  box-shadow: var(--bevel-sunken);
+}
+:root .journey-destination.current {
+  border-color: #615026;
+  background-color: #c0aa7e;
+}
+:root .journey-destination header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+:root .journey-destination-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: 1px solid #dec783;
+  color: #ffe599;
+  background: #44301c;
+  font-size: 14px;
+  font-weight: 700;
+}
+:root .journey-destination h3 {
+  margin: 0;
+  color: var(--text-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.35;
+}
+:root .journey-destination-status {
+  font-size: 12px;
+  line-height: 1.4;
+}
+:root .journey-destination p {
+  margin: 9px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+:root .journey-destination p.journey-next-passage {
+  font-weight: 700;
+  font-size: 12px;
+}
+:root .journey-destination > button {
+  width: 100%;
+  min-height: 40px;
+  margin: 3px 0 0;
+}
+:root .journey-companion {
+  margin-top: 17px;
+}
+:root .journey-atlas-surface > .content-note {
+  margin-top: 17px;
+}
+:root[data-text-size='large'] .satchel-slot h3,
+:root[data-text-size='large'] .satchel-slot-empty,
+:root[data-text-size='large'] .satchel-capacity,
+:root[data-text-size='large'] .satchel-help,
+:root[data-text-size='large'] .journey-map-legend,
+:root[data-text-size='large'] .journey-destination-status,
+:root[data-text-size='large'] .journey-destination p.journey-next-passage {
+  font-size: 14px;
+}
+:root[data-text-size='large'] .satchel-inspection p,
+:root[data-text-size='large'] .satchel-carried p,
+:root[data-text-size='large'] .journey-guidance strong,
+:root[data-text-size='large'] .journey-guidance p,
+:root[data-text-size='large'] .journey-destination h3,
+:root[data-text-size='large'] .journey-destination p {
+  font-size: 17px;
+}
+@media (max-width: 699px) {
+  :root .satchel-help {
+    flex-basis: 100%;
+    margin: 1px 0 0 25px;
+  }
+  :root .satchel-slots {
+    gap: 7px;
+  }
+  :root .satchel-slot-button,
+  :root .satchel-empty-mark {
+    height: 68px;
+  }
+  :root .satchel-slot-button .satchel-sprite {
+    width: 48px;
+    height: 48px;
+  }
+  :root .satchel-slot h3 {
+    font-size: 12px;
+  }
+  :root .satchel-inspection,
+  :root .satchel-carried.carried-object,
+  :root .satchel-carried .carried-object {
+    gap: 10px;
+    padding: 11px;
+  }
+  :root .satchel-inspection {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+  :root .satchel-inspection-art,
+  :root .satchel-carried .item-art {
+    width: 58px;
+    height: 62px;
+    padding: 3px;
+  }
+  :root .satchel-inspection-art .satchel-sprite,
+  :root .satchel-carried .item-art .satchel-sprite {
+    width: 48px;
+    height: 48px;
+  }
+  :root .satchel-return {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+  :root .satchel-return .secondary-button {
+    width: 100%;
+  }
+  :root .journey-guidance {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 11px;
+    padding: 11px;
+  }
+  :root .journey-guidance > button {
+    max-width: none;
+    width: 100%;
+  }
+  :root .journey-atlas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :root .journey-chart .journey-map {
+    max-height: 380px;
+    padding: 4px;
+  }
+  :root .journey-map-label {
+    display: none;
+  }
+  :root .journey-map-number {
+    font-size: 20px;
+  }
+  :root .journey-destination {
+    padding: 12px;
+  }
+  :root .journey-destination h3 {
+    font-size: 16px;
+  }
+  :root .journey-destination p {
+    font-size: 14px;
+  }
+}

@@ -303,6 +303,29 @@ describe('scene-owned presence', () => {
     conversation.clear();
     library.dispose();
   });
+  it('keeps painted path faces crisp and above their original sloping ground', () => {
+    const { scene } = studio();
+    const slope = (p: { x: number; z: number }) => p.x * 0.04 + p.z * 0.12;
+    const path = wornPaths(scene, 'painted-slope', [[{ x: 0, z: 0 }, { x: 0, z: 5 }, 2]], slope);
+    const positions = path.getVerticesData('position')!,
+      colors = path.getVerticesData('color')!,
+      indices = path.getIndices()!;
+    expect(indices.length).toBeGreaterThan(0);
+    for (let i = 0; i < positions.length; i += 3) {
+      const lift = positions[i + 1]! - slope({ x: positions[i]!, z: positions[i + 2]! });
+      expect(lift).toBeGreaterThan(0);
+      expect(lift).toBeLessThan(0.05);
+      expect(positions[i + 2]!).toBeGreaterThanOrEqual(0);
+      expect(positions[i + 2]!).toBeLessThanOrEqual(5);
+    }
+    for (let i = 0; i < indices.length; i += 3) {
+      const swatches = [0, 1, 2].map((n) =>
+        colors.slice(indices[i + n]! * 4, indices[i + n]! * 4 + 4),
+      );
+      expect(swatches[1]).toEqual(swatches[0]);
+      expect(swatches[2]).toEqual(swatches[0]);
+    }
+  });
   it('gives ground patches and path ribbons upward normals without making accents interactive', () => {
     const { scene } = studio();
     const mosaic = groundMosaic(

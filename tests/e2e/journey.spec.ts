@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { parseSave } from '../../src/persistence/schema';
+import { ready, exported, readableContrast } from '../helpers/connection-browser';
 
 async function start(page: Page) {
   await page.goto('/');
@@ -18,6 +20,61 @@ async function travel(page: Page, id: string) {
 async function choice(page: Page, name: string) {
   await page.getByRole('button', { name: new RegExp(name) }).click();
 }
+
+test('satchel examination supports keyboard selection without changing carried supplies', async ({
+  page,
+}) => {
+  const state = parseSave(
+    JSON.parse(await readFile('tests/fixtures/saves/v3-carrying-bread.json', 'utf8')),
+  ).state;
+  state.inventory.unshift('net');
+  state.journal.push('net');
+  await ready(page, state);
+  const before = await exported(page);
+  await page.locator('[data-setting="textSize"]').selectOption('large');
+  await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  await page.locator('.toolbar [data-action="inventory"]').click();
+  const slots = page.getByRole('list', { name: 'Satchel spaces' });
+  await expect(slots.getByRole('listitem')).toHaveCount(4);
+  await expect(page.locator('.satchel-capacity')).toContainText('2 / 4 spaces used');
+  const net = page.getByRole('button', { name: 'Examine Mended fishing net', exact: true });
+  const bread = page.getByRole('button', { name: 'Examine Barley loaves', exact: true });
+  await net.focus();
+  await net.press('ArrowRight');
+  await expect(bread).toBeFocused();
+  await expect(bread).toHaveAttribute('aria-pressed', 'true');
+  await expect(net).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByRole('region', { name: 'Item inspection' })).toContainText(
+    'A small bundle of fresh bread from Miriam, wrapped in linen.',
+  );
+  await bread.press('ArrowRight');
+  await expect(net).toBeFocused();
+  await expect(page.getByRole('region', { name: 'Item inspection' })).toContainText(
+    'Flax cord, carefully knotted.',
+  );
+  await bread.click();
+  await expect(bread).toHaveAttribute('aria-pressed', 'true');
+  await expect
+    .poll(() =>
+      slots
+        .locator('.satchel-sprite')
+        .evaluateAll((images) =>
+          images.every((image) => (image as HTMLImageElement).naturalWidth === 64),
+        ),
+    )
+    .toBe(true);
+  await readableContrast(page, '.satchel-slot h3');
+  await readableContrast(page, '.satchel-inspection p');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(
+    false,
+  );
+  const after = await exported(page);
+  expect(after.inventory).toEqual(before.inventory);
+  expect(after.quest).toEqual(before.quest);
+  expect(after.journal).toEqual(before.journal);
+  expect(after.episode).toEqual(before.episode);
+  expect(after.campaign).toEqual(before.campaign);
+});
 
 test('a traveler completes the chapter, saves, reloads, and exports', async ({ page }, info) => {
   // Includes real-time walking, two restarts, and save round-trips on software WebGL.

@@ -4,6 +4,22 @@
 
 ## Classic presentation polish · 2026-09-30
 
+### Controls, items and maps follow-up
+
+The player-centered minimap now turns with the camera, resolves taps back into world coordinates and shows the actual reachable destination until arrival. Its compass faces north, and keyboard activation still opens local destinations. Pause, visibility and region changes discard held presses; manual camera commands release arrival/conversation transitions, and label placement reserves the compass's protruding edge.
+
+The satchel uses twelve original transparent **64 px WebP sprites**, totaling **27,198 bytes**, rendered from the existing props through Blender MCP. Four compact slots keep item names and counts visible; a keyboard-accessible Examine pane uses the existing descriptions. Carried items remain separate from satchel capacity. The Journey atlas now matches numbered symbols to destination entries, distinguishes current/visited/unvisited places and crops to the unlocked regions. No storyline, gameplay reducers, item identifiers or save schema changed.
+
+The original [PR CI run](https://github.com/owenthcarey/gospel-rpg/actions/runs/36771752803) passed the build, continuous journey, compatibility and 42 of 43 browser groups. The remaining group found the phone objective at 13 px instead of its existing 14 px readability floor. The theme restores **14 px** text; the assertion remains intact.
+
+`npm run check`, formatting and whitespace checks pass with **621 unit checks in 37 files**. The final focused Chromium desktop/phone selection passes **14 cases, with two intentional device-specific skips and no failures**, using one worker, no retries and snapshot updates disabled (2.6 minutes). It covers precise minimap navigation after rotation, flag arrival, held presses through a menu, conversation camera return, keyboard map access, satchel examination and unchanged saved ownership, the phone readability regression, Choose Option and both static-image contracts with their missing-geometry negative controls. Both existing image references pass unchanged.
+
+The separate real-WebGL Firefox/WebKit gate passes **all four compatibility checks** against that production build, with one worker and no retries (1.4 minutes). It verifies startup, keyboard exploration, journal use, saved practical actions and the early landing's model kit. Physical phone hardware remains outside this local scope.
+
+Ten fresh High/Low world captures from the shore, road, farm, Nain gate and cove show crisp painted path bands without altering their footprint, heights, triangle count or draw calls. All ten settle to one scene and match the earlier draw counts (maximum **145 High / 81 Low**). Desktop and 390 px phone HUD, satchel and complete-Journey atlas captures were reviewed after their entry transitions settled; phone satchel review uses Large reading size. Captures stay in ignored `artifacts/reviews/` and `artifacts/rfc011/captures/classic-navigation/`, preserving the permanent review-gallery budget. Sprite delivery checks cover the complete referenced set, transparency, dimensions and a **48 KiB** download ceiling; the source workshop and recipe are versioned.
+
+### Initial art pass
+
 This pass restores the original classic RPG direction without adding storyline or changing progression, scripture, save v11, collisions or interaction destinations. The game uses broad green terrain and tan paths, matte blue water, restrained atmosphere, faceted people and foliage, brown beveled controls, recessed satchel slots and tan reading panels. Cinematic bloom, grading and screen-edge vignette are removed. Interior floor patches now stay inside the walls and face upward; procedural props and imported models use the same material-color convention.
 
 Final visual review also corrected two existing rendering defects. Empty contact-shadow batches no longer draw their source disc at world origin. Shoreline height sampling now follows Babylon's actual descending Z rows, keeping plants off submerged terrain. Regression checks reproduced both faults before their fixes and cover caster lifecycle/quality changes and asymmetric shore geometry in both cover qualities.

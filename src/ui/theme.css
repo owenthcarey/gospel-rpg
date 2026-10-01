@@ -1227,6 +1227,10 @@
     font-size: 16px;
     margin: 7px 0;
   }
+  :root .current-objective {
+    font-size: 14px;
+    line-height: 1.5;
+  }
   :root .quest-card.objective-expanded {
     max-height: 50dvh;
   }

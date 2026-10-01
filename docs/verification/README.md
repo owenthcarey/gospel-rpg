@@ -4,7 +4,7 @@ Keep a small, useful gallery in Git alongside compact measurements and test outc
 
 ## What belongs in Git
 
-- Game models in `public/assets/models/`, production portraits in `public/assets/portraits/` and their Blender sources in `assets/source/` remain versioned together. Existing asset tests enforce the model contracts and download budgets.
+- Game models in `public/assets/models/`, production portraits in `public/assets/portraits/`, compact item sprites in `public/assets/items/` and their Blender sources in `assets/source/` remain versioned together. Asset tests enforce the model contracts and download budgets; item sprites have an explicit 64 px transparent WebP and 48 KiB set budget.
 - Automated screenshot references in `tests/e2e/screenshots/` remain versioned because the rendering tests depend on them.
 - Keep selected review images that establish distinct behavior, geometry, accessibility layouts or meaningful before/after comparisons. Usually four to six images suffice for a milestone.
 - Keep structured verification records, measurements and portable save fixtures. Historical source/model hashes describe the original run; they are not promises that today's files still have those bytes.
@@ -20,7 +20,7 @@ The current gallery contains **53 images / 28.67 MiB**. Its total budget is **30
 5. Link the retained images from the relevant review guide. When retiring an image, remove its manifest entry and update documentation links and image inventories in the same change. Preserve the original measurements and case outcomes.
 6. Run `npm run evidence:check` and `npm run format:check`. The evidence check is also the first step of `npm run check`, including in CI. It includes non-ignored untracked files locally so accidental captures fail before staging.
 
-The check rejects unlisted binaries outside the game-model, production-portrait, Blender-source and automated-baseline directories; missing or ignored declared images; duplicate entries; changed bytes or checksums; exceeded budgets; broken local Markdown file links; and missing media references in verification JSON. It checks file targets, not Markdown heading fragments or external URLs. It never regenerates the manifest automatically.
+The check rejects unlisted binaries outside the game-model, production-portrait, production-item, Blender-source and automated-baseline directories; missing or ignored declared images; duplicate entries; changed bytes or checksums; exceeded budgets; broken local Markdown file links; and missing media references in verification JSON. Production items are limited to WebP files directly inside `public/assets/items/`, with their contents and budget checked by `tests/unit/item-icons.test.ts`. The evidence check validates file targets, not Markdown heading fragments or external URLs. It never regenerates the manifest automatically.
 
 The earlier maintenance pass curated the gallery from 83 to 42 images; RFC-010 adds six selected images within the same total ceiling. RFC-011 retires the superseded original channel sheet and adds six compact WebP images. Removed captures remain available in Git history; this cleanup reduces the current checkout and limits future growth without rewriting published history.
 
