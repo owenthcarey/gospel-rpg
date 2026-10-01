@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { ready } from '../helpers/connection-browser';
 
 // The cold open plays only on a first journey outside automation. These cases opt back in by
 // hiding `navigator.webdriver`, the one condition the game uses to skip it for test runs.
@@ -63,6 +64,60 @@ test('a first journey opens with a skippable cold open, then a veiled arrival an
   await page.getByRole('button', { name: 'Continue your journey' }).click();
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', 'capernaum');
   await expect(page.locator('.cold-open')).toHaveCount(0);
+});
+
+test('chapter title announcements stay connected and polite without moving keyboard focus', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const arrivals: { text: string; connected: boolean; focused: string | undefined }[] = [];
+    (window as unknown as { __announcedArrivals: typeof arrivals }).__announcedArrivals = arrivals;
+    new MutationObserver((records) => {
+      for (const record of records)
+        for (const node of record.addedNodes) {
+          if (!(node instanceof HTMLElement) || !node.classList.contains('chapter-card')) continue;
+          const live = document.querySelector<HTMLElement>(
+            '#ui > .chapter-card-live[role="status"][aria-live="polite"]',
+          );
+          arrivals.push({
+            text: live?.textContent ?? '',
+            connected: live?.isConnected ?? false,
+            focused: (document.activeElement as HTMLElement | null)?.id,
+          });
+        }
+    }).observe(document, { childList: true, subtree: true });
+  });
+  await ready(page);
+  // Record entry rather than racing the title's wall-clock fade on slow software WebGL.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as unknown as {
+              __announcedArrivals: { text: string; connected: boolean; focused?: string }[];
+            }
+          ).__announcedArrivals,
+      ),
+    )
+    .toContainEqual({
+      text: expect.stringContaining('Capernaum'),
+      connected: true,
+      focused: 'game-canvas',
+    });
+  const live = page.locator('#ui > .chapter-card-live');
+  await expect(live).toHaveCount(1);
+  await expect(live).toHaveAttribute('role', 'status');
+  await expect(live).toHaveAttribute('aria-live', 'polite');
+  await expect(live).toContainText('Capernaum');
+  const journal = page.locator('.toolbar [data-action="journal"]');
+  await journal.focus();
+  await expect(page.locator('.chapter-card')).toHaveCount(0);
+  await expect(journal).toBeFocused();
+  // Removing the noninteractive title leaves its live announcement connected to the UI.
+  await expect(live).toContainText('Capernaum');
+  await expect(live).toHaveCount(1);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
 test('Settings replays the opening; Escape leaves it and reduced motion shows still cards', async ({

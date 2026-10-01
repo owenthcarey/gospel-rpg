@@ -366,6 +366,7 @@ export class Interface {
       ...this.hud.querySelectorAll<HTMLElement>(
         '.topbar,.quest-card,.minimap-wrap,.minimap-compass,.minimap-open,.bottom-center,.traveler-card',
       ),
+      ...this.root.querySelectorAll<HTMLElement>('#toast:not([hidden])'),
     ]
       .filter((node) => node.offsetHeight > 0)
       .map((node) => node.getBoundingClientRect());

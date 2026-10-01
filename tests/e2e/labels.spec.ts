@@ -1,5 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { ready } from '../helpers/connection-browser';
+import { newGame } from '../../src/game/types';
+import { importState, ready } from '../helpers/connection-browser';
+
+interface NoticeFrame {
+  noticeVisible: boolean;
+  labelVisible: boolean;
+  overlap: boolean;
+}
+type NoticeLabel = HTMLElement & {
+  noticeFrames?: NoticeFrame[];
+  noticeObserver?: MutationObserver;
+};
 
 test('expanded world labels remain steady beside reserved HUD edges', async ({ page }) => {
   await ready(page);
@@ -80,6 +91,97 @@ test('expanded world labels remain steady beside reserved HUD edges', async ({ p
       node.visibilityObserver?.disconnect();
       delete node.visibilityObserver;
       delete node.visibilityFrames;
+    });
+  }
+});
+
+test('temporary import notices clear world names and release their space when they expire', async ({
+  page,
+}) => {
+  await ready(page);
+  const notice = page.locator('#toast');
+  await expect(notice).toBeHidden();
+  await expect(page.locator('.chapter-card')).toHaveCount(0);
+  // Reimport the same untouched region to obtain a fresh real notice without another title card.
+  await page.getByRole('button', { name: 'Settings and saves' }).click();
+  await importState(page, newGame());
+  await expect(notice).toContainText('Your imported journey is ready.');
+  await expect(notice).toHaveAttribute('role', 'status');
+  await expect(notice).toHaveAttribute('aria-live', 'polite');
+  const canvas = page.locator('#game-canvas');
+  await expect(canvas).toBeFocused();
+  const simon = page.locator('.world-label[data-value="simon"]');
+  await expect(simon).toBeVisible();
+  await expect(simon).toHaveClass(/expanded/);
+  const baseline = await simon.evaluate((label) => {
+    const node = label as NoticeLabel;
+    const toast = document.querySelector<HTMLElement>('#toast')!;
+    const player = document.querySelector<SVGElement>('#minimap-player')!;
+    const box = node.getBoundingClientRect();
+    const toastWidth = toast.getBoundingClientRect().width;
+    // Pin the existing notice over this real name, making the collision independent of viewport.
+    for (const [key, value] of Object.entries({
+      position: 'fixed',
+      left: `${Math.max(8, Math.min(innerWidth - toastWidth - 8, box.left + box.width / 3))}px`,
+      top: `${box.top + 5}px`,
+      bottom: 'auto',
+      transform: 'none',
+      animation: 'none',
+    }))
+      toast.style.setProperty(key, value, 'important');
+    node.noticeFrames = [];
+    node.noticeObserver = new MutationObserver(() => {
+      const labelBox = node.getBoundingClientRect();
+      const noticeBox = toast.getBoundingClientRect();
+      const noticeVisible = !toast.hidden && toast.offsetHeight > 0;
+      const labelVisible = !node.hidden && node.offsetHeight > 0;
+      node.noticeFrames!.push({
+        noticeVisible,
+        labelVisible,
+        overlap:
+          noticeVisible &&
+          labelVisible &&
+          labelBox.left < noticeBox.right + 5 &&
+          labelBox.right > noticeBox.left - 5 &&
+          labelBox.top < noticeBox.bottom + 5 &&
+          labelBox.bottom > noticeBox.top - 5,
+      });
+    });
+    // Interface updates this attribute after arranging labels, even when a name stays visible.
+    node.noticeObserver.observe(player, { attributes: true, attributeFilter: ['transform'] });
+    return { bottom: box.bottom, player: player.getAttribute('transform') };
+  });
+  try {
+    await expect
+      .poll(() => simon.evaluate((label) => (label as NoticeLabel).noticeFrames!.length))
+      .toBeGreaterThanOrEqual(10);
+    const frames = await simon.evaluate((label) => (label as NoticeLabel).noticeFrames!);
+    expect(frames.every((frame) => frame.noticeVisible)).toBe(true);
+    expect(frames.every((frame) => !frame.overlap)).toBe(true);
+    await expect(canvas).toBeFocused();
+    await expect(page.locator('#minimap-player')).toHaveAttribute('transform', baseline.player!);
+    // Culling or moving a name never removes the same destination from its accessible map.
+    await page.locator('.toolbar [data-action="map"]').click();
+    await expect(page.locator('.map-destinations [data-value="simon"]')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(canvas).toBeFocused();
+    await expect(notice).toBeHidden();
+    await expect(simon).toBeVisible();
+    await expect
+      .poll(() =>
+        simon.evaluate(
+          (label, bottom) => Math.abs(label.getBoundingClientRect().bottom - bottom),
+          baseline.bottom,
+        ),
+      )
+      .toBeLessThanOrEqual(1);
+    await expect(page.locator('#minimap-player')).toHaveAttribute('transform', baseline.player!);
+  } finally {
+    await simon.evaluate((label) => {
+      const node = label as NoticeLabel;
+      node.noticeObserver?.disconnect();
+      delete node.noticeObserver;
+      delete node.noticeFrames;
     });
   }
 });

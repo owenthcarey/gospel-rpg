@@ -1402,6 +1402,10 @@ export class World {
     this.lastRender = now;
     this.cadence.rendered(now);
     this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
+    if (this.active && !this.paused && elapsed > 0 && this.keys.has('q')) {
+      this.finishCameraTransition();
+      this.pendingRotation = 0;
+    }
     if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
     if (this.cameraReturn) {
       const r = this.cameraReturn;

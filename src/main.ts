@@ -83,7 +83,6 @@ let storageWarned = false;
 let timer: ReturnType<typeof setInterval> | undefined;
 let cinematic = false;
 const coldOpen = new ColdOpen();
-const chapterCard = new ChapterCard(document.querySelector<HTMLElement>('#ui')!);
 const veil = new Veil();
 // Title cards announce each place and account once per session.
 const regionsSeen = new Set<string>();
@@ -122,6 +121,8 @@ const ui = new Interface(document.querySelector('#ui')!, {
     runAction(() => loadFile(file));
   },
 });
+// Interface constructs the root before the connected title announcer is mounted.
+const chapterCard = new ChapterCard(document.querySelector<HTMLElement>('#ui')!);
 
 const actions = new ActionQueue((pending) => ui.setActionPending(pending));
 function runAction(action: () => Promise<void>): void {
