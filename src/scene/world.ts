@@ -1,5 +1,6 @@
 import { ActionFeedback } from './presentation/action';
 import { InteractionFeedback } from './interaction';
+import { installClassicCameraInput } from './classic-camera-input';
 import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
 import {
@@ -29,7 +30,6 @@ import { TravelerBoat } from './actors/boat';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
-import { ArcRotateCameraPointersInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import { Vector3, Matrix } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
@@ -238,6 +238,8 @@ export class World {
       : new WalkGrid(obstacles, isLand);
     this.engine = engine;
     this.scene = new Scene(this.engine);
+    // Pointerdown still focuses the world; releasing into Choose Option keeps its menu focus.
+    this.scene.preventDefaultOnPointerUp = false;
     this.scene.collisionsEnabled = false;
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
@@ -260,13 +262,13 @@ export class World {
     this.camera.inertia = 0.72;
 
     this.camera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
-    const pointers = this.camera.inputs.attached.pointers;
-    if (pointers instanceof ArcRotateCameraPointersInput) {
-      pointers.buttons = [1, 2];
-      pointers.angularSensibilityX = 1000;
-      pointers.angularSensibilityY = 1000;
-      pointers.pinchDeltaPercentage = 0.01;
-    }
+    installClassicCameraInput(this.camera, {
+      enabled: () => this.active && !this.paused,
+      manual: () => {
+        this.finishCameraTransition();
+        this.pendingRotation = 0;
+      },
+    });
     const region = initial.region;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor(region), {
       sky: 200,
@@ -964,6 +966,7 @@ export class World {
       place: (id) => this.destinations.find((p) => p.id === id),
       navigate,
       walk,
+      cancelTap: () => this.explorationInput?.cancelTap(),
     });
     this.explorationInput = bindExplorationInput({
       scene: this.scene,

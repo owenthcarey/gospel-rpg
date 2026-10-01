@@ -170,4 +170,35 @@ describe('tap ownership', () => {
     g.up(99, 0, 0);
     expect(g.consume(99)).toBe(false);
   });
+  for (const order of [
+    [1, 2],
+    [2, 1],
+  ])
+    it(
+      'keeps a consumed hold rejected when a second finger joins and releases in order ' +
+        order.join(', '),
+      () => {
+        const g = new TapGesture();
+        g.down(1, 10, 10, 0);
+        g.reject();
+        g.down(2, 20, 20, 0);
+        for (const id of order) {
+          g.up(id!, id === 1 ? 10 : 20, id === 1 ? 10 : 20);
+          expect(g.consume(id!)).toBe(false);
+        }
+        g.down(3, 10, 10, 0);
+        g.up(3, 10, 10);
+        expect(g.consume(3)).toBe(true);
+      },
+    );
+  it('rejects a released candidate without preventing the next independent gesture', () => {
+    const g = new TapGesture();
+    g.down(1, 10, 10, 0);
+    g.up(1, 10, 10);
+    g.reject();
+    expect(g.consume(1)).toBe(false);
+    g.down(2, 10, 10, 0);
+    g.up(2, 10, 10);
+    expect(g.consume(2)).toBe(true);
+  });
 });

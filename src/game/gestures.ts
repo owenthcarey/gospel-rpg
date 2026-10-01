@@ -29,6 +29,11 @@ export class TapGesture {
     this.candidate = undefined;
     return allowed;
   }
+  /** Consume a hold without losing ownership of fingers that are still touching. */
+  reject(): void {
+    this.rejected = true;
+    this.candidate = undefined;
+  }
   clear(): void {
     this.contacts.clear();
     this.rejected = true;

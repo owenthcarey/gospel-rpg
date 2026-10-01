@@ -23,9 +23,10 @@ interface InteractionOptions {
   place: (id: string) => Interactable | undefined;
   navigate: (id: string, click?: ScreenClick) => void;
   walk: (point: Point, click?: ScreenClick) => void;
+  cancelTap: () => void;
 }
 
-/** Cosmetic action previews and a deliberate right-click alternative to the default click. */
+/** Action previews and deliberate mouse, keyboard and touch alternatives to the default tap. */
 export class InteractionFeedback {
   private hint = document.createElement('div');
   private menu = document.createElement('div');
@@ -34,6 +35,11 @@ export class InteractionFeedback {
   private pending?: { id: string; click: ScreenClick };
   private labelGesture = new TapGesture();
   private labelPointer?: number;
+  private touches = new Map<number, ScreenClick>();
+  private touchRejected = false;
+  private suppressClick = false;
+  private hold?: { id: number; click: ScreenClick; target: HTMLElement };
+  private holdTimer?: ReturnType<typeof setTimeout>;
   private disposed = false;
   private lastPick = 0;
   private returnFocus?: HTMLElement;
@@ -55,14 +61,15 @@ export class InteractionFeedback {
     document.addEventListener('pointermove', this.move, true);
     document.addEventListener('pointerup', this.up, true);
     document.addEventListener('click', this.click, true);
-    document.addEventListener('pointercancel', this.clear);
+    document.addEventListener('pointercancel', this.cancel, true);
+    document.addEventListener('visibilitychange', this.visibility);
     document.addEventListener('contextmenu', this.context);
     document.addEventListener('keydown', this.key, true);
-    window.addEventListener('blur', this.clear);
+    window.addEventListener('blur', this.loseFocus);
     window.addEventListener('resize', this.clear);
     const camera = input.scene.activeCamera;
     if (camera) {
-      const observer = camera.onViewMatrixChangedObservable.add(this.clearHover);
+      const observer = camera.onViewMatrixChangedObservable.add(this.viewChanged);
       this.releaseView = () => camera.onViewMatrixChangedObservable.remove(observer);
     }
   }
@@ -75,6 +82,20 @@ export class InteractionFeedback {
     return this.input.scene.pick(x - rect.left, y - rect.top);
   }
   private down = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      // A repeated ID belongs to a new sequence after a lost release (for example app switching).
+      if (this.touches.has(e.pointerId)) {
+        this.cancelHold();
+        this.touches.clear();
+      }
+      if (!this.touches.size) {
+        this.touchRejected = false;
+        this.suppressClick = false;
+      }
+      this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      // A second finger on the HUD or a label must also disqualify a canvas tap.
+      if (this.touches.size > 1) this.rejectTouches();
+    } else if (!this.touches.size) this.suppressClick = false;
     if (this.menu.contains(e.target as Node)) return;
     this.close(false);
     this.pending = undefined;
@@ -84,8 +105,21 @@ export class InteractionFeedback {
     this.labelGesture.down(e.pointerId, e.clientX, e.clientY, e.button);
     if (label && e.button === 0) this.labelPointer = e.pointerId;
     if (e.button === 2) this.origin = { x: e.clientX, y: e.clientY, moved: false };
+    if (e.pointerType === 'touch' && e.button === 0 && !this.touchRejected) {
+      const target = label ?? this.input.canvas;
+      if (target.hasAttribute('disabled')) return;
+      this.hold = { id: e.pointerId, click: { x: e.clientX, y: e.clientY }, target };
+      this.holdTimer = setTimeout(this.openHold, 500);
+    }
   };
   private click = (e: MouseEvent) => {
+    // The release of a hold can synthesize a click on the label or the menu now under it.
+    // A fresh pointerdown permits the next intentional option; keyboard activation stays available.
+    if (this.suppressClick && e.detail > 0) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return;
+    }
     const label = this.label(e.target);
     // Keyboard activation has no pointer position and keeps its regular focus feedback.
     if (label && e.detail === 0) {
@@ -115,6 +149,8 @@ export class InteractionFeedback {
     if (accepted) this.accepted('object', pending.click);
   }
   private move = (e: PointerEvent) => {
+    const touch = this.touches.get(e.pointerId);
+    if (touch && Math.hypot(e.clientX - touch.x, e.clientY - touch.y) > 8) this.rejectTouches();
     this.labelGesture.move(e.pointerId, e.clientX, e.clientY);
     if (this.origin && Math.hypot(e.clientX - this.origin.x, e.clientY - this.origin.y) > 8)
       this.origin.moved = true;
@@ -142,6 +178,17 @@ export class InteractionFeedback {
     this.position(this.hint, e.clientX + 16, e.clientY + 18);
   };
   private up = (e: PointerEvent) => {
+    if (e.pointerType === 'touch') {
+      const touch = this.touches.get(e.pointerId);
+      if (touch && Math.hypot(e.clientX - touch.x, e.clientY - touch.y) > 8) this.rejectTouches();
+      // The window's canonical pointerup has already run. Reject its candidate before Babylon's tap.
+      if (this.touchRejected) {
+        this.input.cancelTap();
+        this.labelGesture.reject();
+      }
+      this.touches.delete(e.pointerId);
+      if (this.hold?.id === e.pointerId) this.cancelHold();
+    }
     this.labelGesture.up(e.pointerId, e.clientX, e.clientY);
     const origin = this.origin;
     this.origin = undefined;
@@ -149,6 +196,55 @@ export class InteractionFeedback {
     // A drag that returns to its starting point is still a drag.
     if (Math.hypot(e.clientX - origin.x, e.clientY - origin.y) > 8) return;
     this.open(e.clientX, e.clientY, e.target, { x: e.clientX, y: e.clientY });
+  };
+  private cancelHold() {
+    if (this.holdTimer) clearTimeout(this.holdTimer);
+    this.holdTimer = undefined;
+    this.hold = undefined;
+  }
+  private rejectTouches() {
+    this.cancelHold();
+    this.touchRejected = true;
+    this.suppressClick = true;
+    this.input.cancelTap();
+    this.labelGesture.reject();
+    this.labelPointer = undefined;
+  }
+  private openHold = () => {
+    const hold = this.hold;
+    this.cancelHold();
+    if (!hold) return;
+    if (
+      this.disposed ||
+      this.input.paused() ||
+      this.touchRejected ||
+      this.touches.size !== 1 ||
+      !this.touches.has(hold.id) ||
+      !hold.target.isConnected ||
+      hold.target.hasAttribute('disabled')
+    ) {
+      this.rejectTouches();
+      return;
+    }
+    this.rejectTouches();
+    this.open(hold.click.x, hold.click.y, hold.target, hold.click);
+  };
+  private cancel = (e: PointerEvent) => {
+    this.clear();
+    this.touches.delete(e.pointerId);
+  };
+  private visibility = () => {
+    if (document.hidden) this.loseFocus();
+  };
+  private loseFocus = () => {
+    this.clear();
+    // The browser may never deliver a release while another app owns focus.
+    // Blur clears canonical input; hidden documents also pause the world and clear it.
+    this.touches.clear();
+  };
+  private viewChanged = () => {
+    if (this.hold) this.rejectTouches();
+    this.clearHover();
   };
   private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
     const label = this.label(target);
@@ -259,6 +355,8 @@ export class InteractionFeedback {
     this.menu.hidden = true;
   }
   private clear = () => {
+    this.cancelHold();
+    if (this.touches.size) this.rejectTouches();
     this.origin = undefined;
     this.pending = undefined;
     this.labelGesture.clear();
@@ -278,16 +376,18 @@ export class InteractionFeedback {
   dispose() {
     this.clear();
     this.disposed = true;
+    this.touches.clear();
     if (this.timer) clearTimeout(this.timer);
     this.releaseView?.();
     document.removeEventListener('pointerdown', this.down, true);
     document.removeEventListener('pointermove', this.move, true);
     document.removeEventListener('pointerup', this.up, true);
     document.removeEventListener('click', this.click, true);
-    document.removeEventListener('pointercancel', this.clear);
+    document.removeEventListener('pointercancel', this.cancel, true);
+    document.removeEventListener('visibilitychange', this.visibility);
     document.removeEventListener('contextmenu', this.context);
     document.removeEventListener('keydown', this.key, true);
-    window.removeEventListener('blur', this.clear);
+    window.removeEventListener('blur', this.loseFocus);
     window.removeEventListener('resize', this.clear);
     this.hint.remove();
     this.menu.remove();

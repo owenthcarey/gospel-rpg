@@ -12,6 +12,7 @@ import { preparedSpring, arrangedShelter, chosenShelter } from '../helpers/galil
 import { accounts } from '../../src/game/connection/accounts';
 import { completedJourney } from '../helpers/connection';
 import { transition } from '../../src/game/quest';
+import { STORY_TRACKS } from '../../src/game/campaign/types';
 
 test('the journey overview prioritizes local play and deliberately follows the chosen story', async ({
   page,
@@ -39,14 +40,43 @@ test('the journey overview prioritizes local play and deliberately follows the c
   const s = await exported(page);
   expect(s.tracking).toBe('village');
   expect(s.villageStory).toBe('not-started');
+  await page.locator('[data-setting="textSize"]').selectOption('large');
+  await page.locator('[data-setting="reducedMotion"]').check();
   await dismiss(page);
   await page.locator('.toolbar [data-action="journal"]').click();
   await expect(page.locator('.current-opportunity')).toContainText('An ordinary morning');
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Filter journal by story' })).toBeVisible();
-  await act(page, 'journal-category', 'overview');
-  await act(page, 'open-story', 'main');
+  const register = page.getByRole('region', { name: 'Stories by status' });
+  await expect(register.locator('article')).toHaveCount(STORY_TRACKS.length);
+  await expect(page.locator('.episode-summary')).toHaveCount(0);
+  await expect(
+    register.locator('[data-story-status="unavailable"] .status-pill').first(),
+  ).toBeVisible();
+  await expect(
+    register.locator('[data-story-status="available"] .status-pill').first(),
+  ).toBeVisible();
+  await expect(
+    register.locator('[data-story-status="unavailable"] .status-pill').first(),
+  ).toHaveText('unavailable');
+  await readableContrast(page, '.story-register [data-story-status="unavailable"] h3');
+  await readableContrast(page, '.story-register [data-story-status="available"] h3');
+  await expect(page.locator('#overlay')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.panel')).toHaveCSS('opacity', '1');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  const mainStory = register.locator('[data-action="open-story"][data-value="main"]');
+  await mainStory.focus();
+  await mainStory.press('Enter');
   await expect(page.locator('[data-journal-filter]')).toHaveValue('main');
+  await expect(register).toHaveCount(0);
+  await expect(page.locator('.episode-summary')).toContainText('Into the Deep');
+  await expect(page.locator('.episode-objectives li')).toHaveCount(9);
+  await act(page, 'transcript', 'lake');
+  await expect(page.locator('.transcript-beat')).toHaveCount(accounts.lake.scenes.length);
+  const afterReading = await exported(page);
+  expect(afterReading.playTime).toBeGreaterThanOrEqual(s.playTime);
+  expect({ ...afterReading, playTime: s.playTime }).toEqual(s);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });
 
 test('phone atlas numbers stay readable across early and fully connected journeys', async ({

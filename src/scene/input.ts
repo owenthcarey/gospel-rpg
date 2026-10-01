@@ -9,6 +9,7 @@ export interface ScreenClick {
 export interface ExplorationInputBinding {
   dispose: () => void;
   clear: () => void;
+  cancelTap: () => void;
 }
 export interface ExplorationInput {
   scene: Scene;
@@ -120,5 +121,5 @@ export function bindExplorationInput(input: ExplorationInput): ExplorationInputB
     scene.onPointerObservable.remove(pointer);
     clear();
   };
-  return { dispose, clear };
+  return { dispose, clear, cancelTap: () => gesture.reject() };
 }

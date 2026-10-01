@@ -141,6 +141,7 @@ test('one fresh traveler completes all four chapters without replacing or import
   await dismiss(page);
   await page.locator('.toolbar [data-action="journal"]').click();
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Filter journal by story' }).selectOption('home');
   await expect(page.locator('.home-summary')).toContainText('Return to Leah, Hannah and Miriam');
   await page.screenshot({ path: info.outputPath('four-chapters-complete.png') });
   expect(errors).toEqual([]);

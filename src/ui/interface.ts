@@ -575,7 +575,7 @@ export class Interface {
             ? journalPlaces(state)
             : category === 'memories'
               ? memoryEntries(state, filter)
-              : status !== 'all'
+              : status !== 'all' || filter === 'all'
                 ? statusStories(state, status, filter)
                 : `${matches('home') && (filter === 'home' || state.lake.chapter.stage === 'complete') ? homeSummary(state) : ''}${matches('main') ? `<div class="journal-summary"><span class="chapter-icon">${icon('leaf')}</span><div><h3>A place by the water</h3><p>${esc(preludeObjective(state))}</p></div><span class="status-pill">${state.quest === 'complete' ? 'Complete' : 'Chapter I'}</span></div>${state.quest === 'complete' ? '<button class="text-button" data-action="prelude-reading">Optional reading · Luke 5:4</button>' : ''}${episodeSummary(state)}` : ''}${matches('village') ? this.villageSummary(state) : ''}${campaignSummary(state, filter)}${roadSummary(state, filter)}${harborSummary(state, filter)}${galileeSummary(state, filter)}${lakeSummary(state, filter)}${matches('belonging') ? threadEvidence(state) : ''}<h2 class="recent-memories">Recent memories</h2>${memoryEntries(state, filter, 3)}<button class="secondary-button" data-action="journal-category" data-value="memories">Read all memories</button>`;
     this.show(
@@ -715,9 +715,9 @@ export class Interface {
       ['Click / tap the minimap', 'Walk to that point; the flag clears when you arrive'],
       ['Compass / LOCAL MAP', 'Face north / open local destinations'],
       ['Click a name or use the map', 'Walk over and interact'],
+      ['Right-click / hold a world target', 'Choose an action'],
       ['W A S D / arrow keys', 'Move relative to the camera'],
       ['E', 'Speak or examine nearby'],
-      ['Right click', 'Choose an action for a person, object or place'],
       ['Middle or right mouse drag / two fingers', 'Rotate the camera'],
       ['Mouse wheel / pinch / zoom buttons', 'Zoom in or out'],
       ['Q / rotate buttons', 'Rotate the view'],

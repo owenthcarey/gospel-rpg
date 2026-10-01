@@ -53,6 +53,15 @@
   outline: 1px solid #b5a17b;
   outline-offset: -1px;
 }
+.world-label {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+@media (pointer: coarse) {
+  .world-option-menu button {
+    min-height: 44px;
+  }
+}
 .world-option-name.is-person {
   color: #80ffff;
 }

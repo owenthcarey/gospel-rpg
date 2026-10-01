@@ -82,6 +82,7 @@ test('Ruth’s investigation survives clue order, pouch recovery, travel, journa
   }
   await page.locator('.toolbar [data-action="journal"]').click();
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Filter journal by story' }).selectOption('belonging');
   await expect(page.getByRole('region', { name: 'Investigation evidence' })).toContainText(
     'two short stitches',
   );
