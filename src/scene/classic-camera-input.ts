@@ -1,6 +1,12 @@
 import { ArcRotateCameraPointersInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import type { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
-import type { PointerTouch } from '@babylonjs/core/Events/pointerEvents';
+import {
+  PointerEventTypes,
+  type PointerInfoPre,
+  type PointerTouch,
+} from '@babylonjs/core/Events/pointerEvents';
+import type { IWheelEvent } from '@babylonjs/core/Events/deviceInputEvents';
+import type { Observer } from '@babylonjs/core/Misc/observable';
 
 export interface ClassicCameraInputOptions {
   manual?: () => void;
@@ -16,6 +22,8 @@ function mapOrbitButtons(camera: ArcRotateCamera) {
 
 /** Preserve primary taps while middle/right drags and two fingers control the camera. */
 export class ClassicCameraPointersInput extends ArcRotateCameraPointersInput {
+  private attached = false;
+  private wheelObserver?: Observer<PointerInfoPre>;
   constructor(private options: ClassicCameraInputOptions = {}) {
     super();
     // Touch down/up uses button 0; registering it is necessary for pinch tracking.
@@ -29,9 +37,28 @@ export class ClassicCameraPointersInput extends ArcRotateCameraPointersInput {
     return 'ClassicCameraPointersInput';
   }
   override attachControl(noPreventDefault?: boolean) {
+    if (this.attached) return;
     // Camera.attachControl applies legacy panning mappings before attaching its inputs.
     mapOrbitButtons(this.camera);
     super.attachControl(noPreventDefault);
+    this.wheelObserver = this.camera.getScene().onPrePointerObservable.add((info) => {
+      if (info.skipOnPointerObservable) return;
+      if (this.options.enabled?.() === false) {
+        info.skipOnPointerObservable = true;
+        return;
+      }
+      const event = info.event as IWheelEvent;
+      // Hand off before the existing wheel input calculates its radius-dependent delta.
+      if (Number.isFinite(event.deltaY) && event.deltaY !== 0) this.options.manual?.();
+    }, PointerEventTypes.POINTERWHEEL);
+    this.attached = true;
+  }
+  override detachControl() {
+    if (!this.attached) return;
+    this.camera.getScene().onPrePointerObservable.remove(this.wheelObserver!);
+    this.wheelObserver = undefined;
+    super.detachControl();
+    this.attached = false;
   }
   override onTouch(point: PointerTouch | null, offsetX: number, offsetY: number) {
     if (

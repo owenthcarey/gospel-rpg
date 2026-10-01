@@ -1,5 +1,5 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
-import { ready, settled, exported } from '../helpers/connection-browser';
+import { ready, settled, exported, dismiss, visit } from '../helpers/connection-browser';
 
 /** Observe the actual rendered flash during the action; CPU WebGL can outlast its 260 ms lifetime. */
 async function markerDuring(page: Page, action: () => Promise<unknown>, kind: 'ground' | 'object') {
@@ -48,6 +48,25 @@ async function markerDuring(page: Page, action: () => Promise<unknown>, kind: 'g
 async function center(target: Locator) {
   const box = (await target.boundingBox())!;
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
+
+/** Sample both visible landmarks in the same rendered layout; a hidden label is unavailable. */
+async function landmarkSpan(page: Page, first: string, second: string) {
+  return page.evaluate(
+    (ids) => {
+      const boxes = ids.map((id) => {
+        const label = document.querySelector<HTMLElement>(`.world-label[data-value="${id}"]`);
+        if (!label || label.hidden) return null;
+        const box = label.getBoundingClientRect();
+        return box.width > 0 && box.height > 0 ? box : null;
+      });
+      const [a, b] = boxes;
+      return a && b
+        ? Math.hypot(a.x + a.width / 2 - b.x - b.width / 2, a.y + a.height / 2 - b.y - b.height / 2)
+        : 0;
+    },
+    [first, second],
+  );
 }
 
 async function touchContact(page: Page) {
@@ -174,6 +193,66 @@ test('right drags orbit without opening an option menu and menus fit short viewp
   await page.keyboard.up('q');
 });
 
+test('wheel zoom takes over a returning camera and stays quiet behind the journal', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'chromium', 'Wheel handoff is shared by the camera input');
+  await ready(page);
+  const simon = page.locator('.world-label[data-value="simon"]');
+  const span = () => landmarkSpan(page, 'simon', 'miriam');
+  await visit(page, 'simon');
+  await page.getByRole('button', { name: 'Leave conversation' }).click();
+  await page.waitForTimeout(850);
+  const originalSpan = await span();
+  const position = await page.locator('#minimap-player').getAttribute('transform');
+  await simon.click();
+  await expect(page.locator('#game-canvas')).toHaveAttribute('data-conversation', 'simon');
+  // Inject the real DOM wheel at the first close checkpoint, before any return frame.
+  // Separate browser commands can outlast the entire 700 ms animation on software WebGL.
+  await page.getByRole('button', { name: 'Leave conversation' }).evaluate(
+    (button) =>
+      new Promise<void>((resolve) => {
+        const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas')!;
+        const overlay = document.querySelector('#overlay')!;
+        const observer = new MutationObserver(() => {
+          if (overlay.childElementCount) return;
+          observer.disconnect();
+          canvas.dispatchEvent(
+            new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -240 }),
+          );
+          resolve();
+        });
+        observer.observe(overlay, { childList: true });
+        (button as HTMLButtonElement).click();
+      }),
+  );
+  await page.waitForTimeout(850);
+  await expect.poll(async () => (await span()) / originalSpan).toBeGreaterThan(1.08);
+  const zoomedSpan = await span();
+  const point = await bareGround(page);
+  await page.mouse.move(point.x, point.y);
+  await page.mouse.wheel(0, 160);
+  await expect.poll(async () => (await span()) / zoomedSpan).toBeLessThan(0.96);
+  // Let the accepted wheel's inertia settle before checking a separate paused input.
+  await page.waitForTimeout(650);
+  const pausedSpan = await span();
+  await page.keyboard.press('j');
+  await expect(page.getByRole('dialog')).toContainText('A traveler’s journal');
+  await page.locator('#game-canvas').evaluate((canvas) => {
+    canvas.dispatchEvent(
+      new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -360 }),
+    );
+  });
+  await dismiss(page);
+  await page.waitForTimeout(850);
+  expect((await span()) / pausedSpan).toBeCloseTo(1, 2);
+  await expect(page.locator('#minimap-player')).toHaveAttribute('transform', position!);
+  await expect(page.locator('.minimap-destination')).toBeHidden();
+  const saved = await exported(page);
+  expect(saved.quest).toBe('not-started');
+  expect(saved.episode.stage).toBe('not-started');
+});
+
 test('phone two-finger gestures rotate and pinch while rejecting world actions', async ({
   page,
 }, info) => {
@@ -214,11 +293,10 @@ test('phone two-finger gestures rotate and pinch while rejecting world actions',
   await page.getByRole('button', { name: 'Reset camera', exact: true }).click();
   await simon.click({ trial: true });
   // The separation of two projected landmarks increases when the camera zooms in.
-  const span = async () => {
-    const a = await center(simon);
-    const b = await center(page.locator('.world-label[data-value="miriam"]'));
-    return Math.hypot(a.x - b.x, a.y - b.y);
-  };
+  const span = () => landmarkSpan(page, 'simon', 'eliab');
+  await expect
+    .poll(span, { message: 'Both fixed pinch landmarks must be visible' })
+    .toBeGreaterThan(0);
   const originalSpan = await span();
   await touch.send('touchStart', [first]);
   await touch.send('touchStart', [first, second]);
@@ -292,7 +370,21 @@ test('accepted walks and object actions get distinct markers while drags and hel
   await expect(flash).toBeHidden();
   await expect(page.locator('#minimap-player')).toHaveAttribute('transform', before!);
 
+  if (info.project.name === 'mobile-chromium') {
+    const nativeGround = await bareGround(page);
+    await markerDuring(page, () => page.touchscreen.tap(nativeGround.x, nativeGround.y), 'ground');
+    await page.keyboard.press('j');
+    await page.keyboard.press('Escape');
+    await settled(page);
+  }
+  // Accepted walks can move Simon outside a narrow phone view. Approach him through
+  // the existing map before testing label releases, rather than assuming the first camera remains.
+  await visit(page, 'simon');
+  await page.getByRole('button', { name: 'Leave conversation' }).click();
+  await page.waitForTimeout(850);
   const simon = page.locator('.world-label[data-value="simon"]');
+  await expect(simon).toBeVisible();
+  const beforeLabel = await page.locator('#minimap-player').getAttribute('transform');
   const labelBox = (await simon.boundingBox())!;
   const labelPoint = {
     x: labelBox.x + labelBox.width / 2,
@@ -307,13 +399,7 @@ test('accepted walks and object actions get distinct markers while drags and hel
   await page.waitForTimeout(600);
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(flash).toBeHidden();
-  await expect(page.locator('#minimap-player')).toHaveAttribute('transform', before!);
-  if (info.project.name === 'mobile-chromium') {
-    await markerDuring(page, () => page.touchscreen.tap(point.x, point.y), 'ground');
-    await page.keyboard.press('j');
-    await page.keyboard.press('Escape');
-    await settled(page);
-  }
+  await expect(page.locator('#minimap-player')).toHaveAttribute('transform', beforeLabel!);
   await simon.click({ button: 'right' });
   await menu.getByRole('menuitem', { name: 'Cancel' }).click();
   await expect(flash).toBeHidden();

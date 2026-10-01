@@ -68,6 +68,7 @@ test('the journey overview prioritizes local play and deliberately follows the c
   await mainStory.focus();
   await mainStory.press('Enter');
   await expect(page.locator('[data-journal-filter]')).toHaveValue('main');
+  await expect(page.getByRole('button', { name: 'Close menu', exact: true })).toBeFocused();
   await expect(register).toHaveCount(0);
   await expect(page.locator('.episode-summary')).toContainText('Into the Deep');
   await expect(page.locator('.episode-objectives li')).toHaveCount(9);
@@ -77,6 +78,80 @@ test('the journey overview prioritizes local play and deliberately follows the c
   expect(afterReading.playTime).toBeGreaterThanOrEqual(s.playTime);
   expect({ ...afterReading, playTime: s.playTime }).toEqual(s);
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+});
+
+test('journal categories and story filters keep keyboard focus without taking later focus', async ({
+  page,
+}) => {
+  await ready(page);
+  const before = await exported(page);
+  await page.locator('[data-setting="textSize"]').selectOption('large');
+  await page.locator('[data-setting="reducedMotion"]').check();
+  await dismiss(page);
+  await page.locator('.toolbar [data-action="journal"]').click();
+  const close = page.getByRole('button', { name: 'Close menu', exact: true });
+  await expect(close).toBeFocused();
+  const categories = page.getByRole('navigation', { name: 'Journal categories' });
+  await page.keyboard.press('Tab');
+  await expect(categories.getByRole('button', { name: 'Your journey', exact: true })).toBeFocused();
+  for (const name of ['Stories', 'People', 'Places', 'Memories']) {
+    await page.keyboard.press('Tab');
+    const category = categories.getByRole('button', { name, exact: true });
+    await expect(category).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(category).toHaveAttribute('aria-pressed', 'true');
+    await expect(category).toBeFocused();
+  }
+  await page.keyboard.press('Tab');
+  const filter = page.getByRole('combobox', { name: 'Filter journal by story' });
+  await expect(filter).toBeFocused();
+  await filter.selectOption('village');
+  await expect(filter).toHaveValue('village');
+  await expect(filter).toBeFocused();
+  await filter.selectOption('all');
+  await expect(filter).toBeFocused();
+  for (let step = 0; step < 4; step++) await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Enter');
+  await expect(categories.getByRole('button', { name: 'Stories', exact: true })).toBeFocused();
+  for (let step = 0; step < 4; step++) await page.keyboard.press('Tab');
+  await expect(filter).toBeFocused();
+  await filter.selectOption('main');
+  await expect(filter).toHaveValue('main');
+  await expect(filter).toBeFocused();
+  await expect(page.locator('.episode-summary')).toBeVisible();
+
+  // Take another visible control immediately after the refresh, before its queued focus frame.
+  await page.evaluate(() => {
+    const overlay = document.querySelector<HTMLElement>('#overlay')!;
+    const filter = overlay.querySelector<HTMLSelectElement>('[data-journal-filter]')!;
+    return new Promise<void>((resolve) => {
+      const observer = new MutationObserver(() => {
+        observer.disconnect();
+        overlay
+          .querySelector<HTMLButtonElement>(
+            '[data-action="journal-category"][data-value="people"]',
+          )!
+          .focus();
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
+      observer.observe(overlay, { childList: true });
+      filter.value = 'all';
+      filter.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+  await expect(categories.getByRole('button', { name: 'People', exact: true })).toBeFocused();
+  await expect(filter).toHaveValue('all');
+  await page.keyboard.press('Tab');
+  await expect(categories.getByRole('button', { name: 'Places', exact: true })).toBeFocused();
+  await page.getByRole('button', { name: 'Return to your journey' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(close).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('#game-canvas')).toBeFocused();
+  const after = await exported(page);
+  expect(after.playTime).toBeGreaterThanOrEqual(before.playTime);
+  expect({ ...after, playTime: before.playTime }).toEqual(before);
 });
 
 test('phone atlas numbers stay readable across early and fully connected journeys', async ({

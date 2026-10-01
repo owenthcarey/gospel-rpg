@@ -3,8 +3,12 @@ import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
 import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { PointerInfo, PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
-import type { IPointerEvent } from '@babylonjs/core/Events/deviceInputEvents';
+import {
+  PointerInfo,
+  PointerInfoPre,
+  PointerEventTypes,
+} from '@babylonjs/core/Events/pointerEvents';
+import type { IPointerEvent, IWheelEvent } from '@babylonjs/core/Events/deviceInputEvents';
 import { PointerInput } from '@babylonjs/core/DeviceInput/InputDevices/deviceEnums';
 import {
   installClassicCameraInput,
@@ -24,7 +28,7 @@ function studio(options: ClassicCameraInputOptions = {}) {
   const keyboard = camera.inputs.attached.keyboard;
   const input = installClassicCameraInput(camera, options);
   camera.attachControl(true);
-  const pointer = (
+  const pointerEvent = (
     type: number,
     id: number,
     x: number,
@@ -57,9 +61,29 @@ function studio(options: ClassicCameraInputOptions = {}) {
       target: null,
       preventDefault() {},
     };
-    scene.onPointerObservable.notifyObservers(new PointerInfo(type, event, null), type);
+    return event;
   };
-  return { scene, camera, input, pointer, wheel, keyboard };
+  const pointer = (...args: Parameters<typeof pointerEvent>) => {
+    const event = pointerEvent(...args);
+    scene.onPointerObservable.notifyObservers(new PointerInfo(args[0], event, null), args[0]);
+  };
+  const scroll = (deltaY: number, deltaX = 0) => {
+    const type = PointerEventTypes.POINTERWHEEL;
+    const event: IWheelEvent = {
+      ...pointerEvent(type, 1, 100, 100, 0),
+      inputIndex: PointerInput.MouseWheelY,
+      deltaMode: 0,
+      deltaX,
+      deltaY,
+      deltaZ: 0,
+    };
+    const pre = new PointerInfoPre(type, event, 100, 100);
+    scene.onPrePointerObservable.notifyObservers(pre, type);
+    if (!pre.skipOnPointerObservable)
+      scene.onPointerObservable.notifyObservers(new PointerInfo(type, event, null), type);
+    return pre;
+  };
+  return { scene, camera, input, pointer, scroll, wheel, keyboard };
 }
 
 describe('classic camera pointers', () => {
@@ -176,5 +200,67 @@ describe('classic camera pointers', () => {
     expect(camera.movement.zoomAccumulatedPixels).toBeGreaterThan(0);
     expect(camera.movement.panAccumulatedPixels).toEqual(Vector3.Zero());
     expect(manual).toHaveBeenCalledTimes(3);
+  });
+  for (const delta of [-120, 120])
+    it(
+      'restores the gameplay radius before the original wheel delta ' + delta + ' is calculated',
+      () => {
+        const manual = vi.fn(() => {
+          camera.radius = 24;
+        });
+        const { scene, camera, scroll, wheel } = studio({ manual });
+        const baseline = new ArcRotateCamera('baseline', -1.5, 0.8, 24, Vector3.Zero(), scene);
+        baseline.inertia = camera.inertia;
+        baseline.wheelDeltaPercentage = camera.wheelDeltaPercentage;
+        baseline.inputs.attached.mousewheel!.attachControl(true);
+        camera.radius = 72;
+        const pre = scroll(delta);
+        expect(pre.skipOnPointerObservable).toBe(false);
+        expect(manual).toHaveBeenCalledTimes(1);
+        expect(camera.radius).toBe(24);
+        expect(camera.movement.zoomAccumulatedPixels).not.toBe(0);
+        expect(camera.movement.zoomAccumulatedPixels).toBeCloseTo(
+          baseline.movement.zoomAccumulatedPixels,
+          10,
+        );
+        expect(camera.inputs.attached.mousewheel).toBe(wheel);
+        expect(camera.wheelDeltaPercentage).toBe(0.015);
+        expect(camera.inertia).toBe(0.72);
+      },
+    );
+  it('rejects paused wheel output and leaves zero or horizontal scroll quiet', () => {
+    let enabled = false;
+    const manual = vi.fn();
+    const { camera, scroll } = studio({ enabled: () => enabled, manual });
+    expect(scroll(-120).skipOnPointerObservable).toBe(true);
+    expect(camera.movement.zoomAccumulatedPixels).toBe(0);
+    expect(manual).not.toHaveBeenCalled();
+    enabled = true;
+    expect(scroll(0).skipOnPointerObservable).toBe(false);
+    expect(scroll(0, 120).skipOnPointerObservable).toBe(false);
+    expect(camera.movement.zoomAccumulatedPixels).toBe(0);
+    expect(manual).not.toHaveBeenCalled();
+    expect(scroll(-120).skipOnPointerObservable).toBe(false);
+    expect(camera.movement.zoomAccumulatedPixels).toBeGreaterThan(0);
+    expect(manual).toHaveBeenCalledTimes(1);
+  });
+  it('attaches one wheel handoff and removes it on detach or input disposal', () => {
+    const manual = vi.fn();
+    const { camera, input, scroll } = studio({ manual });
+    input.attachControl(true);
+    scroll(-120);
+    expect(manual).toHaveBeenCalledTimes(1);
+    input.detachControl();
+    input.detachControl();
+    manual.mockClear();
+    scroll(-120);
+    expect(manual).not.toHaveBeenCalled();
+    input.attachControl(true);
+    scroll(-120);
+    expect(manual).toHaveBeenCalledTimes(1);
+    camera.inputs.remove(input);
+    manual.mockClear();
+    scroll(-120);
+    expect(manual).not.toHaveBeenCalled();
   });
 });

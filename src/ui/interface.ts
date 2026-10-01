@@ -562,6 +562,17 @@ export class Interface {
     filter = this.journalFilter,
     status = this.journalStatus,
   ): void {
+    const active =
+      this.panel === 'journal' && this.overlay.contains(document.activeElement)
+        ? document.activeElement
+        : null;
+    const focusCategory =
+      active instanceof HTMLElement && active.dataset.action === 'journal-category'
+        ? active.dataset.value
+        : undefined;
+    const focusFilter =
+      active instanceof HTMLSelectElement && active.hasAttribute('data-journal-filter');
+    const restore = focusCategory !== undefined || focusFilter;
     this.journalStatus = status;
     this.journalCategory = category;
     this.journalFilter = filter;
@@ -586,7 +597,21 @@ export class Interface {
         `${journalToolbar(category, filter)}${category === 'stories' ? statusToolbar(status) : ''}<div class="journey-tools"><button class="secondary-button" data-action="recap">Journey recap</button><button class="secondary-button" data-action="replay-library">Replay Gospel scenes</button></div>${content}<aside class="content-note"><strong>About these stories</strong><p>Into the Deep follows Luke 5:1–11; Through the Roof follows Mark 2:1–12; At the gate follows Luke 7:11–17; Peace, be still follows Mark 4:35–41. Scripture is quoted from the public-domain World English Bible. The traveler, neighbors, investigations, repairs, and connective conversations are original. Each memory preserves its own reference. All four full transcripts remain in Stories.</p></aside>`,
         true,
       ),
+      !restore,
     );
+    if (restore) {
+      const surface = this.overlay.firstElementChild;
+      requestAnimationFrame(() => {
+        // Restore the control the refresh removed, without taking later focus or a newer panel.
+        if (this.panel !== 'journal' || this.overlay.firstElementChild !== surface || !focusLost())
+          return;
+        if (focusFilter) {
+          const filter = this.overlay.querySelector<HTMLSelectElement>('[data-journal-filter]');
+          if (filter) filter.focus({ preventScroll: true });
+          else restoreFocus(this.overlay);
+        } else restoreFocus(this.overlay, 'journal-category', focusCategory);
+      });
+    }
   }
   focusCrossing(mode: 'review' | 'feedback' | 'hint'): void {
     // Replacing a reading panel must keep the relevant clue/control in view.
