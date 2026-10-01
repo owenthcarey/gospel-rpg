@@ -183,6 +183,9 @@ test('right drags orbit without opening an option menu and menus fit short viewp
   expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
   await menu.getByRole('menuitem', { name: 'Cancel' }).click();
   await expect(menu).toBeHidden();
+  // The hover phase needs a still camera after the independent native orbit checks.
+  await page.getByRole('button', { name: 'Reset camera', exact: true }).click();
+  await page.waitForTimeout(150);
   await page.locator('.world-label[data-value="simon"]').hover();
   await expect(page.locator('.world-action-hint')).toContainText('Talk-to Simon');
   await expect(page.locator('.world-action-hint')).toBeVisible();
@@ -445,6 +448,8 @@ test('phone holds open Choose Option without activating the release and keep int
   await expect(simon).toBeFocused();
 
   await page.setViewportSize({ width: 844, height: 390 });
+  await page.getByRole('button', { name: 'Reset camera', exact: true }).click();
+  await page.waitForTimeout(150);
   // Wait for the frame-positioned world label to settle after the camera aspect changes.
   await simon.click({ trial: true });
   await touch.send('touchStart', [{ id: 1, ...(await center(simon)) }]);

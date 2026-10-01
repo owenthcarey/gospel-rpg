@@ -19,7 +19,8 @@ describe('browser CI scheduling', () => {
         formerlyTogether.map((test) => shards.findIndex((shard) => shard.tests.includes(test))),
       ).size,
     ).toBe(5);
-    expect(shards).toHaveLength(32);
+    // The expanded, measured matrix needs one more group than the original catalog.
+    expect(shards).toHaveLength(33);
     expect(Math.max(...shards.map((shard) => shard.estimatedSeconds))).toBeLessThanOrEqual(
       SHARD_TARGET_SECONDS,
     );

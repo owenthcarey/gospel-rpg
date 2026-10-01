@@ -1219,6 +1219,9 @@ export class World {
       return;
     }
     this.finishCameraTransition();
+    this.camera.inertialAlphaOffset = 0;
+    this.camera.inertialBetaOffset = 0;
+    this.camera.inertialRadiusOffset = 0;
     this.pendingRotation = 0;
     this.camera.alpha = -Math.PI / 2 - 0.45;
     this.camera.beta = this.layout?.camera.beta ?? 0.78;

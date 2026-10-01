@@ -44,7 +44,7 @@ import type { Diagnostics } from '../scene/runtime';
 import { allInteractables, activeInteractables, buildings, shoreline } from '../content/region';
 import { items, type Dialogue } from '../content/story';
 import { nearbyActions } from './views/actions';
-import { arrangeLabels } from './labels';
+import { arrangeLabels, measureLabels } from './labels';
 import {
   journalToolbar,
   memoryEntries,
@@ -370,16 +370,13 @@ export class Interface {
       .filter((node) => node.offsetHeight > 0)
       .map((node) => node.getBoundingClientRect());
     const placed = arrangeLabels(
-      labels.map((label) => {
-        const node = this.labelNodes.get(label.id);
-        const s = states.get(label.id);
-        return {
-          ...label,
-          width: node?.offsetWidth || Math.min(200, (node?.textContent?.length ?? 10) * 6 + 22),
-          height: node?.offsetHeight || 26,
-          priority: s ? labelPriority(s) : 0,
-        };
-      }),
+      measureLabels(
+        labels.map((label) => {
+          const s = states.get(label.id);
+          return { ...label, priority: s ? labelPriority(s) : 0 };
+        }),
+        this.labelNodes,
+      ),
       reserved,
       this.root.clientWidth,
       this.root.clientHeight,
