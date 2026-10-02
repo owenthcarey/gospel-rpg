@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseSave } from '../../src/persistence/schema';
 import { dismiss, exported, ready, settled } from '../helpers/connection-browser';
+import { observeNavigation } from '../helpers/navigation-pause-browser';
 
 const status = '#travel-status';
 const resume = status + ' [data-action="route-resume"]';
@@ -38,24 +39,14 @@ async function navigation(page: Page) {
   });
 }
 
-async function startRoute(page: Page) {
-  await page.locator(resume).click();
-  await settled(page);
-  await expect(page.locator(status)).toContainText('Approaching Olive grove');
-  await expect(page.locator(flag)).toBeVisible();
-}
-
-async function graphicsLoss(page: Page) {
-  const extension = await page.locator('#game-canvas').evaluateHandle((node) => {
-    const canvas = node as HTMLCanvasElement;
-    return (canvas.getContext('webgl2') ?? canvas.getContext('webgl'))!.getExtension(
-      'WEBGL_lose_context',
-    );
-  });
-  expect(await extension.evaluate((value) => !!value)).toBe(true);
-  await extension.evaluate((value) => value!.loseContext());
-  await expect(page.locator('#ui')).toHaveAttribute('data-graphics-paused', 'true');
-  return extension;
+function activeApproach(active: {
+  text: string | null;
+  flagVisible: boolean;
+  graphicsPaused?: string;
+}) {
+  expect(active.text).toContain('Approaching Olive grove');
+  expect(active.flagVisible).toBe(true);
+  expect(active.graphicsPaused).not.toBe('true');
 }
 
 test('permitted route cancellation during real graphics loss clears approaching feedback without changing earned progress', async ({
@@ -63,10 +54,12 @@ test('permitted route cancellation during real graphics loss clears approaching 
   isMobile,
 }, info) => {
   await savedRoute(page, isMobile);
-  await startRoute(page);
-  const approaching = await navigation(page);
-  const extension = await graphicsLoss(page);
+  const observation = await observeNavigation(page, { loseContext: true });
   try {
+    await page.locator(resume).click();
+    const { active: approaching } = await observation.observed();
+    activeApproach(approaching);
+    await expect(page.locator('#ui')).toHaveAttribute('data-graphics-paused', 'true');
     const paused = await navigation(page);
     const before = await exported(page);
     expect(before.connection.route).toEqual({ target: 'olive' });
@@ -93,8 +86,7 @@ test('permitted route cancellation during real graphics loss clears approaching 
     expect(paused.resumeVisible).toBe(true);
     expect(paused.resumeDisabled).toBe(true);
   } finally {
-    await extension.evaluate((value) => value!.restoreContext());
-    await extension.dispose();
+    await observation.restore();
   }
   await dismiss(page);
   await expect(page.locator('#ui')).toHaveAttribute('data-graphics-paused', 'false');
@@ -107,10 +99,13 @@ test('an interrupted saved route waits for deliberate Resume after graphics rest
   isMobile,
 }, info) => {
   const initial = await savedRoute(page, isMobile);
-  await startRoute(page);
-  const extension = await graphicsLoss(page);
+  const observation = await observeNavigation(page, { loseContext: true });
   let interrupted: Awaited<ReturnType<typeof exported>>;
   try {
+    await page.locator(resume).click();
+    const { active } = await observation.observed();
+    activeApproach(active);
+    await expect(page.locator('#ui')).toHaveAttribute('data-graphics-paused', 'true');
     const paused = await navigation(page);
     interrupted = await exported(page);
     expect({ ...interrupted, position: initial.position, playTime: initial.playTime }).toEqual(
@@ -130,7 +125,7 @@ test('an interrupted saved route waits for deliberate Resume after graphics rest
     });
     await writeFile(
       info.outputPath('saved-route-interruption.json'),
-      JSON.stringify({ paused, initial, interrupted, held }, null, 2),
+      JSON.stringify({ active, paused, initial, interrupted, held }, null, 2),
     );
     expect(paused.text).toBe('Olive grove · Your destination is in this region.');
     expect(paused.flagVisible).toBe(false);
@@ -138,8 +133,7 @@ test('an interrupted saved route waits for deliberate Resume after graphics rest
     expect(paused.resumeDisabled).toBe(true);
     await expect(page.locator(resume)).toBeDisabled();
   } finally {
-    await extension.evaluate((value) => value!.restoreContext());
-    await extension.dispose();
+    await observation.restore();
   }
   await expect(page.locator('#ui')).toHaveAttribute('data-graphics-paused', 'false');
   await expect(page.locator(resume)).toBeEnabled();
@@ -148,7 +142,15 @@ test('an interrupted saved route waits for deliberate Resume after graphics rest
   const restored = await exported(page);
   expect({ ...restored, playTime: interrupted.playTime }).toEqual(interrupted);
   await dismiss(page);
-  await startRoute(page);
+  const resumed = await observeNavigation(page);
+  let resumedFeedback: Awaited<ReturnType<typeof resumed.observed>>;
+  try {
+    await page.locator(resume).click();
+    resumedFeedback = await resumed.observed();
+    activeApproach(resumedFeedback.active);
+  } finally {
+    await resumed.restore();
+  }
   await expect(
     page.getByRole('heading', { name: 'Under the olive trees', exact: true }),
   ).toBeVisible({
@@ -168,7 +170,7 @@ test('an interrupted saved route waits for deliberate Resume after graphics rest
   expect(Math.hypot(arrived.position.x + 17, arrived.position.z - 6)).toBeLessThan(2.8);
   await writeFile(
     info.outputPath('saved-route-restored-arrival.json'),
-    JSON.stringify({ interrupted, restored, arrived }, null, 2),
+    JSON.stringify({ resumedFeedback, interrupted, restored, arrived }, null, 2),
   );
 });
 
@@ -203,15 +205,17 @@ test('a live ground walk survives tracking refresh while graphics pause clears o
       point,
     ),
   ).toBe(true);
-  await page.mouse.click(point.x, point.y);
-  await expect(page.locator(flag)).toBeVisible();
-  await expect(page.locator(status)).not.toContainText('Approaching');
-  await page.locator('.village-shortcut').click();
-  await settled(page);
-  await expect(page.locator(flag)).toBeVisible();
-  const walking = await navigation(page);
-  const extension = await graphicsLoss(page);
+  const observation = await observeNavigation(page, { ground: true, loseContext: true });
   try {
+    await page.mouse.click(point.x, point.y);
+    await page.locator('.village-shortcut').click();
+    const { active: walking, beforeTracking, afterTracking } = await observation.observed();
+    expect(beforeTracking?.flagVisible).toBe(true);
+    expect(afterTracking?.flagVisible).toBe(true);
+    expect(afterTracking?.trackingValue).toBe('main');
+    expect(afterTracking?.pending).toBe('false');
+    expect(afterTracking?.endpoint).toEqual(walking.endpoint);
+    await expect(page.locator('#ui')).toHaveAttribute('data-graphics-paused', 'true');
     const paused = await navigation(page);
     const saved = await exported(page);
     expect(saved.connection.route).toEqual(before.connection.route);
@@ -229,15 +233,14 @@ test('a live ground walk survives tracking refresh while graphics pause clears o
     await page.screenshot({ path: info.outputPath('paused-ground-walk.png'), scale: 'css' });
     await writeFile(
       info.outputPath('ground-walk-pause.json'),
-      JSON.stringify({ walking, paused, before, saved }, null, 2),
+      JSON.stringify({ walking, beforeTracking, afterTracking, paused, before, saved }, null, 2),
     );
     expect(walking.flagVisible).toBe(true);
     expect(paused.flagVisible).toBe(false);
     expect(paused.text).not.toContain('Approaching');
     expect(paused.resumeDisabled).toBe(true);
   } finally {
-    await extension.evaluate((value) => value!.restoreContext());
-    await extension.dispose();
+    await observation.restore();
   }
   await expect(page.locator('#ui')).toHaveAttribute('data-graphics-paused', 'false');
   await expect(page.locator(resume)).toBeEnabled();

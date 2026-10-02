@@ -18,7 +18,8 @@ export async function observeRadarCrossing(
   // Awaiting this setup acknowledges that the observer is attached before pointer input.
   await player.evaluate(
     (element, { bounds, z }) => {
-      const node = element as Element & { navigationCrossing?: Promise<RadarCrossing> };
+      const node = element;
+      const reading = window as Window & { navigationCrossing?: Promise<RadarCrossing> };
       const read = (): Point => {
         const [, x, y] = node.getAttribute('transform')!.match(/translate\(([^,]+),([^)]*)\)/)!;
         const scale = 192 / (bounds.max - bounds.min);
@@ -27,7 +28,8 @@ export async function observeRadarCrossing(
       const initial = read();
       const direction = Math.sign(z - initial.z);
       if (!direction) throw new Error('The traveler already stands on the crossing plane.');
-      node.navigationCrossing = new Promise<RadarCrossing>((resolve, reject) => {
+      // Journal refresh replaces the SVG. Retain the result until the driver has read it.
+      reading.navigationCrossing = new Promise<RadarCrossing>((resolve, reject) => {
         const samples = [initial];
         let previous = initial;
         const observer = new MutationObserver(() => {
@@ -65,18 +67,24 @@ export async function observeRadarCrossing(
         observer.observe(node, { attributes: true, attributeFilter: ['transform'] });
       });
       // Keep diagnostics handled even if a pointer action fails before the result is read.
-      void node.navigationCrossing.catch(() => {});
+      void reading.navigationCrossing.catch(() => {});
     },
     { bounds, z },
   );
-  const completed = player.evaluate(async (element) => {
-    const node = element as Element & { navigationCrossing?: Promise<RadarCrossing> };
-    try {
-      return await node.navigationCrossing!;
-    } finally {
-      delete node.navigationCrossing;
-    }
-  });
+  const completed = page
+    .evaluate(
+      () =>
+        (window as Window & { navigationCrossing?: Promise<RadarCrossing> }).navigationCrossing!,
+    )
+    .finally(async () => {
+      // Cleanup follows CDP delivery rather than removing the promise's last strong reference.
+      await page
+        .evaluate(() => {
+          delete (window as Window & { navigationCrossing?: Promise<RadarCrossing> })
+            .navigationCrossing;
+        })
+        .catch(() => {});
+    });
   void completed.catch(() => {});
   return { completed };
 }

@@ -7,6 +7,7 @@ import type { Point } from '../../src/game/types';
 import { parseSave } from '../../src/persistence/schema';
 import { dismiss, exported, ready } from '../helpers/connection-browser';
 import { observeRadarCrossing } from '../helpers/navigation-crossing-browser';
+import { observeRadarWalk } from '../helpers/navigation-walk-browser';
 
 const grid = new WalkGrid(obstacles, isLand);
 
@@ -30,10 +31,14 @@ async function radarPoint(page: Page, selector = '#minimap-player'): Promise<Poi
 }
 
 async function arrive(page: Page, point: Point, touch: boolean) {
+  const observer = await observeRadarWalk(page, { min: -24, max: 24 });
   await tapWorld(page, point, touch);
-  await expect(page.locator('.minimap-destination')).toBeVisible();
-  await expect(page.locator('.minimap-destination')).toBeHidden({ timeout: 60_000 });
+  const walk = await observer.completed;
+  expect(distance(walk.endpoint, point)).toBeLessThan(0.05);
+  expect(distance(walk.arrived, point)).toBeLessThan(0.05);
+  await expect(page.locator('.minimap-destination')).toBeHidden();
   expect(distance(await radarPoint(page), point)).toBeLessThan(0.05);
+  return walk;
 }
 
 for (const [quality, reducedMotion] of [
@@ -49,7 +54,7 @@ for (const [quality, reducedMotion] of [
     await page.locator('[data-setting="quality"]').selectOption(quality);
     await page.locator('[data-setting="reducedMotion"]').setChecked(reducedMotion);
     await dismiss(page);
-    await arrive(page, { x: 7, z: -2 }, isMobile);
+    const initialWalk = await arrive(page, { x: 7, z: -2 }, isMobile);
 
     // Pause through the real journal at the same shoreline crossing that previously
     // put the traveler's legs inside the imported wooden crate.
@@ -80,19 +85,21 @@ for (const [quality, reducedMotion] of [
       scale: 'css',
     });
     await dismiss(page);
-    await arrive(page, { x: 7, z: 2 }, isMobile);
-    await arrive(page, { x: 7, z: -2 }, isMobile);
+    const resumedWalk = await arrive(page, { x: 7, z: 2 }, isMobile);
+    const returnWalk = await arrive(page, { x: 7, z: -2 }, isMobile);
 
     // Clicking the wooden prop keeps the flag on the reachable endpoint and clears
     // it when the traveler gets there, rather than promising a blocked center.
+    const blockedWalk = await observeRadarWalk(page, { min: -24, max: 24 });
     await tapWorld(page, crate, isMobile);
-    await expect(page.locator('.minimap-destination')).toBeVisible();
-    const endpoint = await radarPoint(page, '.minimap-destination');
+    const blocked = await blockedWalk.completed;
+    const { endpoint, arrived } = blocked;
     expect(grid.walkable(endpoint)).toBe(true);
-    await expect(page.locator('.minimap-destination')).toBeHidden({ timeout: 60_000 });
+    expect(distance(arrived, endpoint)).toBeLessThan(0.05);
+    await expect(page.locator('.minimap-destination')).toBeHidden();
     expect(distance(await radarPoint(page), endpoint)).toBeLessThan(0.05);
 
-    await tapWorld(page, { x: 3, z: -2 }, isMobile);
+    await tapWorld(page, { x: -4, z: 8 }, isMobile);
     await expect(page.locator('.minimap-destination')).toBeVisible();
     await page.locator('.toolbar [data-action="journal"]').click();
     await expect(page.locator('.minimap-destination')).toBeHidden();
@@ -104,7 +111,16 @@ for (const [quality, reducedMotion] of [
     await writeFile(
       info.outputPath('shore-route.json'),
       JSON.stringify(
-        { quality, reducedMotion, samples, crossing, passing, endpoint, stopped },
+        {
+          quality,
+          reducedMotion,
+          samples,
+          crossing,
+          passing,
+          endpoint,
+          stopped,
+          walks: [initialWalk, resumedWalk, returnWalk, blocked],
+        },
         null,
         2,
       ),

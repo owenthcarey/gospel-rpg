@@ -7,6 +7,7 @@ import type { Point } from '../../src/game/types';
 import { parseSave } from '../../src/persistence/schema';
 import { dismiss, exported, ready } from '../helpers/connection-browser';
 import { observeRadarCrossing } from '../helpers/navigation-crossing-browser';
+import { observeRadarWalk } from '../helpers/navigation-walk-browser';
 
 const fixture = async (name: string) =>
   parseSave(JSON.parse(await readFile(`tests/fixtures/saves/${name}`, 'utf8'))).state;
@@ -40,10 +41,14 @@ async function radarPoint(page: Page, selector = '#minimap-player'): Promise<Poi
 }
 
 async function arrive(page: Page, point: Point, touch: boolean) {
+  const observer = await observeRadarWalk(page, layout.bounds);
   await tapWorld(page, point, touch);
-  await expect(page.locator('.minimap-destination')).toBeVisible();
-  await expect(page.locator('.minimap-destination')).toBeHidden({ timeout: 60_000 });
+  const walk = await observer.completed;
+  expect(distance(walk.endpoint, point)).toBeLessThan(0.05);
+  expect(distance(walk.arrived, point)).toBeLessThan(0.05);
+  await expect(page.locator('.minimap-destination')).toBeHidden();
   expect(distance(await radarPoint(page), point)).toBeLessThan(0.05);
+  return walk;
 }
 
 for (const [quality, reducedMotion] of [
@@ -66,7 +71,7 @@ for (const [quality, reducedMotion] of [
     await page.locator('[data-setting="quality"]').selectOption(quality);
     await page.locator('[data-setting="reducedMotion"]').setChecked(reducedMotion);
     await dismiss(page);
-    await arrive(page, from, isMobile);
+    const initialWalk = await arrive(page, from, isMobile);
 
     // Freeze at the same real crossing that put the traveler inside the old crate.
     const observer = await observeRadarCrossing(page, layout.bounds, crate.z);
@@ -95,13 +100,15 @@ for (const [quality, reducedMotion] of [
       scale: 'css',
     });
     await dismiss(page);
-    await arrive(page, target, isMobile);
-    await arrive(page, from, isMobile);
+    const resumedWalk = await arrive(page, target, isMobile);
+    const returnWalk = await arrive(page, from, isMobile);
+    const blockedWalk = await observeRadarWalk(page, layout.bounds);
     await tapWorld(page, crate, isMobile);
-    await expect(page.locator('.minimap-destination')).toBeVisible();
-    const endpoint = await radarPoint(page, '.minimap-destination');
+    const blocked = await blockedWalk.completed;
+    const { endpoint, arrived } = blocked;
     expect(grid.walkable(endpoint)).toBe(true);
-    await expect(page.locator('.minimap-destination')).toBeHidden({ timeout: 60_000 });
+    expect(distance(arrived, endpoint)).toBeLessThan(0.05);
+    await expect(page.locator('.minimap-destination')).toBeHidden();
     expect(distance(await radarPoint(page), endpoint)).toBeLessThan(0.05);
 
     await tapWorld(page, { x: 8, z: -6 }, isMobile);
@@ -116,7 +123,18 @@ for (const [quality, reducedMotion] of [
     await writeFile(
       info.outputPath('lane-route-state.json'),
       JSON.stringify(
-        { quality, reducedMotion, samples, crossing, passing, endpoint, stopped, before, after },
+        {
+          quality,
+          reducedMotion,
+          samples,
+          crossing,
+          passing,
+          endpoint,
+          stopped,
+          before,
+          after,
+          walks: [initialWalk, resumedWalk, returnWalk, blocked],
+        },
         null,
         2,
       ),
