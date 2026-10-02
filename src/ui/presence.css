@@ -24,7 +24,7 @@
 .conversation-overlay {
   pointer-events: none;
 }
-.conversing .toast {
+:root #ui.conversing:not(.scene-mode) > .toast {
   top: 80px;
   bottom: auto;
 }
@@ -218,6 +218,11 @@
   }
 }
 @media (max-height: 540px) and (min-width: 700px) {
+  :root #ui.conversing:not(.scene-mode) > .toast {
+    left: 12px;
+    transform: none;
+    max-width: calc(53vw - 36px);
+  }
   :root .conversation-overlay .dialogue-box {
     width: 47vw;
     left: auto;
@@ -241,6 +246,12 @@
     right: 12px;
     max-height: calc(100dvh - 84px);
     width: 47vw;
+  }
+}
+@media (max-width: 699px) and (max-height: 420px) {
+  :root #ui.conversing:not(.scene-mode) > .toast {
+    top: auto;
+    bottom: calc(57dvh + 18px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
