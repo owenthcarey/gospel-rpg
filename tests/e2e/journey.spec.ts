@@ -89,6 +89,12 @@ test('carried supplies keep their own next stop when another story is selected',
   await page.getByRole('button', { name: 'Close menu', exact: true }).click();
   await page.locator('.toolbar [data-action="inventory"]').click();
   const next = page.getByRole('button', { name: 'Find the next stop', exact: true });
+  await expect(page.locator('.satchel-help')).toHaveText('Carried supplies appear below');
+  await expect(page.locator('.satchel-inspection')).toHaveCount(0);
+  await expect(page.locator('.satchel-carried .item-art img')).toHaveAttribute(
+    'src',
+    /rest-screen\.webp$/,
+  );
   await expect(page.locator('.carried-next-step')).toContainText('Room under the olives');
   await expect(page.locator('.carried-next-step')).toContainText(
     'Place what you carry at the chosen resting place.',

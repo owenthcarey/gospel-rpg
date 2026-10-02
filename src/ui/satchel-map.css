@@ -189,6 +189,9 @@
   background: var(--stone-grain), #b79e75;
   box-shadow: var(--bevel-sunken);
 }
+:root .satchel-carried-only .carried-object {
+  margin-top: 0;
+}
 :root .satchel-carried .item-art {
   flex-shrink: 0;
   margin: 0;
