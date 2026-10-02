@@ -90,7 +90,7 @@ export const districtLayout: ExplorationLayout = {
     { asset: 'cypress', x: 13, z: 11 },
     { asset: 'olive', x: -13, z: -10 },
     { asset: 'well', x: -11, z: -3, scale: 0.85, interactionId: 'water-point' },
-    { asset: 'worktable', x: 6, z: 3 },
+    { asset: 'worktable', x: 6, z: 3, interactionId: 'courtyard-table' },
     { asset: 'bench', x: 6, z: 1.7 },
     { asset: 'bench', x: 6, z: 4.3 },
     { asset: 'amphora', x: -6, z: 6 },
