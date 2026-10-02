@@ -1,6 +1,9 @@
 {
   "source": "https://github.com/owenthcarey/gospel-rpg/actions/runs/36804481025",
-  "additionalSources": ["https://github.com/owenthcarey/gospel-rpg/actions/runs/36962029949"],
+  "additionalSources": [
+    "https://github.com/owenthcarey/gospel-rpg/actions/runs/36962029949",
+    "https://github.com/owenthcarey/gospel-rpg/actions/runs/36963009144"
+  ],
   "note": "Conservative seconds from successful Linux Chromium browser-group logs; the separate continuous journey is excluded. Successful durations are rounded upward including the printed rounding interval (0.05 seconds or 3 seconds for minute labels); skipped cases use 1. The planner applies a 15-second minimum and a 180-second estimate to unrecorded cases. Keys are Playwright test-list selectors, independent of line numbers. The two cold-quality cases use 600-second capacity estimates from PR #25 run 36941481695: the desktop trace completed six of fourteen High visits before its 180-second deadline. These estimates are not successful measured durations.",
   "seconds": {
     "[chromium] › audio.spec.ts › audio waits for a gesture, mixes independent channels, suspends in background, and preserves mute": 43,
@@ -208,6 +211,16 @@
     "[mobile-chromium] › road.spec.ts › new region roadside-farm draws essential objects at both qualities and settles to one scene": 37,
     "[mobile-chromium] › road.spec.ts › the road opens after Chapter II; Tamar’s investigation supports observation, retry, hints, reload and both memories": 87,
     "[mobile-chromium] › static-render.spec.ts › static scenery survives quality switches, orbit, reload and region replacement; missing geometry fails the image contract": 1,
-    "[mobile-chromium] › static-render.spec.ts › the Nain tableau survives replacement and reload; missing gate geometry fails its image contract": 1
+    "[mobile-chromium] › static-render.spec.ts › the Nain tableau survives replacement and reload; missing gate geometry fails its image contract": 1,
+    "[chromium] › settings-refresh.spec.ts › keyboard manual saves preserve the selected slot and reading position without changing the journey": 24,
+    "[chromium] › settings-refresh.spec.ts › a settings save refresh respects focus chosen in the replacement surface before its next paint": 23,
+    "[chromium] › route-recap.spec.ts › an unavailable saved route stays explained and cancellable without offering a dead Resume action": 27,
+    "[chromium] › settings-refresh.spec.ts › a failed manual save keeps its existing panel, selected slot and recoverable journey": 18,
+    "[chromium] › route-recap.spec.ts › an available saved route still resumes to its encounter and preserves earned progress": 14,
+    "[mobile-chromium] › route-recap.spec.ts › an unavailable saved route stays explained and cancellable without offering a dead Resume action": 11,
+    "[mobile-chromium] › route-recap.spec.ts › an available saved route still resumes to its encounter and preserves earned progress": 11,
+    "[mobile-chromium] › settings-refresh.spec.ts › a failed manual save keeps its existing panel, selected slot and recoverable journey": 12,
+    "[mobile-chromium] › settings-refresh.spec.ts › keyboard manual saves preserve the selected slot and reading position without changing the journey": 7,
+    "[mobile-chromium] › settings-refresh.spec.ts › a settings save refresh respects focus chosen in the replacement surface before its next paint": 10
   }
 }
