@@ -203,6 +203,8 @@ export function layoutObstacles(s: GameState): Obstacle[] {
           return [wall(p.x, p.z, r.screen % 2 ? 0.6 : 1.7, r.screen % 2 ? 1.7 : 0.6)];
         })()
       : []),
-    ...(s.region === 'capernaum-lanes' && !s.campaign.walk.gateOpen ? [wall(0, 0, 3.4, 1)] : []),
+    ...(s.region === 'capernaum-lanes'
+      ? [s.campaign.walk.gateOpen ? wall(2.4, -2, 1.65, 1.8) : wall(0, 0, 3.4, 1)]
+      : []),
   ];
 }
