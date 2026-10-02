@@ -61,6 +61,38 @@ function trace(actor: Actor, clip: ActorClip, steps = 12) {
 }
 const range = (values: number[]) => Math.max(...values) - Math.min(...values);
 
+it('keeps walking and carrying cadence proportional to actual movement', () => {
+  for (const clip of ['Walk', 'Carry', 'MatCarry'] as const) {
+    const actor = new Actor(library.instantiate('traveler', 'pace-' + clip));
+    actor.setStrideSpeed(3.25);
+    actor.sample(clip, 0.1);
+    const first = actor.playback.frame;
+    actor.sample(clip, 0.1);
+    const full = actor.playback.frame - first;
+    actor.setStrideSpeed(1.625);
+    actor.sample(clip, 0.1);
+    const half = actor.playback.frame - first - full;
+    expect(half).toBeCloseTo(full / 2, 5);
+    actor.setStrideSpeed(0);
+    const stopped = actor.playback.frame;
+    actor.sample(clip, 0.1);
+    expect(actor.playback.frame).toBe(stopped);
+    actor.dispose();
+  }
+});
+
+it('finishes practical gestures at their own pace while the traveler is stationary', () => {
+  const actor = new Actor(library.instantiate('traveler', 'stationary-work'));
+  actor.setStrideSpeed(0);
+  actor.playOnce('Repair');
+  actor.sample('Idle', 0.1);
+  const start = actor.playback.frame;
+  actor.sample('Idle', 0.1);
+  expect(actor.playback.clip).toBe('Repair');
+  expect(actor.playback.frame).toBeGreaterThan(start);
+  actor.dispose();
+});
+
 // Measured on the exported files: the walk has a visible vertical bob, and the idle has a small,
 // continuous breath that never lifts the feet. Each actor is checked separately, so a rebuilt
 // character whose clips collapse to a still pose (or an exaggerated bounce) fails by name.

@@ -186,7 +186,7 @@ export class Actor {
     this.previousPose = [];
   }
   setStrideSpeed(speed: number): void {
-    this.strideRate = Math.max(0.2, Math.min(1.5, speed / 3.25));
+    this.strideRate = Math.max(0, Math.min(1.5, speed / 3.25));
   }
   turnTo(point: Point, dt: number, rate = 12): void {
     const at = this.root.getAbsolutePosition();

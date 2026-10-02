@@ -963,6 +963,7 @@ export class World {
       place: (id) => this.destinations.find((p) => p.id === id),
       navigate,
       walk,
+      notice: this.callbacks.notice,
       cancelTap: () => this.explorationInput?.cancelTap(),
     });
     this.explorationInput = bindExplorationInput({
@@ -982,10 +983,7 @@ export class World {
 
   walkTo(target: Point): boolean {
     if (this.paused) return false;
-    const cell = this.grid.nearest(target, 3);
-    const path = cell
-      ? smoothPath(this.grid, this.position, findPath(this.grid, this.position, cell))
-      : [];
+    const path = smoothPath(this.grid, this.position, findPath(this.grid, this.position, target));
     if (!path.length) {
       this.callbacks.notice(
         this.travelerBoat
@@ -996,7 +994,8 @@ export class World {
     }
     this.path = path;
     this.destination = undefined;
-    this.marker.position.set(cell!.x, groundHeight(this.state.region, cell!) + 0.045, cell!.z);
+    const end = path.at(-1)!;
+    this.marker.position.set(end.x, groundHeight(this.state.region, end) + 0.045, end.z);
     this.marker.setEnabled(true);
     this.showRoute();
     return true;
@@ -1098,7 +1097,7 @@ export class World {
     this.lastPace = this.walkRamp * Math.min(1, 0.4 + remaining / 1.4);
     return this.lastPace;
   }
-  private poseTraveler(moving: boolean, dt: number): void {
+  private poseTraveler(moving: boolean, dt: number, speed = 0): void {
     if (!this.playerModel) return;
     if (this.travelerBoat) {
       this.travelerBoat.pose(moving, dt, this.reducedMotion || this.paused);
@@ -1123,7 +1122,10 @@ export class World {
         this.actorPlayer.playOnce('SitDown');
         seat.started = true;
       }
-      if (!this.paused) this.actorPlayer.sample(sitting ? 'Idle' : 'Walk', dt);
+      if (!this.paused) {
+        this.actorPlayer.setStrideSpeed(Math.hypot(seat.x, seat.z) / 0.8);
+        this.actorPlayer.sample(sitting ? 'Idle' : 'Walk', dt);
+      }
       if (seat.time < 4.1) return;
       this.playerModel.position.set(0, 0, 0);
       this.seatedAction = undefined;
@@ -1134,7 +1136,9 @@ export class World {
     }
     if (moving && !this.reducedMotion) {
       const before = Math.floor(this.strideTime / 0.4);
-      this.strideTime += dt;
+      // Match the clip and ground accents to actual travel, including easing, wall sliding
+      // and companion pace. A slow walk must not keep a full-speed bounce or dust rhythm.
+      this.strideTime += (dt * speed) / 3.25;
       if (Math.floor(this.strideTime / 0.4) !== before)
         this.stage.atmosphere.footstep(this.player.position.add(new Vector3(0, 0.05, 0)));
     } else this.strideTime = 0;
@@ -1143,6 +1147,7 @@ export class World {
       : (this.neighborhood?.playerClip(moving) ??
         this.activity?.playerClip(moving, Boolean(this.state.episode.carrying)) ??
         (moving ? 'Walk' : 'Idle'));
+    this.actorPlayer.setStrideSpeed(speed);
     this.actorPlayer?.sample(
       clip,
       dt,
@@ -1322,6 +1327,7 @@ export class World {
       const dz =
         Number(this.keys.has('w') || this.keys.has('arrowup')) -
         Number(this.keys.has('s') || this.keys.has('arrowdown'));
+      const beforeMove = this.position;
       let moving = false;
       if ((dx || dz) && !this.seatedAction) {
         if (this.path.length) this.routeDots.forEach((dot) => dot.setEnabled(false));
@@ -1373,12 +1379,8 @@ export class World {
         groundHeight(this.state.region, this.position),
         this.position.z,
       );
-      this.actorPlayer.setStrideSpeed(
-        (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
-          ? 1.43
-          : 3.25) * (this.path.length ? Math.max(0.45, this.lastPace) : 1),
-      );
-      this.poseTraveler(moving && !this.paused, dt);
+      const travelSpeed = dt > 0 ? distance(beforeMove, this.position) / dt : 0;
+      this.poseTraveler(moving && !this.paused, dt, travelSpeed);
       const target = this.cameraTarget();
       if (this.reducedMotion) this.camera.target.copyFrom(target);
       else Vector3.LerpToRef(this.camera.target, target, 1 - Math.exp(-dt * 3), this.camera.target);

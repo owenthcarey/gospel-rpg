@@ -1,6 +1,7 @@
 import type { Scene } from '@babylonjs/core/scene';
 import type { Point } from '../game/types';
 import type { Interactable } from '../content/region';
+import { examineText } from '../content/examine';
 import type { ScreenClick } from './input';
 import { TapGesture } from '../game/gestures';
 import '../ui/interaction.css';
@@ -23,6 +24,7 @@ interface InteractionOptions {
   place: (id: string) => Interactable | undefined;
   navigate: (id: string, click?: ScreenClick) => void;
   walk: (point: Point, click?: ScreenClick) => void;
+  notice: (message: string) => void;
   cancelTap: () => void;
 }
 
@@ -264,24 +266,25 @@ export class InteractionFeedback {
     this.returnFocus = label ?? this.input.canvas;
     if (place) this.option(place, () => this.input.navigate(place.id, click));
     if (ground || place) this.option('Walk here', () => this.input.walk(ground ?? place!, click));
+    if (place) this.option(place, () => this.input.notice(examineText(place)), 'Examine');
     this.option('Cancel', () => {});
     this.menu.hidden = false;
     this.hint.hidden = true;
     this.position(this.menu, x, y);
     this.menu.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
   }
-  private describe(node: HTMLElement, place: Interactable) {
+  private describe(node: HTMLElement, place: Interactable, verb = interactionVerb(place.kind)) {
     const name = document.createElement('span');
     name.className = 'world-option-name ' + (place.kind === 'person' ? 'is-person' : 'is-object');
     name.textContent = place.name;
-    node.replaceChildren(document.createTextNode(interactionVerb(place.kind) + ' '), name);
+    node.replaceChildren(document.createTextNode(verb + ' '), name);
   }
-  private option(label: string | Interactable, action: () => void) {
+  private option(label: string | Interactable, action: () => void, verb?: string) {
     const button = document.createElement('button');
     button.type = 'button';
     button.setAttribute('role', 'menuitem');
     if (typeof label === 'string') button.textContent = label;
-    else this.describe(button, label);
+    else this.describe(button, label, verb);
     button.addEventListener('click', () => {
       this.close(true);
       if (!this.input.paused()) action();
