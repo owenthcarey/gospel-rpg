@@ -205,6 +205,7 @@ export class Interface {
   private active = false;
   private currentState?: GameState;
   private travelPlan?: RoutePlan;
+  private activeWalkTarget?: Point;
   private scenePaused = false;
   private sceneControls: HTMLElement;
   private lastNearest: string | null = null;
@@ -551,12 +552,18 @@ export class Interface {
     const travel = this.root.querySelector<HTMLElement>('#travel-status')!;
     const selected = allInteractables.find((p) => p.id === destination);
     const plan = this.travelPlan;
-    travel.hidden = !selected && !plan;
+    const walking = !!this.activeWalkTarget && !this.worldPaused && !this.graphicsPaused;
+    travel.hidden = !selected && !plan && !walking;
+    const currentTravel = selected
+      ? 'Approaching ' + selected.name
+      : walking
+        ? this.currentState?.region === 'galilee-water'
+          ? 'Steering to chosen point'
+          : 'Walking to chosen point'
+        : undefined;
     const travelText = plan
-      ? plan.title + ' · ' + (selected ? 'Approaching ' + selected.name : plan.message)
-      : selected
-        ? 'Approaching ' + selected.name
-        : '';
+      ? plan.title + ' · ' + (currentTravel ?? plan.message)
+      : (currentTravel ?? '');
     const resume = travel.querySelector<HTMLButtonElement>('[data-action="route-resume"]')!;
     resume.hidden = !plan || !!destination;
     if (resume.dataset.pauseDisabled !== undefined) {
@@ -582,6 +589,7 @@ export class Interface {
     destination?: string,
     walkTarget?: Point,
   ): void {
+    this.activeWalkTarget = this.worldPaused || this.graphicsPaused ? undefined : walkTarget;
     this.renderTravelStatus(destination);
     if (this.lastPosition)
       this.setHintsFaded(
@@ -1468,14 +1476,21 @@ export class Interface {
   setGraphicsPaused(paused: boolean): void {
     this.graphicsPaused = paused;
     this.root.dataset.graphicsPaused = String(paused);
-    if (paused) this.renderTravelStatus();
+    if (paused) {
+      this.activeWalkTarget = undefined;
+      this.renderTravelStatus();
+    }
     this.pauseWorldControls();
   }
   setWorldPaused(paused: boolean): void {
     this.worldPaused = paused;
     this.minimap.setPaused(paused);
     // World.setPaused stops its path; reflect that handoff even without a render frame.
-    if (paused) this.minimap.clearDestination();
+    if (paused) {
+      this.activeWalkTarget = undefined;
+      this.minimap.clearDestination();
+      this.renderTravelStatus();
+    }
     this.labels.inert = paused;
     for (const control of this.hud.querySelectorAll<HTMLElement>(
       '#action-tray, #nearby-action, .camera-controls',
