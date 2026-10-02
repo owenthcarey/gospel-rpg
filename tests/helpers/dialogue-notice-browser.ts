@@ -443,8 +443,30 @@ export async function openDialogueNotice(page: Page) {
   observations.set(page, observation); // Acknowledged before native Export starts its actual lease.
   const before = await exported(page);
   await dismiss(page);
-  // The original legal fixture is within Simon's radius; use its actual nearby action.
-  await page.locator('#nearby-action').click();
+  // The legal fixture is already in Simon's radius. Read the real exposed button
+  // once and send native point input: repeated actionability-frame waits on a
+  // software-rendered scene can consume the ordinary notice before opening it.
+  const nearby = await page.locator('#nearby-action').evaluate((node) => {
+    const button = node as HTMLButtonElement;
+    const rect = button.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    return {
+      x,
+      y,
+      width: rect.width,
+      height: rect.height,
+      disabled: button.disabled,
+      hidden: button.hidden,
+      text: button.textContent?.replace(/\s+/g, ' ').trim(),
+      exposed: document.elementFromPoint(x, y)?.closest('button') === button,
+    };
+  });
+  expect(nearby).toMatchObject({ disabled: false, hidden: false, exposed: true });
+  expect(nearby.text).toContain('Speak with Simon');
+  expect(nearby.width).toBeGreaterThan(0);
+  expect(nearby.height).toBeGreaterThan(0);
+  await page.mouse.click(nearby.x, nearby.y);
   await observation.evaluate((value) => value.ready());
   // Complete the real authored reveal immediately, before repeated driver reads can consume the lease.
   await page.keyboard.press('Shift');
