@@ -1,5 +1,5 @@
 import { villageObstacles } from '../harbor/scenery';
-import { lakeLayouts } from '../lake/layouts';
+import { lakeLayouts, reedRockFootprints } from '../lake/layouts';
 import { supplyPosition, REST_LAYOUTS } from '../../game/galilee/arrangement';
 import type { Point, GameState } from '../../game/types';
 import type { Obstacle } from '../../game/pathfinding';
@@ -184,6 +184,7 @@ export function layoutObstacles(s: GameState): Obstacle[] {
   return [
     ...layout.obstacles,
     ...crateFootprints(layout.decor),
+    ...(s.region === 'reed-landing' ? reedRockFootprints() : []),
     ...(villageObstacles[s.region] ?? []),
     // New furniture is resolved by the runtime grid; the historical save terrain stays valid.
     ...(s.region === 'galilean-road'

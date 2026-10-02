@@ -1,4 +1,5 @@
 import type { ExplorationLayout, Decor } from '../campaign/layouts';
+import type { Obstacle } from '../../game/pathfinding';
 import type { LakeRegion } from '../../game/lake/types';
 import { WATER_OBSTACLES, isWater } from '../../game/lake/navigation';
 const camera = { radius: 33, min: 18, max: 52, beta: 0.78, targetOffset: 1.5 };
@@ -77,3 +78,27 @@ export const lakeLayouts: Record<LakeRegion, ExplorationLayout> = {
     ],
   },
 };
+
+// Tight imported split-rock bounds include the asymmetric stone base. Its central
+// upright gap is narrower than WalkGrid's existing traveler clearance.
+const reedRockBounds = Object.freeze({ width: 2.42, depth: 1.62, z: -0.25 });
+
+/** Runtime shore collision; historical terrain and the lake's water rock remain unchanged. */
+export function reedRockFootprints(): Obstacle[] {
+  return lakeLayouts['reed-landing'].decor
+    .filter((p) => p.asset === 'split_rock')
+    .map((p) => {
+      const scale = p.scale ?? 1,
+        angle = p.rotation ?? 0,
+        sine = Math.sin(angle),
+        cosine = Math.cos(angle);
+      return Object.freeze({
+        x: p.x + sine * reedRockBounds.z * scale,
+        z: p.z + cosine * reedRockBounds.z * scale,
+        width:
+          (Math.abs(cosine) * reedRockBounds.width + Math.abs(sine) * reedRockBounds.depth) * scale,
+        depth:
+          (Math.abs(sine) * reedRockBounds.width + Math.abs(cosine) * reedRockBounds.depth) * scale,
+      });
+    });
+}
