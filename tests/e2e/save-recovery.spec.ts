@@ -99,7 +99,10 @@ test('autosave warns again after recovery without flooding messages or losing po
   const warnings = page.locator('.message-list li[data-kind="warning"]');
   const toast = page.locator('#toast');
   try {
-    await probe.evaluate((value) => value.fail(true));
+    const beforeFailure = await probe.evaluate((value) => {
+      value.fail(true);
+      return value.counts();
+    });
     await dismiss(page);
     const player = page.locator('#minimap-player');
     const position = await player.getAttribute('transform');
@@ -111,7 +114,7 @@ test('autosave warns again after recovery without flooding messages or losing po
       await page.keyboard.up('d');
     }
     await settings();
-    await expect.poll(async () => (await counts()).failed).toBe(1);
+    await expect.poll(async () => (await counts()).failed).toBeGreaterThan(beforeFailure.failed);
     await expect(toast).toContainText(warning);
     await expect(toast).toBeVisible();
     await expect(toast).toHaveAttribute('data-kind', 'warning');
@@ -130,18 +133,26 @@ test('autosave warns again after recovery without flooding messages or losing po
     await expect(warnings.locator('.message-repeat')).toHaveCount(0);
     await expect(toast).toBeHidden();
 
-    await probe.evaluate((value) => value.fail(false));
+    const beforeRecovery = await probe.evaluate((value) => {
+      value.fail(false);
+      return value.counts();
+    });
     await dismiss(page);
     await settings();
-    await expect.poll(async () => (await counts()).succeeded).toBe(1);
+    await expect
+      .poll(async () => (await counts()).succeeded)
+      .toBeGreaterThan(beforeRecovery.succeeded);
     const recovered = await auto();
     expect({ ...recovered, playTime: backup.playTime }).toEqual(backup);
     const recoveryBackup = await exportOpenMenu(page);
     expect({ ...recoveryBackup, playTime: recovered.playTime }).toEqual(recovered);
-    const successfulWrites = await counts();
-
     // A later outage must raise fresh feedback after the earlier warning was acknowledged.
-    await probe.evaluate((value) => value.fail(true));
+    const successfulWrites = await probe.evaluate((value) => {
+      value.fail(true);
+      return value.counts();
+    });
+    // Normal periodic saves may have completed since the first recovery snapshot.
+    const retainedRecovery = await auto();
     await dismiss(page);
     await settings();
     await expect.poll(async () => (await counts()).failed).toBeGreaterThan(successfulWrites.failed);
@@ -149,7 +160,7 @@ test('autosave warns again after recovery without flooding messages or losing po
     await expect(toast).toBeVisible();
     await expect(toast).toBeInViewport({ ratio: 1 });
     await expect(page.getByRole('button', { name: 'Close menu', exact: true })).toBeFocused();
-    expect(await auto()).toEqual(recovered);
+    expect(await auto()).toEqual(retainedRecovery);
     await expect(page.locator('.panel')).toHaveCSS('opacity', '1');
     await page.screenshot({ path: info.outputPath('renewed-save-warning.png'), scale: 'css' });
     const noticeBounds = (await toast.boundingBox())!;
@@ -165,14 +176,17 @@ test('autosave warns again after recovery without flooding messages or losing po
     ).toBeLessThanOrEqual(footerBounds.y - 8);
     const latestBackup = await exportOpenMenu(page);
     expect({ ...latestBackup, playTime: recovered.playTime }).toEqual(recovered);
-    await probe.evaluate((value) => value.fail(false));
+    const beforeSecondRecovery = await probe.evaluate((value) => {
+      value.fail(false);
+      return value.counts();
+    });
     await dismiss(page);
     await messages();
     await expect(warnings).toHaveCount(2);
     await expect(warnings.locator('.message-repeat')).toHaveCount(0);
     await expect
       .poll(async () => (await counts()).succeeded)
-      .toBeGreaterThan(successfulWrites.succeeded);
+      .toBeGreaterThan(beforeSecondRecovery.succeeded);
     const consoleErrors = await Promise.all(consoleReads);
     await writeFile(
       info.outputPath('save-recovery.json'),

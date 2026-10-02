@@ -16,6 +16,8 @@ The [first follow-up run](https://github.com/owenthcarey/gospel-rpg/actions/runs
 
 Final local software-WebGL verification passes **all fourteen affected desktop/phone checks**, one worker and no retries, including both uninterrupted fourteen-region High visits followed by Low/High restoration. The initial local notice rerun exposed the replaced-marker sampler and remains in ignored review diagnostics; the corrected desktop/phone notice selection passes. Evidence, formatting, types, lint, all **719 unit checks in 46 files**, production build and whitespace checks pass. Local results do not establish GitHub runner results.
 
+The [second follow-up run](https://github.com/owenthcarey/gospel-rpg/actions/runs/36953235004) passed every group covering the fourteen original browser regressions, including Linux native-picker cancellation and both long graphics passes. It exposed an additional autosave test assumption: a successful-write counter reached two while the test required exactly one. Recovery now checks for a new successful write relative to each outage checkpoint, and a renewed outage preserves the latest durable save exactly. Warning counts remain exactly one per outage, with no repeat badge; both cycles still compare portable backups and every quota error. This follow-up passes both desktop/phone software-WebGL checks in **34.0 seconds**, one worker and no retries, and the complete repository check again passes all **719 unit checks**.
+
 ## Classic presentation polish · 2026-09-30
 
 ### Message history, phone controls and furnished interiors
