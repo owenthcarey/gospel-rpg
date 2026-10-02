@@ -36,9 +36,11 @@ import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGener
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { StageEnvironment } from './environment/stage';
 import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte';
+import { HouseSightline } from './environment/occlusion';
 import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
 import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
@@ -178,14 +180,15 @@ export class World {
   private actorPlayer!: Actor;
   private galilee?: GalileeActivity;
   private guidance: 'full' | 'explore' = 'full';
-  private occluders: {
+  private houseSightline = new HouseSightline();
+  private occluders: ({
     node: TransformNode;
-    height: number;
-    x: number;
-    z: number;
     fade: StylePlugin[];
     amount: number;
-  }[] = [];
+  } & (
+    | { kind: 'foliage'; height: number; x: number; z: number }
+    | { kind: 'house'; meshes: AbstractMesh[] }
+  ))[] = [];
   private actors = new Map<string, Actor>();
   private activity!: VillageActivity;
   private harbor?: HarborPresentation;
@@ -748,8 +751,9 @@ export class World {
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
-    if (['olive', 'cypress', 'palm'].includes(p.asset)) {
-      // Each view-blocking tree owns a material so it can dissolve on its own.
+    const foliage = ['olive', 'cypress', 'palm'].includes(p.asset);
+    if (foliage || p.asset === 'house' || p.asset === 'house_large') {
+      // Each view-blocking placement owns a material so only that tree or house dissolves.
       const fade = anchor.getChildMeshes().flatMap((mesh) => {
         const source = mesh.material as StandardMaterial | null;
         if (!source) return [];
@@ -765,14 +769,19 @@ export class World {
         mesh.material = material;
         return [plugin];
       });
-      this.occluders.push({
-        node: anchor,
-        height: 3.5 * (p.scale ?? 1),
-        x: p.x,
-        z: p.z,
-        fade,
-        amount: 1,
-      });
+      this.occluders.push(
+        foliage
+          ? {
+              kind: 'foliage',
+              node: anchor,
+              height: 3.5 * (p.scale ?? 1),
+              x: p.x,
+              z: p.z,
+              fade,
+              amount: 1,
+            }
+          : { kind: 'house', node: anchor, meshes: anchor.getChildMeshes(), fade, amount: 1 },
+      );
     }
     return anchor;
   }
@@ -1380,6 +1389,35 @@ export class World {
       else Vector3.LerpToRef(this.camera.target, target, 1 - Math.exp(-dt * 3), this.camera.target);
     }
   }
+  private updateOcclusion(elapsed: number): void {
+    // Dissolve only scenery crossing the camera-to-traveler sightline.
+    const cameraPoint = this.camera.position,
+      focus = this.player.position;
+    const vx = cameraPoint.x - focus.x,
+      vz = cameraPoint.z - focus.z,
+      length = vx * vx + vz * vz;
+    for (const o of this.occluders) {
+      let blocks: boolean;
+      if (o.kind === 'house') blocks = this.houseSightline.blocks(o.meshes, cameraPoint, focus);
+      else {
+        const t = length ? ((o.x - focus.x) * vx + (o.z - focus.z) * vz) / length : -1;
+        const separation = Math.hypot(o.x - focus.x - vx * t, o.z - focus.z - vz * t);
+        const rayHeight = focus.y + 1 + (cameraPoint.y - focus.y - 1) * t;
+        blocks =
+          t > 0 &&
+          t < 1 &&
+          separation < 1.25 &&
+          groundHeight(this.state.region, o) + o.height > rayHeight;
+      }
+      // Houses need a clearer window than leaves to keep the whole traveler readable.
+      // Geometry, shadows and collision remain in place throughout the transition.
+      const target = blocks ? (o.kind === 'house' ? 0.18 : 0.3) : 1;
+      o.amount = this.reducedMotion
+        ? target
+        : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
+      for (const plugin of o.fade) plugin.fade = o.amount;
+    }
+  }
   private render(): void {
     this.fitCamera();
     const now = performance.now();
@@ -1451,28 +1489,10 @@ export class World {
             (target - node.scaling.y) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 9));
       }
     }
-    // Lower only foliage crossing the camera-to-traveler sightline; retain its trunk and collision.
-    const cameraPoint = this.camera.position,
-      focus = this.player.position;
-    const vx = cameraPoint.x - focus.x,
-      vz = cameraPoint.z - focus.z,
-      length = vx * vx + vz * vz;
-    for (const o of this.occluders) {
-      const t = length ? ((o.x - focus.x) * vx + (o.z - focus.z) * vz) / length : -1;
-      const separation = Math.hypot(o.x - focus.x - vx * t, o.z - focus.z - vz * t);
-      const rayHeight = focus.y + 1 + (cameraPoint.y - focus.y - 1) * t;
-      const blocks =
-        t > 0 &&
-        t < 1 &&
-        separation < 1.25 &&
-        groundHeight(this.state.region, o) + o.height > rayHeight;
-      // Dissolve rather than shrink: silhouette and collision stay put, the traveler shows through.
-      const target = blocks ? 0.3 : 1;
-      o.amount = this.reducedMotion
-        ? target
-        : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
-      for (const plugin of o.fade) plugin.fade = o.amount;
-    }
+    // Orbit, camera returns and following may have changed the camera this frame.
+    // Resolve its position before probing, including instant reduced-motion turns.
+    this.camera.getViewMatrix();
+    this.updateOcclusion(elapsed);
     const companion = this.neighborhood?.position();
     if (companion)
       this.destinations = this.destinations.map((p) =>
