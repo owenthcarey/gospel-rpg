@@ -27,12 +27,12 @@ export class NeighborhoodActivity {
     region: string,
   ) {
     if (region === 'bakehouse') {
-      for (const [id, asset, x, z] of [
-        ['bread', 'bread_basket', -4.7, 0],
-        ['jug', 'jug', 4.7, 1],
-        ['handle', 'cart_handle', 4, -2],
+      for (const [id, asset, x, z, target] of [
+        ['bread', 'bread_basket', -4.7, 0, 'bread-shelf'],
+        ['jug', 'jug', 4.7, 1, 'jug-shelf'],
+        ['handle', 'cart_handle', 4, -2, 'tool-shelf'],
       ] as const) {
-        const model = library.instantiate(asset, 'shelf-' + id);
+        const model = library.instantiate(asset, 'shelf-' + id, target);
         model.root.position.set(x, id === 'handle' ? 0.12 : 1.53, z);
         model.root.scaling.setAll(0.72);
         this.shelves.set(id, model);
