@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { ready, settled, exported } from '../helpers/connection-browser';
+import { ready, settled, exported, visit, dismiss } from '../helpers/connection-browser';
 import { harborAction, preparedHarbor } from '../helpers/harbor';
+import { nearbyActions } from '../../src/ui/views/actions';
 
 test('WASD takes over Follow the path and Resume route while retaining the saved destination', async ({
   page,
@@ -45,17 +46,37 @@ test('WASD takes over Follow the path and Resume route while retaining the saved
 test('a repeatable nearby action keeps native keyboard activation and yields to walking', async ({
   page,
 }) => {
-  const state = harborAction(preparedHarbor(), 'turn');
-  await ready(page, state);
+  let state = harborAction(preparedHarbor(), 'plank-south');
+  // The authored plank starts north–south (turn=1). Two earned turns leave
+  // that orientation in place while approaching its current southern position.
+  for (let i = 0; i < 2; i++) state = harborAction(state, 'turn');
+  expect(state.harbor.turn).toBe(1);
+  const quickIds = [
+    ...nearbyActions(state).matchAll(/data-action="quick-action" data-value="([^"]+)"/g),
+  ].map((match) => match[1]);
+  expect(quickIds).toEqual(['plank-north', 'plank-rack', 'turn']);
+  // Approach the earned southern placement through the real map route before
+  // returning to its quick tray. The rack and north crossing have different neighbours.
+  await ready(page, { ...state, position: { x: 0, z: -3 } });
+  await visit(page, 'harbor-plank');
+  await dismiss(page);
+  await expect
+    .poll(() =>
+      page
+        .locator('#action-tray [data-action="quick-action"]')
+        .evaluateAll((nodes) => nodes.map((node) => (node as HTMLElement).dataset.value)),
+    )
+    .toEqual(quickIds);
   const turn = page.locator('#action-tray [data-action="quick-action"][data-value="turn"]');
   await expect(turn).toBeEnabled();
+  await expect(turn).toContainText('east–west');
   await turn.click();
   await settled(page);
   await expect(turn).toContainText('north–south');
   await expect(turn).toBeFocused();
   // The replacement button keeps focus after the arrangement changes. Enter
   // must still turn the plank, while a later S belongs to world movement.
-  await page.keyboard.press('Enter');
+  await turn.press('Enter');
   await settled(page);
   await expect(turn).toContainText('east–west');
   await expect(turn).toBeFocused();
