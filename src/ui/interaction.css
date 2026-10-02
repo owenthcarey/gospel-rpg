@@ -19,6 +19,7 @@
   max-width: calc(100vw - 16px);
 }
 .world-option-menu {
+  color: #fff;
   min-width: 170px;
   max-width: calc(100vw - 16px);
   max-height: calc(100dvh - 16px);
@@ -45,6 +46,7 @@
   font: inherit;
   text-shadow: inherit;
   cursor: pointer;
+  transition: none;
 }
 .world-option-menu button:hover,
 .world-option-menu button:focus-visible {
