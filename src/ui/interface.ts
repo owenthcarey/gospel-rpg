@@ -925,6 +925,14 @@ export class Interface {
     );
   }
   settings(settings: Settings, slots: SlotSummary[], persistent: boolean, started: boolean): void {
+    const wasSettings = this.panel === 'settings';
+    const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const restore = wasSettings && !!active && this.overlay.contains(active);
+    const action = active?.dataset.action;
+    const value = active?.dataset.value;
+    const setting = active?.dataset.setting;
+    const id = active?.id;
+    const scroll = this.overlay.querySelector('.panel-body')?.scrollTop ?? 0;
     this.show(
       'settings',
       this.panelShell(
@@ -933,7 +941,25 @@ export class Interface {
         `<div class="settings-grid"><div>${audioSettings(settings, this.currentState)}<h3>Your experience</h3><label class="setting-row"><span>Visual quality<small>Lower quality saves battery</small></span><select data-setting="quality"><option value="high" ${settings.quality === 'high' ? 'selected' : ''}>High</option><option value="low" ${settings.quality === 'low' ? 'selected' : ''}>Low</option></select></label><label class="setting-row"><span>Reduce motion<small>Still water and immediate camera follow</small></span><input type="checkbox" data-setting="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}></label><label class="setting-row"><span>Exploration guidance<small>Full labels and routes, or nearby labels with quieter paths. Maps remain available.</small></span><select data-setting="guidance"><option value="full" ${settings.guidance !== 'explore' ? 'selected' : ''}>Full guidance</option><option value="explore" ${settings.guidance === 'explore' ? 'selected' : ''}>Explore with fewer markers</option></select></label><label class="setting-row"><span>Reading size<small>Dialogue, scripture and journal text</small></span><select data-setting="textSize"><option value="standard" ${settings.textSize === 'standard' ? 'selected' : ''}>Standard</option><option value="large" ${settings.textSize === 'large' ? 'selected' : ''}>Large</option></select></label><button class="secondary-button full-width" data-action="help">${icon('help')} Controls &amp; how to play</button><button class="secondary-button full-width" data-action="replay-opening">${icon('dawn')} Watch the opening again</button></div><div><h3>Saved journeys</h3><p class="settings-note">${persistent ? 'Progress autosaves as you explore. Manual slots keep a moment you can return to.' : 'Browser storage is unavailable. These slots last only this session. Export a file to keep your journey.'}</p><div class="save-slots">${slots.map((slot) => `<div class="save-slot"><span class="slot-icon">${icon('save')}</span><div><strong>${slot.id === 'auto' ? 'Autosave' : `Journey ${slot.id.at(-1)}`}</strong><small>${slot.error ? 'Unreadable save' : slot.save ? `${regions[slot.save.state.region].title + (slot.save.state.lake.chapter.stage === 'complete' ? ' · Chapter IV complete' : slot.save.state.lake.chapter.checkpoint ? ' · ' + slot.save.state.lake.chapter.checkpoint : slot.save.state.road.chapter.stage === 'complete' ? ' · Chapter III complete' : slot.save.state.road.chapter.checkpoint ? ' · ' + slot.save.state.road.chapter.checkpoint : slot.save.state.campaign.roof.stage === 'complete' ? ' · Chapter II complete' : slot.save.state.campaign.roof.checkpoint ? ' · ' + slot.save.state.campaign.roof.checkpoint : '')} · ${esc(new Date(slot.save.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))}` : 'Empty slot'}</small></div>${slot.id !== 'auto' ? `<button class="small-button" data-action="save-slot" data-value="${slot.id}" ${started ? '' : 'disabled'}>Save</button>` : ''}<button class="small-button" data-action="load-slot" data-value="${slot.id}" ${slot.save ? '' : 'disabled'}>Load</button></div>`).join('')}</div><div class="save-actions"><button class="secondary-button" data-action="export" ${started ? '' : 'disabled'}>${icon('download')} Export</button><label class="secondary-button import-button">${icon('upload')} Import<input type="file" id="import-save" accept=".json,application/json" aria-label="Import a journey save"></label></div></div></div>${started ? '<button class="text-button new-journey" data-action="new-journey">Start a new journey…</button>' : ''}`,
         true,
       ),
+      !wasSettings,
     );
+    if (!wasSettings) return;
+    const body = this.overlay.querySelector('.panel-body');
+    if (body) body.scrollTop = scroll;
+    const surface = this.overlay.firstElementChild;
+    requestAnimationFrame(() => {
+      // A save refresh must keep the selected slot, while respecting any newer focus or menu.
+      if (this.panel !== 'settings' || this.overlay.firstElementChild !== surface || !focusLost())
+        return;
+      if (restore) {
+        const control = [...this.overlay.querySelectorAll<HTMLElement>('[data-setting],[id]')].find(
+          (node) => (setting && node.dataset.setting === setting) || (id && node.id === id),
+        );
+        if (control) control.focus({ preventScroll: true });
+        else restoreFocus(this.overlay, action, value);
+        this.revealReadingFocus();
+      }
+    });
   }
   help(): void {
     this.hints.reset();
