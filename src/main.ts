@@ -332,7 +332,7 @@ async function apply(event: GameEvent): Promise<void> {
   if (displayRegion(next) !== displayRegion(state)) await changeRegion(next);
   state = next;
   world?.update(state);
-  ui.update(state);
+  ui.update(state, event.type === 'track-story');
   audio.update(state);
   presentArrival();
   const feedback = feedbackForEvent(event);

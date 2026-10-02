@@ -173,7 +173,7 @@
   max-height: calc(100dvh - 165px);
 }
 :root .quest-card.objective-expanded {
-  max-height: calc(100dvh - 165px);
+  max-height: min(calc(100dvh - 165px), var(--quest-notice-max-height, calc(100dvh - 165px)));
 }
 :root .quest-card h1,
 :root .quest-card:not(.objective-expanded) h1 {
@@ -1344,7 +1344,7 @@
     line-height: 1.5;
   }
   :root .quest-card.objective-expanded {
-    max-height: 50dvh;
+    max-height: min(50dvh, var(--quest-notice-max-height, 50dvh));
   }
   :root .time-of-day {
     display: none;

@@ -123,10 +123,17 @@ export class Interface {
   private readonly noticeActions: HTMLElement;
   private readonly actionScrollCue: HTMLElement;
   private readonly actionScrollObserver: ResizeObserver;
-  private readonly onActionScroll = () => this.updateActionScrollCue();
+  private readonly onActionScroll = () => {
+    this.updateActionScrollCue();
+    this.onPausedNoticeLayout();
+  };
   private readonly shortLandscape: MediaQueryList;
   private readonly onNoticeLayout = () => this.placeNotice(true);
+  private readonly onPausedNoticeLayout = () => {
+    if (this.graphicsPaused) this.placeNotice(true);
+  };
   private readonly onMenuResize = () => {
+    this.onPausedNoticeLayout();
     if (this.panel === 'welcome') {
       const active = document.activeElement;
       if (active instanceof HTMLElement && this.overlay.contains(active))
@@ -137,6 +144,7 @@ export class Interface {
   };
   private labels: HTMLElement;
   private quest: HTMLElement;
+  private pendingQuestReveal?: HTMLElement;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private heldNotice?: { message: string; kind: ToastKind };
   private hints = new HintFade();
@@ -201,6 +209,7 @@ export class Interface {
     for (const node of [this.noticeActions, this.toastNode, ...this.noticeActions.children])
       this.actionScrollObserver.observe(node);
     this.noticeActions.addEventListener('scroll', this.onActionScroll, { passive: true });
+    this.toastNode.addEventListener('animationend', this.onPausedNoticeLayout);
     this.hudReservations = [
       ...this.hud.querySelectorAll<HTMLElement>(
         '.topbar,.quest-card,.minimap-wrap,.minimap-compass,.minimap-open,.bottom-center,.traveler-card',
@@ -296,7 +305,7 @@ export class Interface {
     this.hud.hidden = false;
     this.close();
   }
-  update(state: GameState): void {
+  update(state: GameState, trackingRefresh = false): void {
     this.currentState = structuredClone(state);
     this.travelPlan = routePlan(state);
     const inScene = isPresenting(state);
@@ -362,6 +371,10 @@ export class Interface {
         });
       }
     }
+    this.pendingQuestReveal =
+      trackingRefresh && this.objectiveExpanded && !this.panel
+        ? (this.quest.querySelector<HTMLElement>('.village-shortcut') ?? undefined)
+        : undefined;
     this.root.querySelector('.time-of-day span')!.textContent =
       this.atmosphere ??
       (state.region === 'capernaum'
@@ -457,13 +470,19 @@ export class Interface {
     // Notice clearance and world names share the same current HUD measurements.
     const hudBounds = this.hudReservations
       .filter(({ node }) => node.offsetHeight > 0)
-      .map(({ node, lower }) => ({ lower, rect: node.getBoundingClientRect() }));
+      .map(({ node, lower }) => ({ node, lower, rect: node.getBoundingClientRect() }));
     this.setNoticeClearance(height, hudBounds);
+    const noticeBounds =
+      !this.toastNode.hidden && this.toastNode.offsetHeight > 0
+        ? this.toastNode.getBoundingClientRect()
+        : undefined;
+    this.reserveQuestNoticeSpace(
+      hudBounds.find(({ node }) => node === this.quest)?.rect,
+      noticeBounds,
+    );
     const reserved = [
       ...hudBounds.map(({ rect }) => rect),
-      ...[...this.root.querySelectorAll<HTMLElement>('#toast:not([hidden])')]
-        .filter((node) => node.offsetHeight > 0)
-        .map((node) => node.getBoundingClientRect()),
+      ...(noticeBounds ? [noticeBounds] : []),
     ];
     const placed = arrangeLabels(
       measureLabels(
@@ -550,17 +569,22 @@ export class Interface {
     if (this.toastNode.dataset.held === 'true') return;
     this.toastTimer = setTimeout(() => {
       if (this.heldNotice) this.renderNotice(this.heldNotice.message, this.heldNotice.kind);
-      else this.toastNode.hidden = true;
+      else {
+        this.toastNode.hidden = true;
+        this.clearQuestNoticeSpace();
+      }
     }, 4800);
   }
   /** Keep an unresolved system condition explained; ordinary feedback can still appear. */
   holdNotice(message?: string, kind: ToastKind = 'warning'): void {
     this.heldNotice = message ? { message, kind } : undefined;
     if (message) this.toast(message, kind);
-    else if (this.toastNode.dataset.held === 'true') this.toastNode.hidden = true;
+    else if (this.toastNode.dataset.held === 'true') {
+      this.toastNode.hidden = true;
+      this.clearQuestNoticeSpace();
+    }
   }
   private renderNotice(message: string, kind: ToastKind): void {
-    this.placeNotice(true);
     const toast = this.toastNode;
     const held = this.heldNotice?.message === message && this.heldNotice.kind === kind;
     toast.dataset.held = String(held);
@@ -571,6 +595,7 @@ export class Interface {
     void toast.offsetWidth;
     // Reading menus retain their full space; returning to the world reveals the condition.
     toast.hidden = held && this.panel !== null && this.panel !== 'work';
+    this.placeNotice(true);
     if (!toast.hidden) this.revealReadingFocus();
     if (toast.parentElement === this.noticeActions) this.noticeActions.scrollTop = 0;
   }
@@ -617,6 +642,60 @@ export class Interface {
           .map(({ node, lower }) => ({ lower, rect: node.getBoundingClientRect() })),
       );
     }
+    if (
+      parent !== this.root ||
+      !this.active ||
+      this.panel ||
+      this.shortLandscape.matches ||
+      this.root.classList.contains('scene-mode')
+    )
+      this.clearQuestNoticeSpace();
+    else if (this.graphicsPaused) {
+      // Context loss stops world frames; DOM events still keep held feedback clear.
+      this.reserveQuestNoticeSpace(
+        this.quest.offsetHeight > 0 ? this.quest.getBoundingClientRect() : undefined,
+        !this.toastNode.hidden && this.toastNode.offsetHeight > 0
+          ? this.toastNode.getBoundingClientRect()
+          : undefined,
+      );
+    }
+  }
+  private clearQuestNoticeSpace(): void {
+    this.root.style.removeProperty('--quest-notice-max-height');
+    this.pendingQuestReveal = undefined;
+  }
+  private reserveQuestNoticeSpace(quest?: DOMRect, notice?: DOMRect): void {
+    const chosen = this.pendingQuestReveal;
+    this.pendingQuestReveal = undefined;
+    const floating =
+      this.active &&
+      this.objectiveExpanded &&
+      !this.panel &&
+      !this.hud.hidden &&
+      !this.hud.inert &&
+      !this.root.inert &&
+      !this.shortLandscape.matches &&
+      !this.root.classList.contains('scene-mode') &&
+      this.toastNode.parentElement === this.root &&
+      !this.toastNode.hidden;
+    const space =
+      floating && quest && notice && quest.left < notice.right && quest.right > notice.left
+        ? Math.max(0, Math.floor(notice.top - quest.top - 12)) + 'px'
+        : '';
+    const changed = this.root.style.getPropertyValue('--quest-notice-max-height') !== space;
+    if (changed) {
+      if (space) this.root.style.setProperty('--quest-notice-max-height', space);
+      else this.root.style.removeProperty('--quest-notice-max-height');
+    }
+    if (!floating) return;
+    const active = document.activeElement;
+    const reveal =
+      chosen?.isConnected && this.quest.contains(chosen) && (focusLost() || active === chosen)
+        ? chosen
+        : changed && active instanceof HTMLElement && this.quest.contains(active)
+          ? active
+          : undefined;
+    reveal?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
   }
   private setNoticeClearance(height: number, bounds: { lower: boolean; rect: DOMRect }[]): void {
     const lower = bounds.filter(
@@ -649,6 +728,7 @@ export class Interface {
   messages(): void {
     clearTimeout(this.toastTimer);
     this.toastNode.hidden = true;
+    this.clearQuestNoticeSpace();
     this.unreadMessages = 0;
     this.updateMessageCount();
     this.show(
@@ -1103,6 +1183,7 @@ export class Interface {
   }
   private renderObjective(): void {
     this.quest.classList.toggle('objective-expanded', this.objectiveExpanded);
+    if (!this.objectiveExpanded) this.clearQuestNoticeSpace();
     this.quest
       .querySelectorAll<HTMLElement>('.quest-details')
       .forEach((el) => (el.hidden = !this.objectiveExpanded));
@@ -1411,9 +1492,11 @@ export class Interface {
       )}" fill="none" stroke="#ddd0a0" stroke-width="8"/>${capernaumMapScenery()}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
   }
   dispose(): void {
+    this.clearQuestNoticeSpace();
     this.shortLandscape.removeEventListener('change', this.onNoticeLayout);
     window.removeEventListener('resize', this.onMenuResize);
     this.noticeActions.removeEventListener('scroll', this.onActionScroll);
+    this.toastNode.removeEventListener('animationend', this.onPausedNoticeLayout);
     this.actionScrollObserver.disconnect();
     this.minimap.dispose();
     this.workObserver?.disconnect();
