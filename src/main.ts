@@ -671,13 +671,6 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'journal-status':
       if (ui.panel === 'journal' && STORY_STATUSES.some((id) => id === value)) {
         ui.journal(snapshot(), 'stories', undefined, value as StoryStatusFilter);
-        requestAnimationFrame(() =>
-          document
-            .querySelector<HTMLElement>(
-              '[data-action="journal-status"][data-value="' + value + '"]',
-            )
-            ?.focus(),
-        );
       }
       break;
     case 'begin':
@@ -967,7 +960,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (STORY_TRACKS.some((id) => id === value)) {
         const wasJournal = ui.panel === 'journal';
         await apply({ type: 'track-story', story: value as (typeof STORY_TRACKS)[number] });
-        if (wasJournal) ui.journal(state);
+        if (wasJournal) ui.journal(state, undefined, undefined, undefined, true);
       }
       break;
     case 'scene-next':

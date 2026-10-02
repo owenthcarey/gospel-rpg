@@ -545,8 +545,7 @@ export class Interface {
     if (!toast.hidden) this.revealReadingFocus();
     if (toast.parentElement === this.noticeActions) this.noticeActions.scrollTop = 0;
   }
-  private revealReadingFocus(): void {
-    const active = document.activeElement;
+  private revealReadingFocus(active = document.activeElement): void {
     if (
       active instanceof HTMLElement &&
       this.overlay.contains(active) &&
@@ -763,18 +762,35 @@ export class Interface {
     category = this.journalCategory,
     filter = this.journalFilter,
     status = this.journalStatus,
+    trackingRefresh = false,
   ): void {
     const active =
       this.panel === 'journal' && this.overlay.contains(document.activeElement)
         ? document.activeElement
         : null;
-    const focusCategory =
-      active instanceof HTMLElement && active.dataset.action === 'journal-category'
-        ? active.dataset.value
-        : undefined;
+    const action = active instanceof HTMLElement ? active.dataset.action : undefined;
+    const value = active instanceof HTMLElement ? active.dataset.value : undefined;
     const focusFilter =
       active instanceof HTMLSelectElement && active.hasAttribute('data-journal-filter');
-    const restore = focusCategory !== undefined || focusFilter;
+    // Native pointer activation may leave BODY focused, so refresh intent owns the scroll bookmark.
+    const sameReading =
+      trackingRefresh &&
+      this.panel === 'journal' &&
+      category === this.journalCategory &&
+      filter === this.journalFilter &&
+      status === this.journalStatus;
+    const scroll = sameReading ? (this.overlay.querySelector('.panel-body')?.scrollTop ?? 0) : 0;
+    const matchingActions = () =>
+      [...this.overlay.querySelectorAll<HTMLElement>('[data-action]')].filter(
+        (node) => node.dataset.action === action && node.dataset.value === value,
+      );
+    const actionIndex =
+      sameReading && active instanceof HTMLElement ? matchingActions().indexOf(active) : -1;
+    const restore =
+      focusFilter ||
+      action === 'journal-category' ||
+      action === 'journal-status' ||
+      (sameReading && action !== undefined);
     this.journalStatus = status;
     this.journalCategory = category;
     this.journalFilter = filter;
@@ -800,19 +816,34 @@ export class Interface {
         true,
         'journal-reading',
       ),
-      !restore,
+      !restore && !sameReading,
     );
-    if (restore) {
+    if (sameReading) {
+      const body = this.overlay.querySelector('.panel-body');
+      if (body) body.scrollTop = scroll;
+    }
+    if (restore || sameReading) {
       const surface = this.overlay.firstElementChild;
       requestAnimationFrame(() => {
         // Restore the control the refresh removed, without taking later focus or a newer panel.
         if (this.panel !== 'journal' || this.overlay.firstElementChild !== surface || !focusLost())
           return;
-        if (focusFilter) {
+        if (!restore) {
+          // Native touch can leave BODY focused; expose its tracked row without taking focus.
+          const tracked = this.overlay.querySelector<HTMLElement>(
+            `[data-action="track-story"][data-value="${state.tracking}"]`,
+          );
+          this.revealReadingFocus(tracked);
+        } else if (focusFilter) {
           const filter = this.overlay.querySelector<HTMLSelectElement>('[data-journal-filter]');
           if (filter) filter.focus({ preventScroll: true });
           else restoreFocus(this.overlay);
-        } else restoreFocus(this.overlay, 'journal-category', focusCategory);
+        } else {
+          const control = sameReading ? matchingActions()[actionIndex] : undefined;
+          if (control) control.focus({ preventScroll: true });
+          else restoreFocus(this.overlay, action, value);
+        }
+        if (sameReading && restore) this.revealReadingFocus();
       });
     }
   }
