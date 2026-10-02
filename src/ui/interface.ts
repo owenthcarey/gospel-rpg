@@ -1092,9 +1092,28 @@ export class Interface {
     }
   }
   map(state: GameState, regional = false): void {
+    const active = document.activeElement;
+    const action =
+      this.panel === 'map' &&
+      active instanceof HTMLElement &&
+      this.overlay.contains(active) &&
+      active.closest('.map-tabs')
+        ? active.dataset.action
+        : undefined;
+    const restore = action === 'local-map' || action === 'journey-map';
+    const showMap = (content: string): void => {
+      this.show('map', content, !restore);
+      if (!restore) return;
+      const surface = this.overlay.firstElementChild;
+      requestAnimationFrame(() => {
+        if (this.panel !== 'map' || this.overlay.firstElementChild !== surface || !focusLost())
+          return;
+        restoreFocus(this.overlay, action);
+        this.revealReadingFocus();
+      });
+    };
     if (regional) {
-      this.show(
-        'map',
+      showMap(
         this.panelShell(
           'Your journey through Galilee',
           'CONNECTED PLACES',
@@ -1105,8 +1124,7 @@ export class Interface {
       return;
     }
     if (regions[state.region].mode === 'presentation') {
-      this.show(
-        'map',
+      showMap(
         this.panelShell(
           regions[state.region].title,
           'A NARRATED GOSPEL ACCOUNT',
@@ -1115,8 +1133,7 @@ export class Interface {
       );
       return;
     }
-    this.show(
-      'map',
+    showMap(
       this.panelShell(
         regions[state.region].title,
         'LOCAL PEOPLE AND PLACES',
