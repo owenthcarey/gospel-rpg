@@ -1443,7 +1443,7 @@
     left: 8px;
     bottom: max(8px, env(safe-area-inset-bottom));
     width: auto;
-    height: 44dvh;
+    height: var(--compact-work-height, 44dvh);
   }
   :root .work-header {
     padding: 10px 13px 8px;
@@ -1456,7 +1456,7 @@
     padding: 0 13px 10px;
   }
   :root #ui.working:not(.scene-mode) .toast {
-    bottom: calc(44dvh + 18px);
+    bottom: calc(var(--compact-work-height, 44dvh) + 18px);
   }
   :root .scene-heading {
     padding: 13px 15px 10px;
@@ -1492,6 +1492,12 @@
   }
   :root .welcome-location {
     display: none;
+  }
+}
+@media (max-width: 360px) and (orientation: portrait) {
+  :root[data-text-size='large'] #ui {
+    /* Two-line chrome still leaves room to read a complete supply status. */
+    --compact-work-height: clamp(44dvh, 312px, 56dvh);
   }
 }
 @media (max-width: 359px) {
