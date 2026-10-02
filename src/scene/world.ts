@@ -1458,9 +1458,11 @@ export class World {
       this.pendingRotation = 0;
     }
     if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
+    // Camera commands keep their visible duration on slow frames. Foreground refreshes
+    // already discard suspension time; collision-safe simulation retains its own cap below.
     if (this.cameraReturn) {
       const r = this.cameraReturn;
-      r.t = Math.min(1, r.t + Math.min(elapsed, 0.1) / 0.7);
+      r.t = Math.min(1, r.t + elapsed / 0.7);
       const e = r.t * r.t * (3 - 2 * r.t);
       this.camera.alpha = r.from.alpha + (r.to.alpha - r.from.alpha) * e;
       this.camera.beta = r.from.beta + (r.to.beta - r.from.beta) * e;
@@ -1469,7 +1471,7 @@ export class World {
       if (r.t >= 1) this.cameraReturn = undefined;
     }
     if (Math.abs(this.pendingRotation) > 0.0005) {
-      const step = this.pendingRotation * (1 - Math.exp(-Math.min(elapsed, 0.1) * 10));
+      const step = this.pendingRotation * (1 - Math.exp(-elapsed * 10));
       this.camera.alpha += step;
       this.pendingRotation -= step;
     }
