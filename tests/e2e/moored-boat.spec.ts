@@ -116,8 +116,13 @@ async function dockNative(page: Page, before: GameState, berth: Berth, touch: bo
 }
 
 async function pressCameraButton(page: Page, name: string, touch: boolean) {
-  const measured = await page.getByRole('button', { name, exact: true }).evaluate((node) => {
-    const button = node as HTMLButtonElement;
+  const measured = await page.evaluate((name) => {
+    const matches = [...document.querySelectorAll<HTMLButtonElement>('button[aria-label]')].filter(
+      (button) => button.getAttribute('aria-label') === name,
+    );
+    if (matches.length !== 1)
+      throw new Error(`Expected one camera button named ${name}; found ${matches.length}`);
+    const button = matches[0]!;
     const rect = button.getBoundingClientRect();
     const point = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
     const surface = document.elementFromPoint(point.x, point.y);
@@ -130,7 +135,7 @@ async function pressCameraButton(page: Page, name: string, touch: boolean) {
       rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
       point,
     };
-  });
+  }, name);
   // Read actual named, enabled, exposed controls once, then send trusted native input.
   // Model contacts still require the independent finite-face/camera convergence below.
   expect(measured).toMatchObject({

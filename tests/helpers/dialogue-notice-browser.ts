@@ -446,8 +446,11 @@ export async function openDialogueNotice(page: Page) {
   // The legal fixture is already in Simon's radius. Read the real exposed button
   // once and send native point input: repeated actionability-frame waits on a
   // software-rendered scene can consume the ordinary notice before opening it.
-  const nearby = await page.locator('#nearby-action').evaluate((node) => {
-    const button = node as HTMLButtonElement;
+  const nearby = await page.evaluate(() => {
+    const matches = document.querySelectorAll<HTMLButtonElement>('#nearby-action');
+    if (matches.length !== 1)
+      throw new Error(`Expected one nearby action; found ${matches.length}`);
+    const button = matches[0]!;
     const rect = button.getBoundingClientRect();
     const x = rect.left + rect.width / 2;
     const y = rect.top + rect.height / 2;
