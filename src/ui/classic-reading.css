@@ -1,4 +1,58 @@
 /* Quest registers and blue answer rows share the existing authored reading surfaces. */
+/* Menu indexes sit in their own recessed rail, separate from journey actions. */
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) {
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid #6e5332;
+  background: var(--stone-grain), #76603f;
+  box-shadow: var(--bevel-sunken);
+}
+:root .journal-categories {
+  margin-bottom: 14px;
+}
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button {
+  flex: 1 1 auto;
+  min-height: 40px;
+  margin: 0;
+  padding: 8px 11px;
+  border: 1px solid #291d10;
+  color: #e9d8af;
+  background: var(--stone-grain), #493823;
+  box-shadow:
+    inset 1px 1px #9b8053,
+    inset -1px -1px #291d10;
+  font-size: 13px;
+  line-height: 1.35;
+  text-shadow: 1px 1px #1b130b;
+}
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button:hover {
+  color: #fff0ba;
+  background-color: #5d472c;
+}
+:root
+  :is(.journal-categories, .story-status-tabs, .map-tabs)
+  > .secondary-button[aria-pressed='true'],
+:root
+  :is(.journal-categories, .story-status-tabs, .map-tabs)
+  > .secondary-button[aria-pressed='true']:hover:not(:disabled) {
+  color: #ffe08a;
+  background: var(--stone-grain), #2c2115;
+  box-shadow:
+    inset 1px 1px #181109,
+    inset -1px -1px #9b8053,
+    inset 0 -3px #d2ae54;
+}
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button:focus-visible {
+  outline: 2px solid #ffe08a;
+  outline-offset: -3px;
+}
+:root .journey-tools {
+  margin: 12px 0 17px;
+}
+:root .journey-tools > .secondary-button {
+  font-size: 13px;
+}
+
 :root .journey-overview .overview-intro {
   margin: 10px 0 15px;
 }
@@ -265,6 +319,12 @@
   font-size: 16px;
 }
 @media (max-width: 699px) {
+  :root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button {
+    min-height: 44px;
+    padding: 8px;
+    font-size: 14px;
+    white-space: normal;
+  }
   :root .journey-overview .opportunity {
     grid-template-columns: minmax(0, 1fr);
     gap: 9px;
@@ -305,5 +365,11 @@
     min-height: 44px;
     font-size: 15px;
     padding: 8px;
+  }
+}
+@media (max-width: 519px) {
+  :root .journal-categories > .secondary-button {
+    flex: 1 1 calc(33.333% - 4px);
+    min-width: 0;
   }
 }
