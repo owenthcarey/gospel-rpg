@@ -36,6 +36,40 @@
   stroke: #fff3a8;
   stroke-width: 1.5;
 }
+/* The local map uses the same key as the radar, with a direction inside the larger player dot. */
+:root .large-map [data-map-place] {
+  fill: #decda5;
+  stroke: #292015;
+}
+:root .large-map [data-map-kind='person'] {
+  fill: #ffe435;
+}
+:root .large-map .map-remembered {
+  stroke: #385740;
+}
+:root .large-map .map-target {
+  stroke: #fff3a8;
+  stroke-width: 2;
+}
+:root .large-map [id$='map-player'] circle {
+  fill: #ffffff;
+  stroke: #28241d;
+}
+:root .large-map [id$='map-player'] path {
+  fill: #28241d;
+}
+:root .map-legend .legend-player {
+  background: #ffffff;
+  border: 1px solid #28241d;
+}
+:root .map-legend .legend-person {
+  background: #ffe435;
+  border: 1px solid #292015;
+}
+:root .map-legend .legend-place {
+  background: #decda5;
+  border: 1px solid #292015;
+}
 :root .minimap-compass,
 :root .minimap-open {
   position: absolute;

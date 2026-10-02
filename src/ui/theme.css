@@ -332,6 +332,14 @@
 :root .world-label.selected-destination .label-name {
   box-shadow: 0 0 0 1px #dfc364;
 }
+@media (pointer: coarse) {
+  :root .world-label {
+    min-width: 44px;
+    min-height: 44px;
+    /* Keep the glyph at its projected foot while enlarging the clear area above it. */
+    justify-content: flex-end;
+  }
+}
 
 /* Navigation controls use the same carved frame. The circular map remains a compass. */
 :root .minimap-wrap {

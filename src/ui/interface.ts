@@ -372,7 +372,8 @@ export class Interface {
       marker.classList.toggle('map-target', id === objectiveTarget(state) && !finished);
     }
     const announcer = this.root.querySelector('#announcer')!;
-    announcer.textContent = objective(state);
+    const nextObjective = objective(state);
+    if (announcer.textContent !== nextObjective) announcer.textContent = nextObjective;
   }
   frame(
     position: Point,
@@ -918,7 +919,7 @@ export class Interface {
           )
           .join(
             '',
-          )}</div></div><div class="map-legend"><span><i class="legend-player"></i> You are here</span><span><i class="legend-place"></i> People & places</span><span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
+          )}</div></div><div class="map-legend"><span><i class="legend-player" aria-hidden="true"></i> You are here</span><span><i class="legend-person" aria-hidden="true"></i> People</span><span><i class="legend-place" aria-hidden="true"></i> Places</span><span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
         true,
       ),
     );
