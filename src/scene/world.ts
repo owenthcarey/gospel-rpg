@@ -1538,11 +1538,15 @@ export class World {
         height = this.engine.getRenderHeight();
       const rect = this.canvas.getBoundingClientRect();
       const labels = this.destinations.map((p) => {
+        const hull =
+          p.id === 'board-' + this.state.region && this.mooredBoat?.isEnabled()
+            ? this.mooredBoat.getAbsolutePosition()
+            : undefined;
         const v = Vector3.Project(
           new Vector3(
-            p.x,
-            groundHeight(this.state.region, p) + (p.kind === 'person' ? 2.18 : 1.9),
-            p.z,
+            hull?.x ?? p.x,
+            (hull?.y ?? groundHeight(this.state.region, p)) + (p.kind === 'person' ? 2.18 : 1.9),
+            hull?.z ?? p.z,
           ),
           Matrix.Identity(),
           this.scene.getTransformMatrix(),
