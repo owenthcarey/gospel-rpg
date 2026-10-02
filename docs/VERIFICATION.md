@@ -180,6 +180,8 @@ Earlier test-only cleanup and target-observation failures remain preserved. One 
 
 The integrated pipeline for this checkpoint passes evidence checks, types, lint, **932 unit checks in 61 files** (19.37 seconds), production build, formatting and whitespace checks. Browser discovery retains **358 cases in 150 groups**, with 142 unknown selectors using conservative three-minute estimates and the longest estimate still 600 seconds. Subsequent test-helper observation changes receive scoped type/lint/format checks and the final native prop runs; application source and the tested production bundle remain unchanged.
 
+The [forty-two-commit CI checkpoint](https://github.com/owenthcarey/gospel-rpg/actions/runs/36981937806) passes all **154 jobs**, including all **150 Chromium browser groups**, Firefox/WebKit compatibility, the uninterrupted four-chapter journey and the required quality gate. This published result includes the corrected harbor reapproach test, the reed-rock recovery fixtures, conversation focus and direct bakehouse model actions.
+
 ## CI correction · PR #25 · 2026-10-01
 
 The [initial PR run](https://github.com/owenthcarey/gospel-rpg/actions/runs/36941481695) passed build, continuous journey and compatibility, but nine Chromium browser groups failed. The logs and downloaded traces distinguish layout defects from timing and native-control assumptions.
