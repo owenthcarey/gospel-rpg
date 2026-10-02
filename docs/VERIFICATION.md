@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Travel and spring observations · 2026-10-02
+
+Commits `ce44ee6` and `9310bb7` keep inspections consistent with the cleared spring and the scoop's carried/returned state, including settled completion wording. Chosen-point ground and minimap travel now expose the existing Cancel action for the actual active path; afloat courses say “Steering.” Arrival, cancellation and world/graphics pause clear that temporary status, while saved destinations remain resumable under their existing rules.
+
+The full check passes **1,224 tests across 76 files**, evidence, types, lint, production build, formatting and whitespace checks. Browser discovery verifies **424 cases in 196 groups** with the retained Linux timing catalog. All **eight focused production cases** pass in desktop and phone contexts: native minimap movement/cancellation with complete earned-state equality, both earned spring clearance orders and basin endings, existing multi-region saved routes, and existing afloat cancellation/pause/reload with carried supplies. The four new cases pass in **43.5 seconds**; the four existing route cases pass in **1.7 minutes**, with their original assertions/time limits, one worker and zero retries. Four original captures were inspected and remain in ignored review artifacts.
+
+The checked production entry is `index-D_OhtcDI.js` (SHA-256 `2550c3d6bd8e577f8431181f96695f3b11d9a3f9eb15fb294a6f497673067cbb`) with unchanged `index-DB1rH7Zb.css` (SHA-256 `4baf3755af5a4aae17fb4d43165f24d5ef4be4d09e6d3bd0a0a80d8066b30804`). These local Chromium checks retain their stated scope. The bench cloth and full sitting-motion prototype remains separate from this production snapshot.
+
 ## HUD controls and practical work · 2026-10-02
 
 Four code commits (`0f726ea` through `4810dec`) keep gameplay letter keys available after physical HUD commands, turn the traveler forward during bench approaches and retreats, retain full work-panel access when three quick slots omit actions, and make compass/camera-return easing follow visible elapsed time on slow frames. Reading controls and native button keys keep their ownership. Suspension resets still discard hidden elapsed time, and simulation retains its 0.25-second catch-up limit and collision-safe steps. Six actual World/NullEngine timing cases cover slow/normal-frame equivalence, compass completion, camera return and both suspension handoffs; seven shipped-skin bench cases cover physical facing and unchanged sitting placement.

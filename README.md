@@ -28,6 +28,8 @@ The minimap now shows the village’s actual houses, groves and paths, with read
 
 Exploration characters have soft contact shadows, and walking companions match their footsteps to their shared pace. Starting to walk blends practical gestures back into walking. Camera controls, focused world names and physical HUD commands retain letter-key movement. Compass turns and camera returns keep their timing on slow frames. Arrival plaques fit the available HUD space and yield on crowded screens. The satchel brings carried supplies forward, keeps their own next task visible when another story is tracked, and distinguishes a filled water jug from an empty one. Neighbors seated at earned tables face their company, and bench approaches face the direction of travel. The nearby tray opens the full work panel when more actions are available than its three quick slots can show.
 
+Ground and minimap travel show a Cancel control while a chosen-point route is active, including ordinary boat courses. Spring inspections describe the inlet, silt and scoop where they actually are, and completed work keeps its settled observation on later visits.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
