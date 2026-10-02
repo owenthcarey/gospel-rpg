@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { parseSave } from '../../src/persistence/schema';
 import { activeInteractables } from '../../src/content/region';
-import { dismiss, ready } from '../helpers/connection-browser';
+import { dismiss, exported, ready } from '../helpers/connection-browser';
 
 const fixture = async (name: string) =>
   parseSave(JSON.parse(await readFile(`tests/fixtures/saves/${name}`, 'utf8'))).state;
@@ -64,4 +64,44 @@ test('a completed tracked chapter leaves regional destinations available without
   await expect(page.locator('.map-destinations [data-action="travel"]')).toHaveCount(
     activeInteractables(state).length,
   );
+});
+
+test('completed early stories keep an unfinished Capernaum gateway marked while reading the map', async ({
+  page,
+  isMobile,
+}, info) => {
+  if (isMobile) await page.setViewportSize({ width: 320, height: 568 });
+  const state = await fixture('v4-complete-episode.json');
+  await ready(page, state);
+  const before = await exported(page);
+  await dismiss(page);
+  await expect(page.locator('.minimap [data-map-place="to-lanes"]')).toHaveClass(/map-target/);
+  const player = await page.locator('#minimap-player').getAttribute('transform');
+  await page.getByRole('button', { name: 'Open local map', exact: true }).click();
+  await expect(page.locator('#world-labels')).toHaveJSProperty('inert', true);
+  const passage = page.locator('.large-map [data-map-place="to-lanes"]');
+  await expect(passage).toHaveClass(/map-target/);
+  await expect(passage).toHaveAttribute('cx', '84');
+  await expect(passage).toHaveAttribute('cy', '20');
+  await expect(passage).toHaveAttribute('r', '2.6');
+  await expect(passage).toHaveCSS('stroke', 'rgb(255, 243, 168)');
+  await expect(passage).toHaveCSS('stroke-width', '2px');
+  await expect(page.locator('.large-map .map-target')).toHaveCount(1);
+  await expect(page.locator('.map-destinations [data-value="to-lanes"] small')).toHaveText(
+    'Next stop',
+  );
+  expect(
+    await page
+      .locator('.map-destinations [data-action="travel"]')
+      .evaluateAll((buttons) => buttons.map((button) => (button as HTMLElement).dataset.value)),
+  ).toEqual(activeInteractables(state).map((place) => place.id));
+  await expect(page.locator('.large-map .map-remembered')).toHaveCount(3);
+  await passage.scrollIntoViewIfNeeded();
+  await expect(passage).toBeInViewport();
+  await page.keyboard.press('w');
+  await page.waitForTimeout(350);
+  await expect(page.locator('#minimap-player')).toHaveAttribute('transform', player!);
+  await page.screenshot({ path: info.outputPath('tracked-capernaum-gateway.png'), scale: 'css' });
+  const after = await exported(page);
+  expect({ ...after, playTime: before.playTime }).toEqual(before);
 });

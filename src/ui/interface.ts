@@ -946,7 +946,7 @@ export class Interface {
         )
           .map(
             (p) =>
-              `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${state.discoveries.some((id) => id === p.id) ? 'Remembered in your journal' : p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'Next stop' : p.role}</small></span>${icon('arrow')}</button>`,
+              `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${state.discoveries.some((id) => id === p.id) ? 'Remembered in your journal' : p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'Next stop' : p.role}</small></span>${icon('arrow')}</button>`,
           )
           .join(
             '',
@@ -1379,7 +1379,7 @@ export class Interface {
       .map((p) => `L${p}`)
       .join(
         ' ',
-      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/>${capernaumMapScenery()}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
+      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/>${capernaumMapScenery()}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
   }
   dispose(): void {
     this.shortLandscape.removeEventListener('change', this.onNoticeLayout);
