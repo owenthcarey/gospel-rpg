@@ -84,6 +84,9 @@ export class RoadActivity {
       );
       if (step.facing) this.actor.turnTo(step.facing, this.still ? 10 : dt, 9);
     }
+    this.actor.setStrideSpeed(
+      moving && dt > 0 ? distance(position, this.actor.root.position) / dt : 0,
+    );
     this.actor.sample(c.stage === 'complete' ? 'Sit' : moving ? 'Walk' : 'Idle', dt, this.still);
     if (target && distance(player, target) > 2.6) this.requested = -1;
     if (

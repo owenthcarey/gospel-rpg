@@ -50,6 +50,7 @@ export class EverydayActivity {
   tick(dt: number, player: Point): void {
     this.time += dt;
     for (const s of this.stations) {
+      const before = { x: s.actor.root.position.x, z: s.actor.root.position.z };
       const pose = stationPose(s.definition, this.time, this.still);
       if (s.owned)
         s.actor.root.position.set(pose.position.x, pose.clip === 'Sit' ? 0.14 : 0, pose.position.z);
@@ -57,6 +58,7 @@ export class EverydayActivity {
       const acknowledge = clip === 'Idle' && distance(player, s.actor.root.position) < 3;
       // Acknowledge the traveler with an unhurried turn; reduced motion settles immediately.
       s.actor.turnTo(acknowledge ? player : pose.facing, this.still || dt === 0 ? 10 : dt, 5);
+      s.actor.setStrideSpeed(dt > 0 ? distance(before, s.actor.root.position) / dt : 0);
       s.actor.sample(clip, dt, this.still);
     }
   }

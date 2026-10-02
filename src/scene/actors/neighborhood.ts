@@ -107,6 +107,7 @@ export class NeighborhoodActivity {
   tick(dt: number, player: Point): void {
     this.time += dt;
     for (const c of this.crowd) {
+      const before = { x: c.actor.root.position.x, z: c.actor.root.position.z };
       const phase = (this.time % c.period) / c.period;
       const moving = !this.still && phase < 0.5;
       if (moving) {
@@ -116,12 +117,18 @@ export class NeighborhoodActivity {
         const toward = phase < 0.25 ? c.b : c.a;
         c.actor.turnTo({ x: c.actor.root.position.x, z: toward.z }, this.still ? 10 : dt, 7);
       }
+      c.actor.setStrideSpeed(dt > 0 ? distance(before, c.actor.root.position) / dt : 0);
       c.actor.sample(moving ? 'Walk' : 'Idle', dt, this.still);
     }
     const amos = this.actors.get('amos');
     const walk = this.state.campaign.walk;
     const position = this.position();
-    if (!amos || !position || walk.stage !== 'walking' || !walk.route) return;
+    if (!amos || !position) return;
+    if (walk.stage !== 'walking' || !walk.route) {
+      amos.setStrideSpeed(0);
+      amos.sample('Idle', dt, this.still);
+      return;
+    }
     const target = WALK_ROUTES[walk.route][walk.step];
     if (!target) return;
     // Physical escort movement is identical with reduced motion. Only clip sampling differs.
@@ -132,8 +139,12 @@ export class NeighborhoodActivity {
       this.path = step.path;
       amos.root.position.set(step.position.x, 0, step.position.z);
       if (step.facing) amos.turnTo(step.facing, this.still ? 10 : dt, 9);
-      amos.sample('Walk', dt, this.still);
-    } else amos.sample('Idle', dt, this.still);
+      amos.setStrideSpeed(dt > 0 ? distance(position, step.position) / dt : 0);
+      amos.sample(step.moving ? 'Walk' : 'Idle', dt, this.still);
+    } else {
+      amos.setStrideSpeed(0);
+      amos.sample('Idle', dt, this.still);
+    }
     if (
       !this.requested &&
       distance(this.position()!, target) <= 1.2 &&
