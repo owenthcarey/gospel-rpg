@@ -6,6 +6,7 @@ import type { Obstacle } from '../game/pathfinding';
 import type { GameState, Point } from '../game/types';
 import { hasReturned } from '../game/episode/progress';
 import { BENCH_FOOTPRINT } from './life/places';
+import { crateFootprints } from './crate-footprints';
 
 export interface Placement extends Point {
   asset: string;
@@ -206,9 +207,6 @@ export const props: Placement[] = [
   { asset: 'nets', x: 5.8, z: -8.7, rotation: 0.5 },
 ];
 
-// Centered bounds enclose the shipped crate's asymmetric boards. WalkGrid adds
-// the same traveler clearance used for the other solid scenery.
-const crateFootprint = Object.freeze({ width: 0.82, depth: 0.74 });
 export const obstacles: Obstacle[] = [
   HARBOR_FOOTPRINT,
   ...villageObstacles.capernaum!,
@@ -223,14 +221,5 @@ export const obstacles: Obstacle[] = [
   { x: -7, z: 2, width: 3.5, depth: 2.4 },
   { x: -1, z: 5, width: 1.9, depth: 1.9 },
   { x: 4, z: -7, width: 2.5, depth: 0.7 },
-  ...props
-    .filter((p) => p.asset === 'crate')
-    .map((p) =>
-      Object.freeze({
-        x: p.x,
-        z: p.z,
-        width: crateFootprint.width * (p.scale ?? 1),
-        depth: crateFootprint.depth * (p.scale ?? 1),
-      }),
-    ),
+  ...crateFootprints(props),
 ];

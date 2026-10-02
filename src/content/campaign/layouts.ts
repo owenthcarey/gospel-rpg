@@ -5,6 +5,7 @@ import type { Point, GameState } from '../../game/types';
 import type { Obstacle } from '../../game/pathfinding';
 import type { AssetId } from '../assets';
 import { roadLayouts } from '../road/layouts';
+import { crateFootprints } from '../crate-footprints';
 export interface Decor extends Point {
   asset: AssetId;
   y?: number;
@@ -182,6 +183,7 @@ export function layoutObstacles(s: GameState): Obstacle[] {
   if (!layout) return [];
   return [
     ...layout.obstacles,
+    ...crateFootprints(layout.decor),
     ...(villageObstacles[s.region] ?? []),
     // New furniture is resolved by the runtime grid; the historical save terrain stays valid.
     ...(s.region === 'galilean-road'
