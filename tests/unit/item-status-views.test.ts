@@ -13,6 +13,10 @@ const returnTarget = (html: string) =>
   html.match(
     /<button[^>]*data-action="travel"[^>]*data-value="([^"]+)"[^>]*>Find the return point[ <]/,
   )![1];
+const nextTarget = (html: string) =>
+  html.match(
+    /<button[^>]*data-action="travel"[^>]*data-value="([^"]+)"[^>]*>Find the next stop[ <]/,
+  )?.[1];
 const inspectionStatus = (html: string, supply: RestSupply) =>
   html.match(new RegExp(`<strong>${supply}</strong><small>([^<]+)`))![1];
 const workStatus = (html: string, supply: RestSupply) =>
@@ -24,6 +28,31 @@ const commands = (html: string) =>
   }));
 
 describe('earned supplies stay consistent across reading views', () => {
+  it.each([
+    ['v6-carrying-pouch.json', 'ruth', 'Return the pouch to Ruth'],
+    ['v5-carrying-water.json', 'courtyard-table', 'Set what you carry'],
+    ['v8-supply-on-the-road.json', 'rest-shade', 'Place what you carry'],
+  ])(
+    'keeps the carried item’s next stop when tracking another story for %s',
+    (file, target, text) => {
+      const state = fixture(file!);
+      state.tracking = 'roof';
+      const before = structuredClone(state);
+      const satchel = carriedView(state);
+      expect(nextTarget(satchel)).toBe(target);
+      expect(satchel).toContain(text);
+      expect(state).toEqual(before);
+    },
+  );
+
+  it('offers only the return point when the carried item’s story is complete', () => {
+    const state = fixture('v8-supply-on-the-road.json');
+    state.galilee.shelter.stage = 'complete';
+    const satchel = carriedView(state);
+    expect(returnTarget(satchel)).toBe('rest-supplies');
+    expect(nextTarget(satchel)).toBeUndefined();
+  });
+
   it.each([
     ['v8-supply-on-the-road.json', 'galilean-road', 'In your hands'],
     ['v9-afloat-with-supply.json', 'galilee-water', 'Stowed aboard'],
