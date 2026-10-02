@@ -1431,7 +1431,6 @@ export class World {
     }
   }
   private render(): void {
-    this.fitCamera();
     const now = performance.now();
     // Menus and the welcome screen do not need a full-rate 3D render loop.
     if (
@@ -1441,6 +1440,7 @@ export class World {
         !this.cadence.due(now))
     )
       return;
+    this.fitCamera();
     const elapsed = this.lastRender ? (now - this.lastRender) / 1000 : 0;
     this.lastRender = now;
     this.cadence.rendered(now);

@@ -191,7 +191,7 @@ export class StageEnvironment {
   }
   /** Keep the sharp shadow volume centered on what the player is looking at. */
   setFocus(point: Vector3): void {
-    if (this.options.shadowCenter) return;
+    if (this.options.shadowCenter || this.focus.equals(point)) return;
     this.focus.copyFrom(point);
     this.placeSun();
   }

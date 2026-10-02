@@ -280,4 +280,80 @@ describe.each([false, true])('stage quality with software rendering %s', (softwa
       engine.dispose();
     }
   });
+
+  it('keeps identical light focus still while ambient focus continues, and honors a tiny real move', () => {
+    const { engine, stage } = studio(software);
+    const focus = new Vector3(13.125, 1.25, -8.375);
+    stage.setView(focus);
+    const originalPosition = stage.sun.position.clone();
+    const positioned = vi.spyOn(stage.sun.position, 'copyFrom');
+    const ambient = vi.spyOn(stage.atmosphere, 'setFocus');
+    try {
+      stage.setView(focus.clone());
+      stage.setView(focus.clone());
+      expect(stage.sun.position).toEqual(originalPosition);
+      expect(positioned).not.toHaveBeenCalled();
+      expect(ambient).toHaveBeenCalledTimes(2);
+      // The guard must be exact: motion smaller than a shadow texel still changes depth focus.
+      const moved = focus.add(new Vector3(0.000001, 0, 0));
+      stage.setView(moved);
+      expect(positioned).toHaveBeenCalledTimes(1);
+      expect(stage.sun.position).not.toEqual(originalPosition);
+      expect(ambient).toHaveBeenLastCalledWith(moved);
+    } finally {
+      positioned.mockRestore();
+      ambient.mockRestore();
+      stage.dispose();
+      engine.dispose();
+    }
+  });
+
+  it('refreshes the unchanged focus for profile and shadow-map changes as a fresh fixed-focus stage would', () => {
+    const { engine, stage } = studio(software);
+    const focus = new Vector3(13.125, 1.25, -8.375);
+    try {
+      stage.setFocus(focus);
+      for (const profile of [environmentFor('capernaum'), environmentFor('capernaum-lanes')]) {
+        stage.setProfile(profile);
+        for (const quality of ['high', 'low', 'high'] as const) {
+          stage.applySettings({ quality, reducedMotion: true });
+          const referenceEngine = new NullEngine();
+          Object.assign(referenceEngine, {
+            getGlInfo: () => ({ renderer: software ? 'SwiftShader' : 'Metal' }),
+          });
+          const referenceScene = new Scene(referenceEngine);
+          const referenceCamera = new ArcRotateCamera(
+            'fixed-focus-reference',
+            0,
+            0.78,
+            33,
+            Vector3.Zero(),
+            referenceScene,
+          );
+          let reference: StageEnvironment | undefined;
+          try {
+            reference = new StageEnvironment(referenceScene, referenceCamera, profile, {
+              quality,
+              shadowCenter: focus,
+            });
+            // Constructor framing cannot use the repeated moving-focus guard under test.
+            expect(stage.sun.position).toEqual(reference.sun.position);
+            expect(stage.sun.direction).toEqual(reference.sun.direction);
+            expect(stage.shadow.getShadowMap()!.getSize()).toEqual(
+              reference.shadow.getShadowMap()!.getSize(),
+            );
+            const appliedPosition = stage.sun.position.clone();
+            stage.setFocus(focus.clone());
+            expect(stage.sun.position).toEqual(appliedPosition);
+          } finally {
+            reference?.dispose();
+            referenceEngine.dispose();
+          }
+        }
+      }
+    } finally {
+      stage.dispose();
+      engine.dispose();
+    }
+  });
 });
