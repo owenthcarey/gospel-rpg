@@ -30,6 +30,10 @@ const crossings = [
 const crossingNames = ['v11-opened-cart-crossing-high.json', 'v11-opened-cart-crossing-low.json'];
 const fixture = (name: string) =>
   parseSave(JSON.parse(readFileSync('tests/fixtures/saves/' + name, 'utf8'))).state;
+const originalExplorationFixtures = readdirSync('tests/fixtures/saves')
+  .filter((name) => name.endsWith('.json') && !crossingNames.includes(name))
+  .map((name) => ({ name, state: fixture(name) }))
+  .filter(({ state }) => EXPLORATION_REGIONS.some((region) => region === state.region));
 const earned = parseSave(highRaw).state;
 const layout = campaignLayout(earned.region)!;
 const from = { x: 1, z: -2 },
@@ -201,13 +205,10 @@ describe('the moved handcart after the passage opens', () => {
     }
   });
 
-  it('preserves historical terrain, old standing cells and every original destination approach', () => {
-    for (const name of readdirSync('tests/fixtures/saves').filter(
-      (name) => name.endsWith('.json') && !crossingNames.includes(name),
-    )) {
-      const state = fixture(name),
-        original = structuredClone(state);
-      if (!EXPLORATION_REGIONS.some((region) => region === state.region)) continue;
+  it.each(originalExplorationFixtures)(
+    'preserves historical terrain, old standing cells and every original destination approach in $name',
+    ({ name, state }) => {
+      const original = structuredClone(state);
       const before = grid(state, true),
         after = grid(state);
       expect(after.walkable(state.position), name).toBe(before.walkable(state.position));
@@ -220,6 +221,6 @@ describe('the moved handcart after the passage opens', () => {
       }
       expect(state).toEqual(original);
       expect(fixture(name)).toEqual(original);
-    }
-  });
+    },
+  );
 });
