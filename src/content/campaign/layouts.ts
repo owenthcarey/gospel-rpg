@@ -204,7 +204,7 @@ export function layoutObstacles(s: GameState): Obstacle[] {
         })()
       : []),
     ...(s.region === 'capernaum-lanes'
-      ? [s.campaign.walk.gateOpen ? wall(2.4, -2, 1.65, 1.8) : wall(0, 0, 3.4, 1)]
+      ? [s.campaign.walk.gateOpen ? wall(2.4, -2, 2, 1.8) : wall(0, 0, 3.4, 1)]
       : []),
   ];
 }

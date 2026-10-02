@@ -19,6 +19,9 @@ import { parseSave } from '../../src/persistence/schema';
 import type { GameState, Point } from '../../src/game/types';
 import highRaw from '../fixtures/saves/v11-opened-cart-crossing-high.json';
 import lowRaw from '../fixtures/saves/v11-opened-cart-crossing-low.json';
+// The genuine Native03 Low export is retained byte-exact in the handcart review;
+// this canonical fixture changes JSON whitespace only.
+import stoppedLowRaw from '../fixtures/saves/v11-opened-cart-stopped-low.json';
 
 // These are unmodified earned states exported after real native opening and manual movement.
 // The separate actual-GLB audit isolated the solid cart bed at both saved X/Z positions;
@@ -27,7 +30,17 @@ const crossings = [
   { quality: 'high', raw: highRaw },
   { quality: 'low', raw: lowRaw },
 ];
-const crossingNames = ['v11-opened-cart-crossing-high.json', 'v11-opened-cart-crossing-low.json'];
+// This later native export was grid-legal under the first footprint, yet its exact reduced
+// Idle pose intersects finite cart bed, sideboard and wheel surfaces in the shipped-model audit.
+const savedContacts = [
+  ...crossings.map((crossing) => ({ ...crossing, recovered: { x: 4, z: -2 } })),
+  { quality: 'native stopped low', raw: stoppedLowRaw, recovered: { x: 0, z: -2 } },
+];
+const crossingNames = [
+  'v11-opened-cart-crossing-high.json',
+  'v11-opened-cart-crossing-low.json',
+  'v11-opened-cart-stopped-low.json',
+];
 const fixture = (name: string) =>
   parseSave(JSON.parse(readFileSync('tests/fixtures/saves/' + name, 'utf8'))).state;
 const originalExplorationFixtures = readdirSync('tests/fixtures/saves')
@@ -36,7 +49,7 @@ const originalExplorationFixtures = readdirSync('tests/fixtures/saves')
   .filter(({ state }) => EXPLORATION_REGIONS.some((region) => region === state.region));
 const earned = parseSave(highRaw).state;
 const layout = campaignLayout(earned.region)!;
-const from = { x: 1, z: -2 },
+const from = { x: 0, z: -2 },
   escape = { x: 4, z: -2 };
 const movedCart = layoutObstacles(earned).find((o) => o.x === 2.4 && o.z === -2)!;
 const previousObstacles = (state: GameState) =>
@@ -96,9 +109,36 @@ describe('the moved handcart after the passage opens', () => {
     expect(layout.obstacles).not.toContainEqual(movedCart);
   });
 
+  it('covers the genuine reduced-motion body stop outside the previous footprint', () => {
+    const original = structuredClone(stoppedLowRaw),
+      state = parseSave(stoppedLowRaw).state;
+    const previousFootprint = new WalkGrid(
+      [
+        ...layoutObstacles(state).map((obstacle) =>
+          obstacle.x === movedCart.x && obstacle.z === movedCart.z
+            ? { ...obstacle, width: 1.65 }
+            : obstacle,
+        ),
+        ...passageObstacles(state),
+      ],
+      layout.terrain,
+      layout.bounds.min,
+      layout.bounds.max,
+    );
+    expect(state).toEqual(stoppedLowRaw.state);
+    expect(state.campaign.walk.gateOpen).toBe(true);
+    expect(layout.terrain(state.position)).toBe(true);
+    expect(previousFootprint.walkable(state.position)).toBe(true);
+    expect(grid(state).walkable(state.position)).toBe(false);
+    expect(grid(state).walkable(from)).toBe(true);
+    expect(grid(state).nearest(state.position)).toEqual(from);
+    expect(stoppedLowRaw).toEqual(original);
+  });
+
   it('stops the original eastward manual crossing and retains an escape route', () => {
     const before = grid(earned, true),
       after = grid(earned);
+    expect(after.walkable(from)).toBe(true);
     expect(clearLine(before, from, escape)).toBe(true);
     expect(clearLine(after, from, escape)).toBe(false);
     let oldPosition = from,
@@ -109,11 +149,13 @@ describe('the moved handcart after the passage opens', () => {
       position = slideStep(after, position, movement);
       expect(after.walkable(position)).toBe(true);
     }
-    for (const { raw } of crossings) {
+    for (const { raw } of savedContacts) {
       expect(oldPosition.x).toBeGreaterThan(raw.state.position.x);
       expect(position.x).toBeLessThan(raw.state.position.x);
     }
     expect(distance(position, from)).toBeLessThan(0.6);
+    expect(position.x).toBeGreaterThan(0.2);
+    expect(position.x).toBeLessThan(0.5);
     expect(findPath(after, position, escape).length).toBeGreaterThan(0);
   });
 
@@ -149,9 +191,9 @@ describe('the moved handcart after the passage opens', () => {
   });
 
   for (const mode of ['load', 'update'] as const)
-    it.each(crossings)(
+    it.each(savedContacts)(
       'recovers the genuine $quality crossing on ' + mode + ' without changing earned progress',
-      ({ raw }) => {
+      ({ raw, recovered }) => {
         const state = parseSave(raw).state,
           original = structuredClone(state),
           world = standingWorld(state);
@@ -161,6 +203,7 @@ describe('the moved handcart after the passage opens', () => {
         expect(world.grid.walkable(position)).toBe(true);
         expect(distance(position, original.position)).toBeLessThan(2);
         expect(position).not.toEqual(original.position);
+        expect(position).toEqual(recovered);
         expect(world.path).toEqual([]);
         expect(world.destination).toBeUndefined();
         expect(world.keys.size).toBe(0);

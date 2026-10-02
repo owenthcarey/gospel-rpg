@@ -45,9 +45,11 @@ describe('straight-walk corner traversal', () => {
     }
   });
 
-  it('keeps the actual approach reachable using legal source route legs and real movement steps', () => {
+  it('keeps the legal west approach reachable using source route legs and real movement steps', () => {
     let position = { x: -2, z: 1 };
-    const target = { x: 1, z: -2 };
+    const target = { x: 0, z: -2 };
+    expect(actualGrid.walkable(target)).toBe(true);
+    expect(actualGrid.walkable({ x: 1, z: -2 })).toBe(false);
     let route = smoothPath(actualGrid, position, findPath(actualGrid, position, target));
     expect(route.length).toBeGreaterThan(0);
     let anchor = position;
@@ -221,9 +223,11 @@ describe('straight-walk corner traversal', () => {
     },
   );
 
-  it('preserves the authored destination from an exact legal saved half-cell vertex', () => {
+  it('preserves the legal west standing target from an exact saved half-cell vertex', () => {
     const from = { x: -1.5, z: 0.5 },
-      target = { x: 1, z: -2 };
+      target = { x: 0, z: -2 };
+    expect(actualGrid.walkable(target)).toBe(true);
+    expect(actualGrid.walkable({ x: 1, z: -2 })).toBe(false);
     expect(actualGrid.walkable(from)).toBe(true);
     const raw = findPath(actualGrid, from, target);
     expect(raw[0]).toEqual(actualGrid.cell(from));
