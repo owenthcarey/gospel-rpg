@@ -8,6 +8,7 @@ import { roadLayouts } from '../road/layouts';
 import { crateFootprints } from '../crate-footprints';
 export interface Decor extends Point {
   asset: AssetId;
+  interactionId?: string;
   y?: number;
   rotation?: number;
   scale?: number;
@@ -88,7 +89,7 @@ export const districtLayout: ExplorationLayout = {
     { asset: 'olive', x: -3, z: 9, scale: 1.4 },
     { asset: 'cypress', x: 13, z: 11 },
     { asset: 'olive', x: -13, z: -10 },
-    { asset: 'well', x: -11, z: -3, scale: 0.85 },
+    { asset: 'well', x: -11, z: -3, scale: 0.85, interactionId: 'water-point' },
     { asset: 'worktable', x: 6, z: 3 },
     { asset: 'bench', x: 6, z: 1.7 },
     { asset: 'bench', x: 6, z: 4.3 },

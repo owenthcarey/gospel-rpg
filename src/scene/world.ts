@@ -429,7 +429,7 @@ export class World {
     );
     if (this.layout) {
       for (const p of this.layout.decor) {
-        const node = this.place(p);
+        const node = this.place(p, p.interactionId);
         node.position.y = groundHeight(this.state.region, p) + (p.y ?? 0);
         node.scaling.x *= p.scaleX ?? 1;
         if (p.cutaway) this.cutaways.push({ node, kind: p.cutaway });
@@ -536,7 +536,11 @@ export class World {
       this.player.rotation.y = this.state.lake.boat.heading;
       ring.scaling.setAll(2.2);
     } else if (isLakeRegion(this.state.region) || this.state.region === 'capernaum') {
-      this.mooredBoat = this.library.instantiate('boat', 'ordinary-moored-boat').root;
+      this.mooredBoat = this.library.instantiate(
+        'boat',
+        'ordinary-moored-boat',
+        'board-' + this.state.region,
+      ).root;
       this.mooredBoat.position.set(
         this.state.region === 'capernaum' ? 10 : 0,
         -0.03,
