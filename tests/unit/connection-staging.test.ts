@@ -7,7 +7,8 @@ import { AssetLibrary } from '../../src/scene/assets';
 import { Actor } from '../../src/scene/actors/actor';
 import { LifeActivity } from '../../src/scene/actors/life';
 import { ConnectionActivity } from '../../src/scene/actors/connection';
-import { DEFAULT_SETTINGS } from '../../src/game/types';
+import { DEFAULT_SETTINGS, newGame } from '../../src/game/types';
+import type { ExplorationRegion } from '../../src/game/campaign/types';
 import { explorationAssets } from '../../src/content/inventories';
 import { homeAt, completedJourney } from '../helpers/connection';
 import { passageMarkers, passageObstacles } from '../../src/content/connection/presentation';
@@ -41,15 +42,84 @@ afterEach(() => {
     writeFileSync(process.env.CONNECTION_REVIEW_OUTPUT, JSON.stringify(review));
   engine?.dispose();
 });
-async function setup() {
+async function setup(region: ExplorationRegion = 'capernaum') {
   engine = new NullEngine();
   engine.getCaps().maxVertexUniformVectors = 1024;
   const scene = new Scene(engine),
     library = new AssetLibrary(scene);
-  await library.load(explorationAssets('capernaum'), () => {});
+  await library.load(explorationAssets(region), () => {});
   return { scene, library };
 }
 describe('connected-journey exported geometry', () => {
+  it.each([
+    ['capernaum-lanes', 'high'],
+    ['capernaum-lanes', 'low'],
+    ['bakehouse', 'high'],
+    ['bakehouse', 'low'],
+  ] as const)(
+    'faces the %s table guests toward their table at %s quality',
+    async (region, quality) => {
+      const { scene, library } = await setup(region);
+      const state = newGame();
+      state.region = region;
+      state.campaign.table.stage = 'complete';
+      state.campaign.table.location = region === 'capernaum-lanes' ? 'courtyard' : 'bakehouse';
+      const table = campaignLayout(region)!.decor.find((p) => p.asset === 'worktable')!;
+      const bench = campaignLayout(region)!.decor.find(
+        (p) => p.asset === 'bench' && p.z < table.z,
+      )!;
+      const seat = library.instantiate('bench', 'table-guest-bench');
+      seat.root.position.set(bench.x, 0, bench.z);
+      const seatPoints = posedVertices(seat.root);
+      const seatHeight = Math.max(...seatPoints.map((p) => p.y));
+      const player = new Actor(library.instantiate('traveler', 'table-guest-traveler'));
+      const activity = new LifeActivity(library, player, region);
+      activity.update(state);
+      activity.settings({ ...DEFAULT_SETTINGS, quality });
+      activity.tick(0.1);
+      const { company } = activity as unknown as { company: Actor[] };
+      expect(company).toHaveLength(2);
+      for (const guest of company) {
+        const position = guest.root.position.clone();
+        const pelvis = guest.model.socket('body').getAbsolutePosition();
+        const feet = [
+          ...posedVertices(guest.root, 'leg_left'),
+          ...posedVertices(guest.root, 'leg_right'),
+        ];
+        expect(guest.root.isEnabled()).toBe(true);
+        expect(Math.abs(pelvis.y - seatHeight)).toBeLessThan(0.15);
+        expect(Math.abs(Math.min(...feet.map((p) => p.y)))).toBeLessThan(0.12);
+        // The actual seated legs extend north under the table, not into the outer lane.
+        expect(feet.reduce((sum, p) => sum + p.z - position.z, 0) / feet.length).toBeGreaterThan(
+          0.2,
+        );
+        const head = posedVertices(guest.root, 'head');
+        const front = Math.max(...head.map((p) => p.z));
+        const noseIndices = head.flatMap((p, i) => (p.z >= front - 0.003 ? [i] : []));
+        const faceAngle = () => {
+          const points = posedVertices(guest.root, 'head');
+          const nose = noseIndices
+            .reduce((sum, i) => sum.addInPlace(points[i]!), Vector3.Zero())
+            .scale(1 / noseIndices.length);
+          const centre = guest.model.socket('head').getAbsolutePosition();
+          return Math.atan2(nose.x - centre.x, nose.z - centre.z);
+        };
+        const forward = faceAngle();
+        expect(Math.abs(forward)).toBeLessThan(0.03);
+        guest.lookAt(new Vector3(position.x + 1, 1.6, table.z));
+        for (let i = 0; i < 40; i++) activity.tick(0.05);
+        expect(faceAngle()).toBeGreaterThan(forward + 0.1);
+        expect(faceAngle()).toBeLessThan(forward + 0.75);
+        expect(guest.root.position.equals(position)).toBe(true);
+        activity.settings({ ...DEFAULT_SETTINGS, quality, reducedMotion: true });
+        activity.tick(0.05);
+        expect(faceAngle()).toBeCloseTo(forward, 2);
+        activity.settings({ ...DEFAULT_SETTINGS, quality });
+      }
+      library.dispose();
+      scene.dispose();
+    },
+  );
   it('reconstructs bounded return company and grounds both travelers at High and Low', async () => {
     const { scene, library } = await setup();
     const s = homeAt(completedJourney(), 'shore');

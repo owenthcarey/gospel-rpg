@@ -68,6 +68,7 @@ export class LifeActivity {
         const actor = new Actor(library.instantiate('villager', 'life-table-neighbor-' + i), true);
         const outdoor = region === 'capernaum-lanes';
         actor.root.position.set((outdoor ? 6 : 0) + (i ? 0.5 : -0.5), 0.08, outdoor ? 1.7 : 0.6);
+        actor.face({ x: actor.root.position.x, z: outdoor ? 3 : 2 });
         actor.pose('Sit');
         this.company.push(actor);
       }
