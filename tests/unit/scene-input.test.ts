@@ -78,12 +78,14 @@ class ControlBoundary extends EventTarget {
   constructor(
     private interactive = false,
     private world = false,
+    private label = false,
   ) {
     super();
   }
   closest(selector: string) {
     if (selector === 'button,a,summary') return this.interactive ? this : null;
-    if (selector === '.camera-controls,.minimap-wrap') return this.world ? this : null;
+    if (selector === '.camera-controls,.minimap-wrap,.world-label')
+      return this.world || this.label ? this : null;
     return null;
   }
 }
@@ -142,29 +144,32 @@ function keyboardStudio() {
   return { keys, manualMove, navigate, resetCamera, send, dispose };
 }
 
-it('keeps world letter controls available after using a focused camera or compass button', () => {
-  const { keys, manualMove, navigate, resetCamera, send, dispose } = keyboardStudio();
-  const control = new ControlBoundary(true, true);
-  try {
-    expect(send('w', control).defaultPrevented).toBe(true);
-    expect(keys).toEqual(new Set(['w']));
-    expect(manualMove).toHaveBeenCalledTimes(1);
-    send('w', control, { type: 'keyup' });
-    expect(keys.size).toBe(0);
-    send('q', control);
-    expect(keys).toEqual(new Set(['q']));
-    send('r', control);
-    expect(resetCamera).toHaveBeenCalledTimes(1);
-    send('e', control);
-    expect(navigate).toHaveBeenCalledExactlyOnceWith('simon');
-    expect(send('ArrowDown', control).defaultPrevented).toBe(false);
-    expect(keys.has('arrowdown')).toBe(false);
-    expect(send('Enter', control).defaultPrevented).toBe(false);
-    expect(send(' ', control).defaultPrevented).toBe(false);
-  } finally {
-    dispose();
-  }
-});
+it.each(['camera', 'label'] as const)(
+  'keeps world letter controls available on a focused %s button',
+  (scope) => {
+    const { keys, manualMove, navigate, resetCamera, send, dispose } = keyboardStudio();
+    const control = new ControlBoundary(true, scope === 'camera', scope === 'label');
+    try {
+      expect(send('w', control).defaultPrevented).toBe(true);
+      expect(keys).toEqual(new Set(['w']));
+      expect(manualMove).toHaveBeenCalledTimes(1);
+      send('w', control, { type: 'keyup' });
+      expect(keys.size).toBe(0);
+      send('q', control);
+      expect(keys).toEqual(new Set(['q']));
+      send('r', control);
+      expect(resetCamera).toHaveBeenCalledTimes(1);
+      send('e', control);
+      expect(navigate).toHaveBeenCalledExactlyOnceWith('simon');
+      expect(send('ArrowDown', control).defaultPrevented).toBe(false);
+      expect(keys.has('arrowdown')).toBe(false);
+      expect(send('Enter', control).defaultPrevented).toBe(false);
+      expect(send(' ', control).defaultPrevented).toBe(false);
+    } finally {
+      dispose();
+    }
+  },
+);
 
 it('leaves reading controls, context options, typing and reserved key events to their owners', () => {
   const { keys, manualMove, navigate, resetCamera, send, dispose } = keyboardStudio();

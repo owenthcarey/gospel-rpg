@@ -55,9 +55,12 @@ export function bindExplorationInput(input: ExplorationInput): ExplorationInputB
       return;
     const control =
       event.target instanceof HTMLElement ? event.target.closest('button,a,summary') : null;
-    // Camera and compass clicks retain accessible button focus. Letter shortcuts
+    // World controls retain accessible button focus. Letter shortcuts
     // should still control the world there; arrows remain available to the control.
-    if (control && (!control.closest('.camera-controls,.minimap-wrap') || key.startsWith('arrow')))
+    if (
+      control &&
+      (!control.closest('.camera-controls,.minimap-wrap,.world-label') || key.startsWith('arrow'))
+    )
       return;
     event.preventDefault();
     if (movementKeys.has(key)) input.manualMove?.();
