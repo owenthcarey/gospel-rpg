@@ -62,7 +62,17 @@ export class HoldView {
       if (!screen) return undefined;
       anchors.push({ world, x: screen.x, y: screen.y });
     }
-    return new HoldView(anchors, { ...viewport }, { ...bounds });
+    // Native DOMRect coordinates are prototype getters, so spread loses their values.
+    return new HoldView(
+      anchors,
+      { ...viewport },
+      {
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: bounds.height,
+      },
+    );
   }
 
   changed(transform: Matrix, viewport: HoldViewport, bounds: HoldCanvasBounds): boolean {
