@@ -77,6 +77,9 @@ export class ContactShadows {
     this.casters = this.casters.filter((c) => !c.node.isDisposed());
     for (const caster of this.casters) {
       if (!caster.node.isEnabled()) continue;
+      // The batch updates before Scene.render advances its matrix-cache frame. Include
+      // movement and cosmetic seat offsets accepted since the preceding render now.
+      caster.node.computeWorldMatrix(true);
       const at = caster.node.getAbsolutePosition();
       const ground = this.ground(at.x, at.z);
       // Lift the shadow with its caster, fading as the object leaves the ground.

@@ -287,7 +287,11 @@ export class World {
       ground: (x, z) => (region === 'galilee-water' ? -0.05 : groundHeight(region, { x, z })),
     });
     this.shadow = this.stage.shadow;
-    this.library = new AssetLibrary(this.scene, this.shadow);
+    this.library = new AssetLibrary(
+      this.scene,
+      this.shadow,
+      region === 'galilee-water' ? undefined : this.stage.contact,
+    );
     if (this.layout) {
       const inside = this.layout.inside;
       const shore = isLakeRegion(initial.region) && initial.region !== 'galilee-water';
