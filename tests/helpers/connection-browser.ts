@@ -80,32 +80,51 @@ export async function readAccount(page: Page, checkpoints: readonly string[]) {
 
 /** Measure computed text against its composited CSS surface, including translucent buttons. */
 export async function readableContrast(page: Page, selector: string): Promise<number> {
-  const ratio = await page
-    .locator(selector)
-    .first()
-    .evaluate((element) => {
-      const rgba = (color: string) => color.match(/[\d.]+/g)!.map(Number);
-      const layers: number[][] = [];
-      for (let node: Element | null = element; node; node = node.parentElement) {
-        const color = rgba(getComputedStyle(node).backgroundColor);
-        layers.push(color);
-        if ((color[3] ?? 1) === 1) break;
-      }
-      let background = [255, 255, 255];
-      for (const color of layers.reverse()) {
-        const alpha = color[3] ?? 1;
-        background = background.map((v, i) => color[i]! * alpha + v * (1 - alpha));
-      }
-      const luminance = (color: number[]) =>
-        color
-          .slice(0, 3)
-          .map((v) => v / 255)
-          .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
-          .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i]!, 0);
-      const a = luminance(rgba(getComputedStyle(element).color));
-      const b = luminance(background);
-      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-    });
-  expect(ratio, selector + ' text contrast').toBeGreaterThanOrEqual(4.5);
+  let ratio = NaN;
+  await expect
+    .poll(
+      async () => {
+        // Query and read in one browser task so a tray refresh cannot detach a captured handle.
+        ratio = await page.locator(selector).evaluateAll((elements) => {
+          const element = elements[0];
+          if (!element?.isConnected) return NaN;
+          const rgba = (color: string): number[] | undefined => {
+            const channels = color
+              .match(/^rgba?\(([\d.\s,/]+)\)$/)?.[1]
+              ?.match(/[\d.]+/g)
+              ?.map(Number);
+            return channels && [3, 4].includes(channels.length) && channels.every(Number.isFinite)
+              ? channels
+              : undefined;
+          };
+          const layers: number[][] = [];
+          for (let node: Element | null = element; node; node = node.parentElement) {
+            const color = rgba(getComputedStyle(node).backgroundColor);
+            if (!color) return NaN;
+            layers.push(color);
+            if ((color[3] ?? 1) === 1) break;
+          }
+          let background = [255, 255, 255];
+          for (const color of layers.reverse()) {
+            const alpha = color[3] ?? 1;
+            background = background.map((v, i) => color[i]! * alpha + v * (1 - alpha));
+          }
+          const foreground = rgba(getComputedStyle(element).color);
+          if (!foreground || !element.isConnected) return NaN;
+          const luminance = (color: number[]) =>
+            color
+              .slice(0, 3)
+              .map((v) => v / 255)
+              .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+              .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i]!, 0);
+          const a = luminance(foreground);
+          const b = luminance(background);
+          return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+        });
+        return ratio;
+      },
+      { message: selector + ' text contrast' },
+    )
+    .toBeGreaterThanOrEqual(4.5);
   return ratio;
 }
