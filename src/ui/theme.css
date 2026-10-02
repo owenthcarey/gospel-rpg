@@ -1716,6 +1716,39 @@
     min-height: 44px;
   }
 }
+/* Short portrait exploration keeps one row of quest actions above the world. */
+@media (max-width: 479px) and (max-height: 640px) and (orientation: portrait) {
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):has(> .quest-story-selector):not(
+      :has(> .quest-story-selector:focus)
+    )
+    > .secondary-button {
+    grid-column: 1;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):not(:has(> .quest-story-selector:focus))
+    > .quest-story-selector {
+    display: none;
+  }
+  :root #ui:not(.scene-mode):not(.working) .quest-card.objective-expanded {
+    max-height: min(
+      50dvh,
+      calc(100dvh - 74px - var(--notice-bottom, 250px)),
+      var(--quest-notice-max-height, 50dvh)
+    );
+  }
+  :root #ui:not(.scene-mode):not(.working) .quest-card.objective-expanded > .quest-story-selector {
+    position: static;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .quest-card.objective-expanded
+    > :is(.quest-story-selector, .objective-toggle) {
+    min-height: 44px;
+  }
+}
 @media (min-width: 480px) and (max-width: 699px) and (max-height: 420px) {
   :root #ui {
     --quest-column: clamp(170px, calc((100vw - 176px) * 0.55), 276px);
