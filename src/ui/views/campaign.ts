@@ -8,6 +8,7 @@ import { trackedChapter } from '../../content/campaign/chapters';
 import { chapters, neighborhoodChapters, storyStatus } from '../../content/campaign/chapters';
 import type { GameState, Point } from '../../game/types';
 import { campaignGoal, localTarget } from '../../game/campaign/objectives';
+import { objectiveTarget } from '../../game/quest';
 import { ROOF_SCENES, ROOF_REFLECTIONS } from '../../game/campaign/types';
 import { roofReadyReflection } from '../../game/campaign/progress';
 import { worldActions, noteTargets, actionBlocker } from '../../content/campaign/actions';
@@ -125,12 +126,14 @@ export function neighborhoodMap(
   const x = (v: number) => (v - min) * scale,
     z = (v: number) => (max - v) * scale;
   const p = position ?? s.position;
+  const target = objectiveTarget(s);
+  const finished = trackedChapter(s).complete(s);
   return `<svg class="map-svg" viewBox="0 0 192 192" aria-label="Map of ${esc(regions[s.region].title)}"><rect width="192" height="192" fill="${s.region === 'galilee-water' ? '#87aaa2' : layout.inside ? '#b7a27d' : '#a1ac7b'}"/>${layout.paths.map(([a, b, w]) => `<path d="M${x(a.x)},${z(a.z)}L${x(b.x)},${z(b.z)}" stroke="#ded1a8" stroke-width="${w * scale}"/>`).join('')}${layout.obstacles.map((o) => `<rect x="${x(o.x - o.width / 2)}" y="${z(o.z + o.depth / 2)}" width="${o.width * scale}" height="${o.depth * scale}" fill="#786b53"/>`).join('')}${activeInteractables(
     s,
   )
     .map(
       (p) =>
-        `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" cx="${x(p.x)}" cy="${z(p.z)}" r="${large ? 3 : 2}" fill="#f1d58e" stroke="#4b584a"/>`,
+        `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${s.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${p.id === target && !finished ? 'map-target' : ''}" cx="${x(p.x)}" cy="${z(p.z)}" r="${large ? 3 : 2}" fill="#f1d58e" stroke="#4b584a"/>`,
     )
     .join(
       '',
