@@ -192,6 +192,23 @@ export function activeInteractables(state: GameState): Interactable[] {
   ];
 }
 
+export const props: Placement[] = [
+  { asset: 'market', x: -7, z: 2 },
+  { asset: 'boat', x: 10.7, z: 1.4, rotation: 0.25 },
+  { asset: 'boat', x: 11.7, z: 6, rotation: -0.35 },
+  { asset: 'boat', x: 6.8, z: -5, rotation: -1.2 },
+  { asset: 'amphora', x: -5.6, z: 2.5 },
+  { asset: 'amphora', x: -10.2, z: 2.9, scale: 0.8 },
+  { asset: 'amphora', x: -10.4, z: 3.7 },
+  { asset: 'crate', x: 6.5, z: 0.2 },
+  { asset: 'crate', x: 7.2, z: 0.5, scale: 0.8 },
+  { asset: 'crate', x: -8.9, z: 1 },
+  { asset: 'nets', x: 5.8, z: -8.7, rotation: 0.5 },
+];
+
+// Centered bounds enclose the shipped crate's asymmetric boards. WalkGrid adds
+// the same traveler clearance used for the other solid scenery.
+const crateFootprint = Object.freeze({ width: 0.82, depth: 0.74 });
 export const obstacles: Obstacle[] = [
   HARBOR_FOOTPRINT,
   ...villageObstacles.capernaum!,
@@ -206,18 +223,14 @@ export const obstacles: Obstacle[] = [
   { x: -7, z: 2, width: 3.5, depth: 2.4 },
   { x: -1, z: 5, width: 1.9, depth: 1.9 },
   { x: 4, z: -7, width: 2.5, depth: 0.7 },
-];
-
-export const props: Placement[] = [
-  { asset: 'market', x: -7, z: 2 },
-  { asset: 'boat', x: 10.7, z: 1.4, rotation: 0.25 },
-  { asset: 'boat', x: 11.7, z: 6, rotation: -0.35 },
-  { asset: 'boat', x: 6.8, z: -5, rotation: -1.2 },
-  { asset: 'amphora', x: -5.6, z: 2.5 },
-  { asset: 'amphora', x: -10.2, z: 2.9, scale: 0.8 },
-  { asset: 'amphora', x: -10.4, z: 3.7 },
-  { asset: 'crate', x: 6.5, z: 0.2 },
-  { asset: 'crate', x: 7.2, z: 0.5, scale: 0.8 },
-  { asset: 'crate', x: -8.9, z: 1 },
-  { asset: 'nets', x: 5.8, z: -8.7, rotation: 0.5 },
+  ...props
+    .filter((p) => p.asset === 'crate')
+    .map((p) =>
+      Object.freeze({
+        x: p.x,
+        z: p.z,
+        width: crateFootprint.width * (p.scale ?? 1),
+        depth: crateFootprint.depth * (p.scale ?? 1),
+      }),
+    ),
 ];
