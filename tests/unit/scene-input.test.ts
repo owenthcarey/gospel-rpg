@@ -79,6 +79,8 @@ class ControlBoundary extends EventTarget {
     private interactive = false,
     private world = false,
     private label = false,
+    private hud = false,
+    readonly dataset: { action?: string; value?: string } = {},
   ) {
     super();
   }
@@ -86,6 +88,7 @@ class ControlBoundary extends EventTarget {
     if (selector === 'button,a,summary') return this.interactive ? this : null;
     if (selector === '.camera-controls,.minimap-wrap,.world-label')
       return this.world || this.label ? this : null;
+    if (selector === '#hud') return this.hud ? this : null;
     return null;
   }
 }
@@ -93,7 +96,7 @@ class InputBoundary extends ControlBoundary {}
 class SelectBoundary extends ControlBoundary {}
 class TextareaBoundary extends ControlBoundary {}
 
-function keyboardStudio() {
+function keyboardStudio(paused = false) {
   const engine = new NullEngine();
   const scene = new Scene(engine);
   const events = new EventTarget();
@@ -110,7 +113,7 @@ function keyboardStudio() {
     scene,
     canvas: new ControlBoundary() as unknown as HTMLCanvasElement,
     keys,
-    paused: () => false,
+    paused: () => paused,
     navigate,
     manualMove,
     walk: vi.fn(),
@@ -170,6 +173,52 @@ it.each(['camera', 'label'] as const)(
     }
   },
 );
+
+it.each(['navigate', 'follow-story', 'route-resume', 'quick-action', 'cancel-navigation'])(
+  'keeps physical HUD letter controls available after %s without taking native button keys',
+  (action) => {
+    const { keys, manualMove, navigate, resetCamera, send, dispose } = keyboardStudio();
+    const control = new ControlBoundary(true, false, false, true, { action });
+    try {
+      for (const key of ['w', 'a', 's', 'd', 'q', 'e', 'r'])
+        expect(send(key, control).defaultPrevented).toBe(true);
+      expect(keys).toEqual(new Set(['w', 'a', 's', 'd', 'q', 'e', 'r']));
+      expect(manualMove).toHaveBeenCalledTimes(4);
+      expect(navigate).toHaveBeenCalledExactlyOnceWith('simon');
+      expect(resetCamera).toHaveBeenCalledTimes(1);
+      for (const key of ['ArrowUp', 'Enter', ' '])
+        expect(send(key, control).defaultPrevented).toBe(false);
+      expect(keys.has('arrowup')).toBe(false);
+    } finally {
+      dispose();
+    }
+  },
+);
+
+it('leaves physical commands inside reading overlays and paused HUD controls with their owners', () => {
+  for (const paused of [false, true]) {
+    const { keys, manualMove, navigate, resetCamera, send, dispose } = keyboardStudio(paused);
+    try {
+      const controls = [
+        new ControlBoundary(true, false, false, false, { action: 'navigate' }),
+        new ControlBoundary(true, false, false, false, { action: 'quick-action' }),
+        new ControlBoundary(true, false, false, true, { action: 'journal' }),
+        new ControlBoundary(true, false, false, true, { action: 'objective-toggle' }),
+      ];
+      if (paused)
+        controls.push(new ControlBoundary(true, false, false, true, { action: 'route-resume' }));
+      for (const control of controls)
+        for (const key of ['w', 'q', 'r', 'e', 'ArrowUp'])
+          expect(send(key, control).defaultPrevented).toBe(false);
+      expect(keys.size).toBe(0);
+      expect(manualMove).not.toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalled();
+      expect(resetCamera).not.toHaveBeenCalled();
+    } finally {
+      dispose();
+    }
+  }
+});
 
 it('leaves reading controls, context options, typing and reserved key events to their owners', () => {
   const { keys, manualMove, navigate, resetCamera, send, dispose } = keyboardStudio();

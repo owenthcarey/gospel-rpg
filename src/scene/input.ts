@@ -2,6 +2,7 @@ import { TapGesture } from '../game/gestures';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import type { Scene } from '@babylonjs/core/scene';
 import type { Point } from '../game/types';
+import { requiresWorldView } from '../game/commands';
 export interface ScreenClick {
   x: number;
   y: number;
@@ -54,12 +55,19 @@ export function bindExplorationInput(input: ExplorationInput): ExplorationInputB
     )
       return;
     const control =
-      event.target instanceof HTMLElement ? event.target.closest('button,a,summary') : null;
+      event.target instanceof HTMLElement
+        ? event.target.closest<HTMLElement>('button,a,summary')
+        : null;
+    const physicalHudControl =
+      control?.closest('#hud') &&
+      (requiresWorldView(control.dataset.action ?? '', control.dataset.value) ||
+        control.dataset.action === 'cancel-navigation');
     // World controls retain accessible button focus. Letter shortcuts
     // should still control the world there; arrows remain available to the control.
     if (
       control &&
-      (!control.closest('.camera-controls,.minimap-wrap,.world-label') || key.startsWith('arrow'))
+      ((!control.closest('.camera-controls,.minimap-wrap,.world-label') && !physicalHudControl) ||
+        key.startsWith('arrow'))
     )
       return;
     event.preventDefault();
