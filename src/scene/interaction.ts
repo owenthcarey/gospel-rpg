@@ -50,7 +50,11 @@ export class InteractionFeedback {
   private returnFocus?: HTMLElement;
   private timer?: ReturnType<typeof setTimeout>;
   private releaseView?: () => void;
+  private readonly previousCursorHandling: boolean;
   constructor(private input: InteractionOptions) {
+    // Feedback owns the cursor; Babylon otherwise resets it after each native move.
+    this.previousCursorHandling = input.scene.doNotHandleCursors;
+    input.scene.doNotHandleCursors = true;
     this.hint.className = 'world-action-hint';
     this.hint.hidden = true;
     this.hint.setAttribute('aria-hidden', 'true');
@@ -417,6 +421,7 @@ export class InteractionFeedback {
     if (paused) this.clear();
   }
   dispose() {
+    if (this.disposed) return;
     this.clear();
     this.disposed = true;
     this.touches.clear();
@@ -435,5 +440,6 @@ export class InteractionFeedback {
     this.hint.remove();
     this.menu.remove();
     this.flash.remove();
+    this.input.scene.doNotHandleCursors = this.previousCursorHandling;
   }
 }

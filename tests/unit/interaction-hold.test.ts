@@ -80,7 +80,7 @@ afterEach(() => {
   }
 });
 
-function studio(pointerType: 'touch' | 'mouse' = 'touch') {
+function studio(pointerType: 'touch' | 'mouse' = 'touch', priorCursorHandling = false) {
   vi.useFakeTimers();
   const body = new ElementBoundary();
   const canvas = new ElementBoundary();
@@ -113,6 +113,7 @@ function studio(pointerType: 'touch' | 'mouse' = 'touch') {
     lockstepMaxSteps: 4,
   });
   const scene = new Scene(engine);
+  scene.doNotHandleCursors = priorCursorHandling;
   const camera = new ArcRotateCamera(
     'hold',
     -1.5712812559759244,
@@ -171,6 +172,7 @@ function studio(pointerType: 'touch' | 'mouse' = 'touch') {
     pointer('pointermove', 1, 884, 521, { ...options, buttons: options.buttons ?? 0 });
   };
   return {
+    scene,
     camera,
     hint,
     pick,
@@ -305,10 +307,27 @@ describe('feedback hold camera guard and lifetime', () => {
   });
 });
 
+// Exercise the real downstream Babylon cursor pass that follows document feedback.
+// Only the browser DOM/event boundary is supplied; the input manager is unchanged.
+function engineMousemove(scene: Scene, canvas: ElementBoundary) {
+  vi.spyOn(engine, 'getInputElement').mockReturnValue(canvas as unknown as HTMLElement);
+  vi.stubGlobal(
+    'PointerEvent',
+    class extends Event {
+      constructor(type: string, init: PointerEventInit = {}) {
+        super(type);
+        Object.assign(this, init);
+      }
+    },
+  );
+  scene.simulatePointerMove({ hit: false, pickedMesh: null } as PickingInfo, { pointerId: 1 });
+}
+
 describe('feedback hover camera guard and lifetime', () => {
   it('retains the named hint and pointer cursor through tiny actual follow notifications', () => {
-    const { camera, hover, hint, menu, canvas, pick } = studio('mouse');
+    const { scene, camera, hover, hint, menu, canvas, pick } = studio('mouse');
     hover();
+    engineMousemove(scene, canvas);
     expect(hint.hidden).toBe(false);
     expect(hint.children.map((child) => child.textContent).join('')).toBe(
       'Visit Board the lake boat',
@@ -320,6 +339,7 @@ describe('feedback hover camera guard and lifetime', () => {
     camera.target.x += 3e-11;
     camera.target.z += 2e-11;
     camera.getViewMatrix();
+    engineMousemove(scene, canvas);
     expect(getView).toHaveBeenCalledTimes(1);
     expect(notified).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(700);
@@ -431,6 +451,23 @@ describe('feedback hover camera guard and lifetime', () => {
         expect(pick).toHaveBeenCalledTimes(picks);
       },
     );
+
+  it.each([false, true])('returns cursor ownership to the previous scene policy (%s)', (prior) => {
+    const { scene, hover, canvas, hint } = studio('mouse', prior);
+    scene.defaultCursor = 'crosshair';
+    hover();
+    engineMousemove(scene, canvas);
+    expect(hint.hidden).toBe(false);
+    expect(canvas.style.cursor).toBe('pointer');
+    feedback!.dispose();
+    canvas.style.cursor = 'next-owner';
+    engineMousemove(scene, canvas);
+    expect(canvas.style.cursor).toBe(prior ? 'next-owner' : 'crosshair');
+    // A repeated cleanup must not overwrite a later owner's explicit policy.
+    scene.doNotHandleCursors = true;
+    feedback!.dispose();
+    expect(scene.doNotHandleCursors).toBe(true);
+  });
 
   it('clears an active hover and removes its camera and native input lifetime on disposal', () => {
     const { camera, hover, hint, canvas, pick } = studio('mouse');
