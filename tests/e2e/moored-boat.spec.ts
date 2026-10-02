@@ -217,6 +217,7 @@ for (const data of [
       bytes = await readFile(path),
       original = parseSave(JSON.parse(bytes.toString())).state,
       gate = 'board-' + data.berth,
+      boatName = lakeGateways.find((place) => place.id === gate)!.name,
       errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     let cleanup: (() => Promise<void>) | undefined;
@@ -324,15 +325,15 @@ for (const data of [
           }),
         );
         await expect(
-          menu.getByRole('menuitem', { name: 'Visit Board for the lake', exact: true }),
+          menu.getByRole('menuitem', { name: 'Visit ' + boatName, exact: true }),
         ).toBeVisible();
         await expect(
-          menu.getByRole('menuitem', { name: 'Examine Board for the lake', exact: true }),
+          menu.getByRole('menuitem', { name: 'Examine ' + boatName, exact: true }),
         ).toBeVisible();
       };
       if (!isMobile) {
         await page.mouse.move(calibration.point.x, calibration.point.y);
-        await expect(page.locator('.world-action-hint')).toContainText('Visit Board for the lake');
+        await expect(page.locator('.world-action-hint')).toContainText('Visit ' + boatName);
       }
       await openHullOptions('examine-options', calibration.point);
       await page.screenshot({
@@ -340,7 +341,7 @@ for (const data of [
         scale: 'css',
       });
       await activate(
-        menu.getByRole('menuitem', { name: 'Examine Board for the lake', exact: true }),
+        menu.getByRole('menuitem', { name: 'Examine ' + boatName, exact: true }),
         isMobile,
       );
       await expect(menu).toBeHidden();
@@ -382,7 +383,7 @@ for (const data of [
       const visitContact = await visibleHull(page, data.berth, defaultVisit.position, isMobile);
       await openHullOptions('visit-options', visitContact.point);
       await activate(
-        menu.getByRole('menuitem', { name: 'Visit Board for the lake', exact: true }),
+        menu.getByRole('menuitem', { name: 'Visit ' + boatName, exact: true }),
         isMobile,
       );
       await expect(

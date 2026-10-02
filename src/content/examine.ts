@@ -29,6 +29,13 @@ export const examinations: Readonly<Record<string, string>> = {
   'brace-shelf': 'A spare wooden brace. There may be another useful day in it.',
   'water-point': 'A water point tucked beside the village lanes.',
   'courtyard-table': 'A table in the courtyard. A place is better with company.',
+  'bakehouse-table':
+    'A plain wooden table in Hannah’s bakehouse, with room to share bread and water.',
+  'road-spring': 'A dark stone stands beside the shallow spring.',
+  'road-terrace': 'Two pale stones stand beside the turning path.',
+  'board-capernaum': 'A wooden boat with broad seats, waiting beside the landing.',
+  'board-reed-landing': 'A wooden boat with broad seats, waiting beside the landing.',
+  'board-sheltered-cove': 'A wooden boat with broad seats, waiting beside the landing.',
   'spring-source': 'A spring feeding a little stone channel beside the road.',
   'spring-basins': 'Stone basins at the end of the water channel.',
   'spring-tools': 'A wooden scoop hanging within reach of the channel.',
