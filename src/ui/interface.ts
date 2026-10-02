@@ -875,8 +875,16 @@ export class Interface {
         if (
           this.overlay.firstElementChild === surface &&
           !this.overlay.contains(document.activeElement)
-        )
-          this.overlay.querySelector<HTMLElement>('button:not([disabled]),[tabindex="0"]')?.focus();
+        ) {
+          const answer =
+            panel === 'dialogue'
+              ? this.overlay.querySelector<HTMLElement>('[data-action="choice"]:not([disabled])')
+              : undefined;
+          (
+            answer ??
+            this.overlay.querySelector<HTMLElement>('button:not([disabled]),[tabindex="0"]')
+          )?.focus();
+        }
       });
   }
   close(): void {
@@ -1505,9 +1513,6 @@ export class Interface {
     this.startReveal();
     this.noteInteraction();
     if (dialogue.provenance !== 'Original narration') this.decorateConversation(dialogue.speaker);
-    requestAnimationFrame(() =>
-      this.overlay.querySelector<HTMLElement>('[data-action="choice"]:not([disabled])')?.focus(),
-    );
   }
   confirmNew(): void {
     this.show(
