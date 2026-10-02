@@ -143,6 +143,10 @@ export class MinimapControls {
       );
     }
   }
+  clearDestination() {
+    const flag = this.wrap.querySelector<SVGGElement>('.minimap-destination');
+    if (flag) flag.style.display = 'none';
+  }
   setPaused(paused: boolean) {
     this.paused = paused;
     if (paused) this.clear();

@@ -308,6 +308,7 @@ export class Interface {
   update(state: GameState, trackingRefresh = false): void {
     this.currentState = structuredClone(state);
     this.travelPlan = routePlan(state);
+    if (this.graphicsPaused) this.renderTravelStatus();
     const inScene = isPresenting(state);
     const view = presentationState(state);
     this.root.classList.toggle('scene-mode', inScene);
@@ -417,14 +418,7 @@ export class Interface {
     const nextObjective = objective(state);
     if (announcer.textContent !== nextObjective) announcer.textContent = nextObjective;
   }
-  frame(
-    position: Point,
-    labels: ScreenLabel[],
-    heading: number,
-    nearest: string | null,
-    destination?: string,
-    walkTarget?: Point,
-  ): void {
+  private renderTravelStatus(destination?: string): void {
     const travel = this.root.querySelector<HTMLElement>('#travel-status')!;
     const selected = allInteractables.find((p) => p.id === destination);
     const plan = this.travelPlan;
@@ -436,11 +430,24 @@ export class Interface {
         : '';
     const resume = travel.querySelector<HTMLButtonElement>('[data-action="route-resume"]')!;
     resume.hidden = !plan || !!destination;
-    resume.disabled = !plan?.available;
+    if (resume.dataset.pauseDisabled !== undefined) {
+      resume.dataset.pauseDisabled = String(!plan?.available);
+      resume.disabled = true;
+    } else resume.disabled = !plan?.available;
     if (travel.querySelector('span')!.textContent !== travelText) {
       travel.querySelector('span')!.textContent = travelText;
       travel.querySelector('span')!.title = travelText;
     }
+  }
+  frame(
+    position: Point,
+    labels: ScreenLabel[],
+    heading: number,
+    nearest: string | null,
+    destination?: string,
+    walkTarget?: Point,
+  ): void {
+    this.renderTravelStatus(destination);
     if (this.lastPosition)
       this.setHintsFaded(
         this.hints.move(
@@ -1257,11 +1264,14 @@ export class Interface {
   setGraphicsPaused(paused: boolean): void {
     this.graphicsPaused = paused;
     this.root.dataset.graphicsPaused = String(paused);
+    if (paused) this.renderTravelStatus();
     this.pauseWorldControls();
   }
   setWorldPaused(paused: boolean): void {
     this.worldPaused = paused;
     this.minimap.setPaused(paused);
+    // World.setPaused stops its path; reflect that handoff even without a render frame.
+    if (paused) this.minimap.clearDestination();
     this.labels.inert = paused;
     for (const control of this.hud.querySelectorAll<HTMLElement>(
       '#action-tray, #nearby-action, .camera-controls',
