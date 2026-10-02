@@ -1,5 +1,5 @@
 import { villageObstacles } from './harbor/scenery';
-import { harborPlaces } from './harbor/places';
+import { harborPlaces, activeHarborPlaces } from './harbor/places';
 import { HARBOR_FOOTPRINT } from '../game/harbor/arrangement';
 import { localNeighborhoodPlaces, allNeighborhoodPlaces } from './campaign/places';
 import type { Obstacle } from '../game/pathfinding';
@@ -176,10 +176,9 @@ export const allInteractables = [
 export function activeInteractables(state: GameState): Interactable[] {
   if (state.region !== 'capernaum') return localNeighborhoodPlaces(state);
   const returned = hasReturned(state.episode);
-  const base = [
-    ...interactables,
-    ...harborPlaces.filter((p) => p.id === 'eliab' || state.harbor.stage !== 'not-started'),
-  ].filter((p) => !returned || !['simon', 'jesus'].includes(p.id));
+  const base = [...interactables, ...activeHarborPlaces(state.harbor)].filter(
+    (p) => !returned || !['simon', 'jesus'].includes(p.id),
+  );
   if (state.episode.stage === 'not-started') return base;
   return [
     ...base,

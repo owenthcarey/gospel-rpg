@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
 import { Scene } from '@babylonjs/core/scene';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Ray } from '@babylonjs/core/Culling/ray';
 import { AssetLibrary } from '../../src/scene/assets';
 import { HarborPresentation, dressVillage } from '../../src/scene/harbor';
 import { EverydayActivity } from '../../src/scene/actors/everyday';
@@ -20,6 +21,9 @@ import { posedVertices, bakedGeometry, nearestDistance } from '../helpers/posed-
 import type { ExplorationRegion } from '../../src/game/campaign/types';
 import { capernaumScenery } from '../../src/content/harbor/scenery';
 import { campaignLayout } from '../../src/content/campaign/layouts';
+import { parseSave } from '../../src/persistence/schema';
+import { activeInteractables } from '../../src/content/region';
+import { workTarget } from '../../src/content/exploration/work';
 
 vi.mock('@babylonjs/core/Loading/sceneLoader', async (original) => {
   const actual = await original<typeof import('@babylonjs/core/Loading/sceneLoader')>();
@@ -52,6 +56,65 @@ async function setup(region: ExplorationRegion) {
   await library.load(explorationAssets(region), () => {});
   return { scene, library };
 }
+it.each([
+  'v11-landing-observed',
+  'v11-landing-interrupted',
+  'v11-landing-north',
+  'v11-landing-south',
+])(
+  '%s keeps physical picks and work selection at the actual imported harbor models',
+  async (name) => {
+    const raw = JSON.parse(readFileSync(`tests/fixtures/saves/${name}.json`, 'utf8'));
+    const state = parseSave(raw).state;
+    expect(state).toEqual(raw.state);
+    const before = structuredClone(state);
+    const { scene, library } = await setup('capernaum');
+    const presentation = new HarborPresentation(scene, library);
+    presentation.update(state.harbor);
+    for (const [id, modelName] of [
+      ['harbor-plank', 'working-crossing-plank'],
+      ['harbor-nets', 'working-net-cargo'],
+      ['harbor-jars', 'working-jar-cargo'],
+    ]) {
+      const root = scene.getTransformNodeByName(modelName!)!;
+      root.computeWorldMatrix(true);
+      const actual = root.getAbsolutePosition();
+      const target = activeInteractables(state).find((p) => p.id === id)!;
+      expect(target.x).toBe(root.position.x);
+      expect(target.z).toBe(root.position.z);
+      // Babylon's float32 world matrix rounds the exact root coordinates by fractions of a micron.
+      expect(Math.hypot(target.x - actual.x, target.z - actual.z)).toBeLessThan(0.000001);
+      expect(workTarget(state, id!)?.point).toEqual({ x: target.x, z: target.z });
+      for (const mesh of root.getChildMeshes()) {
+        mesh.computeWorldMatrix(true);
+        expect(mesh.isPickable).toBe(true);
+        expect(mesh.metadata?.interactionId).toBe(id);
+      }
+      // A board's slat gaps and a jar's mouth need not contain a center-down hit.
+      // Pick a real imported triangle surface instead of an imagined solid box.
+      const mesh = root.getChildMeshes().find((m) => m.getTotalVertices() >= 3)!;
+      const vertices = mesh.getVerticesData('position')!;
+      const indices = mesh.getIndices()!;
+      const [a, b, c] = Array.from(indices.slice(0, 3), (i) =>
+        Vector3.TransformCoordinates(Vector3.FromArray(vertices, i * 3), mesh.getWorldMatrix()),
+      );
+      const surface = a!
+        .add(b!)
+        .add(c!)
+        .scale(1 / 3);
+      const normal = Vector3.Cross(b!.subtract(a!), c!.subtract(a!)).normalize();
+      const pick = scene.pickWithRay(
+        new Ray(surface.add(normal.scale(0.25)), normal.negate(), 1),
+        (mesh) => mesh.metadata?.interactionId === id,
+      );
+      expect(pick?.hit, id).toBe(true);
+      expect(pick?.pickedMesh?.metadata?.interactionId).toBe(id);
+    }
+    expect(scene.getMeshByName('landing-loose-rope')?.isEnabled()).toBe(!state.harbor.cleared);
+    expect(state).toEqual(before);
+    library.dispose();
+  },
+);
 it('imports the physical grid and both supported plank orientations without mirrored coordinates', async () => {
   const { scene, library } = await setup('capernaum');
   const presentation = new HarborPresentation(scene, library);

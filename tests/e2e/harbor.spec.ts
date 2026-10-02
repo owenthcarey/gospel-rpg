@@ -29,6 +29,8 @@ test('an early traveler reopens the northern landing, recovers failed tests and 
   await act(page, 'clear');
   await visit(page, 'harbor-plank');
   await act(page, 'plank-north');
+  // The plank has moved to the north crossing; approach its current position to turn it.
+  await visit(page, 'harbor-plank');
   await act(page, 'turn');
   await visit(page, 'harbor-entrance');
   await act(page, 'test');

@@ -9,7 +9,7 @@ import { approachPath } from '../../src/game/navigation';
 import { makeSave } from '../../src/persistence/schema';
 export function harborAction(s: GameState, id: string): GameState {
   const current = structuredClone(s),
-    target = harborPlace(harborActionTarget(id) ?? '');
+    target = harborPlace(harborActionTarget(id) ?? '', current.harbor);
   current.region = 'capernaum';
   if (target)
     current.position = approachPath(new WalkGrid(obstacles, isLand), { x: 0, z: -3 }, target).at(
