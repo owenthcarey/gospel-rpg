@@ -155,7 +155,7 @@ export const bakehouseLayout: ExplorationLayout = {
   decor: [
     ...roomDecor(),
     { asset: 'oven', x: -3, z: 4.7, rotation: Math.PI },
-    { asset: 'worktable', x: 0, z: 2 },
+    { asset: 'worktable', x: 0, z: 2, interactionId: 'bakehouse-table' },
     { asset: 'bench', x: 0, z: 0.6 },
     { asset: 'shelf', x: -4.7, z: 0, rotation: Math.PI / 2 },
     { asset: 'shelf', x: 4.7, z: 1, rotation: -Math.PI / 2 },
