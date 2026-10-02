@@ -69,24 +69,74 @@ export async function nativeHullInput(
       },
     };
   }, point);
-  let result: {
-    preContact: Awaited<ReturnType<typeof audit.jsonValue>>['preContact'];
-    events: Awaited<ReturnType<typeof audit.jsonValue>>['events'];
-  };
+  let result:
+    | {
+        preContact: Awaited<ReturnType<typeof audit.jsonValue>>['preContact'];
+        events: Awaited<ReturnType<typeof audit.jsonValue>>['events'];
+      }
+    | undefined;
+  let inputFailed = false;
+  let inputError: unknown;
+  const diagnosticErrors: { phase: string; error: unknown }[] = [];
+  const describeError = (error: unknown) =>
+    error instanceof Error
+      ? { name: error.name, message: error.message, stack: error.stack }
+      : { value: String(error) };
   try {
     await input();
+  } catch (error) {
+    inputFailed = true;
+    inputError = error;
+  }
+  try {
+    result = await audit.evaluate((value) => {
+      try {
+        return { preContact: value.preContact, events: value.events };
+      } finally {
+        value.cleanup();
+      }
+    });
+  } catch (error) {
+    diagnosticErrors.push({ phase: 'audit-read-and-listener-cleanup', error });
   } finally {
-    result = await audit.evaluate((value) => ({
-      preContact: value.preContact,
-      events: value.events,
-    }));
-    await audit.evaluate((value) => value.cleanup());
-    await audit.dispose();
+    try {
+      await audit.dispose();
+    } catch (error) {
+      diagnosticErrors.push({ phase: 'handle-disposal', error });
+    }
+  }
+  try {
     await writeFile(
       info.outputPath(name + '-native-pointer.json'),
-      JSON.stringify({ name, point, touch, hold, ...result }, null, 2),
+      JSON.stringify(
+        {
+          name,
+          point,
+          touch,
+          hold,
+          ...result,
+          ...(inputFailed || diagnosticErrors.length
+            ? {
+                evidenceAvailable: result !== undefined,
+                inputFailure: inputFailed ? describeError(inputError) : null,
+                diagnosticErrors: diagnosticErrors.map(({ phase, error }) => ({
+                  phase,
+                  ...describeError(error),
+                })),
+              }
+            : {}),
+        },
+        null,
+        2,
+      ),
     );
+  } catch (error) {
+    diagnosticErrors.push({ phase: 'evidence-delivery', error });
   }
+  if (inputFailed) throw inputError;
+  const diagnosticError = diagnosticErrors[0];
+  if (diagnosticError) throw diagnosticError.error;
+  if (!result) throw new Error(name + ' has no native pointer evidence');
   expect(result.preContact.id, name + ' begins on bare canvas').toBe('game-canvas');
   const down = result.events.filter((event) => event.type === 'pointerdown'),
     up = result.events.filter((event) => event.type === 'pointerup');
@@ -268,5 +318,154 @@ export async function fourAnimationFrames(page: Page) {
         };
         requestAnimationFrame(next);
       }),
+  );
+}
+
+/** Passive projection measurements after the original native camera and visibility checks. */
+export async function observeHullProjection(page: Page, berth: Berth, budgetMs: number) {
+  if (!Number.isFinite(budgetMs) || budgetMs <= 0 || budgetMs > 60_000)
+    throw new Error('Hull observation requires the unchanged explicit expect budget');
+  return page.evaluate(
+    ({ labelId, budgetMs }) =>
+      new Promise<{
+        rect: { x: number; y: number; width: number; height: number };
+        bearing: number;
+        labelSamples: {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          at: number;
+          change: number | null;
+        }[];
+        frameCount: number;
+        budgetMs: number;
+        elapsedMs: number;
+      }>((resolve, reject) => {
+        const labelSamples: {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          at: number;
+          change: number | null;
+        }[] = [];
+        const intervals = [100, 250, 500, 1000];
+        const startedAt = performance.now();
+        let previous: { x: number; y: number } | undefined;
+        let intervalIndex = 0;
+        let sampleTimer: number | undefined;
+        let deadlineTimer: number | undefined;
+        let frame: number | undefined;
+        let frameCount = 0;
+        let finished = false;
+        const cleanup = () => {
+          if (sampleTimer !== undefined) window.clearTimeout(sampleTimer);
+          if (deadlineTimer !== undefined) window.clearTimeout(deadlineTimer);
+          if (frame !== undefined) cancelAnimationFrame(frame);
+          sampleTimer = deadlineTimer = frame = undefined;
+        };
+        const fail = (error: unknown) => {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(error);
+        };
+        const expired = () => {
+          if (performance.now() - startedAt < budgetMs) return false;
+          fail(new Error(`Hull label projection observation exceeded ${budgetMs}ms`));
+          return true;
+        };
+        const unique = <T extends Element>(selector: string): T => {
+          const matches = document.querySelectorAll<T>(selector);
+          if (matches.length !== 1)
+            throw new Error(
+              `Expected one hull observation target ${selector}; found ${matches.length}`,
+            );
+          return matches[0]!;
+        };
+        const measureProjection = () => {
+          if (finished || expired()) return;
+          try {
+            const canvas = unique<HTMLCanvasElement>('#game-canvas');
+            const minimap = unique<HTMLElement>('.minimap-wrap');
+            const box = canvas.getBoundingClientRect();
+            const bearing = parseFloat(minimap.style.getPropertyValue('--map-bearing'));
+            if (
+              !canvas.isConnected ||
+              ![box.left, box.top, box.width, box.height, bearing].every(Number.isFinite) ||
+              box.width <= 0 ||
+              box.height <= 0
+            )
+              throw new Error('Hull projection has no actual finite canvas geometry or bearing');
+            finished = true;
+            cleanup();
+            resolve({
+              rect: { x: box.left, y: box.top, width: box.width, height: box.height },
+              bearing,
+              labelSamples,
+              frameCount,
+              budgetMs,
+              elapsedMs: performance.now() - startedAt,
+            });
+          } catch (error) {
+            fail(error);
+          }
+        };
+        const nextFrame = () => {
+          frame = undefined;
+          if (finished || expired()) return;
+          try {
+            if (++frameCount === 4) measureProjection();
+            else frame = requestAnimationFrame(nextFrame);
+          } catch (error) {
+            fail(error);
+          }
+        };
+        const sample = () => {
+          sampleTimer = undefined;
+          if (finished || expired()) return;
+          try {
+            const label = unique<HTMLElement>(`.world-label[data-value="${labelId}"]`);
+            const box = label.getBoundingClientRect();
+            const visibility = getComputedStyle(label).visibility;
+            if (
+              !label.isConnected ||
+              ![box.left, box.top, box.width, box.height].every(Number.isFinite) ||
+              box.width <= 0 ||
+              box.height <= 0 ||
+              visibility === 'hidden' ||
+              visibility === 'collapse'
+            )
+              throw new Error(
+                'Hull label has no actual visible geometry after its visibility assertion',
+              );
+            const point = { x: box.left, y: box.top };
+            const change = previous ? Math.hypot(point.x - previous.x, point.y - previous.y) : null;
+            labelSamples.push({
+              ...point,
+              width: box.width,
+              height: box.height,
+              at: performance.now(),
+              change,
+            });
+            previous = point;
+            if (change !== null && change < 0.05) {
+              frame = requestAnimationFrame(nextFrame);
+            } else {
+              const interval = intervals[Math.min(intervalIndex++, intervals.length - 1)]!;
+              sampleTimer = window.setTimeout(sample, interval);
+            }
+          } catch (error) {
+            fail(error);
+          }
+        };
+        deadlineTimer = window.setTimeout(
+          () => fail(new Error(`Hull label projection observation exceeded ${budgetMs}ms`)),
+          budgetMs,
+        );
+        sample();
+      }),
+    { labelId: 'board-' + berth, budgetMs },
   );
 }

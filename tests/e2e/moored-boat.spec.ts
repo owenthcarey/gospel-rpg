@@ -11,7 +11,12 @@ import type { GameState, Point } from '../../src/game/types';
 import type { Berth } from '../../src/game/lake/types';
 import { dismiss, exported, settled } from '../helpers/connection-browser';
 import { observeRadarWalk } from '../helpers/navigation-walk-browser';
-import { hullFaces, fourAnimationFrames, nativeHullInput } from '../helpers/moored-boat-browser';
+import {
+  hullFaces,
+  fourAnimationFrames,
+  nativeHullInput,
+  observeHullProjection,
+} from '../helpers/moored-boat-browser';
 
 const earned = (state: GameState) =>
   Object.fromEntries(
@@ -167,23 +172,14 @@ async function visibleHull(page: Page, berth: Berth, standing: Point, touch: boo
   // High quality follows movement smoothly; use actual rendered label stability before projection.
   const label = page.locator(`.world-label[data-value="board-${berth}"]`);
   await expect(label).toBeVisible();
-  let previous: { x: number; y: number } | undefined;
-  await expect
-    .poll(async () => {
-      const box = (await label.boundingBox())!;
-      const change = previous ? Math.hypot(box.x - previous.x, box.y - previous.y) : Infinity;
-      previous = box;
-      return change;
-    })
-    .toBeLessThan(0.05);
-  await fourAnimationFrames(page);
-  const rect = (await page.locator('#game-canvas').boundingBox())!,
-    bearing = await page
-      .locator('.minimap-wrap')
-      .evaluate((node) =>
-        parseFloat((node as HTMLElement).style.getPropertyValue('--map-bearing')),
-      ),
-    geometry = await hullFaces(berth, standing, rect.width, rect.height, bearing, zoomClicks);
+  // Wrappers overriding expect.timeout must declare the same numeric budget in project metadata.
+  const declaredBudget = test.info().project.metadata.hullObservationExpectTimeoutMs;
+  const observationBudgetMs = declaredBudget ?? (process.env.CI ? 60_000 : 20_000);
+  if (typeof observationBudgetMs !== 'number')
+    throw new Error('Hull observation expect budget must be explicitly numeric');
+  const observation = await observeHullProjection(page, berth, observationBudgetMs);
+  const { rect, bearing } = observation;
+  const geometry = await hullFaces(berth, standing, rect.width, rect.height, bearing, zoomClicks);
   for (const chosen of geometry.candidates) {
     const point = { x: chosen.x + rect.x, y: chosen.y + rect.y };
     if (
@@ -192,7 +188,7 @@ async function visibleHull(page: Page, berth: Berth, standing: Point, touch: boo
         point,
       )
     )
-      return { chosen, point, geometry };
+      return { chosen, point, geometry, observation };
   }
   throw new Error(
     'No finite first-hit boat face has a bare-canvas contact: ' + JSON.stringify(geometry),
