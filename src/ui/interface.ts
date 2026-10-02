@@ -4,6 +4,7 @@ import { journeyOverview, workSurface } from './views/exploration';
 import { workTarget, type ScreenPreview } from '../content/exploration/work';
 import { requiresWorldView, requiresWorldEvent } from '../game/commands';
 import { trapFocus, restoreFocus, focusLost } from './focus';
+import { layoutDialogueReading } from './dialogue-reading';
 import type { WorkRect } from '../scene/work';
 import { isPresenting, presentationState } from '../game/connection/accounts';
 import { routePlan, type RoutePlan } from '../game/connection/routes';
@@ -164,6 +165,15 @@ export class Interface {
     if (this.graphicsPaused) this.placeNotice(true);
   };
   private readonly onMenuResize = () => {
+    layoutDialogueReading(this.overlay);
+    const active = document.activeElement;
+    if (
+      this.panel === 'dialogue' &&
+      active instanceof HTMLButtonElement &&
+      this.overlay.contains(active) &&
+      active.closest('.dialogue-box[data-conversation-person] .dialogue-main')
+    )
+      active.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
     this.onPausedNoticeLayout();
     if (this.panel === 'welcome') {
       const active = document.activeElement;
@@ -1216,6 +1226,7 @@ export class Interface {
     );
   }
   private measureWork(): void {
+    layoutDialogueReading(this.overlay);
     const reading = this.sceneControls.hidden
       ? undefined
       : this.sceneControls.getBoundingClientRect();

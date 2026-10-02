@@ -373,3 +373,84 @@
     min-width: 0;
   }
 }
+
+/* Short conversations keep their first question and complete selected answer together. */
+@media (max-width: 699px) and (max-height: 420px) {
+  :root .conversation-overlay .dialogue-box.dialogue-compact-reading {
+    padding: 4px;
+    scroll-padding-block: 4px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-portrait {
+    top: 6px;
+    left: 6px;
+    width: 32px;
+    height: 40px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-main header {
+    min-height: 44px;
+    padding-left: 40px;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .conversation-overlay .dialogue-compact-reading .dialogue-main header > div {
+    min-width: 0;
+  }
+  .conversation-overlay .dialogue-compact-reading .conversation-motion {
+    flex-shrink: 0;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text {
+    max-height: var(--dialogue-question-height, none);
+    margin: 4px 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+    scrollbar-color: #584027 #a99066;
+    background-image:
+      linear-gradient(var(--parch-100) 30%, transparent),
+      linear-gradient(transparent, var(--parch-100) 70%),
+      radial-gradient(farthest-side at 50% 0, #493a2775, transparent),
+      radial-gradient(farthest-side at 50% 100%, #493a2775, transparent), var(--paper-grain);
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+    background-position:
+      top,
+      bottom,
+      top,
+      bottom,
+      top left;
+    background-size:
+      100% 24px,
+      100% 24px,
+      100% 9px,
+      100% 9px,
+      auto;
+    background-attachment: local, local, scroll, scroll, scroll;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text:focus-visible {
+    outline: 2px solid #102e56;
+    outline-offset: -2px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text::-webkit-scrollbar {
+    width: 6px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text::-webkit-scrollbar-track {
+    background: #a99066;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text::-webkit-scrollbar-thumb {
+    background: #584027;
+  }
+}
+
+/* Short wide touch layouts retain the same minimum physical answer target. */
+@media (min-width: 700px) and (max-height: 420px) and (pointer: coarse) {
+  :root .conversation-overlay .dialogue-choices button {
+    min-height: 44px;
+  }
+}
+
+/* Native focus keeps complete answers clear of the short reading frame. */
+@media (max-height: 420px) {
+  :root .conversation-overlay .dialogue-choices button {
+    scroll-margin-block: 2px;
+  }
+}
