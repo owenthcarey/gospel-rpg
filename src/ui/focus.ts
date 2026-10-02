@@ -17,14 +17,16 @@ export function trapFocus(event: KeyboardEvent, root: HTMLElement): void {
     first = nodes[0],
     last = nodes.at(-1);
   if (!first) return;
-  const outside = !root.contains(document.activeElement);
-  if (event.shiftKey && (document.activeElement === first || outside)) {
-    event.preventDefault();
-    last?.focus();
-  } else if (!event.shiftKey && (document.activeElement === last || outside)) {
-    event.preventDefault();
-    first.focus();
-  }
+  const index = nodes.indexOf(document.activeElement as HTMLElement);
+  const next =
+    index < 0
+      ? event.shiftKey
+        ? last
+        : first
+      : nodes[(index + (event.shiftKey ? -1 : 1) + nodes.length) % nodes.length];
+  // Keep every visible control reachable even when Safari's native Tab preference skips buttons.
+  event.preventDefault();
+  next?.focus();
 }
 /** True when a re-render removed the focused control, so nothing (or only the page) has focus. */
 export function focusLost(): boolean {

@@ -1,0 +1,114 @@
+.message-history-note {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #58472d;
+}
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  list-style: none;
+  margin: 0;
+  padding: 2px;
+  border: 2px solid #755b38;
+  background: #3a3124;
+  box-shadow: var(--bevel-sunken);
+}
+.message-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  color: #e9ddc2;
+  font-size: 13px;
+  line-height: 1.5;
+  text-shadow: 1px 1px #17120b;
+  overflow-wrap: anywhere;
+}
+.message-list li:nth-child(even) {
+  background: #ffffff05;
+}
+.message-list li[data-kind='memory'] {
+  color: #ffdc73;
+}
+.message-list li[data-kind='item'] {
+  color: #bad9a1;
+}
+.message-list li[data-kind='warning'] {
+  color: #ffb58c;
+}
+.message-icon {
+  color: #c5ad7a;
+  flex: 0 0 18px;
+}
+.message-icon .icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.message-repeat {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: #e5c970;
+  font-size: 11px;
+}
+.message-count {
+  padding: 0 3px;
+  color: #ffdf73;
+  font-size: 10px;
+}
+:root[data-text-size='large'] .message-list li {
+  font-size: 16px;
+}
+:root[data-text-size='large'] .message-history-note {
+  font-size: 14px;
+}
+:root[data-text-size='large'] .message-repeat {
+  font-size: 13px;
+}
+:root .toolbar button[aria-expanded='true'] {
+  color: #ffe07a;
+  background: #655033;
+  box-shadow:
+    inset 1px 1px #23190e,
+    inset -1px -1px #b18c52;
+}
+:root .control-hints .messages-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  width: auto;
+  padding-inline: 6px;
+  font: 700 11px/1 var(--font-sans);
+  color: #e1c37b;
+}
+:root .control-hints.hints-faded {
+  opacity: 1;
+  transform: none;
+}
+:root .control-hints.hints-faded > span {
+  opacity: 0.4;
+}
+:root .control-hints.hints-faded:hover > span,
+:root .control-hints.hints-faded:focus-within > span {
+  opacity: 1;
+}
+@media (max-width: 699px), (max-height: 540px) {
+  :root .control-hints .messages-button > .message-button-text {
+    display: none;
+  }
+  :root .control-hints button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .message-list li {
+    padding: 9px;
+  }
+}
+@media (pointer: coarse) {
+  :root .control-hints button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

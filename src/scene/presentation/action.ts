@@ -1,4 +1,4 @@
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
@@ -14,14 +14,14 @@ export class ActionFeedback {
   private clock = new PresentationClock();
   private running = false;
   constructor(scene: Scene) {
-    this.ring = MeshBuilder.CreateTorus(
+    this.ring = CreateTorus(
       'accepted-work-accent',
       { diameter: 0.8, thickness: 0.025, tessellation: 24 },
       scene,
     );
     this.material = new StandardMaterial('work-accent-matte', scene);
-    this.material.diffuseColor = Color3.FromHexString('#e7cf94').toLinearSpace();
-    this.material.emissiveColor = Color3.FromHexString('#95805a').toLinearSpace();
+    this.material.diffuseColor = Color3.FromHexString('#e7cf94');
+    this.material.emissiveColor = Color3.FromHexString('#95805a');
     this.material.specularColor = Color3.Black();
     this.ring.material = this.material;
     this.ring.isPickable = false;

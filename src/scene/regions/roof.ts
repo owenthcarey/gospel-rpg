@@ -11,7 +11,8 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3, Quaternion } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { GameState, Point, Settings } from '../../game/types';
 import { ROOF_ASSETS, type ActorAsset, type ActorClip } from '../../content/assets';
@@ -107,6 +108,7 @@ export class RoofRegion implements RegionView {
   constructor(
     private engine: Engine,
     state: GameState,
+    quality: Settings['quality'] = 'high',
   ) {
     this.state = structuredClone(state);
     this.scene = new Scene(engine);
@@ -123,12 +125,13 @@ export class RoofRegion implements RegionView {
     this.shots = new ShotDirector(this.camera);
     this.camera.maxZ = 80;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('roof-account'), {
+      quality,
       sky: 75,
       horizon: { center: { x: 0, z: 0 }, radius: 48, seed: 17 },
       shadowCenter: new Vector3(0, 0, 0),
     });
     this.library = new AssetLibrary(this.scene, this.stage.shadow);
-    const lane = MeshBuilder.CreateGround(
+    const lane = CreateGround(
       'house-surroundings',
       { width: 60, height: 60, subdivisions: 60 },
       this.scene,
@@ -143,7 +146,7 @@ export class RoofRegion implements RegionView {
       size: 150,
       style: 'village',
     });
-    const floor = MeshBuilder.CreateGround('house-floor', { width: 16, height: 20 }, this.scene);
+    const floor = CreateGround('house-floor', { width: 16, height: 20 }, this.scene);
     const material = new StandardMaterial('earthen-floor', this.scene);
     material.diffuseColor = Color3.FromHexString('#a39478');
     material.specularColor = Color3.Black();
@@ -154,7 +157,7 @@ export class RoofRegion implements RegionView {
     ropeMaterial.diffuseColor = Color3.FromHexString('#927c4f');
     for (const x of [-0.5, 0.5])
       for (const z of [-1, 1]) {
-        const rope = MeshBuilder.CreateCylinder(
+        const rope = CreateCylinder(
           'lowering-rope',
           { diameter: 0.035, height: 1, tessellation: 6 },
           this.scene,
@@ -339,6 +342,10 @@ export class RoofRegion implements RegionView {
   }
   getPosition(): Point {
     return { ...this.state.position };
+  }
+  refreshFrame(resetClock = true): void {
+    if (resetClock) this.last = 0;
+    this.cadence.invalidate();
   }
   applySettings(s: Settings): void {
     this.reduced = s.reducedMotion;

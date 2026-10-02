@@ -16,7 +16,8 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
+import { CreateLineSystem } from '@babylonjs/core/Meshes/Builders/linesBuilder';
 import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { GameState, Point, Settings } from '../../game/types';
 import { LAKE_ASSETS, type ActorAsset } from '../../content/assets';
@@ -60,6 +61,7 @@ export class LakeRegion implements RegionView {
   constructor(
     private engine: Engine,
     state: GameState,
+    quality: Settings['quality'] = 'high',
   ) {
     this.shorePosition = { ...state.position };
     this.scene = new Scene(engine);
@@ -76,6 +78,7 @@ export class LakeRegion implements RegionView {
     this.camera.minZ = 0.1;
     this.camera.maxZ = 160;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('lake-gennesaret'), {
+      quality,
       sky: 150,
       horizon: { center: { x: 8, z: 4 }, radius: 70, seed: 5 },
       ground: (x) => (x < -12 ? 0 : -0.16),
@@ -98,10 +101,10 @@ export class LakeRegion implements RegionView {
       shore: -12,
     });
     this.stage.attachWater(this.water);
-    const shore = MeshBuilder.CreateGround('distant-shore', { width: 30, height: 100 }, this.scene);
+    const shore = CreateGround('distant-shore', { width: 30, height: 100 }, this.scene);
     shore.position.set(-27, 0.01, 0);
     shore.material = this.material('shore-sand', '#ffffff');
-    const sand = Color3.FromHexString('#c6b99b').toLinearSpace();
+    const sand = Color3.FromHexString('#c6b99b');
     shore.setVerticesData(
       'color',
       Array.from({ length: shore.getTotalVertices() }, () => [sand.r, sand.g, sand.b, 1]).flat(),
@@ -177,7 +180,7 @@ export class LakeRegion implements RegionView {
       model.root.position.set(id === 'folded' ? 0.25 : 1.15, id === 'cast' ? 0.05 : 0.55, 0.25);
       this.nets.set(id, model);
     }
-    this.netCords = MeshBuilder.CreateLineSystem(
+    this.netCords = CreateLineSystem(
       'net-working-cords',
       {
         lines: [
@@ -308,7 +311,7 @@ export class LakeRegion implements RegionView {
       const working = c.net === 'cast' || c.net === 'full';
       this.netCords.setEnabled(working);
       if (working && net)
-        MeshBuilder.CreateLineSystem(
+        CreateLineSystem(
           'net-working-cords',
           {
             lines: (['left', 'right'] as const).map((side, i) => [
@@ -432,6 +435,10 @@ export class LakeRegion implements RegionView {
     this.stage.tick(dt, !this.paused);
     this.scene.render();
     this.dirty = false;
+  }
+  refreshFrame(resetClock = true): void {
+    if (resetClock) this.last = 0;
+    this.cadence.invalidate();
   }
   applySettings(settings: Settings): void {
     this.reduced = settings.reducedMotion;

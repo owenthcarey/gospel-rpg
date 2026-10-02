@@ -13,6 +13,22 @@ function paused(frames: number[], cadence = new PausedCadence()): number[] {
 }
 
 describe('paused render cadence', () => {
+  it('paints immediately when first opened, without waiting for the clock to reach 100 ms', () => {
+    expect(paused([0, 16])).toEqual([0]);
+  });
+
+  it('discards a suspended frame measurement and still budgets genuine GPU work after repainting', () => {
+    const cadence = new PausedCadence();
+    cadence.rendered(1000);
+    cadence.invalidate();
+    expect(cadence.due(61_000)).toBe(true);
+    cadence.rendered(61_000);
+    // A real 150 ms frame still receives its original 300 ms rest afterward.
+    expect(cadence.due(61_150)).toBe(false);
+    expect(cadence.due(61_449)).toBe(false);
+    expect(cadence.due(61_450)).toBe(true);
+  });
+
   it('repaints a fast paused scene about every 100 ms, as before', () => {
     const frames = Array.from({ length: 40 }, (_, i) => 1000 + i * 16);
     const rendered = paused(frames);

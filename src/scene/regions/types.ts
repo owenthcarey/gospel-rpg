@@ -6,6 +6,8 @@ export interface RegionView {
   activate(): void;
   deactivate(): void;
   renderFrame(): void;
+  /** Schedule a repaint, discarding suspension time unless this is a live resize. */
+  refreshFrame(resetClock?: boolean): void;
   update(state: GameState): void;
   applySettings(settings: Settings): void;
   setPaused(paused: boolean): void;

@@ -10,7 +10,7 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { GameState, Point, Settings } from '../../game/types';
@@ -58,6 +58,7 @@ export class StormRegion implements RegionView {
   constructor(
     private engine: Engine,
     state: GameState,
+    quality: Settings['quality'] = 'high',
   ) {
     this.state = structuredClone(state);
     this.scene = new Scene(engine);
@@ -74,6 +75,7 @@ export class StormRegion implements RegionView {
     this.shots = new ShotDirector(this.camera);
     this.camera.maxZ = 150;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('storm-account'), {
+      quality,
       sky: 140,
       horizon: { center: { x: 0, z: 10 }, radius: 62, seed: 23 },
       ground: () => -0.2,
@@ -89,11 +91,7 @@ export class StormRegion implements RegionView {
       storm: true,
     });
     this.stage.attachWater(this.water);
-    this.flood = MeshBuilder.CreateGround(
-      'water-inside-hull',
-      { width: 0.85, height: 2.2 },
-      this.scene,
-    );
+    this.flood = CreateGround('water-inside-hull', { width: 0.85, height: 2.2 }, this.scene);
     this.flood.material = this.sea;
     this.flood.isPickable = false;
   }
@@ -164,8 +162,8 @@ export class StormRegion implements RegionView {
     this.stage.illuminate(this.reduced || rough < 0.8 ? 0 : pulse * (rough - 0.8) * 5);
     this.stage.atmosphere.setIntensity(rough);
     this.sea.diffuseColor = Color3.Lerp(
-      Color3.FromHexString('#6098a5').toLinearSpace(),
-      Color3.FromHexString('#3c586b').toLinearSpace(),
+      Color3.FromHexString('#6098a5'),
+      Color3.FromHexString('#3c586b'),
       rough,
     );
     this.boat.root.position.set(
@@ -263,6 +261,10 @@ export class StormRegion implements RegionView {
   }
   getPosition(): Point {
     return { ...this.state.position };
+  }
+  refreshFrame(resetClock = true): void {
+    if (resetClock) this.last = 0;
+    this.cadence.invalidate();
   }
   applySettings(s: Settings): void {
     this.reduced = s.reducedMotion;

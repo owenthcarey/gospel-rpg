@@ -1,4 +1,6 @@
 import { ActionFeedback } from './presentation/action';
+import { InteractionFeedback } from './interaction';
+import { installClassicCameraInput } from './classic-camera-input';
 import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
 import {
@@ -9,6 +11,7 @@ import {
   backdropTerrain,
   coastMargin,
   groundColor,
+  floorHeight,
   type GroundStyle,
 } from './presentation/ground';
 import { ConversationPresentation } from './presentation/conversation';
@@ -27,7 +30,6 @@ import { TravelerBoat } from './actors/boat';
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
-import { ArcRotateCameraPointersInput } from '@babylonjs/core/Cameras/Inputs/arcRotateCameraPointersInput';
 import { Vector3, Matrix } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
@@ -37,7 +39,10 @@ import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte'
 import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
+import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
@@ -63,11 +68,15 @@ import type { ExplorationRegion } from '../game/campaign/types';
 import type { ActionMotion } from '../content/campaign/actions';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
-import { bindExplorationInput } from './input';
-import { approachPath, stepPath, clearancePosition, smoothPath } from '../game/navigation';
+import { bindExplorationInput, type ExplorationInputBinding, type ScreenClick } from './input';
+import {
+  approachPath,
+  stepPath,
+  clearancePosition,
+  smoothPath,
+  slideStep,
+} from '../game/navigation';
 import '@babylonjs/core/Culling/ray';
-import '@babylonjs/loaders/glTF/2.0/glTFLoader';
-import '@babylonjs/loaders/glTF/glTFFileLoader';
 import {
   buildings,
   interactables,
@@ -98,6 +107,7 @@ export interface WorldCallbacks {
     heading: number,
     nearest: string | null,
     destination?: string,
+    walkTarget?: Point,
   ) => void;
 }
 /** The shared lifecycle of optional exploration controllers. Ticks keep their own inputs. */
@@ -113,16 +123,6 @@ export interface ScreenLabel {
   visible: boolean;
 }
 
-/** Height of a regular ground grid at a point, from its own vertices (nearest sample). */
-function floorHeight(mesh: Mesh, p: Point): number {
-  const positions = mesh.getVerticesData(VertexBuffer.PositionKind)!;
-  const count = Math.round(Math.sqrt(positions.length / 3));
-  const size = mesh.getBoundingInfo().boundingBox.extendSize;
-  const i = Math.round(((p.x + size.x) / (size.x * 2)) * (count - 1));
-  const j = Math.round(((p.z + size.z) / (size.z * 2)) * (count - 1));
-  const k = (Math.max(0, Math.min(count - 1, j)) * count + Math.max(0, Math.min(count - 1, i))) * 3;
-  return positions[k + 1] ?? 0;
-}
 const VILLAGE_PATHS: [Point, Point, number][] = [
   [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
   [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
@@ -201,6 +201,8 @@ export class World {
   private player!: TransformNode;
   private playerModel!: TransformNode;
   private marker: Mesh;
+  private interactionFeedback?: InteractionFeedback;
+  private explorationInput?: ExplorationInputBinding;
   private routeDots: Mesh[] = [];
   private strideTime = 0;
   private walkRamp = 0;
@@ -213,7 +215,6 @@ export class World {
   private keys = new Set<string>();
   private paused = true;
   private reducedMotion = false;
-  private waterLines: Mesh[] = [];
   private water?: WaterPresentation;
   private boats: TransformNode[] = [];
   private people = new Map<string, TransformNode>();
@@ -230,6 +231,7 @@ export class World {
     private callbacks: WorldCallbacks,
     engine: Engine,
     initial: GameState = newGame(),
+    quality: Settings['quality'] = 'high',
   ) {
     this.state = structuredClone(initial);
     this.layout = campaignLayout(initial.region);
@@ -243,6 +245,8 @@ export class World {
       : new WalkGrid(obstacles, isLand);
     this.engine = engine;
     this.scene = new Scene(this.engine);
+    // Pointerdown still focuses the world; releasing into Choose Option keeps its menu focus.
+    this.scene.preventDefaultOnPointerUp = false;
     this.scene.collisionsEnabled = false;
     this.scene.skipPointerMovePicking = true;
     this.camera = new ArcRotateCamera(
@@ -262,17 +266,19 @@ export class World {
     this.camera.minZ = 0.2;
     this.camera.maxZ = 220;
     this.camera.fov = 0.7;
+    this.camera.inertia = 0.72;
 
     this.camera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
-    const pointers = this.camera.inputs.attached.pointers;
-    if (pointers instanceof ArcRotateCameraPointersInput) {
-      pointers.buttons = [2];
-      pointers.angularSensibilityX = 1000;
-      pointers.angularSensibilityY = 1000;
-      pointers.pinchDeltaPercentage = 0.01;
-    }
+    installClassicCameraInput(this.camera, {
+      enabled: () => this.active && !this.paused,
+      manual: () => {
+        this.finishCameraTransition();
+        this.pendingRotation = 0;
+      },
+    });
     const region = initial.region;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor(region), {
+      quality,
       sky: 200,
       horizon:
         region === 'galilee-water' || this.layout?.inside
@@ -287,7 +293,7 @@ export class World {
     if (this.layout) {
       const inside = this.layout.inside;
       const shore = isLakeRegion(initial.region) && initial.region !== 'galilee-water';
-      const floor = MeshBuilder.CreateGround(
+      const floor = CreateGround(
         'walkable-terrain',
         {
           width: inside ? 12.6 : 100,
@@ -320,22 +326,32 @@ export class World {
           floor,
           groundStyle(initial.region),
           shore ? (p) => floorHeight(floor, p) > -0.01 : undefined,
+          {
+            mosaic: ['galilean-road', 'roadside-farm'].includes(initial.region),
+            reserve: { minX: -24, maxX: 24, minZ: -24, maxZ: 24 },
+          },
         );
-      wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
-        groundHeight(initial.region, p),
-      );
+      if (this.layout.paths.length)
+        wornPaths(this.scene, 'worn-regional-paths', this.layout.paths, (p) =>
+          groundHeight(initial.region, p),
+        );
       if (inside) {
-        // The lane outside the doorway: the room sits in a street, not in empty space.
-        const lane = MeshBuilder.CreateGround(
+        // A darker cutaway surround gives the room an edge; the pale doorstep keeps
+        // the doorway connected to the village without an empty field of room color.
+        const lane = CreateGround(
           'surrounding-lane',
           { width: 60, height: 60, subdivisions: 40 },
           this.scene,
         );
         lane.position.y = -0.03;
-        lane.material = this.material('surrounding-lane-earth', '#ffffff');
-        paintGround(lane, 'lane');
+        lane.material = this.material('surrounding-lane-stone', '#555448');
         lane.receiveShadows = true;
         lane.isPickable = false;
+        const doorstep = CreateGround('exterior-doorstep', { width: 2.8, height: 4 }, this.scene);
+        doorstep.position.set(0, -0.02, -8.1);
+        doorstep.material = this.material('doorstep-earth', '#a18f68');
+        doorstep.receiveShadows = true;
+        doorstep.isPickable = false;
       }
       if (inside)
         groundMosaic(
@@ -362,11 +378,7 @@ export class World {
         });
       if (isLakeRegion(initial.region)) this.makeCrossingTerrain();
       if (initial.region === 'galilean-road') {
-        const lake = MeshBuilder.CreateGround(
-          'distant-galilee',
-          { width: 80, height: 38 },
-          this.scene,
-        );
+        const lake = CreateGround('distant-galilee', { width: 80, height: 38 }, this.scene);
         lake.position.set(53, -0.13, -20);
         lake.material = this.material('distant-lake-blue', '#80aaa9');
         lake.isPickable = false;
@@ -386,7 +398,7 @@ export class World {
       this.makePaths();
       this.makeDocks();
     }
-    this.marker = MeshBuilder.CreateTorus(
+    this.marker = CreateTorus(
       'walk-destination',
       { diameter: 0.7, thickness: 0.035, tessellation: 32 },
       this.scene,
@@ -398,11 +410,7 @@ export class World {
     const routeMaterial = this.material('route-gold', '#e8d19a', 0.65);
     routeMaterial.emissiveColor = Color3.FromHexString('#8d7950');
     for (let i = 0; i < 32; i++) {
-      const dot = MeshBuilder.CreateGround(
-        `route-step-${i}`,
-        { width: 0.11, height: 0.11 },
-        this.scene,
-      );
+      const dot = CreateGround(`route-step-${i}`, { width: 0.11, height: 0.11 }, this.scene);
       dot.material = routeMaterial;
       dot.isPickable = false;
       dot.rotation.y = Math.PI / 4;
@@ -480,7 +488,7 @@ export class World {
     this.playerModel.parent = this.player;
     this.conversationView = new ConversationPresentation(this.camera, this.canvas);
     this.actionFeedback = new ActionFeedback(this.scene);
-    const ring = MeshBuilder.CreateTorus(
+    const ring = CreateTorus(
       'player-ring',
       { diameter: 0.92, thickness: 0.025, tessellation: 40 },
       this.scene,
@@ -624,7 +632,7 @@ export class World {
         [42, 0, 44, 110],
         [-5, 3, 12, 11],
       ] as const) {
-        const bank = MeshBuilder.CreateGround(
+        const bank = CreateGround(
           'crossing-bank',
           { width, height: depth, subdivisions: Math.round(Math.max(width, depth) / 1.2) },
           this.scene,
@@ -876,7 +884,7 @@ export class World {
     for (let i = 0; i < 48; i++) {
       const x = -4 + this.random(i + 33) * 2.5,
         z = -22 + this.random(i + 61) * 43;
-      const stone = MeshBuilder.CreateBox(
+      const stone = CreateBox(
         `path-stone-${i}`,
         {
           width: 0.14 + this.random(i) * 0.19,
@@ -911,7 +919,7 @@ export class World {
     const planks: Mesh[] = [],
       posts: Mesh[] = [];
     for (let i = 0; i < 16; i++) {
-      const plank = MeshBuilder.CreateBox(
+      const plank = CreateBox(
         `jetty-plank-${i}`,
         { width: 0.34, height: 0.12, depth: 1.75 },
         this.scene,
@@ -924,7 +932,7 @@ export class World {
     }
     for (const x of [8.2, 10.3, 12.7])
       for (const z of [2, 3.6]) {
-        const post = MeshBuilder.CreateCylinder(
+        const post = CreateCylinder(
           'jetty-post',
           { diameter: 0.16, height: 1.1, tessellation: 6 },
           this.scene,
@@ -939,24 +947,37 @@ export class World {
   }
 
   private bindInput(): void {
-    this.cleanup.push(
-      bindExplorationInput({
-        scene: this.scene,
-        canvas: this.canvas,
-        keys: this.keys,
-        paused: () => this.paused,
-        navigate: (id) =>
-          this.callbacks.requestNavigate ? this.callbacks.requestNavigate(id) : this.navigate(id),
-        manualMove: this.callbacks.manualMove,
-        walk: (point) => {
-          this.callbacks.manualMove?.();
-          this.walkTo(point);
-        },
-        nearest: () => this.nearest()?.id,
-        resetCamera: () => this.resetCamera(),
-        notice: this.callbacks.notice,
-      }),
-    );
+    const navigate = (id: string, click?: ScreenClick) => {
+      this.interactionFeedback?.prepareNavigate(id, click);
+      if (this.callbacks.requestNavigate) this.callbacks.requestNavigate(id);
+      else this.navigate(id);
+    };
+    const walk = (point: Point, click?: ScreenClick) => {
+      this.callbacks.manualMove?.();
+      if (this.walkTo(point) && click) this.interactionFeedback?.accepted('ground', click);
+    };
+    this.interactionFeedback = new InteractionFeedback({
+      scene: this.scene,
+      canvas: this.canvas,
+      paused: () => this.paused,
+      place: (id) => this.destinations.find((p) => p.id === id),
+      navigate,
+      walk,
+      cancelTap: () => this.explorationInput?.cancelTap(),
+    });
+    this.explorationInput = bindExplorationInput({
+      scene: this.scene,
+      canvas: this.canvas,
+      keys: this.keys,
+      paused: () => this.paused,
+      navigate,
+      manualMove: this.callbacks.manualMove,
+      walk,
+      nearest: () => this.nearest()?.id,
+      resetCamera: () => this.resetCamera(),
+      notice: this.callbacks.notice,
+    });
+    this.cleanup.push(() => this.explorationInput?.dispose());
   }
 
   walkTo(target: Point): boolean {
@@ -981,12 +1002,19 @@ export class World {
     return true;
   }
   navigate(id: string): void {
-    if (this.paused) return;
+    if (this.paused) {
+      this.interactionFeedback?.completeNavigate(id, false);
+      return;
+    }
     const target = this.destinations.find((p) => p.id === id);
-    if (!target) return;
+    if (!target) {
+      this.interactionFeedback?.completeNavigate(id, false);
+      return;
+    }
     if (distance(this.position, target) < 2.35) {
       this.stop();
       this.face(target);
+      this.interactionFeedback?.completeNavigate(id, true);
       this.callbacks.interact(id);
       return;
     }
@@ -996,6 +1024,7 @@ export class World {
       approachPath(this.grid, this.position, target),
     );
     if (!path.length) {
+      this.interactionFeedback?.completeNavigate(id, false);
       this.callbacks.notice('There is no clear path to that place.');
       return;
     }
@@ -1005,6 +1034,7 @@ export class World {
     this.marker.position.set(end.x, groundHeight(this.state.region, end) + 0.045, end.z);
     this.marker.setEnabled(true);
     this.showRoute();
+    this.interactionFeedback?.completeNavigate(id, true);
   }
 
   private face(target: Point, dt?: number): void {
@@ -1130,7 +1160,12 @@ export class World {
   }
   setPaused(value: boolean): void {
     this.paused = value;
-    if (value) this.stop();
+    this.interactionFeedback?.setPaused(value);
+    if (value) {
+      this.explorationInput?.clear();
+      this.stop();
+      this.stopCameraMotion();
+    }
   }
   setPosition(p: Point, snap = false): void {
     if (this.travelerBoat && snap) this.player.rotation.y = this.state.lake.boat.heading;
@@ -1183,17 +1218,54 @@ export class World {
       this.workView.frame();
       return;
     }
-    this.pendingRotation = 0;
+    this.finishCameraTransition();
+    this.stopCameraMotion();
     this.camera.alpha = -Math.PI / 2 - 0.45;
     this.camera.beta = this.layout?.camera.beta ?? 0.78;
     this.camera.radius = (this.layout?.camera.radius ?? 33) * this.cameraAspectScale;
   }
+  private stopCameraMotion(): void {
+    this.camera.inertialAlphaOffset = 0;
+    this.camera.inertialBetaOffset = 0;
+    this.camera.inertialRadiusOffset = 0;
+    this.pendingRotation = 0;
+  }
+  faceNorth(): void {
+    if (this.workView?.active) return;
+    this.finishCameraTransition();
+    this.camera.inertialAlphaOffset = 0;
+    const turn = Math.atan2(
+      Math.sin(-Math.PI / 2 - this.camera.alpha),
+      Math.cos(-Math.PI / 2 - this.camera.alpha),
+    );
+    if (this.reducedMotion) {
+      this.pendingRotation = 0;
+      this.camera.alpha += turn;
+    } else this.pendingRotation = turn;
+  }
+  private finishCameraTransition(): void {
+    if (this.arrival) {
+      Object.assign(this.camera, this.arrival.to);
+      [this.camera.upperRadiusLimit, this.camera.upperBetaLimit] = this.arrival.limits;
+      this.arrival = undefined;
+    }
+    if (this.cameraReturn) {
+      const to = this.cameraReturn.to;
+      this.camera.alpha = to.alpha;
+      this.camera.beta = to.beta;
+      this.camera.radius = to.radius;
+      this.camera.target.copyFrom(to.target);
+      this.cameraReturn = undefined;
+    }
+  }
   /** Rotation buttons ease through a quarter of a turn step instead of jumping. */
   rotate(direction: number): void {
+    this.finishCameraTransition();
     if (this.reducedMotion) this.camera.alpha += direction * 0.3;
     else this.pendingRotation += direction * 0.3;
   }
   zoom(direction: number): void {
+    this.finishCameraTransition();
     this.camera.radius = Math.max(
       this.camera.lowerRadiusLimit ?? 16,
       Math.min(this.camera.upperRadiusLimit ?? 46, this.camera.radius + direction * 3),
@@ -1215,9 +1287,6 @@ export class World {
           x: person.position.x,
           z: person.position.z,
         });
-      });
-      this.waterLines.forEach((line) => {
-        line.scaling.x = 1;
       });
     }
     this.water?.quality(settings.quality === 'low');
@@ -1266,11 +1335,8 @@ export class World {
           .add(right.scale(dx))
           .normalize()
           .scale(dt * 3.25);
-        const next = { x: this.position.x + movement.x, z: this.position.z + movement.z };
-        const diagonalSafe =
-          this.grid.walkable({ x: next.x, z: this.position.z }) &&
-          this.grid.walkable({ x: this.position.x, z: next.z });
-        if (this.grid.walkable(next) && diagonalSafe) {
+        const next = slideStep(this.grid, this.position, { x: movement.x, z: movement.z });
+        if (distance(this.position, next) > 0.00001) {
           this.face(next, dt);
           this.position = next;
           moving = true;
@@ -1333,6 +1399,10 @@ export class World {
     this.lastRender = now;
     this.cadence.rendered(now);
     this.workView?.tick(this.reducedMotion, Math.min(elapsed, 0.1));
+    if (this.active && !this.paused && elapsed > 0 && this.keys.has('q')) {
+      this.finishCameraTransition();
+      this.pendingRotation = 0;
+    }
     if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
     if (this.cameraReturn) {
       const r = this.cameraReturn;
@@ -1361,9 +1431,6 @@ export class World {
       this.boats.forEach((boat, i) => {
         boat.position.y = -0.25 + Math.sin(this.time * 1.1 + i) * 0.025;
         boat.rotation.z = Math.sin(this.time * 0.7 + i) * 0.018;
-      });
-      this.waterLines.forEach((line, i) => {
-        line.scaling.x = 0.8 + Math.sin(this.time * 0.65 + i) * 0.22;
       });
     }
     this.water?.tick(this.time, this.reducedMotion);
@@ -1477,6 +1544,7 @@ export class World {
         this.camera.alpha,
         this.nearest()?.id ?? null,
         this.destination,
+        this.path.at(-1),
       );
     }
   }
@@ -1492,6 +1560,10 @@ export class World {
   }
   renderFrame(): void {
     this.render();
+  }
+  refreshFrame(resetClock = true): void {
+    if (resetClock) this.lastRender = 0;
+    this.cadence.invalidate();
   }
   update(state: GameState): void {
     this.state = structuredClone(state);
@@ -1598,6 +1670,7 @@ export class World {
     }
   }
   dispose(): void {
+    this.interactionFeedback?.dispose();
     this.actionFeedback?.dispose();
     this.water?.dispose();
     this.conversationView?.dispose();

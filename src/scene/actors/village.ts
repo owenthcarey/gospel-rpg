@@ -1,4 +1,4 @@
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateTube } from '@babylonjs/core/Meshes/Builders/tubeBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
@@ -95,7 +95,7 @@ export class VillageActivity {
     const ropeMaterial = new StandardMaterial('loose-rope-material', scene);
     ropeMaterial.diffuseColor = Color3.FromHexString('#ad9164');
     ropeMaterial.specularColor = Color3.Black();
-    this.looseRope = MeshBuilder.CreateTube(
+    this.looseRope = CreateTube(
       'loose-rope',
       {
         path: [

@@ -394,3 +394,88 @@
     animation: none !important;
   }
 }
+
+/* Chapter announcements use the same compact game typography as the HUD. */
+.cold-open-ornament,
+.chapter-card-rule,
+.veil-rule {
+  height: 4px;
+  width: 160px;
+  background: #8f7040;
+  border-top: 1px solid #c9a665;
+  border-bottom: 1px solid #23180d;
+}
+.cold-open-ornament svg,
+.chapter-card-rule svg,
+.veil-rule svg {
+  display: none;
+}
+.cold-open-eyebrow,
+.chapter-card-eyebrow,
+.veil-eyebrow {
+  font-family: var(--font-sans);
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+.cold-open-text {
+  font-family: var(--font-sans);
+  font-size: clamp(18px, 2vw, 25px);
+  line-height: 1.55;
+  text-shadow: 1px 2px #100c07;
+}
+.cold-open-actions button {
+  border-radius: 1px;
+  border: 1px solid #21170d;
+  background: var(--stone-grain), #55432a;
+  box-shadow: var(--bevel-raised);
+  color: #ffe092;
+}
+.cold-open-actions button:hover {
+  background: #6c5434;
+}
+.cold-open-progress li {
+  transform: none;
+  border-color: #a88a55;
+  background: #251b10;
+}
+.cold-open-progress li.is-current {
+  box-shadow: none;
+}
+.chapter-card {
+  top: 17vh;
+  padding: 16px;
+  background: none;
+}
+.chapter-card-inner {
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 14px 22px;
+  border: 2px solid #21170d;
+  background: var(--stone-grain), #342b1eef;
+  box-shadow:
+    var(--bevel-raised),
+    2px 3px #17120b80;
+}
+.chapter-card-title {
+  font-family: var(--font-sans);
+  font-size: clamp(23px, 2.3vw, 30px);
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 1px 2px #100c07;
+}
+.chapter-card-reference,
+.veil-line,
+.cold-open-provenance {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-style: normal;
+}
+.veil {
+  --veil-tint: #292116;
+  background-image: var(--stone-grain);
+}
+.veil-title {
+  font-family: var(--font-sans);
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 700;
+  text-shadow: 1px 2px #100c07;
+}

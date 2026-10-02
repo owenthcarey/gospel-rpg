@@ -37,7 +37,7 @@ import './ui/road.css';
 import './ui/exploration.css';
 import './ui/presence.css';
 import { leavePresentationEvent } from './game/presentation';
-import { parseStoryCommand } from './game/commands';
+import { parseStoryCommand, requiresWorldView, requiresWorldEvent } from './game/commands';
 import { motionFor, noticeFor } from './content/notices';
 import { dialogueFor, type Dialogue, type Choice } from './content/story';
 import { transition } from './game/quest';
@@ -67,6 +67,12 @@ const saves = new SaveRepository();
 const audio = new GameAudio();
 let state: GameState = newGame();
 let settings: Settings;
+const volumeSettings: readonly (keyof Settings)[] = [
+  'volume',
+  'musicVolume',
+  'ambienceVolume',
+  'effectsVolume',
+];
 let world: GameRuntime | undefined;
 let regionLoading = false;
 let scenePaused = false;
@@ -83,7 +89,6 @@ let storageWarned = false;
 let timer: ReturnType<typeof setInterval> | undefined;
 let cinematic = false;
 const coldOpen = new ColdOpen();
-const chapterCard = new ChapterCard(document.querySelector<HTMLElement>('#ui')!);
 const veil = new Veil();
 // Title cards announce each place and account once per session.
 const regionsSeen = new Set<string>();
@@ -91,23 +96,47 @@ const regionsSeen = new Set<string>();
 const ui = new Interface(document.querySelector('#ui')!, {
   action: (name, value) => {
     if (started || ['begin', 'continue', 'confirm-new', 'load-slot'].includes(name)) audio.unlock();
-    if (started && ['journal', 'inventory', 'map', 'settings'].includes(name)) audio.play('page');
+    if (started && ['journal', 'inventory', 'map', 'settings', 'messages'].includes(name))
+      audio.play('page');
     const choice = name === 'choice' ? conversation?.choices[Number(value)] : undefined;
     runAction(() => handleAction(name, value, choice));
   },
-  setting: (key, value) => {
+  setting: (key, value, preview = false) => {
+    if (preview) {
+      if (adjustVolume(key, value)) {
+        audio.set(settings);
+        audio.unlock();
+      }
+      return;
+    }
     if (key === 'sound') audio.set({ ...settings, sound: Boolean(value) });
     audio.unlock();
     runAction(() => updateSetting(key, value));
   },
   workLayout: (rect) => world?.setWorkBounds(rect),
   readingLayout: (rect) => world?.setReadingBounds(rect),
+  walk: (point) => {
+    if (
+      world &&
+      started &&
+      !regionLoading &&
+      !graphicsLost &&
+      !cinematic &&
+      (!ui.panel || ui.panel === 'work')
+    ) {
+      audio.unlock();
+      world.walkTo(point);
+      canvas.focus({ preventScroll: true });
+    }
+  },
   presentationLayout: (id, rect, paused) => world?.setConversation(id, rect, paused),
   importFile: (file) => {
     audio.unlock();
     runAction(() => loadFile(file));
   },
 });
+// Interface constructs the root before the connected title announcer is mounted.
+const chapterCard = new ChapterCard(document.querySelector<HTMLElement>('#ui')!);
 
 const actions = new ActionQueue((pending) => ui.setActionPending(pending));
 function runAction(action: () => Promise<void>): void {
@@ -223,20 +252,22 @@ function pause(): void {
   audio.duck(true);
   clearWorking();
   inspectionWork = undefined;
+  ui.setWorldPaused(true);
   world?.setPaused(true);
   if (started && !regionLoading) void enqueueSave();
 }
 function syncPause(): void {
   audio.duck(ui.panel !== null && ui.panel !== 'work');
-  world?.setPaused(
+  const paused =
     !started ||
-      (ui.panel !== null && ui.panel !== 'work') ||
-      document.hidden ||
-      regionLoading ||
-      graphicsLost ||
-      cinematic ||
-      (isPresenting(state) && scenePaused),
-  );
+    (ui.panel !== null && ui.panel !== 'work') ||
+    document.hidden ||
+    regionLoading ||
+    graphicsLost ||
+    cinematic ||
+    (isPresenting(state) && scenePaused);
+  ui.setWorldPaused(paused);
+  world?.setPaused(paused);
 }
 function snapshot(): GameState {
   const current = structuredClone({
@@ -264,6 +295,7 @@ function enqueueSave(slot: SlotId = 'auto', notify = false): Promise<void> {
     .catch(() => {})
     .then(async () => {
       await saves.save(slot, current);
+      storageWarned = false;
       ui.saveStatus(
         saves.persistent
           ? 'Journey saved · on this device'
@@ -292,6 +324,7 @@ function performInteraction(motion?: ActionMotion, target?: string): void {
   audio.motion(motion);
 }
 async function apply(event: GameEvent): Promise<void> {
+  if (graphicsLost && requiresWorldEvent(event)) return;
   const previous = state;
   const current = snapshot();
   const next = transition(current, event);
@@ -389,18 +422,23 @@ async function begin(saved?: GameState): Promise<void> {
   await enqueueSave();
   if (!saved) ui.toast('Welcome to Capernaum. Speak with Simon by the boats to begin.');
 }
+/** Preview the mix during a native drag; its change event commits the final preference. */
+function adjustVolume(key: keyof Settings, value: string | boolean): boolean {
+  if (!volumeSettings.includes(key)) return false;
+  const level = Number(value);
+  if (!Number.isFinite(level)) return false;
+  settings = { ...settings, [key]: Math.max(0, Math.min(1, level)) };
+  return true;
+}
 async function updateSetting(key: keyof Settings, value: string | boolean): Promise<void> {
   if (key === 'sound' || key === 'reducedMotion') settings = { ...settings, [key]: Boolean(value) };
-  if (['volume', 'musicVolume', 'ambienceVolume', 'effectsVolume'].includes(key)) {
-    const level = Number(value);
-    if (Number.isFinite(level)) settings = { ...settings, [key]: Math.max(0, Math.min(1, level)) };
-  }
+  adjustVolume(key, value);
   if (key === 'textSize')
     settings = { ...settings, textSize: value === 'large' ? 'large' : 'standard' };
   if (key === 'guidance')
     settings = { ...settings, guidance: value === 'explore' ? 'explore' : 'full' };
   if (key === 'quality') settings = { ...settings, quality: value === 'low' ? 'low' : 'high' };
-  world?.applySettings(settings);
+  if (key !== 'sound' && !volumeSettings.includes(key)) world?.applySettings(settings);
   audio.set(settings);
   document.documentElement.classList.toggle('reduce-motion', settings.reducedMotion);
   document.documentElement.dataset.textSize = settings.textSize;
@@ -435,6 +473,7 @@ async function navigateTo(target: string): Promise<void> {
 }
 async function handleAction(name: string, value?: string, chosen?: Choice): Promise<void> {
   if (!world) return;
+  if (graphicsLost && (requiresWorldView(name, value) || requiresWorldEvent(chosen?.event))) return;
   if (ui.panel === 'work' && working) {
     const target = workTarget(snapshot(), working.target);
     const action = target?.actions.find((a) => {
@@ -666,6 +705,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'inventory':
     case 'map':
     case 'help':
+    case 'messages':
       if (ui.panel === name) {
         await close();
         break;
@@ -682,6 +722,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (name === 'inventory') ui.inventory(snapshot());
       if (name === 'map') ui.map(snapshot());
       if (name === 'help') ui.help();
+      if (name === 'messages') ui.messages();
       break;
     case 'settings':
       if (ui.panel === 'settings' && value === 'toggle') await close();
@@ -752,6 +793,9 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     case 'reset-camera':
       world.resetCamera();
+      break;
+    case 'face-north':
+      world.faceNorth();
       break;
     case 'choice': {
       if (!chosen) break;
@@ -994,9 +1038,8 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
 
 const keydown = (event: KeyboardEvent) => {
   if (
-    event.target instanceof HTMLInputElement ||
-    event.target instanceof HTMLSelectElement ||
-    event.target instanceof HTMLTextAreaElement ||
+    event.defaultPrevented ||
+    event.isComposing ||
     event.repeat ||
     event.ctrlKey ||
     event.metaKey ||
@@ -1005,10 +1048,28 @@ const keydown = (event: KeyboardEvent) => {
     return;
   const key = event.key.toLowerCase();
   if (key === 'escape') {
+    // Cancel an open native picker while retaining its reading menu and selected control.
+    if (
+      event.target instanceof HTMLSelectElement &&
+      CSS.supports('selector(select:open)') &&
+      event.target.matches(':open')
+    ) {
+      event.preventDefault();
+      const select = event.target;
+      select.blur();
+      select.focus({ preventScroll: true });
+      return;
+    }
     event.preventDefault();
     runAction(() => (ui.panel ? close() : showSettings()));
     return;
   }
+  if (
+    event.target instanceof HTMLInputElement ||
+    event.target instanceof HTMLSelectElement ||
+    event.target instanceof HTMLTextAreaElement
+  )
+    return;
   if (ui.panel === 'dialogue' && ['1', '2', '3'].includes(key)) {
     event.preventDefault();
     const choice = conversation?.choices[Number(key) - 1];
@@ -1071,7 +1132,7 @@ async function boot(): Promise<void> {
     walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
     roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
-    frame: (position, labels, heading, nearest, destination) => {
+    frame: (position, labels, heading, nearest, destination, walkTarget) => {
       audio.movement(
         position,
         started &&
@@ -1082,17 +1143,20 @@ async function boot(): Promise<void> {
           !isPresenting(state),
       );
       state.position = { ...position };
-      ui.frame(position, labels, heading, nearest, destination);
+      ui.frame(position, labels, heading, nearest, destination, walkTarget);
     },
   });
   world.engine.onContextLostObservable.add(() => {
     graphicsLost = true;
+    ui.setGraphicsPaused(true);
     syncPause();
-    ui.toast('Graphics paused. Waiting for your browser to restore the view…');
+    ui.holdNotice('Graphics paused. Waiting for your browser to restore the view…');
   });
   world.engine.onContextRestoredObservable.add(() => {
     graphicsLost = false;
+    ui.setGraphicsPaused(false);
     syncPause();
+    ui.holdNotice();
     ui.toast('The view has been restored.');
   });
   world.applySettings(settings);

@@ -43,7 +43,7 @@ box('brace_end', (.34, 0, .10), (.16, .22, .09), 'wood', .015)
 export('wood_brace')
 
 for variant in ['loose', 'lashed', 'braced']:
-    box('seat', (0, 0, .5), (2.1, .60, .12), 'lightwood', .025)
+    box('seat', (0, 0, .5), (2.1, .60, .12), 'furniture_top', .025)
     for x in [-.76, .76]:
         for y in [-.2, .2]:
             box('leg', (x, y, .24), (.14, .14, .48), 'wood', .012)

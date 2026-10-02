@@ -17,7 +17,7 @@ const button = (label: string, action: string, value = '', disabled = false, ext
   `<button class="secondary-button" data-action="${action}" data-value="${esc(value)}" ${disabled ? 'disabled' : ''} ${extra}>${esc(label)}</button>`;
 
 function suggestionCard(s: StorySuggestion, current = false): string {
-  return `<article class="opportunity ${current ? 'current-opportunity' : ''}" data-story="${s.id}"><p class="eyebrow">${current ? 'YOUR SELECTED STORY' : esc(s.label)}</p><h3>${esc(s.title)}</h3><p>${esc(s.text)}</p><p class="opportunity-place">${icon('pin')} ${esc(regions[s.region as keyof typeof regions].title)} · ${esc(s.destination)}</p><div class="story-actions">${button('Follow the path', 'follow-story', s.id, !s.available)}${button('Open story', 'open-story', s.id)}</div></article>`;
+  return `<article class="opportunity ${current ? 'current-opportunity' : ''}" data-story="${s.id}" data-story-status="${s.status}"><div class="quest-row-heading"><div><p class="eyebrow">${current ? 'YOUR SELECTED STORY' : esc(s.label)}</p><h3>${esc(s.title)}</h3></div><span class="quest-state">${s.status === 'in-progress' ? 'In progress' : 'Available'}</span></div><div class="quest-row-description"><p>${esc(s.text)}</p><p class="opportunity-place">${icon('pin')} ${esc(regions[s.region as keyof typeof regions].title)} · ${esc(s.destination)}</p></div><div class="story-actions">${button('Follow the path', 'follow-story', s.id, !s.available)}${button('Open story', 'open-story', s.id)}</div></article>`;
 }
 export function journeyOverview(s: GameState): string {
   const suggestions = journeySuggestions(s);

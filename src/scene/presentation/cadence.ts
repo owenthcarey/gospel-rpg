@@ -1,6 +1,6 @@
 /**
  * How often a paused scene redraws. A paused view still repaints for framing and resize, but
- * never continuously: after each paused render it waits at least 100 ms, or twice as long as
+ * never continuously: between invalidations it waits at least 100 ms, or twice as long as
  * that render took to reach the screen, so a slow renderer keeps most of its time for the
  * interface. Render time is measured to the next frame callback, which includes GPU work.
  */
@@ -8,9 +8,17 @@ export class PausedCadence {
   private started = 0;
   private finished = 0;
   private awaitingFrame = false;
+  private dirty = true;
+
+  /** Repaint after a cleared canvas or suspended loop; idle time is not render cost. */
+  invalidate(): void {
+    this.awaitingFrame = false;
+    this.dirty = true;
+  }
 
   /** Call once per frame while paused; true when this frame should render. */
   due(now: number): boolean {
+    if (this.dirty) return true;
     if (this.awaitingFrame) {
       this.awaitingFrame = false;
       this.finished = now;
@@ -20,6 +28,7 @@ export class PausedCadence {
   }
   /** Call whenever the scene renders, paused or not. */
   rendered(now: number): void {
+    this.dirty = false;
     this.started = now;
     this.awaitingFrame = true;
   }

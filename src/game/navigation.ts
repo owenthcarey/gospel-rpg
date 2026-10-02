@@ -97,6 +97,17 @@ export function clearLine(grid: WalkGrid, a: Point, b: Point): boolean {
   }
   return true;
 }
+/** Let manual movement follow a wall when its diagonal direction is blocked. */
+export function slideStep(grid: WalkGrid, from: Point, movement: Point): Point {
+  const next = { x: from.x + movement.x, z: from.z + movement.z };
+  if (clearLine(grid, from, next)) return next;
+  const axes = [
+    { x: next.x, z: from.z },
+    { x: from.x, z: next.z },
+  ];
+  if (Math.abs(movement.z) > Math.abs(movement.x)) axes.reverse();
+  return axes.find((point) => clearLine(grid, from, point)) ?? from;
+}
 /**
  * String-pull a cell path into the fewest straight legs with a clear line, so the traveler
  * walks diagonally across open ground instead of zig-zagging between cell centres. The

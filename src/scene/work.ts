@@ -2,7 +2,9 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Viewport } from '@babylonjs/core/Maths/math.viewport';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { Scene } from '@babylonjs/core/scene';
@@ -49,21 +51,17 @@ export class WorkPresentation {
     this.gold = this.material('work-selection-gold', '#e9c36a');
     this.proposal = this.material('work-proposal-blue', '#6bccdf');
     this.approachMaterial = this.material('work-approach', '#99c4ad');
-    this.ring = MeshBuilder.CreateTorus(
+    this.ring = CreateTorus(
       'selected-work-target',
       { diameter: 1.3, thickness: 0.035, tessellation: 32 },
       scene,
     );
     this.ring.material = this.gold;
-    this.approach = MeshBuilder.CreateGround(
-      'work-southern-approach',
-      { width: 1, height: 1.6 },
-      scene,
-    );
+    this.approach = CreateGround('work-southern-approach', { width: 1, height: 1.6 }, scene);
     this.approach.material = this.approachMaterial;
     // A broken outline distinguishes proposed placement from solid, placed furniture.
     for (let i = 0; i < 18; i++) {
-      const part = MeshBuilder.CreateBox(
+      const part = CreateBox(
         'work-screen-preview-' + i,
         { width: i < 12 ? 0.24 : 0.045, height: i < 12 ? 0.045 : 0.38, depth: 0.045 },
         scene,
@@ -78,7 +76,7 @@ export class WorkPresentation {
   }
   private material(name: string, hex: string): StandardMaterial {
     const material = new StandardMaterial(name, this.scene);
-    material.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
+    material.diffuseColor = Color3.FromHexString(hex);
     material.emissiveColor = material.diffuseColor.scale(0.25);
     material.specularColor = Color3.Black();
     return material;
@@ -131,9 +129,7 @@ export class WorkPresentation {
         state.galilee.shelter.site === target.site &&
         state.galilee.shelter.placed.includes('screen') &&
         direction === 2;
-      this.approachMaterial.diffuseColor = Color3.FromHexString(
-        blocked ? '#c28269' : '#99c4ad',
-      ).toLinearSpace();
+      this.approachMaterial.diffuseColor = Color3.FromHexString(blocked ? '#c28269' : '#99c4ad');
       // A diagonal marking is visible when the proposed or committed approach is blocked.
       this.approach.rotation.y = blocked ? Math.PI / 4 : 0;
       this.approach.scaling.x = blocked ? 0.4 : 1;
@@ -149,9 +145,7 @@ export class WorkPresentation {
       y = groundHeight(s.region, p) + 0.06;
     const angle = (preview.direction * Math.PI) / 2;
     const supported = checkArrangement({ ...s.galilee.shelter, screen: preview.direction }).ready;
-    this.proposal.diffuseColor = Color3.FromHexString(
-      supported ? '#6bccdf' : '#e2b177',
-    ).toLinearSpace();
+    this.proposal.diffuseColor = Color3.FromHexString(supported ? '#6bccdf' : '#e2b177');
     this.preview.forEach((mesh, i) => {
       const top = i >= 6,
         n = i % 6;

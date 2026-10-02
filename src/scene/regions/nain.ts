@@ -9,7 +9,7 @@ import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
 import type { GameState, Point, Settings } from '../../game/types';
 import { NAIN_ASSETS, type ActorAsset, type ActorClip } from '../../content/assets';
 import type { NainSceneId } from '../../game/road/types';
@@ -55,6 +55,7 @@ export class NainRegion implements RegionView {
   constructor(
     private engine: Engine,
     state: GameState,
+    quality: Settings['quality'] = 'high',
   ) {
     this.state = structuredClone(state);
     this.scene = new Scene(engine);
@@ -71,12 +72,13 @@ export class NainRegion implements RegionView {
     this.shots = new ShotDirector(this.camera);
     this.camera.maxZ = 100;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('nain-account'), {
+      quality,
       sky: 120,
       horizon: { center: { x: 0, z: 6 }, radius: 60, seed: 31 },
       shadowCenter: new Vector3(0, 0, 2),
     });
     this.library = new AssetLibrary(this.scene, this.stage.shadow);
-    const floor = MeshBuilder.CreateGround(
+    const floor = CreateGround(
       'nain-earth',
       { width: 70, height: 70, subdivisions: 70 },
       this.scene,
@@ -276,6 +278,10 @@ export class NainRegion implements RegionView {
   }
   getPosition(): Point {
     return { ...this.state.position };
+  }
+  refreshFrame(resetClock = true): void {
+    if (resetClock) this.last = 0;
+    this.cadence.invalidate();
   }
   applySettings(s: Settings): void {
     this.reduced = s.reducedMotion;

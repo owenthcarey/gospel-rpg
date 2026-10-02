@@ -149,6 +149,7 @@ test('all ten Into the Deep compositions remain complete and readable at desktop
   for (const id of SCENE_IDS) {
     await expect(page.locator('#game-canvas')).toHaveAttribute('data-checkpoint', id);
     await expect(page.locator('.scene-continue')).toBeVisible();
+    await expect(page.locator('.quest-card')).toBeHidden();
     await expect(page.locator('#game-canvas')).toHaveAttribute('data-lake-time', id + ':0.00');
     const rect = await page.locator('#scene-controls').boundingBox(),
       size = page.viewportSize()!;
@@ -158,6 +159,7 @@ test('all ten Into the Deep compositions remain complete and readable at desktop
     if (info.project.name === 'mobile-chromium') {
       await page.setViewportSize({ width: 844, height: 390 });
       await expect(page.locator('.scene-continue')).toBeVisible();
+      await expect(page.locator('.quest-card')).toBeHidden();
       await capture(page, info.outputPath('landscape-' + id + '.png'));
       await page.setViewportSize({ width: 390, height: 844 });
     }

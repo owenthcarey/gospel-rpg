@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { approachPath, clearLine, smoothPath, stepPath } from '../../src/game/navigation';
+import {
+  approachPath,
+  clearLine,
+  smoothPath,
+  stepPath,
+  slideStep,
+} from '../../src/game/navigation';
 import { WalkGrid, distance, findPath } from '../../src/game/pathfinding';
 it('consumes remaining travel time across cells without frame-dependent slowdown', () => {
   const path = [
@@ -70,5 +76,23 @@ describe('RFC-011 smoothed routes', () => {
     const grid = new WalkGrid([], () => true, -5, 5);
     expect(smoothPath(grid, { x: 0, z: 0 }, [])).toEqual([]);
     expect(smoothPath(grid, { x: 0, z: 0 }, [{ x: 1, z: 0 }])).toEqual([{ x: 1, z: 0 }]);
+  });
+});
+
+describe('manual movement beside scenery', () => {
+  it('continues along either wall instead of stopping a diagonal input', () => {
+    const eastWall = new WalkGrid([{ x: 1, z: 0, width: 0.1, depth: 5 }]);
+    expect(slideStep(eastWall, { x: 0.4, z: 0 }, { x: 0.2, z: 0.2 })).toEqual({ x: 0.4, z: 0.2 });
+    const northWall = new WalkGrid([{ x: 0, z: 1, width: 5, depth: 0.1 }]);
+    expect(slideStep(northWall, { x: 0, z: 0.4 }, { x: 0.2, z: 0.2 })).toEqual({ x: 0.2, z: 0.4 });
+  });
+  it('cannot squeeze through a blocked corner or tunnel through a wall', () => {
+    const corner = new WalkGrid([
+      { x: 1, z: 0, width: 0.1, depth: 0.1 },
+      { x: 0, z: 1, width: 0.1, depth: 0.1 },
+    ]);
+    const from = { x: 0.4, z: 0.4 };
+    expect(slideStep(corner, from, { x: 0.2, z: 0.2 })).toEqual(from);
+    expect(slideStep(corner, { x: 0, z: 0 }, { x: 2, z: 0 })).toEqual({ x: 0, z: 0 });
   });
 });

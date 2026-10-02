@@ -3,6 +3,8 @@ import { musicTracks } from '../../content/audio/music';
 import { cueForState, regionAudio } from '../../content/audio/cues';
 import { escapeHtml } from '../icons';
 
+export const volumePercent = (value: number): string => Math.round(value * 100) + '%';
+
 export function audioSettings(settings: Settings, state?: GameState): string {
   const track = musicTracks[(state ? cueForState(state) : regionAudio.capernaum).track];
   const sliders = [
@@ -13,7 +15,12 @@ export function audioSettings(settings: Settings, state?: GameState): string {
   ] as const;
   return `<div class="audio-settings"><h3>Music &amp; sound</h3>
     <label class="setting-row"><span>Game audio<small>Original music, ambience, and sound effects</small></span><input type="checkbox" data-setting="sound" ${settings.sound ? 'checked' : ''}></label>
-    ${sliders.map(([key, title, detail]) => `<label class="setting-row"><span>${title}<small>${detail}</small></span><input type="range" min="0" max="1" step="0.05" value="${settings[key]}" data-setting="${key}" aria-label="${title}"></label>`).join('')}
+    ${sliders
+      .map(([key, title, detail]) => {
+        const level = volumePercent(settings[key]);
+        return `<label class="setting-row"><span>${title}<small>${detail}</small></span><span class="audio-control"><output for="audio-${key}" aria-hidden="true">${level}</output><input id="audio-${key}" type="range" min="0" max="1" step="0.05" value="${settings[key]}" data-setting="${key}" aria-label="${title}" aria-valuetext="${level}"></span></label>`;
+      })
+      .join('')}
     <div class="soundtrack-note"><span class="eyebrow">MUSIC FOR THIS PLACE</span><strong>${escapeHtml(track.title)}</strong><p>${escapeHtml(track.description)}</p><small>Nine original compositions follow your journey. Music softens while you read. Set any channel to zero to silence it.</small></div>
     </div>`;
 }

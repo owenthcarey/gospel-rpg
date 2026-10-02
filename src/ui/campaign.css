@@ -82,10 +82,6 @@
   font-size: 21px;
   line-height: 1.6;
 }
-[data-text-size='large'] .journal-entry p {
-  font-size: 18px;
-  line-height: 1.75;
-}
 [data-text-size='large'] .scene-controls {
   max-height: 78dvh;
   overflow-y: auto;

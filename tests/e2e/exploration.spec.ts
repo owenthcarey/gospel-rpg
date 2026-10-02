@@ -12,6 +12,7 @@ import { preparedSpring, arrangedShelter, chosenShelter } from '../helpers/galil
 import { accounts } from '../../src/game/connection/accounts';
 import { completedJourney } from '../helpers/connection';
 import { transition } from '../../src/game/quest';
+import { STORY_TRACKS } from '../../src/game/campaign/types';
 
 test('the journey overview prioritizes local play and deliberately follows the chosen story', async ({
   page,
@@ -28,22 +29,174 @@ test('the journey overview prioritizes local play and deliberately follows the c
   await expect(page.locator('.opportunity')).toHaveCount(3);
   await expect(page.locator('.journey-overview')).not.toContainText('Room under the olives');
   await readableContrast(page, '.opportunity p');
+  await readableContrast(page, '.quest-state');
   await page.screenshot({ path: info.outputPath('fresh-journey-overview.png') });
   await page.locator('[data-action="follow-story"][data-value="village"]').click();
   await expect(page.getByRole('dialog')).toContainText('Ezra');
+  await readableContrast(page, '.dialogue-choices button');
+  await readableContrast(page, '.dialogue-choices .choice-index');
   await page.getByRole('button', { name: 'Leave conversation' }).click();
   await expect(page.locator('.objective-toggle')).toHaveAttribute('aria-expanded', 'true');
   const s = await exported(page);
   expect(s.tracking).toBe('village');
   expect(s.villageStory).toBe('not-started');
+  await page.locator('[data-setting="textSize"]').selectOption('large');
+  await page.locator('[data-setting="reducedMotion"]').check();
   await dismiss(page);
   await page.locator('.toolbar [data-action="journal"]').click();
   await expect(page.locator('.current-opportunity')).toContainText('An ordinary morning');
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Filter journal by story' })).toBeVisible();
-  await act(page, 'journal-category', 'overview');
-  await act(page, 'open-story', 'main');
+  const register = page.getByRole('region', { name: 'Stories by status' });
+  await expect(register.locator('article')).toHaveCount(STORY_TRACKS.length);
+  await expect(page.locator('.episode-summary')).toHaveCount(0);
+  await expect(
+    register.locator('[data-story-status="unavailable"] .status-pill').first(),
+  ).toBeVisible();
+  await expect(
+    register.locator('[data-story-status="available"] .status-pill').first(),
+  ).toBeVisible();
+  await expect(
+    register.locator('[data-story-status="unavailable"] .status-pill').first(),
+  ).toHaveText('unavailable');
+  await readableContrast(page, '.story-register [data-story-status="unavailable"] h3');
+  await readableContrast(page, '.story-register [data-story-status="available"] h3');
+  await expect(page.locator('#overlay')).toHaveCSS('opacity', '1');
+  await expect(page.locator('.panel')).toHaveCSS('opacity', '1');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  const mainStory = register.locator('[data-action="open-story"][data-value="main"]');
+  await mainStory.focus();
+  await mainStory.press('Enter');
   await expect(page.locator('[data-journal-filter]')).toHaveValue('main');
+  await expect(page.getByRole('button', { name: 'Close menu', exact: true })).toBeFocused();
+  await expect(register).toHaveCount(0);
+  await expect(page.locator('.episode-summary')).toContainText('Into the Deep');
+  await expect(page.locator('.episode-objectives li')).toHaveCount(9);
+  await act(page, 'transcript', 'lake');
+  await expect(page.locator('.transcript-beat')).toHaveCount(accounts.lake.scenes.length);
+  const afterReading = await exported(page);
+  expect(afterReading.playTime).toBeGreaterThanOrEqual(s.playTime);
+  expect({ ...afterReading, playTime: s.playTime }).toEqual(s);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+});
+
+test('journal categories and story filters keep keyboard focus without taking later focus', async ({
+  page,
+}) => {
+  await ready(page);
+  const before = await exported(page);
+  await page.locator('[data-setting="textSize"]').selectOption('large');
+  await page.locator('[data-setting="reducedMotion"]').check();
+  await dismiss(page);
+  await page.locator('.toolbar [data-action="journal"]').click();
+  const close = page.getByRole('button', { name: 'Close menu', exact: true });
+  await expect(close).toBeFocused();
+  const categories = page.getByRole('navigation', { name: 'Journal categories' });
+  await page.keyboard.press('Tab');
+  await expect(categories.getByRole('button', { name: 'Your journey', exact: true })).toBeFocused();
+  for (const name of ['Stories', 'People', 'Places', 'Memories']) {
+    await page.keyboard.press('Tab');
+    const category = categories.getByRole('button', { name, exact: true });
+    await expect(category).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(category).toHaveAttribute('aria-pressed', 'true');
+    await expect(category).toBeFocused();
+  }
+  await page.keyboard.press('Tab');
+  const filter = page.getByRole('combobox', { name: 'Filter journal by story' });
+  await expect(filter).toBeFocused();
+  await filter.selectOption('village');
+  await expect(filter).toHaveValue('village');
+  await expect(filter).toBeFocused();
+  await filter.selectOption('all');
+  await expect(filter).toBeFocused();
+  for (let step = 0; step < 4; step++) await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Enter');
+  await expect(categories.getByRole('button', { name: 'Stories', exact: true })).toBeFocused();
+  for (let step = 0; step < 4; step++) await page.keyboard.press('Tab');
+  await expect(filter).toBeFocused();
+  await filter.selectOption('main');
+  await expect(filter).toHaveValue('main');
+  await expect(filter).toBeFocused();
+  await expect(page.locator('.episode-summary')).toBeVisible();
+
+  // Take another visible control immediately after the refresh, before its queued focus frame.
+  await page.evaluate(() => {
+    const overlay = document.querySelector<HTMLElement>('#overlay')!;
+    const filter = overlay.querySelector<HTMLSelectElement>('[data-journal-filter]')!;
+    return new Promise<void>((resolve) => {
+      const observer = new MutationObserver(() => {
+        observer.disconnect();
+        overlay
+          .querySelector<HTMLButtonElement>(
+            '[data-action="journal-category"][data-value="people"]',
+          )!
+          .focus();
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
+      observer.observe(overlay, { childList: true });
+      filter.value = 'all';
+      filter.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+  await expect(categories.getByRole('button', { name: 'People', exact: true })).toBeFocused();
+  await expect(filter).toHaveValue('all');
+  await page.keyboard.press('Tab');
+  await expect(categories.getByRole('button', { name: 'Places', exact: true })).toBeFocused();
+  await page.getByRole('button', { name: 'Return to your journey' }).focus();
+  await page.keyboard.press('Tab');
+  await expect(close).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('#game-canvas')).toBeFocused();
+  const after = await exported(page);
+  expect(after.playTime).toBeGreaterThanOrEqual(before.playTime);
+  expect({ ...after, playTime: before.playTime }).toEqual(before);
+});
+
+test('phone atlas numbers stay readable across early and fully connected journeys', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'mobile-chromium', 'Measures the phone atlas scaling.');
+  const sizes = [
+    { width: 390, height: 844 },
+    { width: 320, height: 844 },
+    { width: 844, height: 390 },
+  ];
+  for (const state of [undefined, completedJourney()]) {
+    await page.setViewportSize(sizes[0]!);
+    await ready(page, state);
+    await page.locator('.toolbar [data-action="map"]').click();
+    await page.getByRole('button', { name: 'Journey map', exact: true }).click();
+    const labels = page.locator('.journey-map-number');
+    await expect(labels).toHaveCount(state ? 10 : 1);
+    for (const viewport of sizes) {
+      await page.setViewportSize(viewport);
+      // The panel entry transform also scales its SVG until the modal has settled.
+      await expect(page.locator('#overlay')).toHaveCSS('opacity', '1');
+      await expect(page.locator('.panel')).toHaveCSS('opacity', '1');
+      await expect
+        .poll(
+          () =>
+            labels.evaluateAll((nodes) => {
+              if (!nodes.length) return 0;
+              return Math.min(
+                ...nodes.map((node) => {
+                  const matrix = (node as SVGTextElement).getScreenCTM()!;
+                  return (
+                    parseFloat(getComputedStyle(node).fontSize) * Math.hypot(matrix.a, matrix.b)
+                  );
+                }),
+              );
+            }),
+          { message: `Smallest atlas number at ${viewport.width}×${viewport.height}` },
+        )
+        .toBeGreaterThanOrEqual(14);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+      ).toBe(false);
+    }
+  }
 });
 
 test('focused spring work keeps reading, keyboard focus, framing and interrupted orientation', async ({
@@ -99,6 +252,7 @@ test('screen preview is temporary, readable and usable at large portrait and lan
       : [{ width: 1440, height: 900 }];
   for (const size of sizes) {
     await page.setViewportSize(size);
+    await expect(page.locator('.quest-card')).toBeHidden();
     const details = page.locator('.screen-preview-controls');
     if ((await details.getAttribute('open')) === null) await details.locator('summary').click();
     await act(page, 'work-preview', '0');
@@ -114,6 +268,8 @@ test('screen preview is temporary, readable and usable at large portrait and lan
     );
     const panel = await page.locator('.work-panel').boundingBox();
     expect(panel!.height).toBeLessThanOrEqual(size.height * (size.width < 700 ? 0.46 : 0.92));
+    await expect(page.locator('.chapter-card')).toHaveCount(0);
+    await expect(page.locator('#toast')).toBeHidden();
     await page.screenshot({ path: info.outputPath('screen-preview-' + size.width + '.png') });
   }
   await act(page, 'work-preview-cancel');

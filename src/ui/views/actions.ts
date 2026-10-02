@@ -21,7 +21,7 @@ export function nearbyActions(s: GameState): string {
     .slice(0, 3)
     .map(
       (a) =>
-        `<div><button data-action="quick-action" data-value="${a.id}" class="secondary-button" ${a.blocker ? `disabled aria-describedby="block-${a.id}"` : ''}>${esc(a.label)}<small>${esc(a.place.name)}</small></button>${a.blocker ? `<p id="block-${a.id}">${esc(a.blocker)}</p>` : ''}</div>`,
+        `<div><button data-action="quick-action" data-value="${a.id}" data-target="${a.target}" class="secondary-button" ${a.blocker ? `disabled aria-describedby="block-${a.id}"` : ''}>${esc(a.label)}<small>${esc(a.place.name)}</small></button>${a.blocker ? `<p id="block-${a.id}">${esc(a.blocker)}</p>` : ''}</div>`,
     )
     .join('')}</div>`;
 }

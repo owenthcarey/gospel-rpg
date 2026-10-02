@@ -117,43 +117,34 @@ export function stylePlugin(material: Material): StylePlugin {
   );
 }
 
-/** Matte convention for procedural surfaces. Colors stay in the established linear-input convention. */
+/** Matte convention for procedural surfaces. Colors use the same display-space palette as imported vertex colors. */
 export function matte(scene: Scene, name: string, hex: string, alpha = 1): StandardMaterial {
   const m = new StandardMaterial(name, scene);
-  m.diffuseColor = Color3.FromHexString(hex).toLinearSpace();
+  m.diffuseColor = Color3.FromHexString(hex);
   m.specularColor = Color3.Black();
   m.alpha = alpha;
   return m;
 }
 
 /**
- * Replace a container's glTF materials with one vertex-color matte material so imported and
- * procedural surfaces share a lighting and color-space path. glTF colors are linear; the Standard
- * material shades in display space, so each shared geometry is converted once.
+ * Supply the catalog's opaque, double-sided vertex-color matte directly. The importer skips
+ * authored PBR materials so their unused lookup textures and decoding passes are never created.
+ * glTF colors are linear; the Standard material shades in display space, so each shared geometry
+ * is converted once.
  */
 export function convertContainer(container: AssetContainer, scene: Scene, id: string): void {
-  const converted = new Map<Material, StandardMaterial>();
+  const material = new StandardMaterial(id + ':matte', scene);
+  material.diffuseColor = Color3.White();
+  material.specularColor = Color3.Black();
+  material.backFaceCulling = false;
+  material.metadata = { assetId: id };
+  const plugin = new StylePlugin(material);
+  plugin.configure(WIND_SHAPES[id], false);
+  container.materials.push(material);
   for (const mesh of container.meshes) {
-    const source = mesh.material;
-    if (!source) continue;
-    let material = converted.get(source);
-    if (!material) {
-      material = new StandardMaterial(id + ':matte', scene);
-      material.diffuseColor = Color3.White();
-      material.specularColor = Color3.Black();
-      material.backFaceCulling = source.backFaceCulling;
-      material.metadata = { assetId: id };
-      const plugin = new StylePlugin(material);
-      plugin.configure(WIND_SHAPES[id], false);
-      converted.set(source, material);
-      container.materials.push(material);
-    }
+    if (!mesh.getTotalVertices()) continue;
     mesh.material = material;
     displayColors(mesh);
-  }
-  for (const source of converted.keys()) {
-    container.materials.splice(container.materials.indexOf(source), 1);
-    source.dispose(true, true);
   }
 }
 

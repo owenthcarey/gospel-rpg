@@ -1,0 +1,105 @@
+.world-action-hint,
+.world-option-menu {
+  position: fixed;
+  z-index: 45;
+  color: #fff3cd;
+  background: #302a22;
+  border: 2px solid #81735e;
+  border-right-color: #171410;
+  border-bottom-color: #171410;
+  box-shadow: 0 0 0 1px #15120e;
+  font:
+    15px/1.4 var(--font-sans, Arial),
+    sans-serif;
+  text-shadow: 1px 1px #000;
+}
+.world-action-hint {
+  padding: 3px 7px;
+  pointer-events: none;
+  max-width: calc(100vw - 16px);
+}
+.world-option-menu {
+  min-width: 170px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  padding: 2px;
+}
+.world-option-title {
+  color: #ffff00;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-bottom: 1px solid #8d7b5d;
+  background: #1e1b16;
+}
+.world-option-menu button {
+  display: block;
+  width: 100%;
+  min-height: 34px;
+  padding: 5px 8px;
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-shadow: inherit;
+  cursor: pointer;
+}
+.world-option-menu button:hover,
+.world-option-menu button:focus-visible {
+  color: #ffff00;
+  background: #514735;
+  outline: 1px solid #b5a17b;
+  outline-offset: -1px;
+}
+.world-label {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+@media (pointer: coarse) {
+  .world-option-menu button {
+    min-height: 44px;
+  }
+}
+.world-option-name.is-person {
+  color: #80ffff;
+}
+.world-option-name.is-object {
+  color: #ffdb66;
+}
+.world-click-feedback {
+  --click-color: #f5dc35;
+  --click-rim: #30260c;
+  position: fixed;
+  z-index: 30;
+  width: 17px;
+  height: 17px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.world-click-feedback::before,
+.world-click-feedback::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  width: 3px;
+  height: 17px;
+  background: var(--click-color);
+  box-shadow:
+    1px 0 var(--click-rim),
+    -1px 0 var(--click-rim);
+  transform: rotate(45deg);
+}
+.world-click-feedback::after {
+  transform: rotate(-45deg);
+}
+.world-click-feedback[data-kind='object'] {
+  --click-color: #ed3d2e;
+  --click-rim: #471209;
+}
+.world-action-hint[hidden],
+.world-option-menu[hidden],
+.world-click-feedback[hidden] {
+  display: none;
+}

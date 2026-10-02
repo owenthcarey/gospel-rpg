@@ -1,5 +1,6 @@
 import { Color3 } from '@babylonjs/core/Maths/math.color';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import type { Scene } from '@babylonjs/core/scene';
@@ -29,8 +30,8 @@ export class GalileeActivity {
     private region: ExplorationRegion,
   ) {
     this.material = new StandardMaterial('galilee-water', scene);
-    this.material.diffuseColor = Color3.FromHexString('#4a9fa5').toLinearSpace();
-    this.material.emissiveColor = Color3.FromHexString('#234f56').toLinearSpace();
+    this.material.diffuseColor = Color3.FromHexString('#4a9fa5');
+    this.material.emissiveColor = Color3.FromHexString('#234f56');
     this.material.specularColor = Color3.Black();
     if (region === 'galilean-road') {
       for (const id of CHANNEL_IDS) {
@@ -83,7 +84,7 @@ export class GalileeActivity {
             p.z,
             'rest-' + site,
           );
-        const preview = MeshBuilder.CreateTorus(
+        const preview = CreateTorus(
           'galilee-' + site + '-placement',
           { diameter: 2.8, thickness: 0.045, tessellation: 32 },
           scene,
@@ -93,7 +94,7 @@ export class GalileeActivity {
         preview.isPickable = false;
         this.previews.push(preview);
         for (const id of REST_SUPPLIES) {
-          const socket = MeshBuilder.CreateBox(
+          const socket = CreateBox(
             'galilee-socket-' + site + '-' + id,
             {
               width: id === 'mat' ? 1.5 : id === 'water' ? 0.42 : 1.6,
@@ -125,11 +126,7 @@ export class GalileeActivity {
     return model;
   }
   private pool(id: string, x: number, z: number, width: number, depth: number, y = 0.145): void {
-    const mesh = MeshBuilder.CreateBox(
-      'galilee-water-' + id,
-      { width, depth, height: 0.016 },
-      this.scene,
-    );
+    const mesh = CreateBox('galilee-water-' + id, { width, depth, height: 0.016 }, this.scene);
     mesh.position.set(x, groundHeight(this.region, { x, z }) + y, z);
     mesh.material = this.material;
     mesh.isPickable = false;

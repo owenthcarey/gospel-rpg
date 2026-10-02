@@ -45,8 +45,10 @@ ico('oven_dome', (0, 0, 1.1), (.72, .72, .55), 'terra', 2)
 box('oven_mouth', (0, -.77, .55), (.56, .08, .65), 'dark', .05)
 box('hearth', (0, -.5, .07), (1.8, 1.8, .14), 'stone')
 export('oven')
+# Medium timber keeps working and sitting surfaces distinct from the tan paths.
+M['furniture_top'] = mat('furniture_top', (.36, .24, .13))
 for name, width, depth, height in [('worktable', 2, 1.2, .85), ('bench', 2.4, .55, .5), ('stool', .55, .55, .5)]:
-    box('top', (0, 0, height), (width, depth, .12), 'lightwood', .02)
+    box('top', (0, 0, height), (width, depth, .12), 'furniture_top', .02)
     for x in [-width*.37, width*.37]:
         for y in [-depth*.32, depth*.32]:
             box('leg', (x, y, height/2), (.11, .11, height), 'wood')

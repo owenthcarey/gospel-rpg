@@ -10,9 +10,7 @@ export function interiorTextiles(scene: Scene, room: 'gathering-house' | 'bakeho
     indices: number[] = [],
     colors: number[] = [],
     normals: number[] = [];
-  const swatches = ['#ac7657', '#cfb891', '#737e68'].map((hex) =>
-    Color3.FromHexString(hex).toLinearSpace(),
-  );
+  const swatches = ['#ac7657', '#cfb891', '#737e68'].map((hex) => Color3.FromHexString(hex));
   const rugs =
     room === 'gathering-house'
       ? [

@@ -206,6 +206,9 @@ test('return encounters, recap and journal statuses remain usable with skipped s
     page.locator('[data-action="journal-status"][data-value="available"]'),
   ).toBeFocused();
   await expect(page.locator('.connection-stories')).toContainText('The way home');
+  const namedStatus = page.locator('.story-register .status-pill');
+  await expect(namedStatus).toBeVisible();
+  await expect(namedStatus).toHaveText('available');
   for (const selector of ['h3', '.eyebrow', '.status-pill', 'button'])
     contrast['status-' + selector] = await readableContrast(
       page,
@@ -245,6 +248,7 @@ test('return encounters, recap and journal statuses remain usable with skipped s
   let final = await exported(page);
   // The final reflection stays local to Miriam: travel back through the actual route.
   await journal(page);
+  await page.locator('[data-journal-filter]').selectOption('home');
   await page.getByRole('button', { name: 'Return to the familiar landing', exact: true }).click();
   await settled(page);
   const plan = routePlan(final, 'home-shore')!;

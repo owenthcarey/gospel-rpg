@@ -67,7 +67,8 @@ jobs:
         with:
           name: browser-plan
           path: artifacts/browser-plan/
-      - run: npm run test:e2e -- --test-list=artifacts/browser-plan/${{ matrix.shard }}.txt
+      # The native-select cancellation case uses windowed Chromium; other cases stay headless.
+      - run: xvfb-run --auto-servernum npm run test:e2e -- --test-list=artifacts/browser-plan/${{ matrix.shard }}.txt
       - name: Keep browser reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

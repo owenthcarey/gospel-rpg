@@ -1,218 +1,1804 @@
-/* RFC-011 interface art direction: loaded after every feature stylesheet. */
+/* Classic game interface: walnut frames, worn stone, recessed slots and brass text.
+   This layer follows feature styles so every existing game surface shares one finish. */
 
-/* A tracked destination keeps the familiar "!" in a gilded seal. */
-.world-label.quest-target .label-symbol .icon {
+:root h1,
+:root h2,
+:root h3,
+:root h4 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+:root .eyebrow,
+:root .quest-eyebrow {
+  font-family: var(--font-sans);
+  letter-spacing: 0.045em;
+  font-weight: 700;
+}
+:root button,
+:root input,
+:root select {
+  border-radius: 1px;
+}
+:root .icon {
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+:root .world-vignette {
+  background: none;
+}
+:root[data-quality='low'] #game-canvas {
+  image-rendering: pixelated;
+}
+:root #ui[data-graphics-paused='true'] {
+  background: var(--stone-grain), var(--ink-900);
+}
+:root #ui[data-graphics-paused='true'] .world-labels {
+  visibility: hidden;
+}
+
+/* A solid game bar keeps each menu easy to find. */
+:root .topbar,
+:root .working .topbar,
+:root .scene-mode .topbar {
+  height: 66px;
+  padding: 0 16px;
+  gap: 16px;
+  background: var(--stone-grain), #302a21;
+  border-bottom: 3px solid #19150f;
+  box-shadow:
+    inset 0 -1px #8d7651,
+    inset 0 1px #776445;
+}
+:root .logo {
+  gap: 9px;
+}
+:root .logo-hud .logo-mark {
+  width: 34px;
+  height: 34px;
+  filter: none;
+}
+:root .logo-hud .logo-word {
+  font-size: 22px;
+  letter-spacing: 0;
+  color: var(--gold-200);
+  text-shadow: 1px 2px #17120b;
+}
+:root .logo-tag {
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  font-size: 9px;
+  color: #c4b797;
+}
+:root .region-title {
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  color: var(--gold-200);
+  text-shadow: 1px 1px #111;
+}
+:root .region-title small {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-style: normal;
+  margin-top: 4px;
+}
+:root .location-diamond {
+  width: 28px;
+  height: 28px;
+  transform: none;
+  background: #211c14;
+  border: 1px solid #8c744b;
+  box-shadow:
+    inset 1px 1px #171109,
+    inset -1px -1px #ad9262;
+}
+:root .location-diamond .icon {
+  transform: none;
+}
+:root .toolbar,
+:root .camera-controls {
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid #17120c;
+  border-radius: 2px;
+  background: var(--stone-grain), #4b4030;
+  backdrop-filter: none;
+  box-shadow:
+    var(--bevel-raised),
+    1px 2px #17120b;
+}
+:root .toolbar button,
+:root .camera-controls button {
+  background: #3b3225;
+  border: 1px solid #21190f;
+  border-radius: 1px;
+  box-shadow:
+    inset 1px 1px #7d6949,
+    inset -1px -1px #21170e;
+  color: var(--text-cream);
+  min-height: 40px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 11px;
+  gap: 7px;
+  text-shadow: 1px 1px #17120b;
+}
+:root .toolbar .icon-button {
+  width: 40px;
+  height: 40px;
+}
+:root .toolbar button:hover,
+:root .camera-controls button:hover {
+  background: #5c4c33;
+  color: var(--gold-100);
+}
+:root .toolbar button:active,
+:root .camera-controls button:active {
+  box-shadow:
+    inset 1px 1px #21170e,
+    inset -1px -1px #7d6949;
+  transform: none;
+}
+:root .toolbar .icon {
+  color: var(--gold-200);
+}
+:root .toolbar kbd,
+:root kbd {
+  border-radius: 1px;
+  background: #261f16;
+  border: 1px solid #806b48;
+  box-shadow: inset 1px 1px #15100b;
+  color: #dfd2b4;
+}
+:root .toolbar-divider {
   display: none;
 }
-.world-label.quest-target .label-symbol::before {
-  display: block;
-  content: '!';
-  width: auto;
-  height: auto;
-  background: none;
-  box-shadow: none;
-  border-radius: 0;
-  font:
-    700 16px/1 var(--font-serif),
-    serif;
-  color: #3a2f14;
-}
-:root .world-label.quest-target .label-symbol {
-  margin-bottom: 2px;
-}
 
-/* Objective card expansion. */
-.quest-card.objective-expanded .quest-details:not([hidden]) {
-  animation: rise-in var(--dur) var(--ease-out) both;
+/* Quest information is a small, legible game panel. */
+:root .quest-card,
+:root .quest-card:not(.objective-expanded) {
+  left: 16px;
+  top: 82px;
+  width: min(276px, calc(100vw - 32px));
+  padding: 13px 15px 9px;
+  background: var(--stone-grain), #342d23;
+  border: 2px solid #17120c;
+  border-radius: 2px;
+  box-shadow:
+    var(--bevel-raised),
+    2px 3px #17120b80;
+  backdrop-filter: none;
+  max-height: calc(100dvh - 165px);
 }
-.quest-card .objective-toggle,
-.quest-card .compact-journal {
-  color: var(--gold-200);
+:root .quest-card.objective-expanded {
+  max-height: calc(100dvh - 165px);
+}
+:root .quest-card h1,
+:root .quest-card:not(.objective-expanded) h1 {
+  font-size: 17px;
+  line-height: 1.25;
+  margin: 9px 0 8px;
+  color: #ffe07a;
+  text-shadow: 1px 1px #0e0b07;
+}
+:root .quest-eyebrow {
+  font-size: 10px;
+  gap: 6px;
+  color: #c9b78a;
+}
+:root .quest-count {
+  letter-spacing: 0;
+  font-size: 11px;
+}
+:root .current-objective {
+  margin-top: 8px;
+  color: var(--text-cream);
   font-size: 13px;
+  line-height: 1.5;
+}
+:root .quest-intro {
+  line-height: 1.5;
+}
+:root .quest-steps {
+  gap: 9px;
+  margin-top: 12px;
+  padding: 12px 0;
+  border-color: #786345;
+}
+:root .quest-steps li {
+  line-height: 1.45;
+  gap: 8px;
+  font-size: 12px;
+}
+:root .step-mark {
+  transform: none;
+  width: 11px;
+  height: 11px;
+  border-color: #a8905f;
+  background: #211b12;
+}
+:root .step-mark .icon {
+  transform: none;
+  width: 10px;
+  height: 10px;
+}
+:root .current .step-mark {
+  background: #e4be55;
+  box-shadow: none;
+}
+:root .quest-card .objective-toggle,
+:root .quest-card .compact-journal,
+:root .quest-track {
+  font-size: 12px;
+  color: #f2cf67;
+  min-height: 36px;
+}
+:root .quest-card .objective-toggle {
+  gap: 7px;
 }
 .quest-card .objective-toggle::after {
   content: '';
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 2px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
+  width: 5px;
+  height: 5px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
   transform: rotate(45deg);
-  transition: transform var(--dur) var(--ease-out);
 }
 .quest-card .objective-toggle[aria-expanded='true']::after {
-  transform: translateY(4px) rotate(-135deg);
+  transform: rotate(-135deg);
 }
-.quest-card :focus-visible {
-  outline-color: var(--focus);
+:root .quest-reference {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 11px;
+}
+:root .time-of-day {
+  top: 77px;
+  right: 20px;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 12px;
+  color: #fff0bf;
+  text-shadow: 1px 1px #17120b;
 }
 
-/* Travel status: an ink ribbon above the hints. */
+/* World names use the crisp colors and black edging of the era. */
+:root .world-label {
+  filter: none;
+  gap: 2px;
+}
+:root .label-name,
+:root .world-label.place .label-name {
+  background: #1c1914ed;
+  border: 1px solid #746044;
+  border-radius: 1px;
+  backdrop-filter: none;
+  padding: 3px 7px 4px;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e6dfc8;
+  letter-spacing: 0;
+  text-shadow: 1px 1px #000;
+}
+:root .world-label.person .label-name {
+  color: #b8e7e2;
+}
+:root .world-label:hover .label-name,
+:root .world-label:focus-visible .label-name {
+  background: #332a1c;
+  border-color: #e4be55;
+  color: #fff38f;
+}
+:root .label-symbol {
+  color: #f5d451;
+  filter: drop-shadow(1px 1px #15120b);
+}
+:root .world-label.quest-target .label-symbol {
+  width: 20px;
+  height: 24px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: #ffe435;
+  box-shadow: none;
+}
+:root .world-label.quest-target .label-symbol .icon {
+  display: none;
+}
+:root .world-label.quest-target .label-symbol::before {
+  content: '!';
+  display: block;
+  width: auto;
+  height: auto;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: #ffe435;
+  font: 700 24px/1 var(--font-sans);
+  text-shadow:
+    -1px -1px #21190c,
+    1px -1px #21190c,
+    -1px 1px #21190c,
+    1px 1px #21190c;
+}
+:root .world-label.quest-target .label-name {
+  color: #ffe07a;
+  border-color: #a48a45;
+}
+:root .world-label.selected-destination .label-name {
+  box-shadow: 0 0 0 1px #dfc364;
+}
+
+/* Navigation controls use the same carved frame. The circular map remains a compass. */
+:root .minimap-wrap {
+  top: 104px;
+  bottom: auto;
+  right: 18px;
+  width: 152px;
+}
+:root .minimap {
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  border: 3px solid #9b8053;
+  background: #86925c;
+  box-shadow:
+    0 0 0 2px #21190f,
+    0 0 0 5px #51432e,
+    0 0 0 6px #17120b,
+    2px 4px 0 #17120b88;
+}
+:root .minimap::after {
+  box-shadow:
+    inset 0 0 0 2px #312717,
+    inset 0 0 12px #30291970;
+}
+:root .map-north {
+  background: #272116;
+  border: 1px solid #a98e58;
+  border-radius: 1px;
+  color: #f5da76;
+  font-family: var(--font-sans);
+  font-size: 10px;
+}
+:root .minimap-name {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  letter-spacing: 0.025em;
+  padding: 16px 0 12px;
+  background: linear-gradient(transparent, #292216 45%);
+  color: #eedfba;
+}
+:root .camera-controls {
+  margin-top: 12px;
+}
+:root .camera-controls button {
+  width: 26px;
+  min-height: 30px;
+  height: 30px;
+  padding: 0;
+}
+:root .camera-controls span {
+  display: none;
+}
+:root .traveler-card {
+  left: 16px;
+  bottom: 16px;
+  padding: 9px 12px;
+  opacity: 1;
+  gap: 9px;
+  background: var(--stone-grain), #30291feb;
+  border: 1px solid #17120b;
+  box-shadow: var(--bevel-raised);
+  text-shadow: 1px 1px #17120b;
+}
+:root .traveler-card p {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-style: normal;
+  max-width: 230px;
+}
+:root .traveler-card small {
+  font-size: 10px;
+}
+:root .traveler-card .eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.045em;
+}
+:root .traveler-seal {
+  width: 30px;
+  height: 34px;
+  border-radius: 1px;
+  background: #211b13;
+  box-shadow: var(--bevel-sunken);
+}
+:root .bottom-center {
+  bottom: 16px;
+  gap: 8px;
+}
+:root .hud-actions {
+  display: contents;
+}
+:root .action-scroll-cue {
+  display: none;
+}
+:root .control-hints,
 :root .travel-status {
-  gap: 10px;
-  padding: 6px 8px 6px 16px;
-  background: var(--hud-glass-strong);
-  color: var(--gold-100);
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  font-size: 14px;
-  box-shadow: var(--shadow-hud);
-  animation: rise-in var(--dur) var(--ease-out) both;
+  gap: 12px;
+  padding: 5px 6px 5px 11px;
+  background: var(--stone-grain), #30291f;
+  border: 1px solid #17120b;
+  border-radius: 1px;
+  box-shadow: var(--bevel-raised);
+  backdrop-filter: none;
+  font-size: 11px;
+}
+:root .control-hints button {
+  border-radius: 1px;
 }
 :root #travel-status button {
+  font-size: 12px;
   min-height: 32px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--btn-line);
-  background: var(--btn-bg);
-  color: var(--text-cream);
-  font-size: 13px;
+  padding: 5px 9px;
+  background: #514330;
+  border: 1px solid #21190f;
+  box-shadow: var(--bevel-raised);
 }
-:root #travel-status button:hover {
-  background: var(--btn-hover);
+:root .nearby-action {
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 2px solid #1c160d;
+  border-radius: 1px;
+  background: var(--stone-grain), #695234;
+  box-shadow:
+    var(--bevel-raised),
+    1px 2px #17120b;
+  color: #ffdf73;
+  font-size: 13px;
+  font-weight: 700;
+  text-shadow: 1px 1px #21170b;
+}
+:root .nearby-action:hover {
+  background: #7a613d;
+}
+:root .nearby-action kbd {
+  color: #efe0b9;
+  background: #342719;
+  border-color: #96794c;
 }
 
-/* The nearby practical-action tray reads as a small parchment card. */
+/* Reading menus are muted tan, enclosed by a substantial wooden frame. */
+:root .panel,
+:root .dialogue-box,
+:root .scene-controls,
 :root .action-tray {
-  background-color: var(--parch-100);
-  background-image: var(--paper-grain);
-  color: var(--fg);
-  border: 1px solid #fff6df;
-  border-radius: var(--radius-lg);
+  background: var(--stone-grain), var(--parch-100);
+  border: 4px solid #473623;
+  border-radius: 2px;
   box-shadow:
-    var(--shadow-hud),
-    0 0 0 1px rgba(60, 44, 16, 0.35);
-  animation: rise-in var(--dur) var(--ease-out) both;
+    inset 1px 1px #e0c798,
+    inset -1px -1px #6c5233,
+    0 0 0 1px #ad8b56,
+    0 0 0 2px #21190f,
+    3px 5px #17120b88;
 }
+:root .panel-backdrop {
+  background: #17130b80;
+  backdrop-filter: none;
+}
+:root .panel-header,
+:root .conversation-context .panel-header {
+  padding: 14px 20px;
+  gap: 12px;
+  background: var(--stone-grain), #3f3323;
+  border-bottom: 3px solid #21190f;
+  box-shadow:
+    inset 1px 1px #8b7149,
+    inset -1px -1px #6a5234;
+  color: #f2dda2;
+}
+:root .panel-header::after {
+  display: none;
+}
+:root .panel-header h2,
+:root .conversation-context .panel-header h2 {
+  font-size: 22px;
+  color: #f2d77e;
+  margin-top: 4px;
+  line-height: 1.2;
+  text-shadow: 1px 1px #17120b;
+}
+:root .panel-header .eyebrow {
+  color: #c8b28b;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+:root .panel-body,
+:root .conversation-context .panel-body {
+  padding: 18px 22px;
+}
+:root .panel > .panel-body {
+  scroll-padding: 8px;
+}
+:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions) {
+  scrollbar-width: auto;
+  scrollbar-color: #584027 #a99066;
+}
+@supports selector(::-webkit-scrollbar) {
+  :root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions) {
+    scrollbar-color: auto;
+  }
+}
+:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions)::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+:root
+  :is(
+    .panel-body,
+    .scene-reading,
+    .work-body,
+    .welcome-card,
+    .hud-actions
+  )::-webkit-scrollbar-track {
+  background: #a99066;
+  box-shadow: inset 1px 0 #755b38;
+}
+:root
+  :is(
+    .panel-body,
+    .scene-reading,
+    .work-body,
+    .welcome-card,
+    .hud-actions
+  )::-webkit-scrollbar-thumb {
+  background: #584027;
+  border: 2px solid #a99066;
+  box-shadow:
+    inset 1px 1px #ad8b56,
+    inset -1px -1px #3d2c1b;
+}
+
+/* Scroll shadows remain visible on phones whose native scrollbars fade away. */
+:root :is(.scene-reading, .work-body) {
+  background-image:
+    linear-gradient(var(--scroll-cover) 30%, transparent),
+    linear-gradient(transparent, var(--scroll-cover) 70%),
+    radial-gradient(farthest-side at 50% 0, var(--scroll-edge), transparent),
+    radial-gradient(farthest-side at 50% 100%, var(--scroll-edge), transparent);
+  background-repeat: no-repeat;
+  background-position: top, bottom, top, bottom;
+  background-size:
+    100% 32px,
+    100% 32px,
+    100% 12px,
+    100% 12px;
+  background-attachment: local, local, scroll, scroll;
+}
+:root .scene-reading {
+  --scroll-cover: var(--parch-100);
+  --scroll-edge: #493a2775;
+}
+:root .work-body {
+  --scroll-cover: var(--ink-800);
+  --scroll-edge: #0e0b0799;
+}
+:root .panel-body p,
+:root .panel-lead {
+  line-height: 1.55;
+}
+:root .panel h3 {
+  font-size: 18px;
+}
+:root .panel h4 {
+  font-size: 15px;
+}
+:root .panel-lead {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  margin-bottom: 17px;
+}
+:root .panel-footer,
+:root .conversation-context .panel-footer {
+  --accent: var(--text-ink);
+  --fg-2: var(--text-ink);
+  padding: 8px 20px;
+  border-top: 2px solid #8d714c;
+  background: #ac956d;
+  border-radius: 0;
+}
+:root .panel-footer > span {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-style: normal;
+}
+:root .panel .icon-button,
+:root .dialogue-box .icon-button,
+:root .scene-pause,
+:root .conversation-motion,
+:root .conversation-context .conversation-motion {
+  border: 1px solid #261b0f;
+  border-radius: 1px;
+  background: #675034;
+  color: #ffdfa0;
+  box-shadow: var(--bevel-raised);
+}
+:root .panel .icon-button:hover,
+:root .dialogue-box .icon-button:hover {
+  background: #80633d;
+}
+:root .panel-header .icon-button {
+  background: #6e3d29;
+  color: #ffe6b6;
+  box-shadow:
+    inset 1px 1px #c98b57,
+    inset -1px -1px #2e190f;
+  width: 34px;
+  height: 34px;
+}
+:root .primary-button,
+:root .secondary-button,
+:root .small-button,
+:root .dialogue-choices button,
 :root .nearby-choices button {
-  color: var(--btn-fg);
-  background: var(--parch-0);
-  border: 1px solid var(--btn-line);
-  border-radius: 6px;
-  font-weight: 500;
+  background: var(--stone-grain), #9d8057;
+  border: 1px solid #4b351f;
+  border-radius: 1px;
+  box-shadow:
+    inset 1px 1px #d9bd88,
+    inset -1px -1px #5a3d22;
+  color: #100b05;
+  text-shadow: none;
+  font-weight: 700;
 }
-:root .nearby-choices button:hover,
-:root .nearby-choices button:focus-visible {
-  color: var(--gold-100);
-  background: var(--moss);
-  border-color: var(--moss);
+:root .primary-button:hover,
+:root .secondary-button:hover:not(:disabled),
+:root .small-button:hover:not(:disabled),
+:root .dialogue-choices button:hover,
+:root .nearby-choices button:hover {
+  background: var(--stone-grain), #b19568;
+  border-color: #4b351f;
+  box-shadow:
+    inset 1px 1px #ecd19a,
+    inset -1px -1px #5a3d22;
+  transform: none;
 }
-.nearby-choices small {
+:root .secondary-button[aria-pressed='true'],
+:root .secondary-button[aria-pressed='true']:hover:not(:disabled),
+:root .scene-pause[aria-pressed='true'],
+:root .conversation-motion[aria-pressed='true'],
+:root .conversation-context .conversation-motion[aria-pressed='true'] {
+  background: #53432b;
+  border-color: #24190e;
+  color: #ffe08a;
+  box-shadow:
+    inset 1px 1px #21170d,
+    inset -1px -1px #b6955d;
+}
+:root .secondary-button[aria-pressed='true'] .icon {
+  color: #ffe08a;
+}
+:root .text-button {
+  font-size: 12px;
+  font-weight: 700;
+}
+:root .journal-summary,
+:root .opportunity,
+:root .overview-notice,
+:root .village-summary,
+:root .episode-summary,
+:root .soundtrack-note,
+:root .scene-observation {
+  border: 1px solid #93734d;
+  border-radius: 1px;
+  background: var(--stone-grain), #cbb78f;
+  box-shadow:
+    inset 1px 1px #e1c99b,
+    inset -1px -1px #9c7e55;
+}
+:root .journal-summary {
+  padding: 13px;
+  margin-bottom: 18px;
+}
+:root .current-opportunity {
+  background: #b8b38a;
+  border-left: 3px solid #536039;
+}
+:root .opportunity .opportunity-place {
+  color: #3b452b;
+}
+:root .chapter-icon,
+:root .slot-icon,
+:root .status-pill {
+  border-radius: 1px;
+  background: #b69b6e;
+  border: 1px solid #775b35;
+  box-shadow:
+    inset 1px 1px #d7bb87,
+    inset -1px -1px #8a693e;
+}
+:root .chapter-icon {
+  width: 38px;
+  height: 38px;
+}
+:root .status-pill {
+  color: var(--text-ink);
+  letter-spacing: 0.02em;
+  padding: 5px 8px;
+  font-size: 10px;
+}
+:root .journal-entry {
+  gap: 13px;
+  padding: 14px 0;
+}
+:root .journal-entry p {
+  font-size: 14px;
+}
+:root .entry-number {
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+:root .content-note,
+:root .saved-reflection {
+  background: #b8a079;
+  border-left: 3px solid #85663c;
+  border-radius: 0;
+  padding: 12px 15px;
+}
+:root .item-art {
+  height: 62px;
+  background: #675437;
+  color: #efd08b;
+  border: 1px solid #49351f;
+  box-shadow:
+    inset 1px 1px #352617,
+    inset -1px -1px #dec08d;
+  margin-bottom: 11px;
+}
+:root .item-art .icon {
+  width: 40px;
+  height: 40px;
+  stroke-width: 1.6;
+  filter: drop-shadow(1px 2px #302010);
+}
+:root .setting-row {
+  font-size: 13px;
+  gap: 12px;
+  padding: 11px 0;
+}
+:root .setting-row small {
+  font-size: 12px;
+}
+:root .setting-row select,
+:root .journal-filter select {
+  font-size: 12px;
+  border-radius: 1px;
+  border-color: #775834;
+  background-color: #d0ba8e;
+  box-shadow: var(--bevel-sunken);
+}
+:root .setting-row input[type='checkbox'] {
+  width: 24px;
+  height: 24px;
+  border-radius: 1px;
+  border: 1px solid #6d502e;
+  background: #a88e66;
+  box-shadow: var(--bevel-sunken);
+}
+:root .setting-row input[type='checkbox']::before {
+  display: none;
+  top: 4px;
+  left: 7px;
+  width: 7px;
+  height: 12px;
+  border-radius: 0;
+  border: solid #ffe07a;
+  border-width: 0 3px 3px 0;
+  background: none;
+  box-shadow: none;
+  transform: rotate(45deg);
+}
+:root .setting-row input[type='checkbox']:checked {
+  background: #55472d;
+}
+:root .setting-row input[type='checkbox']:checked::before {
+  display: block;
+  transform: rotate(45deg);
+}
+:root .setting-row input[type='range']::-webkit-slider-thumb,
+:root .setting-row input[type='range']::-moz-range-thumb {
+  border-radius: 1px;
+}
+
+/* Dialogue resembles the game's chat pane, with clear selectable responses. */
+:root .conversation-overlay .dialogue-box {
+  padding: 20px;
+  gap: 18px;
+  border-radius: 2px;
+}
+:root .dialogue-main h2,
+:root .conversation-overlay .dialogue-main h2 {
+  font-size: 20px;
+  color: #4a2f13;
+}
+:root .dialogue-main header p,
+:root .conversation-overlay .dialogue-main header p {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-style: normal;
+}
+:root .dialogue-text,
+:root .conversation-overlay .dialogue-text {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+:root .dialogue-text.scripture {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: #302815;
+}
+:root .conversation-overlay .dialogue-portrait,
+:root .context-portrait {
+  border-radius: 2px;
+  background: #a18a60;
+  border: 2px solid #6c5030;
+  box-shadow:
+    inset 1px 1px #d8bb89,
+    1px 2px #5d4227;
+}
+:root .conversation-overlay .dialogue-portrait {
+  width: 92px;
+  height: 110px;
+}
+:root .dialogue-choices button,
+:root .conversation-overlay .dialogue-choices button {
+  border-radius: 1px;
+  font-size: 13px;
+  min-height: 42px;
+  padding: 9px 12px;
+}
+:root .choice-index,
+:root .choice-index > span {
+  transform: none;
+}
+:root .choice-index {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #755331;
+  background: #c5a574;
+  color: #493018;
+  box-shadow: inset 1px 1px #e7c999;
+}
+:root .conversation-motion {
+  min-height: 32px;
+  padding: 4px 9px;
+  font-size: 11px;
+}
+:root .conversation-context {
+  top: 82px;
+  border-radius: 2px;
+}
+:root .dialogue-source {
+  font-size: 11px;
+}
+
+/* The work pane and Gospel controls match the same tool-window treatment. */
+:root .work-panel {
+  top: 82px;
+  right: 16px;
+  bottom: 16px;
+  background: var(--stone-grain), #342d23;
+  border: 2px solid #17120c;
+  border-radius: 2px;
+  box-shadow:
+    var(--bevel-raised),
+    3px 4px #17120b80;
+}
+:root .work-header {
+  padding: 14px 16px 11px;
+  background: #483a28;
+  border-bottom: 2px solid #21190f;
+  box-shadow:
+    inset 1px 1px #8b7149,
+    inset -1px -1px #6a5234;
+}
+:root .work-header h2 {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  line-height: 1.2;
+  color: #f2d77e;
+  text-shadow: 1px 1px #17120b;
+}
+:root .work-panel .eyebrow {
+  color: #c8b28b;
+  font-size: 10px;
+}
+:root .work-body {
+  flex: 1;
+  padding: 0 16px 12px;
+}
+:root .work-panel p {
+  font-size: 13px;
+}
+:root .work-panel .secondary-button {
+  color: #ffe19b;
+  background: var(--stone-grain), #635034;
+  border: 1px solid #24190e;
+  box-shadow: var(--bevel-raised);
+  font-size: 13px;
+  padding: 9px 12px;
+}
+:root .work-panel .secondary-button:hover:not(:disabled) {
+  background: #7a623f;
+  border-color: #24190e;
+}
+:root .work-panel .secondary-button[aria-pressed='true'] {
+  background: #987642;
+  border: 1px solid #21170d;
+  color: #fff1a4;
+  box-shadow:
+    inset 1px 1px #382817,
+    inset -1px -1px #d0aa68;
+}
+:root .work-panel .secondary-button:disabled {
+  color: #ae9c7c;
+  background: #342a1d;
+  border: 1px solid #53422d;
+  box-shadow: inset 1px 1px #21190f;
+  opacity: 1;
+}
+:root .work-panel .work-result {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  border-radius: 0;
+  background: #241e15;
+}
+:root .work-footer {
+  padding: 10px 16px;
+  background: #2c2419;
+}
+:root .scene-heading {
+  padding: 16px 20px 12px;
+  background: var(--stone-grain), #493a27;
+  border-bottom: 2px solid #6f5331;
+}
+:root .scene-heading h1 {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  color: #f2d77e;
+  text-shadow: 1px 1px #17120b;
+}
+:root .scene-heading .eyebrow {
+  color: #c8b28b;
+}
+:root .scene-ornament {
+  display: none;
+}
+:root .scene-progress {
+  padding: 11px 20px 6px;
+  gap: 3px;
+}
+:root .scene-progress span,
+:root .scene-progress span.current {
+  height: 5px;
+  border-radius: 0;
+  box-shadow: none;
+}
+:root .scene-reading {
+  padding: 6px 20px 12px;
+}
+:root .scene-caption > p:last-child {
+  font-size: 14px;
+  line-height: 1.6;
+}
+:root .scripture-caption > p:last-child {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: #2f2819;
+}
+:root .scripture-caption > p:last-child::first-letter {
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: inherit;
+  color: inherit;
+}
+:root .scene-footer {
+  --accent: var(--text-ink);
+  --fg-2: var(--text-ink);
+  background: #b29970;
+  padding: 12px 20px;
+}
+:root .toast {
+  border: 2px solid #21190f;
+  border-left: 4px solid var(--gold-300);
+  border-radius: 1px;
+  background: var(--stone-grain), #342b1e;
+  box-shadow:
+    var(--bevel-raised),
+    2px 3px #17120b88;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 10px 15px 10px 10px;
+}
+:root .toast-icon {
+  border-radius: 1px;
+  background: #4d3d28;
+  box-shadow:
+    inset 1px 1px #96784b,
+    inset -1px -1px #20160c;
+}
+/* Reading feedback takes its own row so content and return controls remain clear. */
+:root #ui .panel > .toast {
+  position: static;
+  flex: 0 0 auto;
+  transform: none;
+  animation: none;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0 16px 12px;
+}
+:root .action-tray {
+  max-width: 100%;
+  margin-bottom: 0;
+  padding: 8px;
+}
+:root .nearby-choices small {
   color: inherit;
   opacity: 0.8;
 }
 
-/* Scene-mode top gradient stays calm over the Gospel tableaux. */
-:root .scene-mode .topbar {
-  background: linear-gradient(rgba(12, 20, 16, 0.7), transparent);
+/* A framed title menu replaces oversized cinematic typography. */
+:root .welcome-shade {
+  background: linear-gradient(90deg, #17130b85, transparent 70%);
+}
+:root .welcome-card,
+:root .welcome-overlay .welcome-card {
+  left: 6%;
+  width: 410px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100dvh - 48px);
+  scroll-padding: 8px;
+  padding: 24px;
+  background: var(--stone-grain), #332b20;
+  border: 5px solid #493722;
+  border-radius: 2px;
+  box-shadow:
+    inset 1px 1px #aa8a57,
+    inset -1px -1px #1d150c,
+    0 0 0 1px #b2925e,
+    0 0 0 2px #1d150c,
+    4px 6px #17120b88;
+}
+:root .welcome-brand {
+  margin-bottom: 22px;
+  justify-content: center;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #76603c;
+}
+:root .welcome-brand .logo-mark {
+  width: 48px;
+  height: 48px;
+  filter: none;
+}
+:root .welcome-brand .logo-word {
+  font-size: 34px;
+  letter-spacing: 0;
+  color: #e6c574;
+  text-shadow: 1px 2px #17120b;
+}
+:root .welcome-card > .eyebrow {
+  font-size: 10px;
+  margin-bottom: 10px;
+  letter-spacing: 0.06em;
+}
+:root .welcome-card > .eyebrow::after {
+  display: none;
+}
+:root .welcome-card h1 {
+  font-family: var(--font-display);
+  font-size: 25px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #f3dfa5;
+  text-shadow: 1px 1px #17120b;
+}
+:root .welcome-copy {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 14px;
+}
+:root .welcome-copy.secondary {
+  font-size: 12px;
+  font-style: normal;
+  color: #c9b797;
+  margin-top: 10px;
+}
+:root .welcome-card .primary-button {
+  background: var(--stone-grain), #6d5230;
+  color: #ffdf75;
+  text-shadow: 1px 1px #28190c;
+  border: 2px solid #21170c;
+  box-shadow: var(--bevel-raised);
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 14px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+:root .welcome-card .primary-button:hover {
+  background: #80613b;
+}
+:root .welcome-meta {
+  font-size: 11px;
+  margin-top: 13px;
+}
+:root .welcome-note {
+  font-size: 11px;
+  line-height: 1.55;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #6f5a3b;
+}
+:root .welcome-location {
+  right: 6%;
+  bottom: 7%;
+  padding: 12px 16px;
+  border: 1px solid #21190f;
+  background: #30271ee6;
+  box-shadow: var(--bevel-raised);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+:root .welcome-location small {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-style: normal;
+}
+:root #loading {
+  background: var(--stone-grain), #241d14;
+}
+:root #loading h1 {
+  font-family: var(--font-display);
+  font-size: 42px;
+  letter-spacing: 0;
+  color: #e6c574;
+  text-shadow: 2px 2px #0e0a05;
+}
+:root #loading-message {
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+:root .loading-line {
+  border: 1px solid #80643a;
+  background: #17120b;
+  height: 8px;
+  width: 180px;
+  box-shadow: inset 1px 1px #0e0a05;
+}
+:root .loading-line::before {
+  height: 4px;
+  top: 1px;
+  background: #c39b4f;
+}
+:root .loading-line::after {
+  display: none;
 }
 
-/* The working topbar keeps ink behind the menus. */
-:root .working .topbar {
-  background: linear-gradient(rgba(12, 20, 16, 0.92), rgba(12, 20, 16, 0.6) 70%, transparent);
+/* Preserve large-text, phone and short-screen layouts. */
+:root[data-text-size='large'] .quest-card h1 {
+  font-size: 20px;
 }
-
-/* The context (people & places) panel is a narrower parchment card. */
-.conversation-context .panel-header::after {
-  left: 20px;
-  right: 20px;
+:root[data-text-size='large'] .current-objective {
+  font-size: 16px;
 }
-
-/* Panels opened over a conversation keep the world visible. */
-.conversation-overlay .panel {
-  animation-name: dialogue-in;
+:root[data-text-size='large'] .conversation-overlay .dialogue-text {
+  font-size: 18px;
 }
-
-@media (max-width: 640px) {
-  :root .panel::after,
-  :root .dialogue-box::after,
-  :root .scene-controls::after,
-  :root .quest-card::after,
-  :root .work-panel::after {
-    --corner-size: 16px;
-    inset: 4px;
-  }
-  :root .travel-status {
-    border-radius: 14px;
-  }
+:root[data-text-size='large'] .conversation-overlay .dialogue-choices button {
+  font-size: 16px;
 }
-
-/* Selected tabs and filters (journal categories, story statuses, map views). */
-.secondary-button[aria-pressed='true'],
-.secondary-button[aria-pressed='true']:hover:not(:disabled) {
-  background: var(--moss);
-  border-color: #2c4234;
-  color: var(--gold-100);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+/* Journal reading must survive the compact theme and phone paragraph rules. */
+:root[data-text-size='large'] .journal-reading p:not(.eyebrow, .content-note) {
+  font-size: inherit;
+  line-height: 1.65;
 }
-.secondary-button[aria-pressed='true'] .icon {
-  color: var(--gold-200);
+:root[data-text-size='large'] .journal-reading .journal-entry p:not(.eyebrow),
+:root[data-text-size='large'] .journal-reading .opportunity p:not(.eyebrow, .opportunity-place) {
+  font-size: 18px;
+  line-height: 1.75;
 }
-:root .work-panel .secondary-button[aria-pressed='true'] {
-  color: #2a2a1f;
-  background: var(--gold-100);
-  border: 2px solid var(--gold-300);
+:root[data-text-size='large'] .journal-reading h3 {
+  font-size: 20px;
 }
-
-/* The boot error keeps its glyph mark centered until main.ts adopts the logo mark. */
-.loading-error .loading-mark {
-  display: grid;
-  place-items: center;
-  margin: 0 auto 18px;
-  font-size: 44px;
+:root[data-text-size='large'] .journal-reading h4 {
+  font-size: 18px;
 }
-
-@media (max-width: 640px) {
-  :root .camera-controls {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    justify-items: center;
-    width: 108px;
-    padding: 2px;
-    border-radius: 16px;
-    gap: 0;
-  }
-  :root .camera-controls span {
-    display: none;
-  }
-  :root .quest-card .compact-journal,
-  :root .quest-card .objective-toggle {
-    min-height: 36px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-  }
-  :root .quest-card .compact-journal {
-    bottom: 10px;
-  }
-  .scene-ornament {
-    display: none;
-  }
-  :root .scene-progress {
-    padding-bottom: 6px;
-  }
-  :root .caption-source {
-    font-size: 12.5px;
-  }
+:root[data-text-size='large'] .journal-reading .journal-entry .eyebrow {
+  font-size: 14px;
 }
-@media (max-height: 540px) {
-  .scene-ornament {
-    display: none;
-  }
+:root[data-text-size='large'] .journal-reading .reference-tag,
+:root[data-text-size='large'] .journal-reading :is(.opportunity-place, .overview-footnote),
+:root[data-text-size='large'] .journal-reading .content-note p {
+  font-size: 16px;
+  line-height: 1.55;
 }
-
-/* While working, notices sit clear of the work panel regardless of the hidden hint bar. */
 :root #ui.working:not(.scene-mode) .toast {
   bottom: 20px;
 }
+@media (max-width: 1200px) {
+  :root .region-title {
+    left: 46%;
+  }
+  :root .toolbar button {
+    padding-inline: 9px;
+  }
+}
+@media (max-width: 1000px) {
+  :root .traveler-card {
+    display: none;
+  }
+  :root .region-title {
+    display: none;
+  }
+}
 @media (max-width: 699px) {
+  :root .topbar,
+  :root .working .topbar,
+  :root .scene-mode .topbar {
+    height: 60px;
+    padding-inline: 10px;
+    gap: 8px;
+  }
+  :root .logo-hud .logo-mark {
+    width: 28px;
+    height: 28px;
+  }
+  :root .logo-hud .logo-word {
+    font-size: 19px;
+  }
+  :root .toolbar {
+    padding: 2px;
+    gap: 2px;
+  }
+  :root .toolbar button {
+    padding: 7px;
+  }
+  :root .quest-card,
+  :root .quest-card:not(.objective-expanded) {
+    top: 74px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: 390px;
+    padding: 10px 12px 6px;
+  }
+  :root .quest-card:not(.objective-expanded) h1 {
+    font-size: 16px;
+    margin: 7px 0;
+  }
+  :root #ui:not(.scene-mode):not(.working) .quest-card:not(.objective-expanded) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
+  }
+  :root .quest-card:not(.objective-expanded) .quest-eyebrow,
+  :root .quest-card:not(.objective-expanded) h1,
+  :root .quest-card:not(.objective-expanded) .current-objective {
+    grid-column: 1 / -1;
+  }
+  :root .quest-card:not(.objective-expanded) .current-objective {
+    margin-top: 2px;
+  }
+  :root .quest-card:not(.objective-expanded) .quest-track,
+  :root .quest-card:not(.objective-expanded) > .secondary-button {
+    grid-column: 1;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding-block: 5px;
+    border-top: 0;
+    font-size: 12px;
+  }
+  :root .quest-card:not(.objective-expanded) .objective-toggle {
+    grid-column: 2;
+    min-height: 44px;
+    margin: 0;
+  }
+  :root .quest-card:not(.objective-expanded) .compact-journal {
+    display: none;
+  }
+  :root .quest-card:not(.objective-expanded):has(> .quest-story-selector) > .secondary-button {
+    grid-column: 1 / -1;
+  }
+  :root .quest-card:not(.objective-expanded) .quest-story-selector {
+    display: inline-flex;
+    position: static;
+    grid-column: 1;
+    min-height: 44px;
+    margin: 0;
+    padding-block: 5px;
+    white-space: normal;
+  }
+  :root .current-objective {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  :root .quest-card.objective-expanded {
+    max-height: 50dvh;
+  }
+  :root .time-of-day {
+    display: none;
+  }
+  :root .minimap-wrap {
+    top: auto;
+    right: 14px;
+    bottom: 18px;
+  }
+  :root .minimap {
+    border-width: 2px;
+    box-shadow:
+      0 0 0 2px #21190f,
+      0 0 0 4px #6e5838,
+      0 0 0 5px #17120b;
+  }
+  :root .bottom-center {
+    left: 12px;
+    bottom: 18px;
+    max-width: calc(100vw - 180px);
+    transform: none;
+    align-items: flex-start;
+  }
+  :root .control-hints {
+    padding: 4px 5px 4px 8px;
+    gap: 6px;
+    font-size: 10px;
+    max-width: 100%;
+    white-space: normal;
+  }
+  :root .control-hints > span:first-child {
+    min-width: 0;
+    line-height: 1.5;
+  }
+  :root .nearby-action {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  :root .travel-status {
+    flex-wrap: wrap;
+    padding: 8px;
+    gap: 6px;
+  }
+  :root .travel-status span {
+    flex-basis: 100%;
+  }
+  :root .toast,
+  :root #ui:not(.scene-mode):not(.working):not(.conversing) .toast {
+    bottom: var(--notice-bottom, 255px);
+    font-size: 12px;
+    max-width: calc(100vw - 24px);
+  }
+  :root .panel-header,
+  :root .conversation-context .panel-header {
+    padding: 12px 14px;
+  }
+  :root .panel-header h2,
+  :root .conversation-context .panel-header h2 {
+    font-size: 20px;
+  }
+  :root .panel-body,
+  :root .conversation-context .panel-body {
+    padding: 14px 16px;
+  }
+  :root .panel-body p.eyebrow {
+    font-size: 10px;
+  }
+  :root .setting-row:has([data-setting='guidance']) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  :root .panel-footer {
+    padding: 7px 14px;
+  }
+  :root .conversation-overlay .dialogue-box {
+    padding: 15px;
+    gap: 12px;
+  }
+  :root .conversation-overlay .dialogue-portrait {
+    width: 55px;
+    height: 65px;
+  }
+  :root .conversation-overlay .dialogue-main h2 {
+    font-size: 19px;
+  }
+  :root .conversation-overlay .dialogue-text {
+    font-size: 15px;
+  }
+  :root .conversation-context {
+    top: auto;
+  }
+  :root .work-panel {
+    top: auto;
+    right: 8px;
+    left: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+    height: 44dvh;
+  }
+  :root .work-header {
+    padding: 10px 13px 8px;
+  }
+  :root .work-header h2 {
+    font-size: 18px;
+  }
+  :root .work-body {
+    flex: 1;
+    padding: 0 13px 10px;
+  }
   :root #ui.working:not(.scene-mode) .toast {
     bottom: calc(44dvh + 18px);
   }
+  :root .scene-heading {
+    padding: 13px 15px 10px;
+  }
+  :root .scene-heading h1 {
+    font-size: 20px;
+  }
+  :root .scene-reading {
+    padding: 5px 15px 8px;
+  }
+  :root .scene-progress {
+    padding: 9px 15px 5px;
+  }
+  :root .scene-footer {
+    padding: 10px 15px;
+  }
+  :root .welcome-card,
+  :root .welcome-overlay .welcome-card {
+    left: 20px;
+    right: 20px;
+    width: auto;
+    padding: 20px;
+    max-height: calc(100dvh - 40px);
+  }
+  :root .welcome-card h1 {
+    font-size: 24px;
+  }
+  :root .welcome-brand {
+    margin-bottom: 18px;
+  }
+  :root .welcome-note {
+    font-size: 10px;
+  }
+  :root .welcome-location {
+    display: none;
+  }
 }
-
-@media (max-width: 640px) {
-  /* Phone reading text grows; inscription labels keep their proportion. */
-  :root .panel-body p.eyebrow {
-    font-size: 10.5px;
+@media (max-width: 359px) {
+  :root .logo-hud .logo-word {
+    display: none;
+  }
+  :root .control-hints > span {
+    display: none;
+  }
+}
+@media (max-height: 540px) {
+  :root .welcome-location {
+    display: none;
+  }
+  :root .quest-card,
+  :root .quest-card:not(.objective-expanded) {
+    top: 74px;
+    max-height: calc(100dvh - 120px);
+  }
+  :root .welcome-card,
+  :root .welcome-overlay .welcome-card {
+    top: 16px;
+    bottom: 16px;
+    transform: none;
+    max-height: calc(100dvh - 32px);
+  }
+  :root .welcome-brand {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+  :root .welcome-card h1 {
+    font-size: 21px;
+  }
+}
+@media (min-width: 700px) and (max-height: 540px) {
+  :root .minimap-wrap {
+    top: 92px;
+  }
+  :root .work-panel {
+    top: 74px;
+  }
+}
+@media (min-width: 480px) and (max-height: 420px) {
+  :root .welcome-card,
+  :root .welcome-overlay .welcome-card {
+    left: 20px;
+    right: 20px;
+    width: auto;
+    max-width: none;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 14px;
+  }
+  :root .welcome-card > * {
+    grid-column: 1 / -1;
+  }
+  :root .welcome-brand {
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+  }
+  :root .welcome-brand .logo-mark {
+    width: 32px;
+    height: 32px;
+  }
+  :root .welcome-brand .logo-word {
+    font-size: 27px;
+  }
+  :root .welcome-card > .eyebrow {
+    margin-bottom: 6px;
+  }
+  :root .welcome-card h1,
+  :root .welcome-copy {
+    max-width: none;
+  }
+  :root .welcome-copy {
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+  :root .welcome-card .primary-button {
+    margin-top: 8px;
+    max-width: none;
+  }
+  :root .welcome-meta {
+    grid-column: 1;
+    align-self: center;
+    margin-top: 0;
+  }
+  :root .welcome-card > .welcome-saves {
+    grid-column: 2;
+    align-self: center;
+    margin-top: 0 !important;
+  }
+}
+@media (max-width: 699px), (max-height: 540px), (pointer: coarse) {
+  :root .panel button,
+  :root .welcome-card button,
+  :root .scene-controls button,
+  :root .panel select,
+  :root .panel input[type='range'],
+  :root .quest-card > .secondary-button,
+  :root .quest-card .quest-track,
+  :root .quest-card .objective-toggle,
+  :root #travel-status button,
+  :root .import-button,
+  :root .conversation-motion {
+    min-height: 44px;
+  }
+  :root .panel summary,
+  :root .welcome-recap summary {
+    min-height: 44px;
+    padding-block: 8px;
+  }
+  :root .panel-header .icon-button,
+  :root .conversation-overlay .dialogue-main header .icon-button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  :root .toolbar button,
+  :root .toolbar .icon-button {
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
+  }
+  :root .toolbar .icon-button {
+    width: 44px;
+  }
+  :root .minimap-wrap {
+    width: 144px;
+  }
+  :root .minimap {
+    display: block;
+    width: 108px;
+    height: 108px;
+    margin-left: auto;
+    float: none;
+  }
+  :root .camera-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 44px);
+    width: 144px;
+    gap: 2px;
+    margin-top: 10px;
+  }
+  :root .camera-controls button {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+}
+@media (min-width: 480px) and (max-width: 699px) and (max-height: 420px) {
+  :root #ui {
+    --quest-column: clamp(170px, calc((100vw - 176px) * 0.55), 276px);
+  }
+  :root .quest-card,
+  :root .quest-card:not(.objective-expanded) {
+    width: var(--quest-column);
+    max-width: var(--quest-column);
+    right: auto;
+  }
+  :root .bottom-center {
+    left: calc(var(--quest-column) + 24px);
+    max-width: calc(100vw - var(--quest-column) - 194px);
+    align-items: stretch;
+  }
+  :root .quest-card .quest-eyebrow {
+    flex-wrap: wrap;
+  }
+  :root #ui:not(.scene-mode):not(.working) .quest-card:not(.objective-expanded) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 8px;
+  }
+  :root .quest-card:not(.objective-expanded) > .secondary-button {
+    padding-inline: 6px;
+  }
+  :root .quest-card:not(.objective-expanded) > .secondary-button > .icon:last-child {
+    display: none;
+  }
+}
+@media (min-width: 480px) and (max-height: 420px) {
+  :root .panel > .panel-header {
+    padding-block: 8px;
+  }
+  :root .panel > .panel-footer {
+    padding-block: 4px;
+  }
+  :root .hud-actions > .toast,
+  :root #ui:not(.scene-mode):not(.working):not(.conversing) .hud-actions > .toast {
+    position: static;
+    order: -1;
+    align-self: stretch;
+    flex-shrink: 0;
+    transform: none;
+    animation: toast-in 200ms var(--ease-out) both;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 220px);
+    overflow-y: auto;
+    pointer-events: auto;
+    gap: 0;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  :root .hud-actions > .toast .toast-icon {
+    display: none;
+  }
+  :root .quest-card,
+  :root .quest-card:not(.objective-expanded) {
+    max-height: calc(100dvh - 92px);
+    overflow-y: auto;
+  }
+  :root .quest-card:not(.objective-expanded) h1 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :root .quest-card:not(.objective-expanded) .current-objective {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  :root .quest-card.objective-expanded {
+    max-height: calc(100dvh - 92px);
+  }
+  :root .bottom-center {
+    max-height: calc(100dvh - 92px);
+    gap: 6px;
+  }
+  :root .hud-actions {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    min-height: 68px;
+    min-width: 0;
+    max-width: 100%;
+    align-self: stretch;
+    gap: 6px;
+    /* Keep borders inside the scrollport when intrinsic widths fall between pixels. */
+    padding: 2px;
+    overflow-y: auto;
+    pointer-events: auto;
+  }
+  :root .hud-actions:not(:has(> :not([hidden]))) {
+    display: none;
+  }
+  :root .hud-actions button {
+    /* Leave room for integer scroll offsets around fractional button bounds. */
+    scroll-margin: 2px;
+  }
+  :root .action-scroll-cue {
+    display: block;
+    flex-shrink: 0;
+    background: #30291f;
+    border: 1px solid #17120b;
+    color: #d9c694;
+    font-size: 10px;
+    line-height: 12px;
+    text-align: right;
+    padding: 2px 4px;
+  }
+  :root .action-tray {
+    flex: 0 0 auto;
+    min-height: 68px;
+    max-height: none;
+  }
+  :root .control-hints,
+  :root .nearby-action,
+  :root #travel-status {
+    flex-shrink: 0;
+  }
+  :root .travel-status {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    align-self: stretch;
+    font-size: 11px;
+    line-height: 1.25;
+  }
+  :root .travel-status span {
+    grid-column: 1 / -1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :root #travel-status button {
+    width: 100%;
+    min-width: 44px;
+    padding: 4px 2px;
+    font-size: 11px;
+  }
+  :root .control-hints > span {
+    display: none;
+  }
+}
+@media (min-width: 700px) and (max-height: 420px) {
+  :root .minimap-wrap,
+  :root .camera-controls {
+    width: 228px;
+  }
+  :root .camera-controls {
+    grid-template-columns: repeat(5, 44px);
+  }
+  :root .bottom-center {
+    left: 308px;
+    bottom: 18px;
+    max-width: calc(100vw - 570px);
+    transform: none;
+    align-items: flex-start;
+  }
+  :root .control-hints > span {
+    display: none;
   }
 }

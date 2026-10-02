@@ -1,4 +1,4 @@
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateDisc } from '@babylonjs/core/Meshes/Builders/discBuilder';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
@@ -29,7 +29,7 @@ export class ContactShadows {
     scene: Scene,
     private ground: (x: number, z: number) => number,
   ) {
-    this.mesh = MeshBuilder.CreateDisc('contact-shadows', { radius: 1, tessellation: 24 }, scene);
+    this.mesh = CreateDisc('contact-shadows', { radius: 1, tessellation: 24 }, scene);
     this.mesh.rotation.x = Math.PI / 2;
     this.mesh.bakeCurrentTransformIntoVertices();
     const count = this.mesh.getTotalVertices();
@@ -54,6 +54,7 @@ export class ContactShadows {
     this.mesh.metadata = { contactShadows: true };
     this.mesh.thinInstanceSetBuffer('matrix', this.matrices, 16, false);
     this.mesh.thinInstanceCount = 0;
+    this.mesh.isVisible = false;
   }
   add(node: TransformNode, radius = 0.42, length = 1): void {
     if (this.casters.length >= MAX_CASTERS || this.casters.some((c) => c.node === node)) return;
@@ -98,6 +99,9 @@ export class ContactShadows {
       n++;
     }
     this.mesh.thinInstanceCount = n;
+    // With no thin instances Babylon draws the source disc at the origin.
+    // Hide an empty batch, while preserving the real caster instances.
+    this.mesh.isVisible = n > 0;
     this.mesh.thinInstanceBufferUpdated('matrix');
   }
   dispose(): void {

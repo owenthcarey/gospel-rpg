@@ -72,12 +72,90 @@ for i in range(11):
 box('shelter_mat', (0, .4, .025), (2.4, 1.5, .05), 'rope')
 export('farm_shelter')
 
-beam('split_base', (0, 0, 0), (0, 0, .7), .24, 'wood')
-for sign in [-1, 1]:
-    beam('split_trunk', (0, 0, .55), (sign*.60, .1, 1.9), .16, 'wood')
-    beam('split_branch', (sign*.42, .07, 1.3), (sign*1.0, -.1, 2.3), .10, 'wood')
-    ico('olive_crown', (sign*.8, .1, 2.75), (1.0, .9, .78), 'leaflight' if sign < 0 else 'leaf', 2)
-export('split_olive')
+def build_split_olive():
+    """Broad olive facets retain the landmark's fork and original outer bounds."""
+    from shading import bake_vertex_shading
+
+    # The ordinary olive's local colors; other vegetation keeps its own palette.
+    canopy_colors = {'light': (.29, .39, .18), 'dark': (.22, .32, .12)}
+    palettes = {name: tuple(M[key].diffuse_color[:3])
+                for name, key in [('wood', 'wood'), ('light', 'leaflight'), ('dark', 'leaf')]}
+    beam('split_base', (0, 0, 0), (0, 0, .7), .24, 'wood')
+    for sign in [-1, 1]:
+        beam('split_trunk', (0, 0, .55), (sign*.60, .1, 1.9), .16, 'wood')
+        beam('split_branch', (sign*.42, .07, 1.3), (sign*1.0, -.1, 2.3), .10, 'wood')
+        ico('olive_crown', (sign*.8, .1, 2.75), (1.0, .9, .78),
+            'leaflight' if sign < 0 else 'leaf', 2)
+    # Retain the fork's existing baked colors before simplifying its two crowns.
+    export('split_olive')
+    tree = bpy.context.object
+    staging = tree.location.copy()
+    tree.location = (0, 0, 0)
+    try:
+        original = tree.data
+        original_colors = original.color_attributes['Color']
+        groups = {name: [] for name in palettes}
+        for polygon in original.polygons:
+            rgb = original_colors.data[polygon.loop_start].color[:3]
+            for name, palette in palettes.items():
+                factor = sum(a*b for a, b in zip(rgb, palette)) / sum(c*c for c in palette)
+                if max(abs(rgb[i] - palette[i]*factor) for i in range(3)) < .000002:
+                    groups[name].append(polygon)
+                    break
+            else:
+                raise ValueError('Unknown split olive palette')
+        used = sorted({index for polygon in groups['wood'] for index in polygon.vertices})
+        mapping = {index: i for i, index in enumerate(used)}
+        mesh = bpy.data.meshes.new('split_olive_fork')
+        mesh.from_pydata([tuple(original.vertices[index].co) for index in used], [],
+            [tuple(mapping[index] for index in polygon.vertices) for polygon in groups['wood']])
+        mesh.update()
+        mesh.materials.append(original.materials[0])
+        colors = mesh.color_attributes.new(name='Color',
+            type=original_colors.data_type, domain=original_colors.domain)
+        for polygon, old in zip(mesh.polygons, groups['wood']):
+            polygon.use_smooth = old.use_smooth
+            for new_loop, old_loop in zip(polygon.loop_indices, old.loop_indices):
+                colors.data[new_loop].color = original_colors.data[old_loop].color
+        tree.data = mesh
+        crowns = []
+        for name, color in canopy_colors.items():
+            used = {index for polygon in groups[name] for index in polygon.vertices}
+            low = [min(original.vertices[index].co[axis] for index in used) for axis in range(3)]
+            high = [max(original.vertices[index].co[axis] for index in used) for axis in range(3)]
+            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=1, location=(0, 0, 0))
+            crown = bpy.context.object
+            crown.name = 'split_olive_crown_' + name
+            start_low = [min(vertex.co[axis] for vertex in crown.data.vertices) for axis in range(3)]
+            start_high = [max(vertex.co[axis] for vertex in crown.data.vertices) for axis in range(3)]
+            for vertex in crown.data.vertices:
+                for axis in range(3):
+                    vertex.co[axis] = low[axis] + (vertex.co[axis] - start_low[axis]) / \
+                        (start_high[axis] - start_low[axis]) * (high[axis] - low[axis])
+            crown.data.update()
+            crown.data.materials.append(mesh.materials[0])
+            crown_colors = crown.data.color_attributes.new(name='Color',
+                type=colors.data_type, domain=colors.domain)
+            for corner in crown_colors.data:
+                corner.color = (*color, 1)
+            bpy.context.view_layer.update()
+            SHADING.append(bake_vertex_shading(crown, 'split_olive_crown_' + name,
+                strength=.36, grounded=False))
+            crowns.append(crown)
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in [tree, *crowns]:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = tree
+        bpy.ops.object.join()
+        # These corner colors are baked; preserve them during the final export.
+        bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, 'split_olive.glb'),
+            export_format='GLB', use_selection=True, use_active_scene=True,
+            export_cameras=False, export_lights=False, export_yup=True)
+    finally:
+        tree.location = staging
+
+
+build_split_olive()
 
 # Open frame: no lid, no enclosing box. Its long handrails align with four
 # bearers facing inward. A linen support makes the reclining pose legible.

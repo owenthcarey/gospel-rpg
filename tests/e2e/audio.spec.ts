@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { makeSave } from '../../src/persistence/schema';
 import { stormStart } from '../helpers/lake';
 import { transition } from '../../src/game/quest';
+import { readableContrast } from '../helpers/connection-browser';
 
 declare global {
   interface Window {
@@ -111,7 +112,12 @@ async function capturePeak(page: Page) {
 }
 
 async function slider(page: Page, name: string, value: number): Promise<void> {
-  await page.getByRole('slider', { name, exact: true }).fill(String(value));
+  const control = page.getByRole('slider', { name, exact: true });
+  await control.fill(String(value));
+  await expect(control).toHaveAttribute('aria-valuetext', Math.round(value * 100) + '%');
+  await expect(page.locator(`output[for="${await control.getAttribute('id')}"]`)).toHaveText(
+    Math.round(value * 100) + '%',
+  );
   await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
 }
 
@@ -141,12 +147,73 @@ test('audio waits for a gesture, mixes independent channels, suspends in backgro
   await slider(page, 'Music volume', 0);
   await slider(page, 'Ambience volume', 0.8);
   await expect.poll(() => level(page)).toBeGreaterThan(0.0002);
-  await slider(page, 'Master volume', 0);
-  await expect.poll(() => level(page)).toBeLessThan(0.0001);
-  await slider(page, 'Master volume', 0.5);
+  // The mix must follow a native drag before release, so the traveler can hear each level.
+  const master = page.getByRole('slider', { name: 'Master volume', exact: true });
+  await master.press('ArrowRight');
+  await expect(master).toHaveValue('0.4');
+  await expect(master).toHaveAttribute('aria-valuetext', '40%');
+  await expect(page.locator('output[for="audio-volume"]')).toHaveText('40%');
+  const box = (await master.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  try {
+    await page.mouse.move(box.x + 4, box.y + box.height / 2, { steps: 6 });
+    await expect(master).toHaveValue('0');
+    await expect(master).toHaveAttribute('aria-valuetext', '0%');
+    await expect(page.locator('output[for="audio-volume"]')).toHaveText('0%');
+    await expect.poll(() => level(page)).toBeLessThan(0.0001);
+  } finally {
+    await page.mouse.up();
+  }
+  await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
+  await page.mouse.move(box.x + 4, box.y + box.height / 2);
+  await page.mouse.down();
+  try {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 6 });
+    await expect(master).toHaveValue('0.5');
+    await expect(master).toHaveAttribute('aria-valuetext', '50%');
+    await expect(page.locator('output[for="audio-volume"]')).toHaveText('50%');
+  } finally {
+    await page.mouse.up();
+  }
+  await expect(page.locator('#ui')).toHaveAttribute('data-action-pending', 'false');
   await slider(page, 'Music volume', 0.65);
+  await expect(page.locator('.chapter-card')).toHaveCount(0);
+  await expect(page.locator('#toast')).toBeHidden({ timeout: 10_000 });
   await page.screenshot({ path: info.outputPath('audio-settings.png'), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const viewport = page.viewportSize()!;
+  for (const size of [
+    { width: 320, height: 568 },
+    { width: 568, height: 320 },
+  ]) {
+    await page.setViewportSize(size);
+    for (const control of await page.getByRole('slider').all()) {
+      await control.scrollIntoViewIfNeeded();
+      await expect(control).toBeInViewport({ ratio: 1 });
+      await expect(
+        page.locator(`output[for="${await control.getAttribute('id')}"]`),
+      ).toBeInViewport({ ratio: 1 });
+      const box = (await control.boundingBox())!;
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+    const guidance = page.locator('[data-setting="guidance"]');
+    await guidance.scrollIntoViewIfNeeded();
+    await expect(guidance).toBeInViewport({ ratio: 1 });
+    expect(
+      await page
+        .locator('.panel-body')
+        .evaluate((element) => element.scrollWidth <= element.clientWidth),
+    ).toBe(true);
+    await readableContrast(page, '.audio-control output');
+    await page.getByRole('slider').first().scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: info.outputPath(`audio-percentages-${size.width}.png`),
+      scale: 'css',
+    });
+  }
+  await page.setViewportSize(viewport);
   await page.evaluate(() => {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
     document.dispatchEvent(new Event('visibilitychange'));
@@ -166,7 +233,13 @@ test('audio waits for a gesture, mixes independent channels, suspends in backgro
   expect(await state(page)).toBe('locked');
   await page.getByRole('button', { name: 'Settings and saves' }).click();
   await expect(page.locator('[data-setting="sound"]')).not.toBeChecked();
+  await expect(page.getByRole('slider', { name: 'Master volume', exact: true })).toHaveValue('0.5');
   await expect(page.getByRole('slider', { name: 'Music volume', exact: true })).toHaveValue('0.65');
+  await expect(page.getByRole('slider', { name: 'Master volume', exact: true })).toHaveAttribute(
+    'aria-valuetext',
+    '50%',
+  );
+  await expect(page.locator('output[for="audio-musicVolume"]')).toHaveText('65%');
   await page.locator('[data-setting="sound"]').check();
   await expect.poll(() => state(page)).toBe('running');
   await expect.poll(() => level(page)).toBeGreaterThan(0.0002);

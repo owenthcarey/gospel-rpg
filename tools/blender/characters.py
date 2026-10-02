@@ -31,7 +31,35 @@ import rigging
 import shading
 for module in (kit_common, shading, rigging):
     importlib.reload(module)
-from kit_common import box, ico, beam, cone, lathe, smooth, drape, parts, M
+from kit_common import box, ico, beam, cone, lathe, smooth, drape, parts, M, finish, STATE
+
+
+def faceted(obj):
+    """Keep the broad polygon planes readable at the game's elevated camera."""
+    return smooth(obj, False)
+
+
+def skull(hx, hy, hz, skin):
+    """A compact angular head with a flat face and a distinct jaw, rather than a sphere."""
+    rings = [(-.19, .065, .07), (-.14, .115, .105), (-.06, .155, .145),
+             (.09, .16, .145), (.16, .12, .11), (.195, .065, .06)]
+    verts, faces = [], []
+    for z, rx, ry in rings:
+        for side in range(8):
+            angle = (side + .5) * math.tau / 8
+            verts.append((math.cos(angle) * rx * hx, math.sin(angle) * ry * hy - .012,
+                          1.63 + z * hz))
+    for ring in range(len(rings) - 1):
+        for side in range(8):
+            a, b = ring * 8 + side, ring * 8 + (side + 1) % 8
+            faces.append((a, b, b + 8, a + 8))
+    faces.extend([tuple(reversed(range(8))), tuple(range(40, 48))])
+    mesh = bpy.data.meshes.new('head')
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new('head', mesh)
+    STATE['scene'].collection.objects.link(obj)
+    return finish(obj, 'head', skin)
 
 # name: garment, mantle, skin, hair colour, hair style, beard, build, cover, extras
 SPECS = [
@@ -81,96 +109,92 @@ def person(spec, seed):
         box('sandals', (x, -.06, .03), (.19, .34, .05), 'wood', .02)
         box('sandals_foot', (x, -.075, .085), (.14, .26, .07), skin, .025)
         box('sandals_strap', (x, -.10, .1), (.15, .03, .03), 'wood', .006)
-        smooth(cone('lower_leg', (x, 0, .28), .07, .062, .36, skin, 8))
+        cone('lower_leg', (x, 0, .28), .07, .062, .36, skin, 6)
     # Robe: a folded surface of revolution, flaring at the hem.
-    folds = lambda a, r: (.035 * math.sin(a * 5 + seed) if r == 0 else .012 * math.sin(a * 5 + seed))
+    folds = lambda a, r: (.018 * math.sin(a * 4 + seed) if r == 0 else .006 * math.sin(a * 4 + seed))
     # Near-circular like the original robe: reclining and seated supports rest on its back.
     lathe('robe', [(.225, .37 * g, .355 * g), (.55, .32 * g, .31 * g), (.9, .278 * g, .27 * g),
-                   (1.135, .25 * g, .25 * g)], robe, 14, True, wobble=folds)
-    lathe('robe_hem', [(.215, .376 * g, .361 * g), (.255, .374 * g, .359 * g)], mantle, 14, True)
-    # Torso with shoulders that round over, instead of a flat box.
+                   (1.135, .25 * g, .25 * g)], robe, 8, False, wobble=folds)
+    lathe('robe_hem', [(.215, .376 * g, .361 * g), (.255, .374 * g, .359 * g)], mantle, 8, False)
+    # Broad shoulder, waist and hem planes establish a simple adult silhouette.
     lathe('tunic', [(.88, .25 * g, .165 * g), (1.14, .255 * g * sw, .17 * g), (1.3, .235 * sw, .155),
-                    (1.38, .15 * sw, .11), (1.41, .09, .07)], robe, 12, True)
+                    (1.38, .15 * sw, .11), (1.41, .09, .07)], robe, 8, False)
     box('belt', (0, 0, .91), (.52 * g, .35 * g, .06), 'wood', .01)
     box('belt_knot', (.10, -.18 * g, .91), (.06, .04, .06), mantle, .01)
     beam('belt_tail', (.10, -.183 * g, .89), (.125, -.2 * g, .76), .011, mantle, 4, 1)
     for x in [-.31, .31]:
         side = 1 if x > 0 else -1
-        smooth(ico('sleeve_shoulder', (x * .8, 0, 1.3), (.09 * sw, .085, .08), robe, 1))
-        smooth(beam('sleeve', (x * .77, 0, 1.3), (x, 0, .95), .09, robe, 8, 1.22))
-        smooth(beam('forearm', (x, 0, .98), (x, -.045, .76), .052, skin, 8, .9))
+        ico('sleeve_shoulder', (x * .8, 0, 1.3), (.09 * sw, .085, .08), robe, 1)
+        beam('sleeve', (x * .77, 0, 1.3), (x, 0, .95), .09, robe, 6, 1.22)
+        beam('forearm', (x, 0, .98), (x, -.045, .76), .052, skin, 6, .9)
         # Mitten hand and thumb at the forearm tip; rigid to the forearm joint.
-        smooth(ico('hand', (x, -.052, .715), (.048, .04, .068), skin, 1))
+        ico('hand', (x, -.052, .715), (.048, .04, .068), skin, 1)
         box('hand_thumb', (x - side * .035, -.07, .74), (.025, .03, .05), skin, .008)
-    smooth(cone('neck', (0, 0, 1.43), .07, .08, .16, skin, 8))
-    # Head: a smooth, slightly tapered skull with jaw, nose, brows, eyes and ears.
-    smooth(ico('head', (0, -.012, 1.63), (.18 * hx, .17 * hy, .225 * hz), skin, 2))
-    smooth(ico('head_jaw', (0, -.07, 1.535), (.13 * hx, .1 * hy, .085 * hz), skin, 1))
-    nose = box('nose', (0, -.188 * hy, 1.615), (.05, .055, .08), skin, .012)
+    cone('neck', (0, 0, 1.43), .07, .08, .16, skin, 6)
+    skull(hx, hy, hz, skin)
+    nose = box('nose', (0, -.16 * hy, 1.615), (.035, .05, .07), skin)
     nose.rotation_euler.x = -.18
     for x in [-.075, .075]:
-        smooth(ico('head_eye', (x * hx, -.158 * hy, 1.665), (.02, .016, .015), 'eye', 1))
-        brow = box('head_brow', (x * hx, -.158 * hy, 1.705), (.06, .02, .016), 'brow' if hair != 'hair_grey' else 'hair_grey', .003)
+        box('head_eye', (x * hx, -.149 * hy, 1.665), (.024, .008, .012), 'eye')
+        brow = box('head_brow', (x * hx, -.149 * hy, 1.695), (.046, .01, .01), 'brow' if hair != 'hair_grey' else 'hair_grey')
         brow.rotation_euler.y = .12 if x < 0 else -.12
-        smooth(ico('head_ear', (math.copysign(.172 * hx, x), .008, 1.62), (.033, .03, .058), skin, 1))
+        ico('head_ear', (math.copysign(.151 * hx, x), .008, 1.62), (.024, .025, .046), skin, 1)
     if not spec['beard']:
-        box('head_lip', (0, -.168 * hy, 1.535), (.058, .013, .013), 'lip', .003)
+        box('head_lip', (0, -.129 * hy, 1.54), (.039, .01, .009), 'lip')
     style = spec['style']
     # Hair styles give silhouettes that read from the play camera. Every cap sits
     # clear of the skull so no scalp shows through at the crown.
-    cap = (0, .028, 1.745)
-    cap_size = (.196 * hx, .184 * hy, .158)
+    cap = (0, .028, 1.755)
+    cap_size = (.17 * hx, .16 * hy, .125)
     if style in ('short', 'bound'):
-        smooth(ico('hair', cap, cap_size, hair, 2))
+        ico('hair', cap, cap_size, hair, 1)
     elif style == 'curly':
-        smooth(ico('hair', cap, (cap_size[0] * .98, cap_size[1] * .98, cap_size[2] * .96), hair, 2))
-        golden = math.pi * (3 - math.sqrt(5))
-        for i in range(20):
-            t = math.acos(1 - (i + .5) / 20 * .75)
-            a = i * golden + seed
-            smooth(ico('hair_curl', (cap[0] + math.sin(t) * math.cos(a) * cap_size[0],
-                                     cap[1] + math.sin(t) * math.sin(a) * cap_size[1] + .01,
-                                     cap[2] + math.cos(t) * cap_size[2]), (.052, .052, .046), hair, 1))
+        ico('hair', cap, cap_size, hair, 1)
+        # A few irregular locks read as hair at game scale without a bubbly outline.
+        for i in range(5):
+            a = (i + .15) * math.tau / 5
+            ico('hair_lock', (math.cos(a) * .115 * hx, math.sin(a) * .11 * hy + .025,
+                              1.77 + (i % 2) * .025), (.07, .065, .08), hair, 1)
     elif style == 'long':
         # The reclining storm composition rests this exact back-of-head extent on the cushion.
-        smooth(ico('hair', (0, .025, 1.74), (.198, .175, .16), hair, 1))
+        faceted(ico('hair', (0, .025, 1.74), (.198, .175, .16), hair, 1))
         box('hair_back', (0, .135, 1.58), (.30, .08, .31), hair, .035)
         for x in [-.15, .15]:
             box('hair_side', (x * hx, .05, 1.56), (.06, .13, .26), hair, .02)
     elif style == 'receding':
-        smooth(ico('hair', (0, .075, 1.715), (.19 * hx, .15 * hy, .135), hair, 2))
+        faceted(ico('hair', (0, .075, 1.715), (.19 * hx, .15 * hy, .135), hair, 2))
         for x in [-.155, .155]:
-            smooth(ico('hair_side', (x * hx, .05, 1.63), (.05, .1, .085), hair, 1))
+            faceted(ico('hair_side', (x * hx, .05, 1.63), (.05, .1, .085), hair, 1))
     if style == 'bound':
-        smooth(ico('hair_bun', (0, .18, 1.68), (.075, .06, .065), hair, 1))
+        faceted(ico('hair_bun', (0, .18, 1.68), (.075, .06, .065), hair, 1))
     for x in [-.14, .14]:
         if style not in ('receding',):
-            smooth(ico('hair_temple', (x * hx, .035, 1.69), (.06, .12, .12 if spec['beard'] else .09), hair, 1))
+            faceted(ico('hair_temple', (x * hx, .035, 1.69), (.06, .12, .12 if spec['beard'] else .09), hair, 1))
     beard = spec['beard']
     if beard:
         colour = 'hair_grey' if beard == 'grey' else hair
         size = {'full': (.16, .13, .16), 'trim': (.145, .12, .13), 'short': (.14, .11, .1), 'grey': (.155, .13, .16)}[beard]
-        smooth(ico('beard', (0, -.075, 1.5), size, colour, 2))
+        faceted(ico('beard', (0, -.075, 1.5), size, colour, 1))
         box('beard_moustache', (0, -.176 * hy, 1.565), (.09, .025, .022), colour, .006)
     # Head coverings fall from the crown over the shoulders, open at the face.
     cover = spec.get('cover')
     if cover == 'mantle':
-        smooth(ico('head_cover', (0, .045, 1.765), (.214 * hx, .204 * hy, .165), mantle, 2))
+        faceted(ico('head_cover', (0, .045, 1.765), (.19 * hx, .18 * hy, .14), mantle, 1))
         drape('head_cover_veil', [(1.84, .205 * hx, .195 * hy), (1.68, .222 * hx, .214 * hy),
                                   (1.52, .205, .19), (1.4, .27 * sw, .21), (1.14, .29 * g, .22 * g)],
-              (-.75, math.pi + .75), mantle, 12, .02)
+              (-.75, math.pi + .75), mantle, 8, .02, False)
     elif cover == 'scarf':
-        smooth(ico('head_scarf', (0, .055, 1.755), (.205 * hx, .196 * hy, .15), mantle, 2))
+        faceted(ico('head_scarf', (0, .055, 1.755), (.185 * hx, .175 * hy, .13), mantle, 1))
         drape('head_scarf_tail', [(1.72, .2 * hx, .19 * hy), (1.56, .19, .18), (1.44, .16, .15)],
-              (-.1, math.pi + .1), mantle, 10, .018)
+              (-.1, math.pi + .1), mantle, 8, .018, False)
     # Mantle over the left shoulder, hugging the chest and back down to the hip.
-    smooth(ico('shoulder_wrap', (-.17, .0, 1.31), (.14 * sw, .19 * g, .1), mantle, 2))
+    faceted(ico('shoulder_wrap', (-.17, .0, 1.31), (.14 * sw, .19 * g, .1), mantle, 1))
     drape('draped_wrap', [(1.36, .2 * sw, .14), (1.2, .27 * g * sw, .19 * g),
                           (.98, .27 * g, .19 * g), (.76, .3 * g, .24 * g)],
-          (math.pi + .15, math.pi + 1.05), mantle, 6, .022)
+          (math.pi + .15, math.pi + 1.05), mantle, 4, .022, False)
     drape('draped_wrap_back', [(1.36, .2 * sw, .14), (1.2, .27 * g * sw, .19 * g),
                                (.98, .27 * g, .19 * g), (.8, .29 * g, .23 * g)],
-          (math.pi * .55, math.pi - .1), mantle, 6, .022)
+          (math.pi * .55, math.pi - .1), mantle, 4, .022, False)
     extras = spec.get('extras', [])
     if 'sash' in extras:
         beam('sash', (-.22 * sw, -.16 * g, 1.3), (.2 * g, -.2 * g, .93), .025, mantle, 6, 1)
@@ -232,9 +256,8 @@ def portraits(names=None):
         camera_data.type = 'ORTHO'
         camera_data.ortho_scale = 1.02
         review.camera = camera
-        for label, pos, power, size, colour in [('Key', (-2.6, -3.4, 3.4), 460, 2.5, (1, .93, .82)),
-                                                ('Fill', (2.8, -2.2, 1.6), 80, 3, (.8, .88, 1)),
-                                                ('Rim', (1.6, 2.2, 2.6), 260, 2, (1, .9, .75))]:
+        for label, pos, power, size, colour in [('Key', (-2.6, -3.4, 3.4), 150, 4, (1, .96, .9)),
+                                                ('Fill', (2.8, -2.2, 1.6), 35, 4, (.9, .93, 1))]:
             light = bpy.data.lights.new(label, 'AREA')
             light.energy, light.shape, light.size, light.color = power, 'DISK', size, colour
             obj = bpy.data.objects.new(label, light)

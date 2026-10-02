@@ -30,6 +30,13 @@ for module in (shading, kit_common):
     importlib.reload(module)
 from kit_common import box, cone, ico, beam, lathe, finish, smooth, STATE
 
+# Olive-only linear colors keep the broad silver crowns leafy under the game's
+# daylight. Shared leaf materials remain unchanged for palms and ground cover.
+OLIVE_PALETTE = {
+    'olive_canopy': ('olive_canopy', (.22, .32, .12)),
+    'olive_canopy_light': ('olive_silver_canopy', (.29, .39, .18)),
+}
+
 
 def jitter(obj, rng, amount, keep_base=None):
     """Displace vertices deterministically, optionally pinning those below a height."""
@@ -65,19 +72,21 @@ prior = bpy.context.window.scene
 original = sorted(o.name for o in prior.objects)
 try:
     scene = kit_common.begin('The Way - RFC-011 vegetation workshop')
+    for key, (name, color) in OLIVE_PALETTE.items():
+        kit_common.M[key] = kit_common.mat(name, color)
     shaded = []
 
     def export(name, **kwargs):
         kit_common.export_static(name, str(OUT), report=shaded, **kwargs)
 
-    # Olive: a twisted, leaning trunk dividing into limbs, crowned by broken silver-green masses.
+    # Olive: a few broad faceted crowns give the tree a readable, compact silhouette.
     rng = random.Random(1101)
     trunk = [Vector((0, 0, 0))]
     for i in range(5):
         trunk.append(trunk[-1] + Vector((rng.uniform(-.07, .09), rng.uniform(-.06, .06), .38)))
     for i in range(5):
         beam('olive_trunk', trunk[i], trunk[i + 1], .24 - i * .03, 'wood', 7, .9)
-    smooth(jitter(cone('olive_root_flare', (0, 0, .1), .36, .2, .2, 'wood', 9), rng, .03, .0))
+    jitter(cone('olive_root_flare', (0, 0, .1), .36, .2, .2, 'wood', 7), rng, .02, .0)
     top = trunk[-1]
     for branch in range(5):
         a = branch * math.tau / 5 + rng.uniform(-.2, .2)
@@ -85,12 +94,11 @@ try:
         end = mid + Vector((math.cos(a) * .55, math.sin(a) * .55, .45 + rng.uniform(0, .25)))
         beam('olive_branch', trunk[3], mid, .1, 'wood', 6, .8)
         beam('olive_branch', mid, end, .075, 'wood', 6, .7)
-        for tip in range(3):
-            b = a + (tip - 1) * .7
-            leaf = end + Vector((math.cos(b) * .32, math.sin(b) * .32, .18 + (tip % 2) * .22))
-            cluster = ico('olive_leaf_cluster', leaf, (.62, .55, .36), ['leaf', 'leaflight', 'leafdark'][(branch + tip) % 3], 1)
-            jitter(cluster, rng, .07)
-    jitter(ico('olive_top', top + Vector((.08, -.05, .95)), (.7, .66, .4), 'leaflight', 1), rng, .08)
+        leaf = end + Vector((math.cos(a) * .16, math.sin(a) * .16, .27))
+        cluster = ico('olive_leaf_cluster', leaf, (.73, .67, .46),
+                      'olive_canopy' if branch % 2 else 'olive_canopy_light', 1)
+        jitter(cluster, rng, .035)
+    jitter(ico('olive_top', top + Vector((.08, -.05, .95)), (.75, .69, .42), 'olive_canopy_light', 1), rng, .035)
     export('olive')
 
     # Palm: a ringed, gently curving trunk with drooping, notched fronds and a date cluster.
@@ -122,12 +130,12 @@ try:
         ico('palm_dates', crown + Vector((math.cos(a) * .16, math.sin(a) * .16, -.25)), (.08, .08, .11), 'bread', 1)
     export('palm')
 
-    # Cypress: stacked, jittered tiers that taper to a narrow flame.
+    # Cypress: four broad tiers taper to a narrow flame, without fine surface noise.
     rng = random.Random(3307)
     cone('cypress_trunk', (0, 0, .45), .13, .1, .9, 'wood', 7)
-    for i, (z, r) in enumerate([(1.0, .62), (1.6, .58), (2.2, .5), (2.8, .4), (3.35, .28), (3.8, .15)]):
-        tier = cone('cypress_foliage', (rng.uniform(-.03, .03), rng.uniform(-.03, .03), z), r, r * .45, .9, 'leafdark' if i % 2 else 'leaf', 9)
-        jitter(tier, rng, .045)
+    for i, (z, r, h) in enumerate([(1.25, .62, 1.4), (2.05, .51, 1.35), (2.9, .37, 1.35), (3.65, .22, 1.1)]):
+        cone('cypress_foliage', (rng.uniform(-.02, .02), rng.uniform(-.02, .02), z),
+             r, r * .3, h, 'leafdark' if i % 2 else 'leaf', 7)
     cone('cypress_tip', (0, 0, 4.25), .12, .01, .5, 'leafdark', 7)
     export('cypress')
 
@@ -165,11 +173,11 @@ try:
     export('grass_tuft', strength=.22)
 
     rng = random.Random(7703)
-    for i in range(6):
-        a = i * 1.1
-        r = .18 if i else 0
-        jitter(ico('shrub_mass', (math.cos(a) * r, math.sin(a) * r, .24 + (0 if i else .1)), (.26, .24, .22),
-                   'leafdark' if i % 2 else 'leaf', 1), rng, .04)
+    for i in range(3):
+        a = i * math.tau / 3
+        r = .15 if i else 0
+        jitter(ico('shrub_mass', (math.cos(a) * r, math.sin(a) * r, .24 + (0 if i else .1)), (.3, .27, .24),
+                   'leafdark' if i % 2 else 'leaf', 1), rng, .02)
     beam('shrub_stem', (0, 0, 0), (0, 0, .18), .03, 'wood', 5)
     export('shrub', strength=.4)
 

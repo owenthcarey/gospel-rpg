@@ -1,17 +1,19 @@
 import { Scene } from '@babylonjs/core/scene';
 import type { Engine } from '@babylonjs/core/Engines/engine';
+import type { Observer } from '@babylonjs/core/Misc/observable';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { Settings } from '../../game/types';
 import { environmentFor } from '../../content/environment';
-import { StageEnvironment } from '../environment/stage';
+import { isSoftwareRenderer, StageEnvironment } from '../environment/stage';
 import { WaterPresentation } from '../presentation/water';
 import { backdropTerrain, fbm } from '../presentation/ground';
+import { PausedCadence } from '../presentation/cadence';
 
 /**
  * The welcome backdrop: dawn over the lake, built entirely from code. It requests no models,
@@ -22,12 +24,17 @@ export class TitleView {
   private camera: ArcRotateCamera;
   private stage: StageEnvironment;
   private water: WaterPresentation;
-  private boats: TransformNode[] = [];
+  private boats: { root: TransformNode; homeX: number }[] = [];
   private time = 0;
   private last = 0;
   private reduced = false;
   private paused = false;
-  constructor(private engine: Engine) {
+  private disposed = false;
+  private cadence = new PausedCadence();
+  constructor(
+    private engine: Engine,
+    quality: Settings['quality'] = 'high',
+  ) {
     this.scene = new Scene(engine);
     this.scene.skipPointerMovePicking = true;
     // Looking east from the northern shore toward the sunrise over the water.
@@ -43,6 +50,7 @@ export class TitleView {
     this.camera.minZ = 0.3;
     this.camera.maxZ = 400;
     this.stage = new StageEnvironment(this.scene, this.camera, environmentFor('title'), {
+      quality: isSoftwareRenderer(this.scene) ? 'low' : quality,
       sky: 360,
       horizon: { center: { x: 30, z: 0 }, radius: 150, seed: 29 },
       ground: () => 0,
@@ -69,7 +77,8 @@ export class TitleView {
       [48, -6, 1],
       [88, 26, 0.8],
     ] as const)
-      this.boats.push(this.sailBoat(x, z, s));
+      this.boats.push({ root: this.sailBoat(x, z, s), homeX: x });
+    this.stage.setView(new Vector3(40, 4, 0));
   }
   /** Low shore stones and reeds framing the lower left of the view. */
   private foreground(): void {
@@ -121,7 +130,7 @@ export class TitleView {
   /** A small fishing boat with a furled-looking sail, as a distant silhouette. */
   private sailBoat(x: number, z: number, scale: number): TransformNode {
     const root = new TransformNode('title-boat', this.scene);
-    const hull = MeshBuilder.CreateCylinder(
+    const hull = CreateCylinder(
       'title-hull',
       { height: 4.2, diameterTop: 1.5, diameterBottom: 1.5, tessellation: 8, arc: 0.5 },
       this.scene,
@@ -132,7 +141,7 @@ export class TitleView {
     hull.parent = root;
     hull.material = this.stage.material('title-hull-wood', '#6b5238');
     hull.material.backFaceCulling = false;
-    const mast = MeshBuilder.CreateCylinder(
+    const mast = CreateCylinder(
       'title-mast',
       { height: 4.6, diameter: 0.12, tessellation: 5 },
       this.scene,
@@ -156,7 +165,18 @@ export class TitleView {
     return root;
   }
   async load(): Promise<void> {
-    await this.scene.whenReadyAsync();
+    if (this.disposed) throw new Error('Title loading was cancelled.');
+    let observer: Observer<Scene> | null = null;
+    const cancelled = new Promise<never>((_, reject) => {
+      observer = this.scene.onDisposeObservable.add(() =>
+        reject(new Error('Title loading was cancelled.')),
+      );
+    });
+    try {
+      await Promise.race([this.scene.whenReadyAsync(), cancelled]);
+    } finally {
+      this.scene.onDisposeObservable.remove(observer);
+    }
   }
   applySettings(settings: Settings): void {
     this.reduced = settings.reducedMotion;
@@ -168,6 +188,10 @@ export class TitleView {
   setPaused(value: boolean): void {
     this.paused = value;
   }
+  refreshFrame(resetClock = true): void {
+    if (resetClock) this.last = 0;
+    this.cadence.invalidate();
+  }
   renderFrame(): void {
     if (document.hidden) {
       this.last = 0;
@@ -176,25 +200,35 @@ export class TitleView {
     const now = performance.now();
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
+    if ((this.paused || this.reduced) && !this.cadence.due(now)) return;
+    this.cadence.rendered(now);
     const running = !this.paused && !this.reduced;
     if (running) this.time += dt;
     // A slow breathing drift keeps the view alive without drawing attention.
     this.camera.alpha = Math.PI + Math.sin(this.time * 0.05) * 0.035;
     this.camera.beta = 1.4 + Math.sin(this.time * 0.07) * 0.012;
-    this.boats.forEach((boat, i) => {
-      boat.position.x += running ? dt * 0.12 * (i ? -0.6 : 1) : 0;
+    const drift = Math.sin(this.time * 0.08) * 1.5;
+    this.boats.forEach(({ root: boat, homeX }, i) => {
+      // Keep the welcome composition intact even after a long idle session.
+      boat.position.x = homeX + drift * (i ? -0.6 : 1);
       boat.position.y = Math.sin(this.time * 0.9 + i) * 0.06;
       boat.rotation.z = Math.sin(this.time * 0.7 + i) * 0.025;
     });
     this.water.tick(this.time, this.reduced);
     this.water.setRipples(
-      this.boats.map((b) => ({ x: b.position.x, z: b.position.z, radius: 2.2, strength: 0.35 })),
+      this.boats.map(({ root }) => ({
+        x: root.position.x,
+        z: root.position.z,
+        radius: 2.2,
+        strength: 0.35,
+      })),
     );
-    this.stage.setView(new Vector3(40, 4, 0));
     this.stage.tick(dt, running);
     this.scene.render();
   }
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     this.water.dispose();
     this.stage.dispose();
     this.scene.dispose();

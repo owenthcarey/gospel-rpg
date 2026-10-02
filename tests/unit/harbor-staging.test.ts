@@ -25,11 +25,15 @@ vi.mock('@babylonjs/core/Loading/sceneLoader', async (original) => {
   const actual = await original<typeof import('@babylonjs/core/Loading/sceneLoader')>();
   return {
     ...actual,
-    LoadAssetContainerAsync: (source: string, scene: Scene) =>
+    LoadAssetContainerAsync: (
+      source: string,
+      scene: Scene,
+      options?: import('@babylonjs/core/Loading/sceneLoader').LoadAssetContainerOptions,
+    ) =>
       actual.LoadAssetContainerAsync(
         new Uint8Array(readFileSync('public/assets/models/' + source.split('/').at(-1))),
         scene,
-        { pluginExtension: '.glb' },
+        { ...options, pluginExtension: '.glb' },
       ),
   };
 });

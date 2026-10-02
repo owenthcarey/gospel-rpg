@@ -36,6 +36,24 @@ test('WebGL startup, keyboard exploration, journal and a saved practical action'
   expect(
     Math.hypot(moved.position.x - start.position.x, moved.position.z - start.position.z),
   ).toBeGreaterThan(0.2);
+  await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  const simon = page.locator('.world-label[data-value="simon"]');
+  const labelBox = (await simon.boundingBox())!;
+  const heldPosition = await page.locator('#minimap-player').getAttribute('transform');
+  await page.mouse.move(labelBox.x + labelBox.width / 2, labelBox.y + labelBox.height / 2);
+  await page.mouse.down();
+  await page.keyboard.press('j');
+  await page.keyboard.press('Escape');
+  await settled(page);
+  await page.mouse.up();
+  await page.waitForTimeout(600);
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(page.locator('#minimap-player')).toHaveAttribute('transform', heldPosition!);
+  await simon.click();
+  await expect(page.getByRole('dialog')).toContainText('Simon');
+  await settled(page);
+  await page.getByRole('button', { name: 'Leave conversation' }).click();
+  await page.getByRole('button', { name: 'Settings and saves' }).click();
   await page.locator('#import-save').setInputFiles({
     name: 'prepared-spring.json',
     mimeType: 'application/json',

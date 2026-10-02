@@ -59,7 +59,9 @@ test('the road opens after Chapter II; Tamar’s investigation supports observat
   await ready(page, completedRoof());
   await page.locator('.toolbar [data-action="journal"]').click();
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Filter journal by story' }).selectOption('main');
   await expect(page.locator('.journal-summary')).toContainText('The prelude is complete');
+  await page.getByRole('combobox', { name: 'Filter journal by story' }).selectOption('nain');
   await expect(page.locator('.road-stories')).toContainText('At the gate');
   await close(page);
   await door(page, 'house-exit', 'capernaum-lanes');
@@ -186,6 +188,9 @@ for (const route of ['shade', 'terrace'] as const)
         await door(page, 'to-road', 'galilean-road');
         await page.locator('.toolbar [data-action="journal"]').click();
         await page.getByRole('button', { name: 'Stories', exact: true }).click();
+        await page
+          .getByRole('combobox', { name: 'Filter journal by story' })
+          .selectOption('company');
         await expect(page.locator('.company-overview')).toContainText('The Galilean road');
         await page.locator('.company-overview [data-value="neri"]').click();
         await expect(page.getByRole('dialog')).toBeVisible();
@@ -297,6 +302,7 @@ test('an imported waiting companion stays put through Gospel reading, reload and
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-checkpoint', 'procession');
   await page.locator('.toolbar [data-action="journal"]').click();
   await page.getByRole('button', { name: 'Stories', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Filter journal by story' }).selectOption('company');
   await page.locator('.company-overview [data-value="neri"]').click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await act(page, 'nain-exit', 'journey');
