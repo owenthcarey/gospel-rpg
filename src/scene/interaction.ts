@@ -1,9 +1,11 @@
 import type { Scene } from '@babylonjs/core/scene';
+import { TargetCamera } from '@babylonjs/core/Cameras/targetCamera';
 import type { Point } from '../game/types';
 import type { Interactable } from '../content/region';
 import { examineText } from '../content/examine';
 import type { ScreenClick } from './input';
 import { TapGesture } from '../game/gestures';
+import { HoldView } from './hold-view';
 import '../ui/interaction.css';
 
 export const interactionVerb = (kind: Interactable['kind']) =>
@@ -40,7 +42,7 @@ export class InteractionFeedback {
   private touches = new Map<number, ScreenClick>();
   private touchRejected = false;
   private suppressClick = false;
-  private hold?: { id: number; click: ScreenClick; target: HTMLElement };
+  private hold?: { id: number; click: ScreenClick; target: HTMLElement; view?: HoldView };
   private holdTimer?: ReturnType<typeof setTimeout>;
   private disposed = false;
   private lastPick = 0;
@@ -72,7 +74,11 @@ export class InteractionFeedback {
     const camera = input.scene.activeCamera;
     if (camera) {
       const observer = camera.onViewMatrixChangedObservable.add(this.viewChanged);
-      this.releaseView = () => camera.onViewMatrixChangedObservable.remove(observer);
+      const projection = camera.onProjectionMatrixChangedObservable.add(this.viewChanged);
+      this.releaseView = () => {
+        camera.onViewMatrixChangedObservable.remove(observer);
+        camera.onProjectionMatrixChangedObservable.remove(projection);
+      };
     }
   }
   private label(target: EventTarget | null) {
@@ -110,7 +116,21 @@ export class InteractionFeedback {
     if (e.pointerType === 'touch' && e.button === 0 && !this.touchRejected) {
       const target = label ?? this.input.canvas;
       if (target.hasAttribute('disabled')) return;
-      this.hold = { id: e.pointerId, click: { x: e.clientX, y: e.clientY }, target };
+      const camera = this.input.scene.activeCamera;
+      let view: HoldView | undefined;
+      if (camera instanceof TargetCamera) {
+        // Synchronize before assigning the hold: matrix observers must not reject its baseline.
+        camera.getViewMatrix();
+        camera.getProjectionMatrix();
+        const rect = this.input.canvas.getBoundingClientRect();
+        view = HoldView.capture(
+          camera.getTransformationMatrix(),
+          camera.getTarget(),
+          camera.viewport.toGlobal(rect.width, rect.height),
+          rect,
+        );
+      }
+      this.hold = { id: e.pointerId, click: { x: e.clientX, y: e.clientY }, target, view };
       this.holdTimer = setTimeout(this.openHold, 500);
     }
   };
@@ -245,7 +265,22 @@ export class InteractionFeedback {
     this.touches.clear();
   };
   private viewChanged = () => {
-    if (this.hold) this.rejectTouches();
+    if (this.hold) {
+      const camera = this.input.scene.activeCamera;
+      const rect = this.input.canvas.getBoundingClientRect();
+      // The observable fires after the new matrix is computed. This accessor uses cached
+      // view/projection matrices, avoiding reentrant getViewMatrix and stale scene transforms.
+      if (
+        !camera ||
+        !this.hold.view ||
+        this.hold.view.changed(
+          camera.getTransformationMatrix(),
+          camera.viewport.toGlobal(rect.width, rect.height),
+          rect,
+        )
+      )
+        this.rejectTouches();
+    }
     this.clearHover();
   };
   private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
