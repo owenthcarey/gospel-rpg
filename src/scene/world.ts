@@ -18,6 +18,7 @@ import { ConversationPresentation } from './presentation/conversation';
 import { applyCameraPose, cameraPose, type CameraPose } from './presentation/framing';
 import { turnToward, type ScreenRect } from '../game/presence';
 import { HarborPresentation, dressVillage } from './harbor';
+import { storedJarObstacles } from '../game/harbor/arrangement';
 import { EverydayActivity } from './actors/everyday';
 import { WorkPresentation, type WorkRect } from './work';
 import type { WorkTarget, ScreenPreview } from '../content/exploration/work';
@@ -239,7 +240,7 @@ export class World {
           this.layout.bounds.min,
           this.layout.bounds.max,
         )
-      : new WalkGrid(obstacles, isLand);
+      : new WalkGrid([...obstacles, ...storedJarObstacles(initial)], isLand);
     this.engine = engine;
     this.scene = new Scene(this.engine);
     // Pointerdown still focuses the world; releasing into Choose Option keeps its menu focus.
@@ -1599,7 +1600,11 @@ export class World {
         this.layout.bounds.min,
         this.layout.bounds.max,
       );
-    if (!this.layout) this.grid = new WalkGrid([...obstacles, ...passageObstacles(state)], isLand);
+    if (!this.layout)
+      this.grid = new WalkGrid(
+        [...obstacles, ...storedJarObstacles(state), ...passageObstacles(state)],
+        isLand,
+      );
     for (const activity of this.activities())
       if (activity !== this.activity) activity.update?.(state);
     this.people.get('joel')?.setEnabled(state.road.chapter.stage === 'complete');
