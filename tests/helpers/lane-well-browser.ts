@@ -19,6 +19,7 @@ import { distance } from '../../src/game/pathfinding';
 import type { Point } from '../../src/game/types';
 import { dismiss, exported, settled } from './connection-browser';
 import { wellLabelError } from './well-label-placement';
+import { revealCameraControls } from './camera-browser';
 
 export const wellFixture = 'tests/fixtures/saves/v7-beyond-capernaum.json';
 export const well = neighborhoodPlaces['capernaum-lanes'].find((p) => p.id === 'water-point')!;
@@ -137,6 +138,7 @@ export async function visibleLaneWell(
   name: string,
 ) {
   await expect(page.locator('#toast')).toBeHidden();
+  await revealCameraControls(page, touch);
   await activateWellControl(page.getByRole('button', { name: 'Reset camera', exact: true }), touch);
   await activateWellControl(page.getByRole('button', { name: 'Face north', exact: true }), touch);
   await expect

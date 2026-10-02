@@ -161,11 +161,17 @@ export class Interface {
       event.stopPropagation();
   };
   private readonly shortLandscape: MediaQueryList;
+  private readonly shortPortrait: MediaQueryList;
+  private cameraControls: HTMLElement;
+  private cameraCommands: HTMLElement;
+  private cameraToggle: HTMLButtonElement;
+  private cameraExpanded = false;
   private readonly onNoticeLayout = () => this.placeNotice(true);
   private readonly onPausedNoticeLayout = () => {
     if (this.graphicsPaused) this.placeNotice(true);
   };
   private readonly onMenuResize = () => {
+    this.renderCameraDisclosure();
     layoutDialogueReading(this.overlay);
     const active = document.activeElement;
     if (
@@ -234,7 +240,7 @@ export class Interface {
         <div id="world-labels" class="world-labels" aria-label="People and places"></div>
         <div class="traveler-card"><div class="traveler-seal">${icon('person')}</div><div><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
         <div class="bottom-center"><div class="hud-actions"><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
-        <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="7" font-family="Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><div class="camera-controls" role="group" aria-label="Camera"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div>
+        <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="7" font-family="Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
       </div>
       <section id="scene-controls" class="scene-controls" aria-labelledby="scene-title" hidden></section><div id="overlay"></div><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
       <div id="announcer" class="sr-only" aria-live="polite"></div>`;
@@ -246,6 +252,12 @@ export class Interface {
     this.routeGuidance = this.hud.querySelector('.travel-guidance')!;
     this.routeScrollCue = this.hud.querySelector('.route-scroll-cue')!;
     this.shortLandscape = window.matchMedia('(min-width: 480px) and (max-height: 420px)');
+    this.shortPortrait = window.matchMedia(
+      '(max-width: 479px) and (max-height: 640px) and (orientation: portrait)',
+    );
+    this.cameraControls = this.hud.querySelector('.camera-controls')!;
+    this.cameraCommands = this.hud.querySelector('.camera-command-buttons')!;
+    this.cameraToggle = this.hud.querySelector('.camera-disclosure')!;
     this.shortLandscape.addEventListener('change', this.onNoticeLayout);
     window.addEventListener('resize', this.onMenuResize);
     this.actionScrollCue = this.hud.querySelector('.action-scroll-cue')!;
@@ -297,6 +309,10 @@ export class Interface {
     }
     this.onClick = (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+      if (button?.dataset.action === 'camera-toggle') {
+        if (!button.hasAttribute('disabled')) this.toggleCameraDisclosure();
+        return;
+      }
       if (button?.dataset.action === 'conversation-pause') {
         this.conversationPaused = !this.conversationPaused;
         button.setAttribute('aria-pressed', String(this.conversationPaused));
@@ -335,6 +351,20 @@ export class Interface {
     };
     this.onKey = (e) => {
       this.completeReveal();
+      if (
+        e.key === 'Escape' &&
+        !this.panel &&
+        this.cameraControls.classList.contains('camera-compact') &&
+        this.cameraExpanded &&
+        e.target instanceof Node &&
+        this.cameraControls.contains(e.target) &&
+        !this.cameraControls.inert &&
+        !this.root.inert
+      ) {
+        e.preventDefault();
+        this.toggleCameraDisclosure();
+        return;
+      }
       if (this.panel && this.panel !== 'work') {
         trapFocus(e, this.overlay);
         if (e.key === 'Tab') this.revealReadingFocus();
@@ -363,6 +393,7 @@ export class Interface {
     const inScene = isPresenting(state);
     const view = presentationState(state);
     this.root.classList.toggle('scene-mode', inScene);
+    this.renderCameraDisclosure();
     this.placeNotice();
     this.sceneControls.hidden = !inScene || !this.active;
     const sceneKey = inScene ? view.region + ':' + this.sceneCheckpoint(view) : '';
@@ -468,6 +499,53 @@ export class Interface {
     const announcer = this.root.querySelector('#announcer')!;
     const nextObjective = objective(state);
     if (announcer.textContent !== nextObjective) announcer.textContent = nextObjective;
+  }
+  private renderCameraDisclosure(): void {
+    const compact =
+      this.shortPortrait.matches &&
+      this.active &&
+      !this.panel &&
+      !this.root.classList.contains('scene-mode') &&
+      !this.worldPaused &&
+      !this.graphicsPaused;
+    const active = document.activeElement;
+    // Keep an existing camera selection available when the viewport becomes compact.
+    if (compact && active instanceof Node && this.cameraCommands.contains(active))
+      this.cameraExpanded = true;
+    // The ordinary layout has no disclosure; retain a live camera focus destination.
+    if (
+      !compact &&
+      active === this.cameraToggle &&
+      !this.panel &&
+      !this.worldPaused &&
+      !this.graphicsPaused &&
+      !this.root.inert
+    )
+      this.cameraCommands
+        .querySelector<HTMLButtonElement>('[data-action="reset-camera"]')
+        ?.focus({ preventScroll: true });
+    this.cameraControls.classList.toggle('camera-compact', compact);
+    this.cameraControls.classList.toggle('camera-expanded', compact && this.cameraExpanded);
+    this.cameraToggle.hidden = !compact;
+    this.cameraToggle.textContent = this.cameraExpanded ? 'Hide' : 'Camera';
+    this.cameraToggle.setAttribute(
+      'aria-label',
+      this.cameraExpanded ? 'Hide camera controls' : 'Show camera controls',
+    );
+    this.cameraToggle.setAttribute('aria-expanded', String(compact && this.cameraExpanded));
+  }
+  private toggleCameraDisclosure(): void {
+    if (this.cameraToggle.hidden || this.cameraToggle.disabled || this.cameraControls.inert) return;
+    this.cameraExpanded = !this.cameraExpanded;
+    if (
+      !this.cameraExpanded &&
+      document.activeElement instanceof Node &&
+      this.cameraCommands.contains(document.activeElement)
+    )
+      this.cameraToggle.focus({ preventScroll: true });
+    this.renderCameraDisclosure();
+    this.noteInteraction();
+    this.placeNotice(true);
   }
   private renderTravelStatus(destination?: string): void {
     const travel = this.root.querySelector<HTMLElement>('#travel-status')!;
@@ -1432,12 +1510,18 @@ export class Interface {
       if (header) header.after(message);
       else body?.prepend(message);
     }
+    this.renderCameraDisclosure();
     if (
       this.pausedWorldFocus &&
       !this.graphicsPaused &&
-      (this.panel !== 'work' || !this.worldPaused)
+      (this.panel !== 'work' || !this.worldPaused) &&
+      // Context restoration precedes syncPause; wait until the disclosure is live.
+      (this.pausedWorldFocus !== this.cameraToggle || !this.worldPaused)
     ) {
-      const button = this.pausedWorldFocus;
+      const button =
+        this.pausedWorldFocus === this.cameraToggle && this.cameraToggle.hidden
+          ? this.cameraCommands.querySelector<HTMLButtonElement>('[data-action="reset-camera"]')!
+          : this.pausedWorldFocus;
       this.pausedWorldFocus = undefined;
       if (button.isConnected && !button.disabled && focusLost())
         button.focus({ preventScroll: true });

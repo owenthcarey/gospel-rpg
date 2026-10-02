@@ -1716,6 +1716,40 @@
     min-height: 44px;
   }
 }
+:root .camera-command-buttons {
+  display: contents;
+}
+:root .camera-controls .camera-disclosure {
+  display: none;
+}
+/* Retain focus until the resize handler hands it to the ordinary Reset control. */
+:root .camera-controls .camera-disclosure:focus:not([hidden]) {
+  display: grid;
+}
+/* Short portrait exploration folds optional camera commands into the existing dock. */
+@media (max-width: 479px) and (max-height: 640px) and (orientation: portrait) {
+  :root #ui:not(.scene-mode):not(.working) .camera-controls.camera-compact .camera-disclosure {
+    display: grid;
+    grid-column: 1 / -1;
+    width: auto;
+    padding-inline: 6px;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .camera-controls.camera-compact:not(.camera-expanded):not(:has(.camera-command-buttons :focus))
+    .camera-command-buttons {
+    display: none;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .camera-controls.camera-compact.camera-expanded
+    .camera-disclosure {
+    grid-column: 3;
+    grid-row: 2;
+    width: 44px;
+    padding: 0;
+  }
+}
 /* Short portrait exploration keeps one row of quest actions above the world. */
 @media (max-width: 479px) and (max-height: 640px) and (orientation: portrait) {
   :root

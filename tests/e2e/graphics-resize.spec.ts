@@ -8,17 +8,19 @@ async function phoneControls(page: Page) {
       '.toolbar button, .camera-controls button, .minimap-compass, .minimap-open, .control-hints button',
     )
     .evaluateAll((elements) =>
-      elements.map((element) => {
-        const { x, y, width, height } = element.getBoundingClientRect();
-        return {
-          name: element.getAttribute('aria-label') ?? element.getAttribute('title'),
-          x,
-          y,
-          width,
-          height,
-          viewport: { width: innerWidth, height: innerHeight },
-        };
-      }),
+      elements
+        .filter((element) => element.getClientRects().length > 0)
+        .map((element) => {
+          const { x, y, width, height } = element.getBoundingClientRect();
+          return {
+            name: element.getAttribute('aria-label') ?? element.getAttribute('title'),
+            x,
+            y,
+            width,
+            height,
+            viewport: { width: innerWidth, height: innerHeight },
+          };
+        }),
     );
   for (const control of controls) {
     expect(control.width).toBeGreaterThanOrEqual(44);
