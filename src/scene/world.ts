@@ -1542,11 +1542,20 @@ export class World {
           p.id === 'board-' + this.state.region && this.mooredBoat?.isEnabled()
             ? this.mooredBoat.getAbsolutePosition()
             : undefined;
+        // Keep the standing name clearance above Neri's actual seated head attachment.
+        const seatedHead =
+          p.id === 'neri' &&
+          this.state.road.company.stage === 'complete' &&
+          this.road?.conversationActor.root.isEnabled()
+            ? this.road.conversationActor.model.socket('head').getAbsolutePosition()
+            : undefined;
+        const anchor = seatedHead ?? hull;
         const v = Vector3.Project(
           new Vector3(
-            hull?.x ?? p.x,
-            (hull?.y ?? groundHeight(this.state.region, p)) + (p.kind === 'person' ? 2.18 : 1.9),
-            hull?.z ?? p.z,
+            anchor?.x ?? p.x,
+            (anchor?.y ?? groundHeight(this.state.region, p)) +
+              (seatedHead ? 0.78 : p.kind === 'person' ? 2.18 : 1.9),
+            anchor?.z ?? p.z,
           ),
           Matrix.Identity(),
           this.scene.getTransformMatrix(),
