@@ -18,6 +18,7 @@ import { transition } from '../../src/game/quest';
 import { distance } from '../../src/game/pathfinding';
 import type { Point } from '../../src/game/types';
 import { dismiss, exported, settled } from './connection-browser';
+import { wellLabelError } from './well-label-placement';
 
 export const wellFixture = 'tests/fixtures/saves/v7-beyond-capernaum.json';
 export const well = neighborhoodPlaces['capernaum-lanes'].find((p) => p.id === 'water-point')!;
@@ -186,6 +187,7 @@ export async function visibleLaneWell(
         y: number;
         error: number;
         stable: boolean;
+        placement: ReturnType<typeof wellLabelError>;
       }
     | undefined;
   await expect
@@ -194,30 +196,80 @@ export async function visibleLaneWell(
         const observed = await label.evaluate((node) => {
           const element = node as HTMLElement;
           const [, x, y] = element.style.transform.match(/translate\(([^,]+)px,([^)]*)px\)/) ?? [];
+          const box = (value: Element) => {
+            const r = value.getBoundingClientRect();
+            return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+          };
+          const ui = document.querySelector<HTMLElement>('#ui');
+          const hud = document.querySelector<HTMLElement>('#hud');
+          const canvas = document.querySelector('#game-canvas');
+          const notice = document.querySelector<HTMLElement>('#toast');
+          const nearest = document.querySelector<HTMLElement>('#nearby-action');
+          const uiRect = ui?.getBoundingClientRect();
+          const canvasRect = canvas?.getBoundingClientRect();
           return {
             transform: element.style.transform,
             hidden: Boolean(element.hidden),
             width: element.offsetWidth,
+            height: element.offsetHeight,
             x: Number(x),
             y: Number(y),
+            basis: {
+              labels: [...document.querySelectorAll<HTMLElement>('#world-labels .world-label')].map(
+                (label) => ({
+                  id: label.dataset.value ?? null,
+                  person: label.classList.contains('person'),
+                  place: label.classList.contains('place'),
+                  object: label.classList.contains('object'),
+                  selected: label.classList.contains('selected-destination'),
+                  target: label.classList.contains('quest-target'),
+                  hovered: label.matches(':hover'),
+                  focused: label === document.activeElement,
+                }),
+              ),
+              nearest: nearest
+                ? {
+                    text: [...nearest.childNodes]
+                      .filter((child) => child.nodeType === Node.TEXT_NODE)
+                      .map((child) => child.textContent ?? '')
+                      .join('')
+                      .trim(),
+                    action: nearest.dataset.action ?? null,
+                    hidden: Boolean(nearest.hidden),
+                  }
+                : null,
+              ui:
+                ui && uiRect
+                  ? { x: uiRect.x, y: uiRect.y, width: ui.clientWidth, height: ui.clientHeight }
+                  : null,
+              canvas: canvasRect
+                ? {
+                    x: canvasRect.x,
+                    y: canvasRect.y,
+                    width: canvasRect.width,
+                    height: canvasRect.height,
+                  }
+                : null,
+              reserved:
+                hud && notice
+                  ? [
+                      ...[
+                        ...hud.querySelectorAll<HTMLElement>(
+                          '.topbar,.quest-card,.minimap-wrap,.minimap-compass,.minimap-open,.bottom-center,.traveler-card',
+                        ),
+                      ]
+                        .filter((node) => node.offsetHeight > 0)
+                        .map(box),
+                      ...(!notice.hidden && notice.offsetHeight > 0 ? [box(notice)] : []),
+                    ]
+                  : null,
+            },
           };
         });
-        const expectedX = observed.hidden
-          ? geometry.projectedLabel.x
-          : Math.max(
-              observed.width / 2 + 8,
-              Math.min(rect.width - observed.width / 2 - 8, geometry.projectedLabel.x),
-            );
-        const error = Math.max(
-          Math.abs(observed.x - expectedX),
-          Math.min(
-            ...[0, -28, 28, -56, 56].map((offset) =>
-              Math.abs(observed.y - geometry.projectedLabel.y - offset),
-            ),
-          ),
-        );
+        const placement = wellLabelError(observed, geometry.projectedLabel, rect);
+        const error = placement.error;
         const stable = previous === observed.transform;
-        labelReading = { ...observed, error, stable };
+        labelReading = { ...observed, error, stable, placement };
         previous = observed.transform;
         return { converged: error < 0.2, stable };
       },
