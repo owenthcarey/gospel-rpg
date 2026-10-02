@@ -622,9 +622,15 @@ export class Interface {
       hudBounds.find(({ node }) => node === this.quest)?.rect,
       noticeBounds,
     );
+    const arrival = this.root.querySelector<HTMLElement>('.chapter-card');
+    const arrivalBounds =
+      arrival && getComputedStyle(arrival).visibility !== 'hidden'
+        ? arrival.querySelector('.chapter-card-inner')?.getBoundingClientRect()
+        : undefined;
     const reserved = [
       ...hudBounds.map(({ rect }) => rect),
       ...(noticeBounds ? [noticeBounds] : []),
+      ...(arrivalBounds ? [arrivalBounds] : []),
     ];
     const nearbyPeople = labels.flatMap(({ id, visible }) => {
       const s = states.get(id),

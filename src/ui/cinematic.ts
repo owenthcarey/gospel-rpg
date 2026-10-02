@@ -5,6 +5,7 @@
 import { escapeHtml as esc, icon } from './icons';
 import { logoMark, ornamentRule } from './logo';
 import { trapFocus } from './focus';
+import { arrivalTop } from './arrival-placement';
 import './cinematic.css';
 
 export interface OpeningCardText {
@@ -199,6 +200,9 @@ export class ChapterCard {
   private element?: HTMLElement;
   private timers: ReturnType<typeof setTimeout>[] = [];
   private resolve?: () => void;
+  private layoutObserver?: ResizeObserver;
+  private noticeObserver?: MutationObserver;
+  private onResize = () => this.place();
 
   constructor(private host: HTMLElement = appHost()) {
     this.live = document.createElement('div');
@@ -216,6 +220,20 @@ export class ChapterCard {
     this.element = el;
     this.host.append(el);
     this.live.textContent = [card.eyebrow, card.title, card.reference].filter(Boolean).join('. ');
+    this.layoutObserver = new ResizeObserver(this.onResize);
+    for (const node of [
+      this.host,
+      el.querySelector('.chapter-card-inner')!,
+      ...this.reservations(),
+    ])
+      this.layoutObserver.observe(node);
+    const notice = this.host.querySelector('#toast');
+    if (notice) {
+      this.noticeObserver = new MutationObserver(this.onResize);
+      this.noticeObserver.observe(notice, { attributes: true, attributeFilter: ['hidden'] });
+    }
+    window.addEventListener('resize', this.onResize);
+    this.place();
     const t = CHAPTER_CARD_TIMING;
     requestAnimationFrame(() => el.classList.add('is-in'));
     this.timers.push(
@@ -231,6 +249,11 @@ export class ChapterCard {
     return new Promise((resolve) => (this.resolve = resolve));
   }
   hide(): void {
+    this.layoutObserver?.disconnect();
+    this.layoutObserver = undefined;
+    this.noticeObserver?.disconnect();
+    this.noticeObserver = undefined;
+    window.removeEventListener('resize', this.onResize);
     this.timers.forEach(clearTimeout);
     this.timers = [];
     this.element?.remove();
@@ -238,6 +261,35 @@ export class ChapterCard {
     const resolve = this.resolve;
     this.resolve = undefined;
     resolve?.();
+  }
+  private reservations(): Element[] {
+    return [
+      ...this.host.querySelectorAll(
+        '.topbar,.quest-card,.minimap-wrap,.bottom-center,.traveler-card,#toast,#scene-controls',
+      ),
+    ];
+  }
+  private place(): void {
+    const el = this.element;
+    if (!el) return;
+    const bounds = this.host.getBoundingClientRect();
+    const plaque = el.querySelector('.chapter-card-inner')!.getBoundingClientRect();
+    const reserved = this.reservations().flatMap((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.width && rect.height && getComputedStyle(node).visibility !== 'hidden'
+        ? [
+            {
+              left: rect.left - bounds.left,
+              right: rect.right - bounds.left,
+              top: rect.top - bounds.top,
+              bottom: rect.bottom - bounds.top,
+            },
+          ]
+        : [];
+    });
+    const top = arrivalTop(bounds.width, bounds.height, plaque.width, plaque.height, reserved);
+    el.classList.toggle('is-crowded', top === undefined);
+    if (top !== undefined) el.style.top = `${top - parseFloat(getComputedStyle(el).paddingTop)}px`;
   }
 }
 
