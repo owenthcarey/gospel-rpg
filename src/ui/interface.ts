@@ -327,11 +327,40 @@ export class Interface {
       );
     const quest = questView(state);
     if (this.quest.dataset.content !== quest) {
+      const active = document.activeElement;
+      const restore = active instanceof HTMLElement && this.quest.contains(active);
+      const action = restore ? active.dataset.action : undefined;
+      const value = restore ? active.dataset.value : undefined;
+      const shortcut = restore && active.matches('.village-shortcut');
+      const scroll = this.quest.scrollTop;
       this.quest.dataset.content = quest;
       this.quest.innerHTML =
         quest +
         '<button class="objective-toggle text-button" data-action="objective-toggle" aria-expanded="false">Show steps</button>';
       this.renderObjective();
+      if (restore) {
+        this.quest.scrollTop = scroll;
+        const surface = this.quest.firstElementChild;
+        requestAnimationFrame(() => {
+          if (
+            this.quest.firstElementChild !== surface ||
+            !this.quest.isConnected ||
+            this.hud.hidden ||
+            this.hud.inert ||
+            this.root.inert ||
+            !focusLost()
+          )
+            return;
+          // Story toggles change their value while retaining the same place in the card.
+          const inverse = shortcut
+            ? this.quest.querySelector<HTMLButtonElement>('.village-shortcut:not(:disabled)')
+            : null;
+          restoreFocus(this.quest, action, inverse?.dataset.value ?? value);
+          const focused = document.activeElement;
+          if (focused instanceof HTMLElement && this.quest.contains(focused))
+            focused.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+        });
+      }
     }
     this.root.querySelector('.time-of-day span')!.textContent =
       this.atmosphere ??
