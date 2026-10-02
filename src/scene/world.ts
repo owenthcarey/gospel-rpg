@@ -1531,6 +1531,7 @@ export class World {
     this.setData('boatHeading', String(this.getBoatHeading() ?? ''));
     this.setData('actorPose', playback.clip);
     this.setData('actorFrame', playback.frame.toFixed(2));
+    this.setData('actorHeading', String(this.playerModel?.rotation.y ?? Number.NaN));
     this.setData('actionMotion', this.seatedAction ? 'SitDown' : playback.action);
     if (performance.now() - this.lastFrame > 45) {
       this.lastFrame = performance.now();
