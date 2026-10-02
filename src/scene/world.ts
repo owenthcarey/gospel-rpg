@@ -1136,7 +1136,7 @@ export class World {
       this.playerModel.position.set(seat.x * amount, 0, seat.z * amount);
       this.playerModel.rotation.y = sitting
         ? Math.PI
-        : Math.atan2(seat.x, seat.z) + (arriving ? 0 : Math.PI);
+        : Math.atan2(seat.x, seat.z) + (arriving ? Math.PI : 0);
       if (sitting && !seat.started) {
         this.actorPlayer.playOnce('SitDown');
         seat.started = true;

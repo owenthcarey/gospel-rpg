@@ -192,6 +192,70 @@ it.each(['stationary', 'blocked', 'paused', 'seated'] as const)(
   },
 );
 
+/** Keep the same physical nose vertices as the traveler turns and the imported skin moves. */
+function trackFaceDirection(actor: Actor): () => Vector3 {
+  actor.sampleAt('Idle', 0);
+  const head = posedVertices(actor.root, 'head');
+  const front = Math.min(...head.map((p) => p.z));
+  const noseIndices = head.flatMap((p, i) => (p.z <= front + 0.003 ? [i] : []));
+  const joint = actor.model.socket('head');
+  expect(noseIndices.length).toBeGreaterThan(0);
+  return () => {
+    const points = posedVertices(actor.root, 'head');
+    const nose = noseIndices
+      .reduce((sum, i) => sum.addInPlace(points[i]!), Vector3.Zero())
+      .scale(1 / noseIndices.length);
+    const forward = nose.subtract(joint.getAbsolutePosition());
+    forward.y = 0;
+    return forward.normalize();
+  };
+}
+
+it.each([
+  { phase: 'approach', time: 0.2, x: -1.2, z: 0.6 },
+  { phase: 'approach', time: 0.2, x: 0.6, z: -1.2 },
+  { phase: 'approach', time: 0.2, x: 0, z: 1.2 },
+  { phase: 'retreat', time: 3.5, x: -1.2, z: 0.6 },
+  { phase: 'retreat', time: 3.5, x: 0.6, z: -1.2 },
+  { phase: 'retreat', time: 3.5, x: 0, z: 1.2 },
+])('faces actual bench $phase travel from offset ($x, $z)', ({ time, x, z }) => {
+  const { world, actor, dispose } = actionWorld();
+  try {
+    const faceDirection = trackFaceDirection(actor);
+    const navigationPosition = { ...world.position };
+    world.seatedAction = { time, x, z, started: true };
+    world.simulate(0.05);
+    actor.root.computeWorldMatrix(true);
+    const before = actor.root.getAbsolutePosition().clone();
+    world.simulate(0.1);
+    actor.root.computeWorldMatrix(true);
+    const movement = actor.root.getAbsolutePosition().subtract(before).normalize();
+    expect(movement.lengthSquared()).toBeGreaterThan(0);
+    expect(Vector3.Dot(faceDirection(), movement)).toBeGreaterThan(0.99);
+    expect(actor.playback.clip).toBe('Walk');
+    expect(world.position).toEqual(navigationPosition);
+  } finally {
+    dispose();
+  }
+});
+
+it('keeps the bench sitting heading while starting the sitting gesture', () => {
+  const { world, actor, dispose } = actionWorld();
+  try {
+    const faceDirection = trackFaceDirection(actor);
+    const navigationPosition = { ...world.position };
+    world.seatedAction = { time: 1.2, x: -1.2, z: 0.6, started: false };
+    world.simulate(0.1);
+    expect(Vector3.Dot(faceDirection(), new Vector3(0, 0, 1))).toBeGreaterThan(0.99);
+    expect(actor.root.position.asArray()).toEqual([-1.2, 0, 0.6]);
+    expect(actor.root.rotation.y).toBe(Math.PI);
+    expect(actor.playback.action).toBe('SitDown');
+    expect(world.position).toEqual(navigationPosition);
+  } finally {
+    dispose();
+  }
+});
+
 // Measured on the exported files: the walk has a visible vertical bob, and the idle has a small,
 // continuous breath that never lifts the feet. Each actor is checked separately, so a rebuilt
 // character whose clips collapse to a still pose (or an exaggerated bounce) fails by name.
