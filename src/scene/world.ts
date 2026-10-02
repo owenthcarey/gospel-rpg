@@ -93,6 +93,7 @@ import {
 import { distance, findPath, WalkGrid } from '../game/pathfinding';
 import { newGame, type GameState, type Point, type Settings } from '../game/types';
 import { PausedCadence } from './presentation/cadence';
+import { VILLAGE_PATHS } from '../content/terrain';
 
 export interface WorldCallbacks {
   requestNavigate?: (id: string) => void;
@@ -123,13 +124,6 @@ export interface ScreenLabel {
   visible: boolean;
 }
 
-const VILLAGE_PATHS: [Point, Point, number][] = [
-  [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
-  [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
-  [{ x: -20, z: -1 }, { x: 8, z: -1 }, 2.5],
-  [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
-  [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
-];
 /** Distance from a point to the nearest path edge (negative on the path). */
 function pathDistance(p: Point, segments: readonly (readonly [Point, Point, number])[]): number {
   let best = Infinity;

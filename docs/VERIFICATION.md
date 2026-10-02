@@ -2,6 +2,18 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Classic interaction and navigation refinement · 2026-10-01
+
+Blocked ground clicks now choose a reachable nearby endpoint instead of rejecting the walk when the nearest tile is across a wall. Equally close endpoints prefer the shorter route; an explicitly walkable destination across an impassable wall remains rejected. The destination ring follows the actual route endpoint. A batch of 263 blocked Capernaum picks measured 0.53 ms per request, with a worst authored request of 5.18 ms; a synthetic full-height barrier takes longer because it exhausts the reachable side.
+
+Walking clips, ground accents and body motion follow measured travel speed through easing, wall sliding and companion walks. Footstep audio retains fractional distance between frames. Stationary practical gestures keep their own timing. The existing browser checks pass for carrying, bench repair, sitting, reading pauses, reduced motion, wall movement and Amos’s slower walk, on desktop and phone where applicable.
+
+Choose Option includes a read-only **Examine** action with original observations. Desktop and phone checks retain the same position and complete journey data apart from ordinary elapsed play time, preserve keyboard focus, and recover the observation from Messages after its toast expires. Native phone hold checks confirm that releasing the hold does not activate an option and that explicit actions retain 44 px targets in short landscape viewports.
+
+Radar dots retain their screen size, people have distinct yellow symbols, destination flags stay upright, and compass/map-button placement follows the actual radar dimensions. The village map draws the world’s house footprints, orientations, grove positions and shared path layout. Journal/map/status tabs have persistent selected states; arrival plaques yield to modal reading controls. Visual checks cover 1440×900, 390×844, 320×640 and 667×375 layouts.
+
+The uninterrupted production browser journey passes all four chapters in 3.4 minutes, including chapter reloads, with no page errors. Evidence checks, types, ESLint, all **729 unit checks in 49 files**, the production build, formatting and whitespace checks pass. A concurrent local browser run first caused three existing bird-simulation tests to exceed their five-second limits; the unchanged nine-test file and full suite pass after the extra browser load finishes. No time limits or assertions were relaxed. Generated captures, traces and the local routing benchmark remain in ignored `artifacts/reviews/`. Existing models, scripture and save v11 remain compatible.
+
 ## CI correction · PR #25 · 2026-10-01
 
 The [initial PR run](https://github.com/owenthcarey/gospel-rpg/actions/runs/36941481695) passed build, continuous journey and compatibility, but nine Chromium browser groups failed. The logs and downloaded traces distinguish layout defects from timing and native-control assumptions.

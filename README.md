@@ -24,6 +24,8 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **Classic Galilee** restores the original classic RPG art direction: faceted people and foliage, broad earthy terrain colors, matte blue water, simple lighting, and compact brown beveled interfaces. Hovering previews existing actions; right-click opens **Choose Option**, and the middle mouse button rotates the camera. The rotating minimap supports click-to-walk and a north compass; the satchel uses original rendered props and an Examine pane. **Messages** keeps recent feedback available after notices fade. Keyboard movement follows walls, and phone camera controls remain usable in either orientation. This presentation pass adds no story content and keeps save v11 compatible.
 
+The minimap now shows the village’s actual houses, groves and paths, with readable symbols and an upright destination flag at every screen size. **Choose Option → Examine** gives a short original observation without moving the traveler or advancing a story; Messages keeps it afterward. Walking, carrying and footstep accents follow the traveler’s actual pace, including slower companion walks. Recessed journal and map tabs clarify the selected page, and arrival titles yield to reading menus.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -45,7 +47,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | Click a name / choose a map destination | Approach and interact                    |
 | WASD / arrow keys                       | Move relative to the camera              |
 | E                                       | Interact nearby                          |
-| Right click                             | Choose an existing action                |
+| Right click / touch and hold            | Choose an action or Examine              |
 | Shift+F10 on a focused world control    | Open Choose Option with the keyboard     |
 | Middle/right-drag / two fingers         | Orbit                                    |
 | Scroll / pinch / zoom buttons           | Zoom                                     |

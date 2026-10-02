@@ -1,4 +1,5 @@
 import { buildings, obstacles, trees, type Placement } from '../content/region';
+import { VILLAGE_PATHS } from '../content/terrain';
 import { mapPoint } from './minimap';
 
 const bounds = { min: -24, max: 24 };
@@ -6,7 +7,15 @@ const scale = 192 / (bounds.max - bounds.min);
 
 /** Static Capernaum geometry shares the positions and collision bounds used by the world. */
 export function capernaumMapScenery(): string {
-  return trees.map(treeGlyph).join('') + buildings.map(houseGlyph).join('');
+  const paths = VILLAGE_PATHS.map(([from, to, width]) => {
+    const a = mapPoint(from, bounds);
+    const b = mapPoint(to, bounds);
+    const line = `M${a.x},${a.y}L${b.x},${b.y}`;
+    // wornPaths paints a broad edge at 0.63 half-width and an inner band at
+    // 0.44 half-width. Preserve those nominal widths on the overhead map.
+    return `<g class="map-street" fill="none"><path d="${line}" stroke="#ae976c" stroke-width="${width * scale * 1.26}"/><path d="${line}" stroke="#dace9f" stroke-width="${width * scale * 0.88}"/></g>`;
+  }).join('');
+  return paths + trees.map(treeGlyph).join('') + buildings.map(houseGlyph).join('');
 }
 
 function houseGlyph(house: Placement): string {
