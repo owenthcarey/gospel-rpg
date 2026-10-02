@@ -8,7 +8,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { Ray } from '@babylonjs/core/Culling/ray';
 import { AssetLibrary } from '../../src/scene/assets';
-import { HouseSightline } from '../../src/scene/environment/occlusion';
+import { ScenerySightline } from '../../src/scene/environment/occlusion';
 import { stylePlugin } from '../../src/scene/environment/matte';
 import { World } from '../../src/scene/world';
 import { PausedCadence } from '../../src/scene/presentation/cadence';
@@ -49,7 +49,7 @@ describe('house sightlines', () => {
     const scene = studio();
     const box = CreateBox('narrow obstruction', { width: 2, depth: 1, height: 0.12 }, scene);
     box.position.y = height;
-    const sightline = new HouseSightline();
+    const sightline = new ScenerySightline();
     expect(sightline.blocks([box], new Vector3(0, 1, -10), new Vector3(0, 0, 10))).toBe(true);
     box.position.x = 3;
     expect(sightline.blocks([box], new Vector3(0, 1, -10), new Vector3(0, 0, 10))).toBe(false);
@@ -60,7 +60,7 @@ describe('house sightlines', () => {
     const box = CreateBox('diagonal wall', { width: 8, depth: 0.3, height: 3 }, scene);
     box.position.y = 1.5;
     box.rotation.y = Math.PI / 4;
-    const sightline = new HouseSightline();
+    const sightline = new ScenerySightline();
     const camera = new Vector3(2.85, 1, -5);
     const player = new Vector3(2.85, 0, -2.9);
     box.computeWorldMatrix(true);
@@ -83,7 +83,7 @@ describe('house sightlines', () => {
     root.position.set(5, 2, 0);
     root.rotation.y = Math.PI / 2;
     root.scaling.setAll(1.3);
-    const sightline = new HouseSightline();
+    const sightline = new ScenerySightline();
     const camera = new Vector3(5, 3, -10);
     const player = new Vector3(5, 2, 10);
     expect(sightline.blocks([box], camera, player)).toBe(true);
@@ -113,7 +113,7 @@ describe('shipped exterior house fading', () => {
       boats: [],
       cutaways: [],
       occluders: [],
-      houseSightline: new HouseSightline(),
+      scenerySightline: new ScenerySightline(),
       player: new TransformNode('traveler', scene),
       actorPlayer: { playback: { clip: 'Idle', frame: 0, action: '' } },
       stage: { setView() {}, tick() {} },
@@ -165,7 +165,7 @@ describe('shipped exterior house fading', () => {
         actors: new Map(),
         boats: [],
         occluders: [],
-        houseSightline: new HouseSightline(),
+        scenerySightline: new ScenerySightline(),
         player: new TransformNode('traveler', scene),
         camera: { position: new Vector3(-23.095, 23.46, -18.898) },
         reducedMotion: still,
@@ -187,7 +187,7 @@ describe('shipped exterior house fading', () => {
         for (let i = 0; i < 20; i++) fixture.updateOcclusion(0.05);
       };
       expect(mesh.material).not.toBe(untouched.material);
-      expect(fixture.occluders.map((o: { kind: string }) => o.kind)).toEqual(['house', 'house']);
+      expect(fixture.occluders.map((o: { kind: string }) => o.kind)).toEqual(['solid', 'solid']);
       update();
       expect(stylePlugin(mesh.material!).fade).toBeCloseTo(0.18, 2);
       expect(stylePlugin(untouched.material!).fade).toBe(1);

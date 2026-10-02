@@ -36,7 +36,7 @@ import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGener
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { StageEnvironment } from './environment/stage';
 import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte';
-import { HouseSightline } from './environment/occlusion';
+import { ScenerySightline } from './environment/occlusion';
 import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
@@ -180,14 +180,14 @@ export class World {
   private actorPlayer!: Actor;
   private galilee?: GalileeActivity;
   private guidance: 'full' | 'explore' = 'full';
-  private houseSightline = new HouseSightline();
+  private scenerySightline = new ScenerySightline();
   private occluders: ({
     node: TransformNode;
     fade: StylePlugin[];
     amount: number;
   } & (
     | { kind: 'foliage'; height: number; x: number; z: number }
-    | { kind: 'house'; meshes: AbstractMesh[] }
+    | { kind: 'solid'; meshes: AbstractMesh[] }
   ))[] = [];
   private actors = new Map<string, Actor>();
   private activity!: VillageActivity;
@@ -473,7 +473,8 @@ export class World {
       if (i % 3 !== 0) shoreRocks.push(model);
     }
     this.library.batch('rock', shoreRocks);
-    dressVillage(this.scene, this.library, this.state.region);
+    for (const awning of dressVillage(this.scene, this.library, this.state.region))
+      this.registerOccluder('door_awning', awning);
     if (this.state.region === 'capernaum')
       this.harbor = new HarborPresentation(this.scene, this.library);
     this.everyday = new EverydayActivity(this.library, this.actors, this.state);
@@ -751,9 +752,16 @@ export class World {
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
-    const foliage = ['olive', 'cypress', 'palm'].includes(p.asset);
-    if (foliage || p.asset === 'house' || p.asset === 'house_large') {
-      // Each view-blocking placement owns a material so only that tree or house dissolves.
+    this.registerOccluder(p.asset, anchor, p.scale ?? 1);
+    return anchor;
+  }
+  private registerOccluder(asset: string, anchor: TransformNode, scale = 1): void {
+    const foliage = ['olive', 'cypress', 'palm'].includes(asset);
+    if (
+      foliage ||
+      ['house', 'house_large', 'market', 'farm_shelter', 'door_awning'].includes(asset)
+    ) {
+      // Each view-blocking placement owns a material so other scenery remains opaque.
       const fade = anchor.getChildMeshes().flatMap((mesh) => {
         const source = mesh.material as StandardMaterial | null;
         if (!source) return [];
@@ -765,7 +773,7 @@ export class World {
         material.specularColor = Color3.Black();
         material.backFaceCulling = source.backFaceCulling;
         const plugin = stylePlugin(material);
-        plugin.configure(WIND_SHAPES[p.asset], true);
+        plugin.configure(WIND_SHAPES[asset], true);
         mesh.material = material;
         return [plugin];
       });
@@ -774,16 +782,15 @@ export class World {
           ? {
               kind: 'foliage',
               node: anchor,
-              height: 3.5 * (p.scale ?? 1),
-              x: p.x,
-              z: p.z,
+              height: 3.5 * scale,
+              x: anchor.position.x,
+              z: anchor.position.z,
               fade,
               amount: 1,
             }
-          : { kind: 'house', node: anchor, meshes: anchor.getChildMeshes(), fade, amount: 1 },
+          : { kind: 'solid', node: anchor, meshes: anchor.getChildMeshes(), fade, amount: 1 },
       );
     }
-    return anchor;
   }
 
   /** Slope unwalkable floor down under the lake so the water meets a real bank. */
@@ -1398,7 +1405,7 @@ export class World {
       length = vx * vx + vz * vz;
     for (const o of this.occluders) {
       let blocks: boolean;
-      if (o.kind === 'house') blocks = this.houseSightline.blocks(o.meshes, cameraPoint, focus);
+      if (o.kind === 'solid') blocks = this.scenerySightline.blocks(o.meshes, cameraPoint, focus);
       else {
         const t = length ? ((o.x - focus.x) * vx + (o.z - focus.z) * vz) / length : -1;
         const separation = Math.hypot(o.x - focus.x - vx * t, o.z - focus.z - vz * t);
@@ -1409,9 +1416,9 @@ export class World {
           separation < 1.25 &&
           groundHeight(this.state.region, o) + o.height > rayHeight;
       }
-      // Houses need a clearer window than leaves to keep the whole traveler readable.
+      // Architecture and fabric need a clearer window than leaves to keep the traveler readable.
       // Geometry, shadows and collision remain in place throughout the transition.
-      const target = blocks ? (o.kind === 'house' ? 0.18 : 0.3) : 1;
+      const target = blocks ? (o.kind === 'solid' ? 0.18 : 0.3) : 1;
       o.amount = this.reducedMotion
         ? target
         : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
