@@ -72,8 +72,9 @@ import { logoLockup } from './logo';
 import { itemArtwork } from './item-art';
 import {
   HintFade,
+  LABEL_NEAR,
   labelExpanded,
-  labelPriority,
+  labelPlacementPriority,
   toastKind,
   TOAST_ICONS,
   type LabelState,
@@ -547,11 +548,32 @@ export class Interface {
       ...hudBounds.map(({ rect }) => rect),
       ...(noticeBounds ? [noticeBounds] : []),
     ];
+    const nearbyPeople = labels.flatMap(({ id, visible }) => {
+      const s = states.get(id),
+        point = this.activePoints.get(id);
+      // Walking companions move between state updates; their saved points can be stale.
+      const walkingCompanion =
+        (id === 'amos' && this.currentState?.campaign.walk.stage === 'walking') ||
+        (id === 'neri' && this.currentState?.road.company.stage === 'walking');
+      return this.currentState &&
+        !walkingCompanion &&
+        visible &&
+        s?.kind === 'person' &&
+        s.distance <= LABEL_NEAR.person &&
+        point
+        ? [point]
+        : [];
+    });
     const placed = arrangeLabels(
       measureLabels(
         labels.map((label) => {
-          const s = states.get(label.id);
-          return { ...label, priority: s ? labelPriority(s) : 0 };
+          const s = states.get(label.id),
+            point = this.activePoints.get(label.id);
+          const personSharesPoint =
+            this.labelNodes.get(label.id)?.classList.contains('place') &&
+            !!point &&
+            nearbyPeople.some((person) => person.x === point.x && person.z === point.z);
+          return { ...label, priority: s ? labelPlacementPriority(s, !!personSharesPoint) : 0 };
         }),
         this.labelNodes,
       ),

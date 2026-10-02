@@ -37,6 +37,21 @@ export function labelPriority(s: LabelState): number {
   return s.kind === 'person' ? 1 : 0;
 }
 
+/** Let a nearby person keep its space beside an ordinary co-located nearest place. */
+export function labelPlacementPriority(s: LabelState, nearbyPersonSharesPoint: boolean): number {
+  if (
+    s.kind === 'place' &&
+    s.nearest &&
+    nearbyPersonSharesPoint &&
+    !s.hovered &&
+    !s.focused &&
+    !s.selected &&
+    !s.target
+  )
+    return 1.5;
+  return labelPriority(s);
+}
+
 /**
  * Control hints recede once the traveler has walked a little and acted a few times.
  * Session-only; Help brings them back.
