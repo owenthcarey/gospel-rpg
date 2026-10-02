@@ -1,6 +1,6 @@
 {
   "source": "https://github.com/owenthcarey/gospel-rpg/actions/runs/36804481025",
-  "note": "Conservative seconds from successful Linux Chromium browser-group logs; the separate continuous journey is excluded. Successful durations are rounded upward including the printed rounding interval (0.05 seconds or 3 seconds for minute labels); skipped cases use 1. The planner applies a 15-second minimum and a 180-second estimate to unrecorded cases. Keys are Playwright test-list selectors, independent of line numbers.",
+  "note": "Conservative seconds from successful Linux Chromium browser-group logs; the separate continuous journey is excluded. Successful durations are rounded upward including the printed rounding interval (0.05 seconds or 3 seconds for minute labels); skipped cases use 1. The planner applies a 15-second minimum and a 180-second estimate to unrecorded cases. Keys are Playwright test-list selectors, independent of line numbers. The two cold-quality cases use 600-second capacity estimates from PR #25 run 36941481695: the desktop trace completed six of fourteen High visits before its 180-second deadline. These estimates are not successful measured durations.",
   "seconds": {
     "[chromium] › audio.spec.ts › audio waits for a gesture, mixes independent channels, suspends in background, and preserves mute": 43,
     "[chromium] › audio.spec.ts › storm-to-calm transitions retain one context and retire old voices": 13,
@@ -87,6 +87,7 @@
     "[chromium] › presence.spec.ts › all ten Into the Deep compositions remain complete and readable at desktop, portrait and short landscape sizes": 81,
     "[chromium] › presence.spec.ts › named-person framing survives resize, a failed region load and a return visit without changing story state": 30,
     "[chromium] › presence.spec.ts › nearby conversations keep identities, motion pause and camera recovery through menus and reload": 59,
+    "[chromium] › quality-settings.spec.ts › cold quality changes keep native draws valid and preserve the journey after region visits": 600,
     "[chromium] › road.spec.ts › At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands": 69,
     "[chromium] › road.spec.ts › Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves": 147,
     "[chromium] › road.spec.ts › Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves": 117,
@@ -184,6 +185,7 @@
     "[mobile-chromium] › presence.spec.ts › all ten Into the Deep compositions remain complete and readable at desktop, portrait and short landscape sizes": 81,
     "[mobile-chromium] › presence.spec.ts › named-person framing survives resize, a failed region load and a return visit without changing story state": 29,
     "[mobile-chromium] › presence.spec.ts › nearby conversations keep identities, motion pause and camera recovery through menus and reload": 34,
+    "[mobile-chromium] › quality-settings.spec.ts › cold quality changes keep native draws valid and preserve the journey after region visits": 600,
     "[mobile-chromium] › road.spec.ts › At the gate supports every scene, pause, transcript, leave, reload and a final reflection without optional errands": 69,
     "[mobile-chromium] › road.spec.ts › Neri walks the shade route across farm, road and Nain with menus, alternate exits and portable saves": 123,
     "[mobile-chromium] › road.spec.ts › Neri walks the terrace route across farm, road and Nain with menus, alternate exits and portable saves": 99,

@@ -117,8 +117,9 @@ nativePickerTest(
     else if (browserName === 'firefox') await page.keyboard.press('Space');
     else await quality.click();
     await expect.poll(() => native.evaluate((control) => control.matches(':open'))).toBe(true);
-    // The emulated phone commits an arrow selection; desktop retains a pending selection.
-    if (!isMobile) await page.keyboard.press('ArrowUp');
+    // macOS desktop cancels a pending arrow selection; Linux's picker keeps the arrow choice.
+    // Exercise popup cancellation before changing the native selection on Linux and phones.
+    if (!isMobile && process.platform === 'darwin') await page.keyboard.press('ArrowUp');
     const opened = await native.evaluate((control) => ({
       supported: CSS.supports('selector(select:open)'),
       open: CSS.supports('selector(select:open)') && control.matches(':open'),

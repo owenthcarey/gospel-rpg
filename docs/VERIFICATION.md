@@ -2,6 +2,18 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## CI correction · PR #25 · 2026-10-01
+
+The [initial PR run](https://github.com/owenthcarey/gospel-rpg/actions/runs/36941481695) passed build, continuous journey and compatibility, but nine Chromium browser groups failed. The logs and downloaded traces distinguish layout defects from timing and native-control assumptions.
+
+Short welcome screens now hide the decorative location plaque so it cannot cover Saves & settings. Buttons in the compact HUD scrollport reserve two pixels of scroll margin, retaining full visibility when native scroll offsets round fractional layout bounds. The existing 44 px target and full-viewport assertions remain.
+
+The notice collision sampler arms before import and watches the stable map surface because import replaces its player marker. It checks every recorded frame while the real 4.8-second notice is visible, requires an actual visible sample, and checks the label's restored position after expiry. Camera checks compare quarter turns and verify that the first Q frame starts at the exploration bookmark; the exact rotation-rate unit checks remain. Recovery checks capture position after the next HUD frame rather than reading the arrival's stale marker. Native-picker cancellation changes a pending selection only on macOS desktop; the Linux trace keeps the arrow choice after Escape, so Linux and phone checks cancel before changing the native selection.
+
+The uninterrupted fourteen-region graphics pass receives a ten-minute case budget. Its desktop CI trace reached six High visits in three minutes with no WebGL errors. Explicit 600-second scheduling estimates place desktop and phone passes alone; these are capacity estimates, not successful measured timings. Browser planning verifies all **256 cases exactly once across 71 groups**. The other case budgets, retries and required CI gate remain.
+
+Final local software-WebGL verification passes **all fourteen affected desktop/phone checks**, one worker and no retries, including both uninterrupted fourteen-region High visits followed by Low/High restoration. The initial local notice rerun exposed the replaced-marker sampler and remains in ignored review diagnostics; the corrected desktop/phone notice selection passes. Evidence, formatting, types, lint, all **719 unit checks in 46 files**, production build and whitespace checks pass. Local results do not establish GitHub runner results.
+
 ## Classic presentation polish · 2026-09-30
 
 ### Message history, phone controls and furnished interiors

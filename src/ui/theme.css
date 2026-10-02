@@ -1494,6 +1494,9 @@
   }
 }
 @media (max-height: 540px) {
+  :root .welcome-location {
+    display: none;
+  }
   :root .quest-card,
   :root .quest-card:not(.objective-expanded) {
     top: 74px;
@@ -1728,6 +1731,10 @@
   }
   :root .hud-actions:not(:has(> :not([hidden]))) {
     display: none;
+  }
+  :root .hud-actions button {
+    /* Leave room for integer scroll offsets around fractional button bounds. */
+    scroll-margin: 2px;
   }
   :root .action-scroll-cue {
     display: block;

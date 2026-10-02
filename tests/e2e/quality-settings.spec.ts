@@ -9,6 +9,9 @@ import { newGame } from '../../src/game/types';
 test('cold quality changes keep native draws valid and preserve the journey after region visits', async ({
   page,
 }, info) => {
+  // This uninterrupted pass compiles all fourteen regions, then switches both qualities.
+  // The CI trace reaches only six High visits in the ordinary three-minute case budget.
+  test.setTimeout(10 * 60_000);
   const errors: string[] = [];
   const warnings: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));

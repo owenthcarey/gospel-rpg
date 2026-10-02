@@ -7,40 +7,62 @@ const bearing = (page: Page) =>
     .locator('.minimap-wrap')
     .evaluate((node) => parseFloat((node as HTMLElement).style.getPropertyValue('--map-bearing')));
 
-async function holdQ(page: Page, leaveConversation = false) {
-  await page.locator('#game-canvas').evaluate(async (node, leave) => {
-    const canvas = node as HTMLCanvasElement;
-    const send = (type: string) =>
-      canvas.dispatchEvent(
-        new KeyboardEvent(type, {
-          bubbles: true,
-          cancelable: true,
-          key: 'q',
-          code: 'KeyQ',
-        }),
-      );
-    if (leave) {
-      // Begin at the real close checkpoint, before the 700 ms return gets a frame.
-      // Separate browser commands can outlast that window with software WebGL.
-      await new Promise<void>((resolve) => {
-        const overlay = document.querySelector('#overlay')!;
+async function holdQ(page: Page, from: number, leaveConversation = false, reading = false) {
+  return page.locator('#game-canvas').evaluate(
+    async (node, options) => {
+      const canvas = node as HTMLCanvasElement;
+      const map = document.querySelector<HTMLElement>('.minimap-wrap')!;
+      let firstTurn: number | undefined;
+      const send = (type: string) =>
+        canvas.dispatchEvent(
+          new KeyboardEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            key: 'q',
+            code: 'KeyQ',
+          }),
+        );
+      // Compare the same rendered turn, rather than wall-clock holds with different frame rates.
+      const rotated = new Promise<void>((resolve) => {
+        if (options.reading) {
+          setTimeout(resolve, 900);
+          return;
+        }
         const observer = new MutationObserver(() => {
-          if (overlay.childElementCount) return;
+          const bearing = parseFloat(map.style.getPropertyValue('--map-bearing'));
+          const turn = ((bearing - options.from + 540) % 360) - 180;
+          if (firstTurn === undefined && Math.abs(turn) > 0.001) firstTurn = turn;
+          if (turn < 90) return;
           observer.disconnect();
-          send('keydown');
+          send('keyup');
           resolve();
         });
-        observer.observe(overlay, { childList: true });
-        document.querySelector<HTMLButtonElement>('[aria-label="Leave conversation"]')!.click();
+        observer.observe(map, { attributes: true, attributeFilter: ['style'] });
       });
-    } else send('keydown');
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 900));
-    } finally {
-      send('keyup');
-    }
-    await new Promise((resolve) => setTimeout(resolve, 850));
-  }, leaveConversation);
+      if (options.leaveConversation) {
+        // Begin at the real close checkpoint, before the 700 ms return gets a frame.
+        await new Promise<void>((resolve) => {
+          const overlay = document.querySelector('#overlay')!;
+          const observer = new MutationObserver(() => {
+            if (overlay.childElementCount) return;
+            observer.disconnect();
+            send('keydown');
+            resolve();
+          });
+          observer.observe(overlay, { childList: true });
+          document.querySelector<HTMLButtonElement>('[aria-label="Leave conversation"]')!.click();
+        });
+      } else send('keydown');
+      try {
+        await rotated;
+      } finally {
+        send('keyup');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 850));
+      return firstTurn;
+    },
+    { from, leaveConversation, reading },
+  );
 }
 
 test('held Q takes over a conversation camera return and stays quiet behind the journal', async ({
@@ -54,14 +76,20 @@ test('held Q takes over a conversation camera return and stays quiet behind the 
   await page.waitForTimeout(150);
   const initial = await bearing(page);
   const position = await page.locator('#minimap-player').getAttribute('transform');
-  await holdQ(page);
+  const ordinaryFirst = (await holdQ(page, initial))!;
+  expect(ordinaryFirst).toBeGreaterThan(0);
+  expect(ordinaryFirst).toBeLessThan(12);
   const ordinaryTurn = turn(initial, await bearing(page));
-  expect(ordinaryTurn).toBeGreaterThan(20);
+  expect(ordinaryTurn).toBeGreaterThanOrEqual(90);
+  expect(ordinaryTurn).toBeLessThan(102);
 
   await page.getByRole('button', { name: 'Reset camera', exact: true }).click();
   await page.waitForTimeout(150);
   await visit(page, 'simon');
-  await holdQ(page, true);
+  const returningFirst = (await holdQ(page, initial, true))!;
+  // A held Q must start at the exploration bookmark on its first frame, without easing back.
+  expect(returningFirst).toBeGreaterThan(0);
+  expect(returningFirst).toBeLessThan(12);
   const returned = await bearing(page);
   expect(turn(initial, returned) / ordinaryTurn).toBeGreaterThan(0.85);
   expect(turn(initial, returned) / ordinaryTurn).toBeLessThan(1.15);
@@ -70,7 +98,7 @@ test('held Q takes over a conversation camera return and stays quiet behind the 
 
   await page.keyboard.press('j');
   await expect(page.getByRole('dialog')).toContainText('A traveler’s journal');
-  await holdQ(page);
+  await holdQ(page, returned, false, true);
   await dismiss(page);
   await page.waitForTimeout(150);
   expect(turn(returned, await bearing(page))).toBeLessThan(0.1);

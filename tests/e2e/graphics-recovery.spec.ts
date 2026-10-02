@@ -338,7 +338,17 @@ test('full inspection stays readable while physical commands pause and resume', 
   await visit(page, 'rest-breeze');
   await act(page, 'work-inspect');
   const player = page.locator('#minimap-player');
-  const positionAfterReturn = await player.getAttribute('transform');
+  // Arrival opens the inspection before a slow renderer publishes its next HUD frame.
+  const positionAfterReturn = await player.evaluate(
+    (node) =>
+      new Promise<string>((resolve) => {
+        const observer = new MutationObserver(() => {
+          observer.disconnect();
+          resolve(node.getAttribute('transform')!);
+        });
+        observer.observe(node, { attributes: true, attributeFilter: ['transform'] });
+      }),
+  );
   await act(page, 'galilee-screen', '2');
   await expect(page.locator('.rest-plan')).toContainText('Screen on the west side');
   await expect(player).toHaveAttribute('transform', positionAfterReturn!);
