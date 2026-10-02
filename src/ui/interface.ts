@@ -42,7 +42,7 @@ import {
 } from './views/episode';
 import { regions } from '../content/regions';
 import type { Diagnostics } from '../scene/runtime';
-import { allInteractables, activeInteractables, buildings, shoreline } from '../content/region';
+import { allInteractables, activeInteractables, shoreline } from '../content/region';
 import { items, type Dialogue } from '../content/story';
 import { nearbyActions } from './views/actions';
 import { arrangeLabels, measureLabels } from './labels';
@@ -81,6 +81,7 @@ import {
 import './fonts.css';
 import './theme.css';
 import { MinimapControls, mapPoint } from './minimap';
+import { capernaumMapScenery } from './map-scenery';
 import './satchel-map.css';
 import './classic-reading.css';
 import { MessageHistory } from './messages';
@@ -1320,7 +1321,7 @@ export class Interface {
       .map((p) => `L${p}`)
       .join(
         ' ',
-      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/><path d="m80 192 4-100 12-92M16 100h110M36 64h60" stroke="#dace9f" fill="none" stroke-width="7"/>${buildings.map((p) => `<rect x="${(p.x + 24) * 4 - 7}" y="${(24 - p.z) * 4 - 6}" width="14" height="12" fill="#81765a" stroke="#e1cf9c" stroke-width="1"/>`).join('')}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
+      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/><path d="m80 192 4-100 12-92M16 100h110M36 64h60" stroke="#dace9f" fill="none" stroke-width="7"/>${capernaumMapScenery()}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
   }
   dispose(): void {
     this.shortLandscape.removeEventListener('change', this.onNoticeLayout);
