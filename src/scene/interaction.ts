@@ -44,6 +44,7 @@ export class InteractionFeedback {
   private suppressClick = false;
   private hold?: { id: number; click: ScreenClick; target: HTMLElement; view?: HoldView };
   private holdTimer?: ReturnType<typeof setTimeout>;
+  private hoverView?: HoldView;
   private disposed = false;
   private lastPick = 0;
   private returnFocus?: HTMLElement;
@@ -116,20 +117,7 @@ export class InteractionFeedback {
     if (e.pointerType === 'touch' && e.button === 0 && !this.touchRejected) {
       const target = label ?? this.input.canvas;
       if (target.hasAttribute('disabled')) return;
-      const camera = this.input.scene.activeCamera;
-      let view: HoldView | undefined;
-      if (camera instanceof TargetCamera) {
-        // Synchronize before assigning the hold: matrix observers must not reject its baseline.
-        camera.getViewMatrix();
-        camera.getProjectionMatrix();
-        const rect = this.input.canvas.getBoundingClientRect();
-        view = HoldView.capture(
-          camera.getTransformationMatrix(),
-          camera.getTarget(),
-          camera.viewport.toGlobal(rect.width, rect.height),
-          rect,
-        );
-      }
+      const view = this.captureView();
       this.hold = { id: e.pointerId, click: { x: e.clientX, y: e.clientY }, target, view };
       this.holdTimer = setTimeout(this.openHold, 500);
     }
@@ -190,11 +178,13 @@ export class InteractionFeedback {
     const id =
       label?.dataset.value ?? this.pick(e.clientX, e.clientY)?.pickedMesh?.metadata?.interactionId;
     const place = typeof id === 'string' ? this.input.place(id) : undefined;
-    this.input.canvas.style.cursor = place ? 'pointer' : '';
     if (!place) {
-      this.hint.hidden = true;
+      this.clearHover();
       return;
     }
+    // A new native pointer pick owns the baseline; camera notifications never refresh it.
+    this.hoverView = this.captureView();
+    this.input.canvas.style.cursor = 'pointer';
     this.describe(this.hint, place);
     this.hint.hidden = false;
     this.position(this.hint, e.clientX + 16, e.clientY + 18);
@@ -264,24 +254,38 @@ export class InteractionFeedback {
     // Blur clears canonical input; hidden documents also pause the world and clear it.
     this.touches.clear();
   };
-  private viewChanged = () => {
-    if (this.hold) {
-      const camera = this.input.scene.activeCamera;
-      const rect = this.input.canvas.getBoundingClientRect();
-      // The observable fires after the new matrix is computed. This accessor uses cached
-      // view/projection matrices, avoiding reentrant getViewMatrix and stale scene transforms.
-      if (
-        !camera ||
-        !this.hold.view ||
-        this.hold.view.changed(
-          camera.getTransformationMatrix(),
-          camera.viewport.toGlobal(rect.width, rect.height),
-          rect,
-        )
+  private captureView() {
+    const camera = this.input.scene.activeCamera;
+    if (!(camera instanceof TargetCamera)) return undefined;
+    // Synchronize before assigning a hold or hover: observers cannot reject its new baseline.
+    camera.getViewMatrix();
+    camera.getProjectionMatrix();
+    const rect = this.input.canvas.getBoundingClientRect();
+    return HoldView.capture(
+      camera.getTransformationMatrix(),
+      camera.getTarget(),
+      camera.viewport.toGlobal(rect.width, rect.height),
+      rect,
+    );
+  }
+  private changedView(view?: HoldView) {
+    const camera = this.input.scene.activeCamera;
+    const rect = this.input.canvas.getBoundingClientRect();
+    // Observables fire after the new matrix is computed. Use cached view/projection
+    // matrices, avoiding reentrant getViewMatrix and stale scene transforms.
+    return (
+      !camera ||
+      !view ||
+      view.changed(
+        camera.getTransformationMatrix(),
+        camera.viewport.toGlobal(rect.width, rect.height),
+        rect,
       )
-        this.rejectTouches();
-    }
-    this.clearHover();
+    );
+  }
+  private viewChanged = () => {
+    if (this.hold && this.changedView(this.hold.view)) this.rejectTouches();
+    if (!this.hint.hidden && this.changedView(this.hoverView)) this.clearHover();
   };
   private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
     const label = this.label(target);
@@ -304,7 +308,7 @@ export class InteractionFeedback {
     if (place) this.option(place, () => this.input.notice(examineText(place)), 'Examine');
     this.option('Cancel', () => {});
     this.menu.hidden = false;
-    this.hint.hidden = true;
+    this.clearHover();
     this.position(this.menu, x, y);
     this.menu.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
   }
@@ -404,6 +408,7 @@ export class InteractionFeedback {
     this.flash.hidden = true;
   };
   private clearHover = () => {
+    this.hoverView = undefined;
     this.hint.hidden = true;
     this.input.canvas.style.cursor = '';
   };

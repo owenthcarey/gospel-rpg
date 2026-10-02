@@ -80,27 +80,34 @@ afterEach(() => {
   }
 });
 
-function studio() {
+function studio(pointerType: 'touch' | 'mouse' = 'touch') {
   vi.useFakeTimers();
   const body = new ElementBoundary();
   const canvas = new ElementBoundary();
+  const width = pointerType === 'mouse' ? 1440 : 390;
+  const height = pointerType === 'mouse' ? 900 : 844;
+  canvas.bounds = { left: 0, top: 0, width, height };
   const document = Object.assign(new BrowserEventBoundary(), {
     hidden: false,
     body,
     activeElement: canvas,
     createElement: () => new ElementBoundary(),
-    createTextNode: () => new ElementBoundary(),
+    createTextNode: (text: string) => {
+      const node = new ElementBoundary();
+      node.textContent = text;
+      return node;
+    },
   });
   const window = new BrowserEventBoundary();
   vi.stubGlobal('document', document);
   vi.stubGlobal('window', window);
   vi.stubGlobal('Element', ElementBoundary);
   vi.stubGlobal('HTMLElement', ElementBoundary);
-  vi.stubGlobal('innerWidth', 390);
-  vi.stubGlobal('innerHeight', 844);
+  vi.stubGlobal('innerWidth', width);
+  vi.stubGlobal('innerHeight', height);
   engine = new NullEngine({
-    renderWidth: 390,
-    renderHeight: 844,
+    renderWidth: width,
+    renderHeight: height,
     textureSize: 256,
     deterministicLockstep: false,
     lockstepMaxSteps: 4,
@@ -119,7 +126,7 @@ function studio() {
   camera.fov = 0.7;
   const cancelTap = vi.fn();
   let paused = false;
-  vi.spyOn(scene, 'pick').mockReturnValue({
+  const pick = vi.spyOn(scene, 'pick').mockReturnValue({
     pickedMesh: { metadata: { interactionId: 'boat' } },
   } as unknown as PickingInfo);
   feedback = new InteractionFeedback({
@@ -135,22 +142,39 @@ function studio() {
     notice: vi.fn(),
     cancelTap,
   });
+  const hint = body.children[0]!;
   const menu = body.children[1]!;
-  const pointer = (type: string, id = 1, x = 200, y = 400) => {
+  let now = 100;
+  if (pointerType === 'mouse') vi.spyOn(performance, 'now').mockImplementation(() => now);
+  const pointer = (
+    type: string,
+    id = 1,
+    x = 200,
+    y = 400,
+    options: { target?: ElementBoundary; buttons?: number; pointerType?: string } = {},
+  ) => {
     const event = new Event(type, { cancelable: true });
     Object.defineProperties(event, {
-      target: { value: canvas },
+      target: { value: options.target ?? canvas },
       pointerId: { value: id },
-      pointerType: { value: 'touch' },
+      pointerType: { value: options.pointerType ?? pointerType },
       button: { value: 0 },
-      buttons: { value: type === 'pointerup' ? 0 : 1 },
+      buttons: { value: options.buttons ?? (type === 'pointerup' ? 0 : 1) },
       clientX: { value: x },
       clientY: { value: y },
     });
     document.dispatchEvent(event);
   };
+  const hover = (options: Parameters<typeof pointer>[4] = {}) => {
+    // A real eligible mousemove passes the existing 80 ms pick throttle.
+    now += 81;
+    pointer('pointermove', 1, 884, 521, { ...options, buttons: options.buttons ?? 0 });
+  };
   return {
     camera,
+    hint,
+    pick,
+    hover,
     document,
     window,
     canvas,
@@ -278,5 +302,153 @@ describe('feedback hold camera guard and lifetime', () => {
     expect(cancelTap).toHaveBeenCalledTimes(calls);
     expect(menu.hidden).toBe(true);
     expect(menu.isConnected).toBe(false);
+  });
+});
+
+describe('feedback hover camera guard and lifetime', () => {
+  it('retains the named hint and pointer cursor through tiny actual follow notifications', () => {
+    const { camera, hover, hint, menu, canvas, pick } = studio('mouse');
+    hover();
+    expect(hint.hidden).toBe(false);
+    expect(hint.children.map((child) => child.textContent).join('')).toBe(
+      'Visit Board the lake boat',
+    );
+    expect(canvas.style.cursor).toBe('pointer');
+    const notified = vi.fn();
+    camera.onViewMatrixChangedObservable.add(notified);
+    const getView = vi.spyOn(camera, 'getViewMatrix');
+    camera.target.x += 3e-11;
+    camera.target.z += 2e-11;
+    camera.getViewMatrix();
+    expect(getView).toHaveBeenCalledTimes(1);
+    expect(notified).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(700);
+    expect(hint.hidden).toBe(false);
+    expect(canvas.style.cursor).toBe('pointer');
+    expect(menu.hidden).toBe(true);
+    expect(pick).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears cumulative small pan, stays clear on return, and picks again only on a fresh mousemove', () => {
+    const { camera, hover, hint, canvas, pick } = studio('mouse');
+    const original = camera.target.clone();
+    hover();
+    camera.target.x += 0.002;
+    camera.getViewMatrix();
+    expect(hint.hidden).toBe(false);
+    for (let step = 1; step < 40; step++) {
+      camera.target.x += 0.002;
+      camera.getViewMatrix();
+    }
+    expect(hint.hidden).toBe(true);
+    expect(canvas.style.cursor).toBe('');
+    expect(pick).toHaveBeenCalledTimes(1);
+    camera.target.copyFrom(original);
+    camera.getViewMatrix();
+    expect(hint.hidden).toBe(true);
+    hover();
+    expect(hint.hidden).toBe(false);
+    expect(canvas.style.cursor).toBe('pointer');
+    expect(pick).toHaveBeenCalledTimes(2);
+  });
+
+  for (const motion of ['orbit', 'tilt', 'zoom', 'projection'] as const)
+    it('clears on meaningful ' + motion + ' without repicking the stale target', () => {
+      const { camera, hover, hint, canvas, pick } = studio('mouse');
+      hover();
+      const getView = vi.spyOn(camera, 'getViewMatrix');
+      if (motion === 'orbit') camera.alpha += 0.08;
+      if (motion === 'tilt') camera.beta += 0.08;
+      if (motion === 'zoom') camera.radius *= 0.8;
+      if (motion === 'projection') {
+        camera.fov *= 0.9;
+        camera.getProjectionMatrix();
+        expect(getView).not.toHaveBeenCalled();
+      } else camera.getViewMatrix();
+      expect(hint.hidden).toBe(true);
+      expect(canvas.style.cursor).toBe('');
+      expect(pick).toHaveBeenCalledTimes(1);
+    });
+
+  it('clears an actual bounds change even when the accompanying camera notification is tiny', () => {
+    const { camera, hover, hint, canvas, pick } = studio('mouse');
+    hover();
+    canvas.bounds.left += 1;
+    camera.target.x += 3e-11;
+    camera.getViewMatrix();
+    expect(hint.hidden).toBe(true);
+    expect(canvas.style.cursor).toBe('');
+    expect(pick).toHaveBeenCalledTimes(1);
+  });
+
+  for (const reason of [
+    'outside',
+    'buttons',
+    'touch',
+    'down',
+    'pointercancel',
+    'blur',
+    'hidden',
+    'resize',
+    'pause',
+    'menu',
+  ] as const)
+    it(
+      'clears the hover baseline on ' + reason + ' and never revives it from camera settling',
+      () => {
+        const { camera, hover, hint, canvas, document, window, pause, pointer, pick, menu } =
+          studio('mouse');
+        hover();
+        expect(hint.hidden).toBe(false);
+        if (reason === 'outside') hover({ target: new ElementBoundary() });
+        if (reason === 'buttons') hover({ buttons: 1 });
+        if (reason === 'touch') hover({ pointerType: 'touch' });
+        if (reason === 'down') pointer('pointerdown');
+        if (reason === 'pointercancel') pointer('pointercancel');
+        if (reason === 'blur') window.dispatchEvent(new Event('blur'));
+        if (reason === 'hidden') {
+          document.hidden = true;
+          document.dispatchEvent(new Event('visibilitychange'));
+        }
+        if (reason === 'resize') window.dispatchEvent(new Event('resize'));
+        if (reason === 'pause') pause();
+        if (reason === 'menu') {
+          const key = new Event('keydown', { cancelable: true });
+          Object.defineProperties(key, {
+            target: { value: canvas },
+            key: { value: 'ContextMenu' },
+          });
+          document.dispatchEvent(key);
+          expect(menu.hidden).toBe(false);
+        }
+        expect(hint.hidden).toBe(true);
+        expect(canvas.style.cursor).toBe('');
+        const picks = pick.mock.calls.length;
+        camera.target.x += 3e-11;
+        camera.getViewMatrix();
+        expect(hint.hidden).toBe(true);
+        expect(canvas.style.cursor).toBe('');
+        expect(pick).toHaveBeenCalledTimes(picks);
+      },
+    );
+
+  it('clears an active hover and removes its camera and native input lifetime on disposal', () => {
+    const { camera, hover, hint, canvas, pick } = studio('mouse');
+    hover();
+    expect(hint.hidden).toBe(false);
+    feedback!.dispose();
+    vi.advanceTimersByTime(1); // Babylon deferred observer removal and camera-added task.
+    expect(hint.hidden).toBe(true);
+    expect(hint.isConnected).toBe(false);
+    expect(canvas.style.cursor).toBe('');
+    expect(camera.onViewMatrixChangedObservable.observers).toHaveLength(0);
+    expect(camera.onProjectionMatrixChangedObservable.observers).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+    camera.target.x += 1;
+    camera.getViewMatrix();
+    hover();
+    expect(pick).toHaveBeenCalledTimes(1);
+    expect(hint.hidden).toBe(true);
+    expect(canvas.style.cursor).toBe('');
   });
 });
