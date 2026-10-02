@@ -1,6 +1,7 @@
 :root .minimap-wrap {
   --map-size: 152px;
   --map-bearing: 0deg;
+  --map-symbol-unit: 1.315px;
 }
 :root .minimap .map-svg {
   transform: rotate(var(--map-bearing));
@@ -13,11 +14,27 @@
 :root .minimap #minimap-player circle {
   fill: #ffffff;
   stroke: #28241d;
-  stroke-width: 1.5;
-  r: 3;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  r: calc(var(--map-symbol-unit) * 2.5);
 }
 :root .minimap #minimap-player path {
   display: none;
+}
+:root .minimap [data-map-place] {
+  r: calc(var(--map-symbol-unit) * 2);
+  stroke: #292015;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  fill: #decda5;
+}
+:root .minimap [data-map-kind='person'] {
+  fill: #ffe435;
+}
+:root .minimap .map-target {
+  r: calc(var(--map-symbol-unit) * 3);
+  stroke: #fff3a8;
+  stroke-width: 1.5;
 }
 :root .minimap-compass,
 :root .minimap-open {
@@ -68,11 +85,11 @@
     width: 44px;
     height: 44px;
     top: -10px;
-    left: calc(100% - 116px);
+    left: calc(100% - var(--map-size) - 8px);
   }
   :root .minimap-open {
     top: calc(var(--map-size) - 35px);
-    left: calc(100% - 90px);
+    left: calc(100% - var(--map-size) + 18px);
     width: calc(var(--map-size) - 36px);
     height: 44px;
     min-height: 44px;

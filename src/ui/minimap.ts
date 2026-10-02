@@ -39,11 +39,24 @@ export class MinimapControls {
   private bounds: MapBounds = { min: -24, max: 24 };
   private center: Point = { x: 0, z: 0 };
   private paused = false;
+  private symbolScale = 1;
+  private resize: ResizeObserver;
   constructor(
     private wrap: HTMLElement,
     private walk: (point: Point) => void,
     private open: () => void,
   ) {
+    // Symbols describe people and destinations, so keep their screen size as the
+    // radar shrinks. Terrain still scales normally with the world view.
+    this.resize = new ResizeObserver(([entry]) => {
+      if (!entry || entry.contentRect.width <= 0) return;
+      this.symbolScale = 192 / entry.contentRect.width;
+      this.wrap.style.setProperty('--map-symbol-unit', `${this.symbolScale}px`);
+      const map = entry.target as HTMLElement;
+      this.wrap.style.setProperty('--map-size', `${map.offsetWidth}px`);
+    });
+    const map = wrap.querySelector('.minimap');
+    if (map) this.resize.observe(map);
     document.addEventListener('pointerdown', this.down, true);
     window.addEventListener('pointermove', this.move);
     window.addEventListener('pointerup', this.up);
@@ -116,13 +129,18 @@ export class MinimapControls {
       flag = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       flag.classList.add('minimap-destination');
       flag.innerHTML =
-        '<path d="M0 5V-7H8L6-4L8-1H0" fill="#ffe746" stroke="#272015" stroke-width="1.4"/><path d="M-3 5H3" stroke="#272015" stroke-width="2"/>';
+        '<circle r="3" fill="#ffe746" stroke="#272015" stroke-width="1.2"/><path d="M0 0V-12H8L6-9L8-6H0" fill="#ffe746" stroke="#272015" stroke-width="1.4"/>';
       svg.append(flag);
     }
     flag.style.display = target ? '' : 'none';
     if (target) {
       const p = mapPoint(target, bounds);
-      flag.setAttribute('transform', `translate(${p.x},${p.y})`);
+      // The destination stays planted in the map while its flag remains upright
+      // and legible when the player rotates the camera or uses a phone radar.
+      flag.setAttribute(
+        'transform',
+        `translate(${p.x},${p.y}) rotate(${(-this.bearing * 180) / Math.PI}) scale(${this.symbolScale})`,
+      );
     }
   }
   setPaused(paused: boolean) {
@@ -131,6 +149,7 @@ export class MinimapControls {
   }
   dispose() {
     this.clear();
+    this.resize.disconnect();
     document.removeEventListener('pointerdown', this.down, true);
     window.removeEventListener('pointermove', this.move);
     window.removeEventListener('pointerup', this.up);

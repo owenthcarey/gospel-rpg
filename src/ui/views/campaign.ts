@@ -130,7 +130,7 @@ export function neighborhoodMap(
   )
     .map(
       (p) =>
-        `<circle data-map-place="${p.id}" cx="${x(p.x)}" cy="${z(p.z)}" r="${large ? 3 : 2}" fill="#f1d58e" stroke="#4b584a"/>`,
+        `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" cx="${x(p.x)}" cy="${z(p.z)}" r="${large ? 3 : 2}" fill="#f1d58e" stroke="#4b584a"/>`,
     )
     .join(
       '',
