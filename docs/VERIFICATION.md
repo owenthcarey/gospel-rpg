@@ -12,6 +12,8 @@ The notice collision sampler arms before import and watches the stable map surfa
 
 The uninterrupted fourteen-region graphics pass receives a ten-minute case budget. Its desktop CI trace reached six High visits in three minutes with no WebGL errors. Explicit 600-second scheduling estimates place desktop and phone passes alone; these are capacity estimates, not successful measured timings. Browser planning verifies all **256 cases exactly once across 71 groups**. The other case budgets, retries and required CI gate remain.
 
+The [first follow-up run](https://github.com/owenthcarey/gospel-rpg/actions/runs/36952963872) caught a scheduling-unit assertion fixed at 33 groups after the timing catalog gained two long passes. The regression now checks that every group has cases, every group above the normal budget contains exactly one case with its declared estimate, all cases are retained, and the five formerly crowded journeys remain separate.
+
 Final local software-WebGL verification passes **all fourteen affected desktop/phone checks**, one worker and no retries, including both uninterrupted fourteen-region High visits followed by Low/High restoration. The initial local notice rerun exposed the replaced-marker sampler and remains in ignored review diagnostics; the corrected desktop/phone notice selection passes. Evidence, formatting, types, lint, all **719 unit checks in 46 files**, production build and whitespace checks pass. Local results do not establish GitHub runner results.
 
 ## Classic presentation polish · 2026-09-30

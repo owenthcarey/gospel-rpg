@@ -19,11 +19,15 @@ describe('browser CI scheduling', () => {
         formerlyTogether.map((test) => shards.findIndex((shard) => shard.tests.includes(test))),
       ).size,
     ).toBe(5);
-    // The expanded, measured matrix needs one more group than the original catalog.
-    expect(shards).toHaveLength(33);
-    expect(Math.max(...shards.map((shard) => shard.estimatedSeconds))).toBeLessThanOrEqual(
-      SHARD_TARGET_SECONDS,
-    );
+    const durations: Record<string, number> = timings.seconds;
+    // Catalog growth changes the group count; retain the budget and isolation guarantees.
+    for (const shard of shards) {
+      expect(shard.tests.length).toBeGreaterThan(0);
+      if (shard.estimatedSeconds > SHARD_TARGET_SECONDS) {
+        expect(shard.tests).toHaveLength(1);
+        expect(shard.estimatedSeconds).toBe(durations[shard.tests[0]!]);
+      }
+    }
     expect(shards.flatMap((shard) => shard.tests).sort()).toEqual(tests.sort());
   });
 
