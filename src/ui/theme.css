@@ -1741,6 +1741,7 @@
   }
   :root #ui:not(.scene-mode):not(.working) .quest-card.objective-expanded > .quest-story-selector {
     position: static;
+    margin-inline-start: 8px;
   }
   :root
     #ui:not(.scene-mode):not(.working)
