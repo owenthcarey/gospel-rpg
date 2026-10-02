@@ -5,12 +5,16 @@ export function layoutDialogueReading(overlay: HTMLElement): void {
   const header = box?.querySelector<HTMLElement>('header');
   const answer = box?.querySelector<HTMLButtonElement>('[data-action="choice"]:not(:disabled)');
   if (!box || !text || !header || !answer) return;
+  const readingTop = box.scrollTop;
   const resetReading = (): void => {
     box.classList.remove('dialogue-compact-reading');
     box.style.removeProperty('--dialogue-question-height');
     text.removeAttribute('tabindex');
     text.removeAttribute('role');
     text.removeAttribute('aria-label');
+    // A rejected compact probe can clamp the outer reading position. Restore
+    // it after returning to the original scrollport, without changing focus.
+    if (box.scrollTop !== readingTop) box.scrollTop = readingTop;
   };
   if (!window.matchMedia('(max-width: 699px) and (max-height: 420px)').matches) {
     resetReading();
