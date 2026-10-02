@@ -170,7 +170,7 @@
     var(--bevel-raised),
     2px 3px #17120b80;
   backdrop-filter: none;
-  max-height: calc(100dvh - 165px);
+  max-height: min(calc(100dvh - 165px), var(--quest-notice-max-height, calc(100dvh - 165px)));
 }
 :root .quest-card.objective-expanded {
   max-height: min(calc(100dvh - 165px), var(--quest-notice-max-height, calc(100dvh - 165px)));
@@ -532,16 +532,24 @@
 :root .panel > .panel-body {
   scroll-padding: 8px;
 }
-:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions) {
+:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions, .quest-card) {
   scrollbar-width: auto;
   scrollbar-color: #584027 #a99066;
 }
 @supports selector(::-webkit-scrollbar) {
-  :root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions) {
+  :root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions, .quest-card) {
     scrollbar-color: auto;
   }
 }
-:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions)::-webkit-scrollbar {
+:root
+  :is(
+    .panel-body,
+    .scene-reading,
+    .work-body,
+    .welcome-card,
+    .hud-actions,
+    .quest-card
+  )::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
@@ -551,7 +559,8 @@
     .scene-reading,
     .work-body,
     .welcome-card,
-    .hud-actions
+    .hud-actions,
+    .quest-card
   )::-webkit-scrollbar-track {
   background: #a99066;
   box-shadow: inset 1px 0 #755b38;
@@ -562,7 +571,8 @@
     .scene-reading,
     .work-body,
     .welcome-card,
-    .hud-actions
+    .hud-actions,
+    .quest-card
   )::-webkit-scrollbar-thumb {
   background: #584027;
   border: 2px solid #a99066;
@@ -595,6 +605,37 @@
 :root .work-body {
   --scroll-cover: var(--ink-800);
   --scroll-edge: #0e0b0799;
+}
+/* Keep the quest tablet's stone finish beneath its persistent scroll edges. */
+:root .quest-card,
+:root .quest-card:not(.objective-expanded) {
+  scrollbar-width: thin;
+  scrollbar-color: #584027 #a99066;
+  --scroll-cover: #342d23;
+  --scroll-edge: #0e0b0799;
+  background-image:
+    linear-gradient(var(--scroll-cover) 30%, transparent),
+    linear-gradient(transparent, var(--scroll-cover) 70%),
+    radial-gradient(farthest-side at 50% 0, var(--scroll-edge), transparent),
+    radial-gradient(farthest-side at 50% 100%, var(--scroll-edge), transparent), var(--stone-grain);
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  background-position:
+    top,
+    bottom,
+    top,
+    bottom,
+    top left;
+  background-size:
+    100% 32px,
+    100% 32px,
+    100% 12px,
+    100% 12px,
+    auto;
+  background-attachment: local, local, scroll, scroll, scroll;
+}
+:root .quest-card::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 :root .panel-body p,
 :root .panel-lead {
@@ -1384,12 +1425,36 @@
     padding: 8px 10px;
   }
   :root .travel-status {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 8px;
     gap: 6px;
   }
-  :root .travel-status span {
-    flex-basis: 100%;
+  :root .travel-status .travel-guidance {
+    grid-column: 1 / -1;
+    min-width: 0;
+    max-height: 3lh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    touch-action: pan-y;
+    pointer-events: auto;
+  }
+  :root .route-scroll-cue {
+    grid-column: 1 / -1;
+    font-size: 11px;
+    line-height: 1;
+    color: #ffe07a;
+  }
+  :root #travel-status button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px 2px;
+    line-height: 1.25;
+  }
+  :root #travel-status button[hidden] + button {
+    grid-column: 1 / -1;
   }
   :root .toast,
   :root #ui:not(.scene-mode):not(.working):not(.conversing) .toast {
@@ -1515,7 +1580,7 @@
   :root .quest-card,
   :root .quest-card:not(.objective-expanded) {
     top: 74px;
-    max-height: calc(100dvh - 120px);
+    max-height: min(calc(100dvh - 120px), var(--quest-notice-max-height, calc(100dvh - 120px)));
   }
   :root .welcome-card,
   :root .welcome-overlay .welcome-card {
@@ -1681,6 +1746,9 @@
   }
 }
 @media (min-width: 480px) and (max-height: 420px) {
+  :root .travel-status .travel-guidance {
+    overscroll-behavior: auto;
+  }
   :root .panel > .panel-header {
     padding-block: 8px;
   }

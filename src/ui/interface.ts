@@ -121,11 +121,42 @@ export class Interface {
   private readonly hudReservations: { node: HTMLElement; lower: boolean }[];
   private readonly toastNode: HTMLElement;
   private readonly noticeActions: HTMLElement;
+  private readonly routeGuidance: HTMLElement;
+  private readonly routeScrollCue: HTMLElement;
+  private routeCueFrame?: number;
   private readonly actionScrollCue: HTMLElement;
   private readonly actionScrollObserver: ResizeObserver;
   private readonly onActionScroll = () => {
     this.updateActionScrollCue();
+    this.updateRouteScrollCue();
     this.onPausedNoticeLayout();
+  };
+  private readonly onRouteScroll = () => this.updateRouteScrollCue();
+  private readonly onRouteKey = (event: KeyboardEvent) => {
+    if (
+      event.target instanceof HTMLElement &&
+      event.target.closest('.travel-guidance') &&
+      [
+        'w',
+        'a',
+        's',
+        'd',
+        'arrowup',
+        'arrowdown',
+        'arrowleft',
+        'arrowright',
+        'q',
+        'e',
+        'r',
+        'pageup',
+        'pagedown',
+        'home',
+        'end',
+        ' ',
+      ].includes(event.key.toLowerCase())
+    )
+      // Let the native reading area scroll without passing movement to the world.
+      event.stopPropagation();
   };
   private readonly shortLandscape: MediaQueryList;
   private readonly onNoticeLayout = () => this.placeNotice(true);
@@ -191,7 +222,7 @@ export class Interface {
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
         <div id="world-labels" class="world-labels" aria-label="People and places"></div>
         <div class="traveler-card"><div class="traveler-seal">${icon('person')}</div><div><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
-        <div class="bottom-center"><div class="hud-actions"><div id="travel-status" class="travel-status" role="status" hidden><span></span><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
+        <div class="bottom-center"><div class="hud-actions"><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
         <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="7" font-family="Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><div class="camera-controls" role="group" aria-label="Camera"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div>
       </div>
       <section id="scene-controls" class="scene-controls" aria-labelledby="scene-title" hidden></section><div id="overlay"></div><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
@@ -201,13 +232,22 @@ export class Interface {
     this.hud = root.querySelector('#hud')!;
     this.toastNode = root.querySelector('#toast')!;
     this.noticeActions = this.hud.querySelector('.hud-actions')!;
+    this.routeGuidance = this.hud.querySelector('.travel-guidance')!;
+    this.routeScrollCue = this.hud.querySelector('.route-scroll-cue')!;
     this.shortLandscape = window.matchMedia('(min-width: 480px) and (max-height: 420px)');
     this.shortLandscape.addEventListener('change', this.onNoticeLayout);
     window.addEventListener('resize', this.onMenuResize);
     this.actionScrollCue = this.hud.querySelector('.action-scroll-cue')!;
     this.actionScrollObserver = new ResizeObserver(this.onActionScroll);
-    for (const node of [this.noticeActions, this.toastNode, ...this.noticeActions.children])
+    for (const node of [
+      this.noticeActions,
+      this.toastNode,
+      this.routeGuidance,
+      ...this.noticeActions.children,
+    ])
       this.actionScrollObserver.observe(node);
+    this.routeGuidance.addEventListener('scroll', this.onRouteScroll, { passive: true });
+    root.addEventListener('keydown', this.onRouteKey);
     this.noticeActions.addEventListener('scroll', this.onActionScroll, { passive: true });
     this.toastNode.addEventListener('animationend', this.onPausedNoticeLayout);
     this.hudReservations = [
@@ -434,9 +474,15 @@ export class Interface {
       resume.dataset.pauseDisabled = String(!plan?.available);
       resume.disabled = true;
     } else resume.disabled = !plan?.available;
-    if (travel.querySelector('span')!.textContent !== travelText) {
-      travel.querySelector('span')!.textContent = travelText;
-      travel.querySelector('span')!.title = travelText;
+    if (this.routeGuidance.textContent !== travelText) {
+      this.routeGuidance.textContent = travelText;
+      this.routeGuidance.title = travelText;
+      this.routeGuidance.scrollTop = 0;
+      if (this.routeCueFrame === undefined)
+        this.routeCueFrame = requestAnimationFrame(() => {
+          this.routeCueFrame = undefined;
+          this.updateRouteScrollCue();
+        });
     }
   }
   frame(
@@ -676,7 +722,6 @@ export class Interface {
     this.pendingQuestReveal = undefined;
     const floating =
       this.active &&
-      this.objectiveExpanded &&
       !this.panel &&
       !this.hud.hidden &&
       !this.hud.inert &&
@@ -706,7 +751,7 @@ export class Interface {
   }
   private setNoticeClearance(height: number, bounds: { lower: boolean; rect: DOMRect }[]): void {
     const lower = bounds.filter(
-      ({ lower, rect }) => lower && rect.height > 0 && rect.top > height / 2,
+      ({ lower, rect }) => lower && rect.height > 0 && rect.bottom > height / 2,
     );
     if (lower.length)
       this.root.style.setProperty(
@@ -726,6 +771,16 @@ export class Interface {
     this.actionScrollCue.hidden = !above && !below;
     const text = above && below ? 'More ↑ ↓' : above ? 'More above ↑' : 'More below ↓';
     if (this.actionScrollCue.textContent !== text) this.actionScrollCue.textContent = text;
+  }
+  private updateRouteScrollCue(): void {
+    const guidance = this.routeGuidance;
+    const overflow = guidance.clientHeight > 0 && guidance.scrollHeight > guidance.clientHeight + 1;
+    guidance.tabIndex = overflow ? 0 : -1;
+    this.routeScrollCue.hidden = !overflow;
+    const above = guidance.scrollTop > 1;
+    const below = guidance.scrollTop + guidance.clientHeight < guidance.scrollHeight - 1;
+    const text = above && below ? 'More ↑ ↓' : above ? 'More above ↑' : 'More below ↓';
+    if (this.routeScrollCue.textContent !== text) this.routeScrollCue.textContent = text;
   }
   private updateMessageCount(): void {
     const count = this.root.querySelector<HTMLElement>('.message-count')!;
@@ -1187,10 +1242,12 @@ export class Interface {
   toggleObjective(): void {
     this.objectiveExpanded = !this.objectiveExpanded;
     this.renderObjective();
+    this.pendingQuestReveal =
+      this.quest.querySelector<HTMLElement>('.objective-toggle') ?? undefined;
+    this.placeNotice(true);
   }
   private renderObjective(): void {
     this.quest.classList.toggle('objective-expanded', this.objectiveExpanded);
-    if (!this.objectiveExpanded) this.clearQuestNoticeSpace();
     this.quest
       .querySelectorAll<HTMLElement>('.quest-details')
       .forEach((el) => (el.hidden = !this.objectiveExpanded));
@@ -1506,6 +1563,9 @@ export class Interface {
     this.shortLandscape.removeEventListener('change', this.onNoticeLayout);
     window.removeEventListener('resize', this.onMenuResize);
     this.noticeActions.removeEventListener('scroll', this.onActionScroll);
+    this.routeGuidance.removeEventListener('scroll', this.onRouteScroll);
+    this.root.removeEventListener('keydown', this.onRouteKey);
+    if (this.routeCueFrame !== undefined) cancelAnimationFrame(this.routeCueFrame);
     this.toastNode.removeEventListener('animationend', this.onPausedNoticeLayout);
     this.actionScrollObserver.disconnect();
     this.minimap.dispose();
