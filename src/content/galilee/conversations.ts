@@ -9,14 +9,38 @@ export function galileeText(id: string, s: GameState): string {
       return 'Leah looks over the resting place. “A mat, water, shelter, and room to enter. You thought about the person who would arrive.” She invites you to remember the welcome or the care that went into it.';
     return 'Leah folds a length of linen beside the farm path. “Some travelers would welcome a place to stop. There is shade west of the path and a breezier patch to the east. Look at both before choosing. The rack has a mat, a jar of water and a folding screen. You may move them again if the first arrangement does not suit.”';
   }
-  if (id === 'spring-source')
-    return g.spring.stage === 'complete'
-      ? 'A narrow ribbon of water follows the connected channel. The scoop rests on its rack, and the cleared stones lie beside the source. A traveler pauses at the receiving basin. The work remains part of this imagined road.'
-      : 'A small source enters the stone channel from the west. Loose stones interrupt the inlet and silt fills the entry trough. Beyond it, loose sections can be turned by hand. The water will only reach a basin if their open ends meet.';
+  if (id === 'spring-source') {
+    if (g.spring.stage === 'complete')
+      return 'A narrow ribbon of water follows the connected channel. The scoop rests on its rack, and the cleared stones lie beside the source. A traveler pauses at the receiving basin. The work remains part of this imagined road.';
+    const clearance = g.spring.cleared.length
+      ? [
+          g.spring.cleared.includes('inlet')
+            ? 'The inlet stones lie beside the source, leaving its opening clear.'
+            : 'Loose stones still interrupt the inlet.',
+          g.spring.cleared.includes('silt')
+            ? 'The entry trough is clear of silt.'
+            : 'Silt still fills the entry trough.',
+        ].join(' ')
+      : 'Loose stones interrupt the inlet and silt fills the entry trough.';
+    return `A small source enters the stone channel from the west. ${clearance} Beyond it, loose sections can be turned by hand. The water will only reach a basin if their open ends meet.`;
+  }
   if (id === 'spring-basins')
     return 'Two shallow basins stand east of the work, one north and one south. Both are useful. Follow the openings from the source through the entry, central turn and one branch. The unused branch can remain dry.';
-  if (id === 'spring-tools')
-    return 'A wooden scoop lies on a low rack. Use it to lift the inlet stones and entry silt. Put it back before turning the channel with both hands. You can leave and return without losing work.';
+  if (id === 'spring-tools') {
+    const carrying = s.campaign.carrying === 'channel-scoop';
+    if (g.spring.stage === 'complete')
+      return 'The wooden scoop rests on its low rack. The inlet stones lie beside the source and the entry trough is clear of silt. Water follows the channel to a roadside basin. The work is remembered.';
+    if (!carrying && !g.spring.cleared.length)
+      return 'A wooden scoop lies on a low rack. Use it to lift the inlet stones and entry silt. Put it back before turning the channel with both hands. You can leave and return without losing work.';
+    const rack = carrying
+      ? 'The rack is empty while you carry the wooden scoop.'
+      : 'A wooden scoop lies on a low rack.';
+    const task =
+      g.spring.cleared.length === 2
+        ? `The inlet and entry trough are clear. ${carrying ? 'Put the scoop back before turning the channel with both hands.' : 'Turn the channel sections with free hands.'}`
+        : `Use it to ${g.spring.cleared.length ? 'clear the remaining ' + (g.spring.cleared.includes('inlet') ? 'entry silt' : 'inlet stones') : 'lift the inlet stones and entry silt'}. Put it back before turning the channel with both hands.`;
+    return `${rack} ${task} You can leave and return without losing work.`;
+  }
   if (id === 'rest-supplies')
     return 'Leah has set aside one woven mat, one jar of water and one folding reed screen. Carry one at a time. Unplaced supplies remain here; placed supplies can be picked up again until you finish with Leah.';
   if (id === 'rest-shade' || id === 'rest-breeze')
