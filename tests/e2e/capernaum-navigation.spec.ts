@@ -2,9 +2,11 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { obstacles, isLand, props } from '../../src/content/region';
 import { distance, WalkGrid } from '../../src/game/pathfinding';
+import { clearLine } from '../../src/game/navigation';
 import type { Point } from '../../src/game/types';
 import { parseSave } from '../../src/persistence/schema';
 import { dismiss, exported, ready } from '../helpers/connection-browser';
+import { observeRadarCrossing } from '../helpers/navigation-crossing-browser';
 
 const grid = new WalkGrid(obstacles, isLand);
 
@@ -51,32 +53,27 @@ for (const [quality, reducedMotion] of [
 
     // Pause through the real journal at the same shoreline crossing that previously
     // put the traveler's legs inside the imported wooden crate.
-    const crossing = page.locator('#minimap-player').evaluate(
-      (node) =>
-        new Promise<Point[]>((resolve) => {
-          const samples: Point[] = [];
-          const observer = new MutationObserver(() => {
-            const [, x, y] = node.getAttribute('transform')!.match(/translate\(([^,]+),([^)]*)\)/)!;
-            const point = { x: Number(x) / 4 - 24, z: 24 - Number(y) / 4 };
-            samples.push(point);
-            if (point.z < 0.4 || point.z > 0.7) return;
-            observer.disconnect();
-            document.querySelector<HTMLButtonElement>('.toolbar [data-action="journal"]')!.click();
-            resolve(samples);
-          });
-          observer.observe(node, { attributes: true, attributeFilter: ['transform'] });
-        }),
-    );
+    const crate = props.find((p) => p.asset === 'crate' && p.x === 7.2)!;
+    const footprint = obstacles.find((o) => o.x === crate.x && o.z === crate.z)!;
+    const observer = await observeRadarCrossing(page, { min: -24, max: 24 }, crate.z);
     await tapWorld(page, { x: 7, z: 2 }, isMobile);
-    const samples = await crossing;
+    const crossing = await observer.completed;
+    const { samples } = crossing;
     expect(samples.length).toBeGreaterThan(1);
-    for (const point of samples) expect(grid.walkable(point)).toBe(true);
+    for (const [i, point] of samples.entries()) {
+      expect(grid.walkable(point)).toBe(true);
+      if (i) expect(clearLine(grid, samples[i - 1]!, point)).toBe(true);
+    }
+    expect(crossing.before.z).toBeLessThan(crate.z);
+    expect(crossing.after.z).toBeGreaterThanOrEqual(crate.z);
+    expect(grid.walkable(crossing.crossing)).toBe(true);
+    expect(crossing.crossing.x).toBeGreaterThan(footprint.x + footprint.width / 2);
     await expect(page.getByRole('dialog')).toContainText('A traveler’s journal');
     await expect(page.locator('.minimap-destination')).toBeHidden();
     const passing = await radarPoint(page);
-    const crate = props.find((p) => p.asset === 'crate' && p.x === 7.2)!;
-    const footprint = obstacles.find((o) => o.x === crate.x && o.z === crate.z)!;
-    expect(passing.x).toBeGreaterThan(footprint.x + footprint.width / 2);
+    expect(grid.walkable(passing)).toBe(true);
+    if (Math.abs(passing.z - footprint.z) <= footprint.depth / 2)
+      expect(passing.x).toBeGreaterThan(footprint.x + footprint.width / 2);
     await page.screenshot({
       path: info.outputPath('traveler-beside-shore-crate.png'),
       style: '#ui,#loading{visibility:hidden!important}',
@@ -106,7 +103,11 @@ for (const [quality, reducedMotion] of [
     expect({ ...after, position: before.position, playTime: before.playTime }).toEqual(before);
     await writeFile(
       info.outputPath('shore-route.json'),
-      JSON.stringify({ quality, reducedMotion, samples, passing, endpoint, stopped }, null, 2),
+      JSON.stringify(
+        { quality, reducedMotion, samples, crossing, passing, endpoint, stopped },
+        null,
+        2,
+      ),
     );
   });
 

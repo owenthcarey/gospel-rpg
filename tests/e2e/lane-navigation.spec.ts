@@ -2,9 +2,11 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { campaignLayout, layoutObstacles } from '../../src/content/campaign/layouts';
 import { distance, WalkGrid } from '../../src/game/pathfinding';
+import { clearLine } from '../../src/game/navigation';
 import type { Point } from '../../src/game/types';
 import { parseSave } from '../../src/persistence/schema';
 import { dismiss, exported, ready } from '../helpers/connection-browser';
+import { observeRadarCrossing } from '../helpers/navigation-crossing-browser';
 
 const fixture = async (name: string) =>
   parseSave(JSON.parse(await readFile(`tests/fixtures/saves/${name}`, 'utf8'))).state;
@@ -67,31 +69,26 @@ for (const [quality, reducedMotion] of [
     await arrive(page, from, isMobile);
 
     // Freeze at the same real crossing that put the traveler inside the old crate.
-    const crossing = page.locator('#minimap-player').evaluate(
-      (node) =>
-        new Promise<Point[]>((resolve) => {
-          const samples: Point[] = [];
-          const observer = new MutationObserver(() => {
-            const [, x, y] = node.getAttribute('transform')!.match(/translate\(([^,]+),([^)]*)\)/)!;
-            const point = { x: Number(x) / 6 - 16, z: 16 - Number(y) / 6 };
-            samples.push(point);
-            if (point.z < -4.1 || point.z > -3.9) return;
-            observer.disconnect();
-            document.querySelector<HTMLButtonElement>('.toolbar [data-action="journal"]')!.click();
-            resolve(samples);
-          });
-          observer.observe(node, { attributes: true, attributeFilter: ['transform'] });
-        }),
-    );
+    const observer = await observeRadarCrossing(page, layout.bounds, crate.z);
     await tapWorld(page, target, isMobile);
-    const samples = await crossing;
+    const crossing = await observer.completed;
+    const { samples } = crossing;
     expect(samples.length).toBeGreaterThan(1);
-    for (const point of samples) expect(grid.walkable(point)).toBe(true);
+    for (const [i, point] of samples.entries()) {
+      expect(grid.walkable(point)).toBe(true);
+      if (i) expect(clearLine(grid, samples[i - 1]!, point)).toBe(true);
+    }
+    const footprint = layoutObstacles(state).find((o) => o.x === crate.x && o.z === crate.z)!;
+    expect(crossing.before.z).toBeLessThan(crate.z);
+    expect(crossing.after.z).toBeGreaterThanOrEqual(crate.z);
+    expect(grid.walkable(crossing.crossing)).toBe(true);
+    expect(crossing.crossing.x).toBeLessThan(footprint.x - footprint.width / 2);
     await expect(page.getByRole('dialog')).toContainText('A traveler’s journal');
     await expect(page.locator('.minimap-destination')).toBeHidden();
     const passing = await radarPoint(page);
-    const footprint = layoutObstacles(state).find((o) => o.x === crate.x && o.z === crate.z)!;
-    expect(passing.x).toBeLessThan(footprint.x - footprint.width / 2);
+    expect(grid.walkable(passing)).toBe(true);
+    if (Math.abs(passing.z - footprint.z) <= footprint.depth / 2)
+      expect(passing.x).toBeLessThan(footprint.x - footprint.width / 2);
     await page.screenshot({
       path: info.outputPath('traveler-beside-outer-lane-crate.png'),
       style: '#ui,#loading{visibility:hidden!important}',
@@ -119,7 +116,7 @@ for (const [quality, reducedMotion] of [
     await writeFile(
       info.outputPath('lane-route-state.json'),
       JSON.stringify(
-        { quality, reducedMotion, samples, passing, endpoint, stopped, before, after },
+        { quality, reducedMotion, samples, crossing, passing, endpoint, stopped, before, after },
         null,
         2,
       ),

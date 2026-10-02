@@ -85,12 +85,12 @@ export async function narrowWorkReading(page: Page, info: TestInfo) {
   expect(before.galilee.shelter).toMatchObject({ site: 'shade', placed: ['mat'] });
   await visit(page, 'rest-breeze');
   await expect(page.locator('.work-panel')).toHaveAttribute('data-work-target', 'rest-breeze');
-  // Refresh a real, ordinary export notice beside the tray without earning or moving an item.
-  await exported(page);
-  await visit(page, 'rest-breeze');
   const positions: Awaited<ReturnType<typeof workPosition>>[] = [];
   for (const height of [568, 548]) {
     await page.setViewportSize({ width: 320, height });
+    // Each height gets a fresh real export notice within its ordinary lifetime.
+    await exported(page);
+    await visit(page, 'rest-breeze');
     await page.locator('.work-supplies').scrollIntoViewIfNeeded();
     await expect(page.locator('.work-supplies .rest-socket')).toHaveText([
       'mat Placed at: The olive shade',

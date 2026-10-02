@@ -98,24 +98,33 @@ export async function keyboardQuestNotice(page: Page, info: TestInfo) {
   const journey = await expandedQuest(page, 568, false);
   await page.locator(shortcut).focus();
   const before = await questNoticePosition(page);
-  await page.locator(shortcut).press('Enter');
-  await settledNotice(page);
-  await expect(page.locator(shortcut)).toHaveAttribute('data-value', 'main');
-  await expect(page.locator(shortcut)).toBeFocused();
-  const positions = [await questNoticePosition(page)];
-  await page.screenshot({ path: info.outputPath('quest-notice-keyboard.png'), scale: 'css' });
-  await writeFile(
-    info.outputPath('quest-notice-keyboard-position.json'),
-    JSON.stringify({ before, positions }),
-  );
-  clearNotice(positions[0]!);
-  for (const height of [548, 568]) {
-    await page.setViewportSize({ width: 320, height });
-    await painted(page);
+  const positions: Awaited<ReturnType<typeof questNoticePosition>>[] = [];
+  for (const [index, height] of [568, 548, 568].entries()) {
+    if (index) {
+      await page.setViewportSize({ width: 320, height });
+      await painted(page);
+      await expect(page.locator(shortcut)).toBeFocused();
+    }
+    // Each resized layout receives real tracking feedback with its natural 4.8 s lifetime.
+    // Software-rendered WebGL can use that entire lifetime on browser round trips alone.
+    await page.locator(shortcut).press('Enter');
+    await settledNotice(page);
+    await expect(page.locator(shortcut)).toHaveAttribute(
+      'data-value',
+      index === 1 ? 'village' : 'main',
+    );
     await expect(page.locator(shortcut)).toBeFocused();
     const position = await questNoticePosition(page);
-    clearNotice(position);
     positions.push(position);
+    await writeFile(
+      info.outputPath('quest-notice-keyboard-position.json'),
+      JSON.stringify({ before, positions }),
+    );
+    clearNotice(position);
+    await page.screenshot({
+      path: info.outputPath(`quest-notice-keyboard-${height}-${index}.png`),
+      scale: 'css',
+    });
   }
   await expect(page.locator('#toast')).toBeHidden({ timeout: 10_000 });
   await painted(page);
