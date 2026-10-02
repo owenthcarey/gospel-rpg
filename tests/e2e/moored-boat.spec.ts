@@ -115,10 +115,39 @@ async function dockNative(page: Page, before: GameState, berth: Berth, touch: bo
   };
 }
 
-async function visibleHull(page: Page, berth: Berth, standing: Point) {
+async function pressCameraButton(page: Page, name: string, touch: boolean) {
+  const measured = await page.getByRole('button', { name, exact: true }).evaluate((node) => {
+    const button = node as HTMLButtonElement;
+    const rect = button.getBoundingClientRect();
+    const point = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    const surface = document.elementFromPoint(point.x, point.y);
+    return {
+      name: button.getAttribute('aria-label'),
+      enabled: !button.disabled && !button.closest('[inert]'),
+      rendered: rect.width > 0 && rect.height > 0,
+      exposed: surface === button || button.contains(surface),
+      inViewport: point.x > 0 && point.x < innerWidth && point.y > 0 && point.y < innerHeight,
+      rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+      point,
+    };
+  });
+  // Read actual named, enabled, exposed controls once, then send trusted native input.
+  // Model contacts still require the independent finite-face/camera convergence below.
+  expect(measured).toMatchObject({
+    name,
+    enabled: true,
+    rendered: true,
+    exposed: true,
+    inViewport: true,
+  });
+  if (touch) await page.touchscreen.tap(measured.point.x, measured.point.y);
+  else await page.mouse.click(measured.point.x, measured.point.y);
+}
+
+async function visibleHull(page: Page, berth: Berth, standing: Point, touch: boolean) {
   await expect(page.locator('#toast')).toBeHidden();
-  await page.getByRole('button', { name: 'Reset camera', exact: true }).click();
-  await page.getByRole('button', { name: 'Face north', exact: true }).click();
+  await pressCameraButton(page, 'Reset camera', touch);
+  await pressCameraButton(page, 'Face north', touch);
   await expect
     .poll(() =>
       page
@@ -129,8 +158,7 @@ async function visibleHull(page: Page, berth: Berth, standing: Point) {
     )
     .toBeLessThan(0.04); // The CSS bearing contract is degrees.
   const zoomClicks = 3;
-  for (let i = 0; i < zoomClicks; i++)
-    await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
+  for (let i = 0; i < zoomClicks; i++) await pressCameraButton(page, 'Zoom in', touch);
   // High quality follows movement smoothly; use actual rendered label stability before projection.
   const label = page.locator(`.world-label[data-value="board-${berth}"]`);
   await expect(label).toBeVisible();
@@ -228,11 +256,6 @@ for (const data of [
         await dismiss(page);
       }
       expect(baseline.lake.boat).toMatchObject({ mode: 'ashore', berth: data.berth });
-      const calibration = await visibleHull(page, data.berth, baseline.position);
-      await page.screenshot({
-        path: info.outputPath('moored-hull-before-contact.png'),
-        scale: 'css',
-      });
       const audit = await page.evaluateHandle(() => {
         const events: {
           type: string;
@@ -268,6 +291,11 @@ for (const data of [
         await audit.evaluate((value) => value.cleanup());
         await audit.dispose();
       };
+      const calibration = await visibleHull(page, data.berth, baseline.position, isMobile);
+      await page.screenshot({
+        path: info.outputPath('moored-hull-before-contact.png'),
+        scale: 'css',
+      });
       const menu = page.getByRole('menu', { name: 'Choose Option' }),
         hullContacts: Awaited<ReturnType<typeof nativeHullInput>>[] = [];
       const openHullOptions = async (name: string, point: { x: number; y: number }) => {
@@ -323,7 +351,7 @@ for (const data of [
       const examined = await exported(page);
       expect(examined).toEqual({ ...baseline, playTime: examined.playTime });
       await dismiss(page);
-      const defaultContact = await visibleHull(page, data.berth, examined.position);
+      const defaultContact = await visibleHull(page, data.berth, examined.position, isMobile);
       hullContacts.push(
         await nativeHullInput(
           page,
@@ -351,7 +379,7 @@ for (const data of [
       expect(defaultVisit).toEqual(expected);
       expect(defaultVisit.lake.boat.mode).toBe('ashore');
       await dismiss(page);
-      const visitContact = await visibleHull(page, data.berth, defaultVisit.position);
+      const visitContact = await visibleHull(page, data.berth, defaultVisit.position, isMobile);
       await openHullOptions('visit-options', visitContact.point);
       await activate(
         menu.getByRole('menuitem', { name: 'Visit Board for the lake', exact: true }),
@@ -370,7 +398,7 @@ for (const data of [
       expect(visited.lake.boat.mode).toBe('ashore');
       // Export opens settings; return through the same actual model before explicitly boarding.
       await dismiss(page);
-      const boardContact = await visibleHull(page, data.berth, visited.position);
+      const boardContact = await visibleHull(page, data.berth, visited.position, isMobile);
       hullContacts.push(
         await nativeHullInput(
           page,
