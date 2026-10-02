@@ -26,6 +26,7 @@ import { heldReturn } from '../../game/life/objectives';
 import { chapters, storyStatus } from '../../content/campaign/chapters';
 import type { JournalFilter } from './journal';
 import { escapeHtml as esc } from '../icons';
+import { restSupplyStatus } from './item-status';
 const button = (label: string, action: string, value: string, disabled = false) =>
   `<button class="secondary-button" data-action="${action}" data-value="${esc(value)}" ${disabled ? 'disabled' : ''}>${esc(label)}</button>`;
 
@@ -62,7 +63,7 @@ export function channelPlan(s: GameState): string {
 function restPlan(s: GameState, site: RestSite): string {
   const r = s.galilee.shelter,
     selected = r.site === site;
-  return `<section class="rest-plan" aria-label="Resting place plan"><h3>${esc(REST_LAYOUTS[site].title)}</h3><p>Approach from the south. ${selected && r.placed.includes('screen') ? 'Screen on the ' + DIRECTIONS[r.screen] + ' side.' : 'The screen has not been placed here.'}</p><div class="rest-sockets">${REST_SUPPLIES.map((id) => `<div class="rest-socket ${selected && r.placed.includes(id) ? 'filled' : ''}"><span>${id === 'mat' ? '▧' : id === 'water' ? '◉' : '▥'}</span><strong>${id}</strong><small>${selected && r.placed.includes(id) ? 'Placed' : s.campaign.carrying === 'rest-' + id ? 'In your hands' : 'At the rack'}</small></div>`).join('')}</div>${selected && r.checked ? `<p class="work-result" role="status">${esc(checkArrangement(r).message)}</p>` : ''}</section>`;
+  return `<section class="rest-plan" aria-label="Resting place plan"><h3>${esc(REST_LAYOUTS[site].title)}</h3><p>Approach from the south. ${selected && r.placed.includes('screen') ? 'Screen on the ' + DIRECTIONS[r.screen] + ' side.' : 'The screen has not been placed here.'}</p><div class="rest-sockets">${REST_SUPPLIES.map((id) => `<div class="rest-socket ${selected && r.placed.includes(id) ? 'filled' : ''}"><span>${id === 'mat' ? '▧' : id === 'water' ? '◉' : '▥'}</span><strong>${id}</strong><small>${esc(restSupplyStatus(s, id, site))}</small></div>`).join('')}</div>${selected && r.checked ? `<p class="work-result" role="status">${esc(checkArrangement(r).message)}</p>` : ''}</section>`;
 }
 export function galileeContext(
   id: string,

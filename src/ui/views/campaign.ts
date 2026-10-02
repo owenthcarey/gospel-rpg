@@ -24,6 +24,7 @@ import { campaignLayout } from '../../content/campaign/layouts';
 import { regions } from '../../content/regions';
 import { activeInteractables } from '../../content/region';
 import { escapeHtml as esc, icon } from '../icons';
+import { heldItemStatus } from './item-status';
 const button = (label: string, action: string, value = '', primary = false) =>
   `<button class="${primary ? 'primary-button' : 'secondary-button'}" data-action="${action}" data-value="${esc(value)}">${esc(label)} ${icon('arrow')}</button>`;
 export function campaignQuest(s: GameState): string | undefined {
@@ -141,5 +142,5 @@ export function neighborhoodMap(
 }
 export function carriedView(s: GameState): string {
   if (!s.campaign.carrying) return '';
-  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">${s.region === 'galilee-water' ? 'STOWED ABOARD' : 'IN YOUR HANDS'}</span><h3>${esc(heldItems[s.campaign.carrying].name)}</h3><p>${esc(heldReturn(s)!.text)}</p>${button('Find the return point', 'travel', heldReturn(s)!.target)}${button('Find the next stop', 'travel', campaignGoal(s)?.target ?? localTarget(s, 'hannah'))}</div></article>`;
+  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">${esc(heldItemStatus(s).toUpperCase())}</span><h3>${esc(heldItems[s.campaign.carrying].name)}</h3><p>${esc(heldReturn(s)!.text)}</p>${button('Find the return point', 'travel', heldReturn(s)!.target)}${button('Find the next stop', 'travel', campaignGoal(s)?.target ?? localTarget(s, 'hannah'))}</div></article>`;
 }
