@@ -2,9 +2,14 @@ import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { Scene } from '@babylonjs/core/scene';
 import { AssetLibrary } from '../../src/scene/assets';
 import { Actor } from '../../src/scene/actors/actor';
+import { World } from '../../src/scene/world';
+import { WalkGrid } from '../../src/game/pathfinding';
+import { newGame } from '../../src/game/types';
 import { ACTOR_ASSETS } from '../../src/content/assets';
 import type { ActorClip } from '../../src/content/assets';
 import { posedVertices } from '../helpers/posed-geometry';
@@ -92,6 +97,100 @@ it('finishes practical gestures at their own pace while the traveler is stationa
   expect(actor.playback.frame).toBeGreaterThan(start);
   actor.dispose();
 });
+
+function actionWorld() {
+  vi.stubGlobal('document', { hidden: false });
+  const actor = new Actor(library.instantiate('traveler', 'work-to-walk'), true);
+  const player = new TransformNode('work-to-walk-root', scene);
+  actor.root.parent = player;
+  const camera = new ArcRotateCamera(
+    'work-to-walk-camera',
+    -Math.PI / 2,
+    0.8,
+    24,
+    Vector3.Zero(),
+    scene,
+  );
+  const world = Object.assign(Object.create(World.prototype), {
+    state: newGame(),
+    position: { x: 0, z: 0.3 },
+    player,
+    playerModel: actor.root,
+    actorPlayer: actor,
+    actors: new Map(),
+    camera,
+    keys: new Set<string>(),
+    path: [],
+    grid: new WalkGrid(),
+    routeDots: [],
+    marker: { setEnabled: vi.fn() },
+    stage: { atmosphere: { footstep: vi.fn() } },
+    showRoute: vi.fn(),
+    callbacks: { interact: vi.fn() },
+    paused: false,
+    reducedMotion: false,
+    time: 0,
+    strideTime: 0,
+    walkRamp: 0,
+    destinations: [],
+  });
+  actor.playOnce('Repair');
+  actor.sample('Idle', 0.1);
+  const dispose = () => {
+    actor.dispose();
+    player.dispose();
+    camera.dispose();
+    vi.unstubAllGlobals();
+  };
+  return { world, actor, dispose };
+}
+
+it.each(['keyboard', 'route', 'carrying'] as const)(
+  'resumes the actual locomotion clip after %s movement interrupts a practical gesture',
+  (mode) => {
+    const { world, actor, dispose } = actionWorld();
+    try {
+      if (mode === 'route') world.path = [{ x: 0, z: 2 }];
+      else world.keys.add('w');
+      if (mode === 'carrying') world.state.campaign.carrying = 'cart-handle';
+      const position = { ...world.position };
+      world.simulate(0.1);
+      expect(world.position).not.toEqual(position);
+      expect(actor.performing).toBe(false);
+      expect(actor.playback.action).toBe('');
+      expect(actor.playback.clip).toBe(mode === 'carrying' ? 'Carry' : 'Walk');
+      expect(actor.playback.frame).toBeGreaterThan(0);
+    } finally {
+      dispose();
+    }
+  },
+);
+
+it.each(['stationary', 'blocked', 'paused', 'seated'] as const)(
+  'keeps the practical gesture intact while %s',
+  (mode) => {
+    const { world, actor, dispose } = actionWorld();
+    try {
+      if (mode !== 'stationary') world.keys.add('w');
+      if (mode === 'blocked') world.grid = new WalkGrid([], (point) => point.z <= 0);
+      if (mode === 'paused') world.paused = true;
+      if (mode === 'seated') {
+        world.seatedAction = { time: 1.2, x: 0.3, z: 0.2, started: true };
+        actor.playOnce('SitDown');
+      }
+      const position = { ...world.position };
+      const frame = actor.playback.frame;
+      world.simulate(0.1);
+      expect(world.position).toEqual(position);
+      expect(actor.performing).toBe(true);
+      expect(actor.playback.action).toBe(mode === 'seated' ? 'SitDown' : 'Repair');
+      if (mode === 'paused') expect(actor.playback.frame).toBe(frame);
+      else expect(actor.playback.frame).toBeGreaterThan(frame);
+    } finally {
+      dispose();
+    }
+  },
+);
 
 // Measured on the exported files: the walk has a visible vertical bob, and the idle has a small,
 // continuous breath that never lifts the feet. Each actor is checked separately, so a rebuilt

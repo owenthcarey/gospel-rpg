@@ -1399,6 +1399,10 @@ export class World {
         this.position.z,
       );
       const travelSpeed = dt > 0 ? distance(beforeMove, this.position) / dt : 0;
+      // Accepted work is cosmetic: once the traveler actually leaves, resume their
+      // walk instead of carrying a stationary work pose along the route.
+      if (travelSpeed > 0 && !this.seatedAction && this.actorPlayer.performing)
+        this.actorPlayer.cancelAction();
       this.poseTraveler(moving && !this.paused, dt, travelSpeed);
       const target = this.cameraTarget();
       if (this.reducedMotion) this.camera.target.copyFrom(target);

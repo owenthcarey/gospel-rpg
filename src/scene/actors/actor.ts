@@ -149,6 +149,10 @@ export class Actor {
     this.oneShot = { name, time: 0 };
     this.setClip(name);
   }
+  /** Resume the requested base pose on the next sample, retaining its normal blend. */
+  cancelAction(): void {
+    this.oneShot = undefined;
+  }
   /** A bounded presentation pose, reconstructed directly from its local scene clock. */
   sampleAt(name: ActorClip, progress: number): void {
     this.oneShot = undefined;
