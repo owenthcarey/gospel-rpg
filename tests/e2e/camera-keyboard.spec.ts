@@ -65,6 +65,46 @@ async function holdQ(page: Page, from: number, leaveConversation = false, readin
   );
 }
 
+test('world letter controls keep working from focused camera buttons without claiming button arrows', async ({
+  page,
+}) => {
+  await ready(page);
+  const compass = page.getByRole('button', { name: 'Face north', exact: true });
+  const player = page.locator('#minimap-player');
+  await compass.click();
+  await expect(compass).toBeFocused();
+  await expect.poll(async () => Math.abs(await bearing(page))).toBeLessThan(0.04);
+  const position = await player.getAttribute('transform');
+  await page.keyboard.down('q');
+  try {
+    await expect.poll(() => bearing(page)).toBeGreaterThan(14);
+  } finally {
+    await page.keyboard.up('q');
+  }
+  await expect(compass).toBeFocused();
+  await expect(player).toHaveAttribute('transform', position!);
+  await page.keyboard.down('ArrowUp');
+  try {
+    await page.waitForTimeout(450);
+    await expect(player).toHaveAttribute('transform', position!);
+  } finally {
+    await page.keyboard.up('ArrowUp');
+  }
+  // Enter still activates the focused compass and restores a north-facing walk.
+  await page.keyboard.press('Enter');
+  await expect.poll(async () => Math.abs(await bearing(page))).toBeLessThan(0.04);
+  await page.keyboard.down('w');
+  try {
+    await expect(player).not.toHaveAttribute('transform', position!);
+  } finally {
+    await page.keyboard.up('w');
+  }
+  await expect(compass).toBeFocused();
+  const saved = await exported(page);
+  expect(saved.quest).toBe('not-started');
+  expect(saved.episode.stage).toBe('not-started');
+});
+
 test('held Q takes over a conversation camera return and stays quiet behind the journal', async ({
   page,
 }) => {

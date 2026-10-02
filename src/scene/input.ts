@@ -23,41 +23,44 @@ export interface ExplorationInput {
   manualMove?: () => void;
   notice: (message: string) => void;
 }
+const movementKeys = new Set([
+  'w',
+  'a',
+  's',
+  'd',
+  'arrowup',
+  'arrowdown',
+  'arrowleft',
+  'arrowright',
+]);
+const explorationKeys = new Set([...movementKeys, 'q', 'e', 'r']);
 /** Every listener/observer installed here has a matching region-disposal cleanup. */
 export function bindExplorationInput(input: ExplorationInput): ExplorationInputBinding {
   const { keys, canvas, scene } = input;
   const gesture = new TapGesture();
   const down = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
     if (
       input.paused() ||
+      event.defaultPrevented ||
+      event.isComposing ||
+      !explorationKeys.has(key) ||
       event.target instanceof HTMLInputElement ||
       event.target instanceof HTMLSelectElement ||
       event.target instanceof HTMLTextAreaElement ||
-      (event.target instanceof HTMLElement && !!event.target.closest('button,a,summary')) ||
       event.ctrlKey ||
       event.metaKey ||
       event.altKey
     )
       return;
-    const key = event.key.toLowerCase();
-    if (
-      [
-        'w',
-        'a',
-        's',
-        'd',
-        'arrowup',
-        'arrowdown',
-        'arrowleft',
-        'arrowright',
-        'q',
-        'e',
-        'r',
-      ].includes(key)
-    )
-      event.preventDefault();
-    if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key))
-      input.manualMove?.();
+    const control =
+      event.target instanceof HTMLElement ? event.target.closest('button,a,summary') : null;
+    // Camera and compass clicks retain accessible button focus. Letter shortcuts
+    // should still control the world there; arrows remain available to the control.
+    if (control && (!control.closest('.camera-controls,.minimap-wrap') || key.startsWith('arrow')))
+      return;
+    event.preventDefault();
+    if (movementKeys.has(key)) input.manualMove?.();
     keys.add(key);
     if (key === 'e' && !event.repeat) {
       const nearest = input.nearest();
