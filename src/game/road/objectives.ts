@@ -10,6 +10,8 @@ export function trailTarget(s: GameState): string {
 }
 export function trailHint(s: GameState): string {
   const t = s.road.trail;
+  if (t.stage === 'complete')
+    return 'Tamar’s resting place is found. Your chosen memory is in the journal.';
   if (t.stage === 'interpreted')
     return [
       'Follow the direction in the marks. The resting place is dry.',
@@ -17,7 +19,7 @@ export function trailHint(s: GameState): string {
       'Take the western fork to the farm. Look for the split olive beside the shelter.',
       'Use Find the next detail to approach the resting shelter at the roadside farm.',
     ][t.hint]!;
-  if (['arrived', 'complete'].includes(t.stage))
+  if (t.stage === 'arrived')
     return 'Tamar is waiting beside the southern part of the Galilean road. Return to share your memory.';
   return [
     'Look at the road itself. Water, stones and a branching mark may help you remember.',
