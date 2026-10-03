@@ -172,7 +172,8 @@ export class Interface {
   };
   private readonly onMenuResize = () => {
     this.renderCameraDisclosure();
-    layoutDialogueReading(this.overlay);
+    // Publish the new panel bounds before the next render, including paused conversations.
+    this.measureWork();
     const active = document.activeElement;
     if (
       this.panel === 'dialogue' &&
