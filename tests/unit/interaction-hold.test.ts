@@ -5,6 +5,9 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import type { PickingInfo } from '@babylonjs/core/Collisions/pickingInfo';
 import { InteractionFeedback } from '../../src/scene/interaction';
+import { examineText } from '../../src/content/examine';
+import { allInteractables, type Interactable } from '../../src/content/region';
+import { action, district } from '../helpers/campaign';
 
 // A small EventTarget-backed DOM boundary lets the actual feedback constructor, native
 // event handlers, timers, camera observers and disposal run without adding a DOM package.
@@ -80,7 +83,11 @@ afterEach(() => {
   }
 });
 
-function studio(pointerType: 'touch' | 'mouse' = 'touch', priorCursorHandling = false) {
+function studio(
+  pointerType: 'touch' | 'mouse' = 'touch',
+  priorCursorHandling = false,
+  observation?: { place: Interactable; examine: (place: Interactable) => string },
+) {
   vi.useFakeTimers();
   const body = new ElementBoundary();
   const canvas = new ElementBoundary();
@@ -128,19 +135,25 @@ function studio(pointerType: 'touch' | 'mouse' = 'touch', priorCursorHandling = 
   const cancelTap = vi.fn();
   let paused = false;
   const pick = vi.spyOn(scene, 'pick').mockReturnValue({
-    pickedMesh: { metadata: { interactionId: 'boat' } },
+    pickedMesh: { metadata: { interactionId: observation?.place.id ?? 'boat' } },
   } as unknown as PickingInfo);
+  const notice = vi.fn();
+  const navigate = vi.fn();
+  const walk = vi.fn();
   feedback = new InteractionFeedback({
     scene,
     canvas: canvas as unknown as HTMLCanvasElement,
     paused: () => paused,
     place: (id) =>
-      id === 'boat'
-        ? { id, name: 'Board the lake boat', kind: 'place', role: 'Landing', x: 10, z: -4 }
-        : undefined,
-    navigate: vi.fn(),
-    walk: vi.fn(),
-    notice: vi.fn(),
+      id === observation?.place.id
+        ? observation.place
+        : id === 'boat'
+          ? { id, name: 'Board the lake boat', kind: 'place', role: 'Landing', x: 10, z: -4 }
+          : undefined,
+    navigate,
+    walk,
+    examine: observation?.examine,
+    notice,
     cancelTap,
   });
   const hint = body.children[0]!;
@@ -182,6 +195,9 @@ function studio(pointerType: 'touch' | 'mouse' = 'touch', priorCursorHandling = 
     canvas,
     menu,
     cancelTap,
+    notice,
+    navigate,
+    walk,
     pointer,
     pause: () => {
       paused = true;
@@ -189,6 +205,77 @@ function studio(pointerType: 'touch' | 'mouse' = 'touch', priorCursorHandling = 
     },
   };
 }
+
+it('resolves the earned observation when Examine is activated, after opening the menu', () => {
+  let state = district();
+  for (const id of ['life-thread-accept', 'life-clue-water', 'life-clue-cloth', 'life-identify'])
+    state = action(state, id);
+  const place = allInteractables.find((p) => p.id === 'sewing-rest')!;
+  const examine = vi.fn((point: Interactable) => examineText(point, state));
+  const { document, canvas, menu, notice } = studio('mouse', false, { place, examine });
+  const key = new Event('keydown', { cancelable: true });
+  Object.defineProperties(key, {
+    target: { value: canvas },
+    key: { value: 'ContextMenu' },
+  });
+  document.dispatchEvent(key);
+  expect(menu.hidden).toBe(false);
+  expect(examine).not.toHaveBeenCalled();
+  state = action(state, 'life-take-pouch');
+  const before = structuredClone(state);
+  const choice = menu.children.find((node) => node.children[0]?.textContent === 'Examine ');
+  expect(choice).toBeDefined();
+  choice!.dispatchEvent(new Event('click'));
+  expect(menu.hidden).toBe(true);
+  expect(examine).toHaveBeenCalledExactlyOnceWith(place);
+  expect(notice).toHaveBeenCalledExactlyOnceWith(
+    'A pouch by the shore: The dry resting place is empty. Ruth’s pouch is in your hands.',
+  );
+  expect(state).toEqual(before);
+});
+
+it('retains the default observation when no state-aware callback is provided', () => {
+  const { document, canvas, menu, notice } = studio('mouse');
+  const key = new Event('keydown', { cancelable: true });
+  Object.defineProperties(key, {
+    target: { value: canvas },
+    key: { value: 'ContextMenu' },
+  });
+  document.dispatchEvent(key);
+  const choice = menu.children.find((node) => node.children[0]?.textContent === 'Examine ');
+  choice!.dispatchEvent(new Event('click'));
+  expect(notice).toHaveBeenCalledExactlyOnceWith('Board the lake boat: Landing.');
+});
+
+it.each(['Inspect', 'Walk here'])('keeps %s separate from observational feedback', (option) => {
+  const place = allInteractables.find((p) => p.id === 'sewing-rest')!;
+  const examine = vi.fn(() => 'Observation');
+  const { document, canvas, menu, notice, navigate, walk } = studio('mouse', false, {
+    place,
+    examine,
+  });
+  const key = new Event('keydown', { cancelable: true });
+  Object.defineProperties(key, {
+    target: { value: canvas },
+    key: { value: 'ContextMenu' },
+  });
+  document.dispatchEvent(key);
+  const choice = menu.children.find((node) =>
+    option === 'Inspect'
+      ? node.children[0]?.textContent === 'Inspect '
+      : node.textContent === option,
+  );
+  choice!.dispatchEvent(new Event('click'));
+  expect(examine).not.toHaveBeenCalled();
+  expect(notice).not.toHaveBeenCalled();
+  if (option === 'Inspect') {
+    expect(navigate).toHaveBeenCalledExactlyOnceWith(place.id, undefined);
+    expect(walk).not.toHaveBeenCalled();
+  } else {
+    expect(walk).toHaveBeenCalledExactlyOnceWith(place, undefined);
+    expect(navigate).not.toHaveBeenCalled();
+  }
+});
 
 describe('feedback hold camera guard and lifetime', () => {
   it('opens the menu after the proven High follow notification without reentering getViewMatrix', () => {

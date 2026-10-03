@@ -26,6 +26,7 @@ interface InteractionOptions {
   place: (id: string) => Interactable | undefined;
   navigate: (id: string, click?: ScreenClick) => void;
   walk: (point: Point, click?: ScreenClick) => void;
+  examine?: (place: Interactable) => string;
   notice: (message: string) => void;
   cancelTap: () => void;
 }
@@ -309,7 +310,12 @@ export class InteractionFeedback {
     this.returnFocus = label ?? this.input.canvas;
     if (place) this.option(place, () => this.input.navigate(place.id, click));
     if (ground || place) this.option('Walk here', () => this.input.walk(ground ?? place!, click));
-    if (place) this.option(place, () => this.input.notice(examineText(place)), 'Examine');
+    if (place)
+      this.option(
+        place,
+        () => this.input.notice(this.input.examine?.(place) ?? examineText(place)),
+        'Examine',
+      );
     this.option('Cancel', () => {});
     this.menu.hidden = false;
     this.clearHover();

@@ -1,5 +1,6 @@
 import { ActionFeedback } from './presentation/action';
 import { InteractionFeedback } from './interaction';
+import { examineText } from '../content/examine';
 import { installClassicCameraInput } from './classic-camera-input';
 import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
@@ -982,6 +983,7 @@ export class World {
       place: (id) => this.destinations.find((p) => p.id === id),
       navigate,
       walk,
+      examine: (place) => examineText(place, this.state),
       notice: this.callbacks.notice,
       cancelTap: () => this.explorationInput?.cancelTap(),
     });

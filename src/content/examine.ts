@@ -1,4 +1,5 @@
 import type { Interactable } from './region';
+import type { GameState } from '../game/types';
 
 /** Original observational text. Examining never supplies evidence or performs story work. */
 export const examinations: Readonly<Record<string, string>> = {
@@ -42,9 +43,16 @@ export const examinations: Readonly<Record<string, string>> = {
   'rest-supplies': 'Mats, water and a folding screen, ready for a resting place.',
 };
 
-export function examineText(place: Interactable): string {
+export function examineText(place: Interactable, state?: GameState): string {
+  let observation = examinations[place.id];
+  if (place.id === 'sewing-rest' && state) {
+    if (['returned', 'complete'].includes(state.life.thread.stage))
+      observation = 'The resting place is empty. Ruth’s pouch is safe beside her in the courtyard.';
+    else if (state.campaign.carrying === 'sewing-pouch')
+      observation = 'The dry resting place is empty. Ruth’s pouch is in your hands.';
+  }
   const description =
-    examinations[place.id] ??
+    observation ??
     (place.id.startsWith('channel-')
       ? 'A short stone channel with open ends.'
       : place.role.trim().replace(/[.!?]$/, '') + '.');
