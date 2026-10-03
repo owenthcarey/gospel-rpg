@@ -39,7 +39,7 @@ export const examinations: Readonly<Record<string, string>> = {
   'board-sheltered-cove': 'A wooden boat with broad seats, waiting beside the landing.',
   'spring-source': 'A spring feeding a little stone channel beside the road.',
   'spring-basins': 'Stone basins at the end of the water channel.',
-  'spring-tools': 'A wooden scoop hanging within reach of the channel.',
+  'spring-tools': 'A wooden scoop lies on a low rack beside the channel.',
   'rest-supplies': 'Mats, water and a folding screen, ready for a resting place.',
 };
 
@@ -60,6 +60,8 @@ export function examineText(place: Interactable, state?: GameState): string {
       observation = 'The place on the shelf is empty. Its wooden brace supports the landing bench.';
     else if (state.campaign.carrying === 'wood-brace')
       observation = 'The place on the shelf is empty. Its wooden brace is in your hands.';
+  } else if (place.id === 'spring-tools' && state?.campaign.carrying === 'channel-scoop') {
+    observation = 'The low rack is empty. The wooden scoop is in your hands.';
   }
   const description =
     observation ??
