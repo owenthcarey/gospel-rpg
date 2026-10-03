@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Authored held-item names · 2026-10-03
+
+Context panels now use the same authored item names as the Satchel: **empty water jug**, **filled water jug** and **Ruth’s sewing pouch**. Three new reducer/view controls earn both table flows and the pouch investigation, including filling, placement, return, reborrow and set-back/recovery. They preserve complete state and the existing action destinations. **53 focused tests / three files** pass; the full check passes **1,659 tests / 100 files in 36.56 seconds**, with evidence, types, lint and production build in **58.084 seconds** overall.
+
+Immutable AD changes only the held-name expression against AC. Independent review verifies all **137 production files, 213 canonical sources, 191 embedded sources**, five mapped module points and **134 unchanged fixed resources**.
+
+The first compact reading attempt rejects the complete held-notice/return-command fit while an Export ribbon reserves panel space. Its original failure image and trace remain retained. The fresh persistent-reading case waits for that ribbon’s ordinary **4,800 ms** expiry and retains every original word, clipping, margin, contact and save assertion. It passes without retry in **29.2 seconds** (**31.347 seconds** owner / **31.551 seconds** overall), under the original 180/60 limits.
+
+Genuine import, set-back, recovery and travel reach Ruth before the stationary comparison. **320 × 568** and **844 × 390**, both Low/Large, expose the complete held notice and available return command, followed by the whole Satchel status/name/return-guidance group and footer. All four original PNGs were individually reviewed; the compact held name and command each wrap into two complete lines. **103 trusted contacts** and two full saved-state payloads pass; every state field is equal, with playTime **17 → 17**. Escape restores Satchel focus, and the return command remains unexecuted. Both exact native groups are independently empty; all **741 guards** agree before, after and at review. This accepts those persistent reading groups, not the whole compact card’s destination controls simultaneously, transient feedback, fine actor artwork or physical GPU performance.
+
 ## Minimap guidance and menu focus · 2026-10-03
 
 The same mounted minimap button says **Steer** afloat and **Walk** ashore, with matching accessible names and titles. Help follows that context, and landing narration now says **Cancel course**. Explicit menu dismissal keeps the Interface’s restored opener; gameplay closes and presented scenes retain their existing focus handoffs.

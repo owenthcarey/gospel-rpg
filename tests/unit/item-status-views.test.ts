@@ -1,12 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseSave } from '../../src/persistence/schema';
-import { carriedView } from '../../src/ui/views/campaign';
+import { carriedView, contextView } from '../../src/ui/views/campaign';
 import { recap } from '../../src/ui/views/connection';
 import { journeyOverview, workSurface } from '../../src/ui/views/exploration';
 import { galileeContext } from '../../src/ui/views/galilee';
 import type { RestSite, RestSupply } from '../../src/game/galilee/types';
+import { actionAllowed } from '../../src/content/campaign/actions';
+import { action, at, district } from '../helpers/campaign';
 
+const heldName = (html: string) =>
+  html.match(/<p class="held-notice">In your hands: ([^<]+)<\/p>/)?.[1];
 const fixture = (file: string) =>
   parseSave(JSON.parse(readFileSync(`tests/fixtures/saves/${file}`, 'utf8'))).state;
 const returnTarget = (html: string) =>
@@ -126,5 +130,125 @@ describe('earned supplies stay consistent across reading views', () => {
       }
     }
     expect(state).toEqual(before);
+  });
+});
+
+describe('context held names follow earned item state', () => {
+  it.each(['courtyard', 'bakehouse'] as const)(
+    'distinguishes an empty and filled jug through the real %s table flow',
+    (location) => {
+      const preparing = action(action(district(), 'table-accept'), 'table-' + location);
+      const empty = action(preparing, 'take-jug');
+      expect(empty.campaign.carrying).toBe('empty-jug');
+      const emptyLocal = at(empty, 'water-point');
+      const emptyBefore = structuredClone(emptyLocal);
+      const emptyBody = contextView('water-point', emptyLocal)!.body;
+      expect(heldName(emptyBody)).toBe('empty jug');
+      expect(emptyBody).toContain('data-action="campaign-action" data-value="fill-jug"');
+      expect(actionAllowed(emptyLocal, 'fill-jug')).toBe(true);
+      expect(emptyLocal).toEqual(emptyBefore);
+
+      const filled = action(empty, 'fill-jug');
+      expect(filled.campaign.carrying).toBe('water-jug');
+      expect(filled.campaign.table).toEqual(preparing.campaign.table);
+      const filledBefore = structuredClone(filled);
+      const filledBody = contextView('water-point', filled)!.body;
+      expect(heldName(filledBody)).toBe('filled jug');
+      expect(filledBody).not.toContain('data-action="campaign-action" data-value="fill-jug"');
+      expect(actionAllowed(filled, 'fill-jug')).toBe(false);
+      expect(carriedView(filled)).toContain('<h3>filled jug</h3>');
+      expect(nextTarget(carriedView(filled))).toBe(location + '-table');
+      expect(filled).toEqual(filledBefore);
+
+      const tableLocal = at(filled, location + '-table');
+      const tableBefore = structuredClone(tableLocal);
+      const tableBody = contextView(location + '-table', tableLocal)!.body;
+      expect(heldName(tableBody)).toBe('filled jug');
+      expect(tableBody).toContain(
+        'data-action="campaign-action" data-value="place-water-' + location + '"',
+      );
+      expect(tableBody).toContain('Set the filled jug on the table');
+      expect(actionAllowed(tableLocal, 'place-water-' + location)).toBe(true);
+      expect(tableLocal).toEqual(tableBefore);
+
+      const other = location === 'courtyard' ? 'bakehouse' : 'courtyard';
+      const wrongLocal = at(filled, other + '-table');
+      const wrongBefore = structuredClone(wrongLocal);
+      expect(actionAllowed(wrongLocal, 'place-water-' + other)).toBe(false);
+      expect(contextView(other + '-table', wrongLocal)!.body).not.toContain(
+        'data-action="campaign-action" data-value="place-water-' + other + '"',
+      );
+      expect(wrongLocal).toEqual(wrongBefore);
+
+      const placed = action(filled, 'place-water-' + location);
+      expect(placed.campaign.carrying).toBeNull();
+      expect(placed.campaign.table.delivered).toEqual(['water']);
+      const placedBefore = structuredClone(placed);
+      expect(heldName(contextView(location + '-table', placed)!.body)).toBeUndefined();
+      expect(carriedView(placed)).toBe('');
+      expect(placed).toEqual(placedBefore);
+
+      const returned = action(filled, 'return-jug');
+      expect(returned.campaign.carrying).toBeNull();
+      expect(returned.campaign.table).toEqual(preparing.campaign.table);
+      const returnedBefore = structuredClone(returned);
+      expect(heldName(contextView('jug-shelf', returned)!.body)).toBeUndefined();
+      expect(carriedView(returned)).toBe('');
+      expect(actionAllowed(returned, 'take-jug')).toBe(true);
+      expect(returned).toEqual(returnedBefore);
+      const borrowedAgain = action(returned, 'take-jug');
+      expect(borrowedAgain.campaign.carrying).toBe('empty-jug');
+      expect(heldName(contextView('jug-shelf', borrowedAgain)!.body)).toBe('empty jug');
+    },
+  );
+
+  it('keeps Ruth’s identified pouch name and real set-back/return boundaries', () => {
+    let identified = district();
+    for (const id of ['life-thread-accept', 'life-clue-water', 'life-clue-cloth', 'life-identify'])
+      identified = action(identified, id);
+    expect(identified.life.thread.stage).toBe('identified');
+    expect(identified.life.thread.clues).toEqual(['water', 'cloth']);
+    expect(identified.campaign.carrying).toBeNull();
+    expect(heldName(contextView('sewing-rest', identified)!.body)).toBeUndefined();
+
+    const held = action(identified, 'life-take-pouch');
+    expect(held.campaign.carrying).toBe('sewing-pouch');
+    expect(held.life.thread).toEqual(identified.life.thread);
+    const local = at(held, 'ruth');
+    const before = structuredClone(local);
+    const body = contextView('ruth', local)!.body;
+    expect(heldName(body)).toBe('Ruth’s sewing pouch');
+    expect(body).toContain('data-action="campaign-action" data-value="life-return-pouch"');
+    expect(actionAllowed(local, 'life-return-pouch')).toBe(true);
+    expect(carriedView(local)).toContain('<h3>Ruth’s sewing pouch</h3>');
+    expect(nextTarget(carriedView(local))).toBe('ruth');
+    expect(local).toEqual(before);
+
+    const setBack = action(held, 'life-set-pouch');
+    expect(setBack.campaign.carrying).toBeNull();
+    expect(setBack.life.thread).toEqual(identified.life.thread);
+    const setBackBefore = structuredClone(setBack);
+    expect(heldName(contextView('sewing-rest', setBack)!.body)).toBeUndefined();
+    expect(actionAllowed(setBack, 'life-take-pouch')).toBe(true);
+    expect(setBack).toEqual(setBackBefore);
+
+    const recovered = action(setBack, 'life-take-pouch');
+    expect(recovered.campaign.carrying).toBe('sewing-pouch');
+    expect(heldName(contextView('sewing-rest', recovered)!.body)).toBe('Ruth’s sewing pouch');
+    const returned = action(recovered, 'life-return-pouch');
+    expect(returned.campaign.carrying).toBeNull();
+    expect(returned.life.thread).toEqual({ ...identified.life.thread, stage: 'returned' });
+    const returnedBefore = structuredClone(returned);
+    const returnedBody = contextView('ruth', returned)!.body;
+    expect(heldName(returnedBody)).toBeUndefined();
+    expect(carriedView(returned)).toBe('');
+    expect(returnedBody).not.toContain(
+      'data-action="campaign-action" data-value="life-return-pouch"',
+    );
+    for (const ending of ['route', 'welcome'])
+      expect(returnedBody).toContain(
+        'data-action="campaign-action" data-value="life-ending-' + ending + '"',
+      );
+    expect(returned).toEqual(returnedBefore);
   });
 });
