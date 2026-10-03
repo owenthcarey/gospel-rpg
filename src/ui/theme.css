@@ -1856,6 +1856,18 @@
   :root .hud-actions > .toast .toast-icon {
     display: none;
   }
+  :root .hud-actions > .toast[data-kind='item'],
+  :root
+    #ui:not(.scene-mode):not(.working):not(.conversing)
+    .hud-actions
+    > .toast[data-kind='item'] {
+    gap: 6px;
+  }
+  :root .hud-actions > .toast[data-kind='item'] > .toast-icon {
+    display: grid;
+    width: 17px;
+    height: 17px;
+  }
   :root .quest-card,
   :root .quest-card:not(.objective-expanded) {
     max-height: calc(100dvh - 92px);

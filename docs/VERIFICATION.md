@@ -2,6 +2,18 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Consistent item feedback · 2026-10-03
+
+Accepted jug, handle and bread/water placement notices now use the existing bag cue in both floating feedback and Messages. The original wording, 4.8-second expiry and warning/save/memory priority remain. Short-landscape item notices retain a 17-pixel cue with a six-pixel gap beside the complete message.
+
+The unchanged classifier reproduces a story cue for the authored jug pickup instruction. Three new controls cover eleven actual action notices, classification priority and six neighboring route/table instructions. **65 focused tests / four files** pass. The final full check passes **1,644 tests / 99 files in 21.32 seconds**, with evidence, types, lint and production build in **35.263 seconds** overall. Formatting and whitespace checks pass; the final CSS selector wrapping rebuilds all **137 production files** byte-identically to browser-tested Z.
+
+The original frozen-Y browser attempt passes desktop pickup/return, then fails compact pickup because the existing landscape rule hides the icon: all **90 visible compact records** have a zero-size icon while complete words and notice bounds pass. The corrected CSS restores only item-kind world icons and matches both existing selector forms for spacing. Fresh Z changes only that CSS against Y; all **133 fixed production resources**, including the engine and 98 models, retain their bytes. Complete source and source-map checks independently verify the rebuilt production identity.
+
+The unchanged desktop Chromium flow passes on Z in **58.954 seconds**, retaining the original 180/60-second limits, one worker and zero retries. It legally unlocks the table, then performs Standard desktop pickup/return and a real **844 × 390 Large-text** resize followed by pickup, filling and courtyard placement. Independent review verifies **71 matching received-body digest receipts**, **257 trusted session records**, **488 passive observations** and **eleven complete original raw saves**. Every stationary action matches its actual reducer-derived state except nondecreasing playTime. Full received bodies were digested during the run; retained receipts do not provide an independent full-body rehash. All five notices retain their complete words, visible original bag, viewport/ancestor/header clearance and subsequent history after **4,801–4,802 ms** observed expiry.
+
+All ten original PNGs were individually viewed. The compact pickup sentence wraps into two complete lines beside the cue; fill and placement fit one line, with the following action and Messages controls reachable. History captures show the panel's translucent entrance and do not establish settled contrast. Tiny scene bodies, fine grip and the separately ellipsized compact quest summary remain outside this acceptance. The first preflight's TypeScript closure-narrowing failure and Z's first pre-navigation server timeout are preserved; the fresh successful attempt follows a bounded HTTP-200 health check with unchanged application assertions and deadlines.
+
 ## Rowing restart continuity · 2026-10-03
 
 The ordinary traveler boat now resets its private stroke clock whenever it displays the resting Row0 pose. Stopping, reading a menu or opting into reduced motion therefore starts the next normal stroke from that visible pose. The existing 1.2-second uninterrupted stroke, forearm-driven oar handles, fitted seat, hull and navigation retain their behavior. The separate abrupt transition into Row0 is unchanged.

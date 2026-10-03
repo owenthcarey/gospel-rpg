@@ -106,6 +106,12 @@ export function toastKind(message: string): ToastKind {
     return 'warning';
   if (/\bsaved?\b|export|import/.test(text)) return 'save';
   if (/journal|memory|memories|remembered|reflection|observation/.test(text)) return 'memory';
+  if (
+    /^(?:fill the jug|jug filled|bread placed|water placed|handle in hand|the jug is back|the handle is back)\b/.test(
+      text,
+    )
+  )
+    return 'item';
   if (/satchel|delivered|basket|supplies|in your hands|carry|carrying/.test(text)) return 'item';
   if (/arrived|welcome to|landing|dock|shore|steer|route|walk|approach/.test(text)) return 'place';
   return 'story';
