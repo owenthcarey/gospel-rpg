@@ -20,6 +20,7 @@ import { ContactShadows } from './contact';
 import { Atmosphere } from './atmosphere';
 import { matte, StylePlugin } from './matte';
 import type { WaterPresentation } from '../presentation/water';
+import { isSoftwareEngine } from './renderer';
 
 export interface StageOptions {
   /** Allocate shadow storage for the selected quality before any models start loading. */
@@ -42,8 +43,7 @@ export function sunDirection(profile: EnvironmentProfile): Vector3 {
 }
 
 export function isSoftwareRenderer(scene: Scene): boolean {
-  const engine = scene.getEngine() as { getGlInfo?: () => { renderer: string } };
-  return /swiftshader|llvmpipe|software/i.test(engine.getGlInfo?.().renderer ?? '');
+  return isSoftwareEngine(scene.getEngine());
 }
 
 /**

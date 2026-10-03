@@ -12,6 +12,7 @@ import { LakeRegion } from './regions/lake';
 import { TitleView } from './regions/title';
 import { isExplorationView, type RegionView } from './regions/types';
 import { sceneAssets, type AssetVisibility } from './assets';
+import { isSoftwareEngine } from './environment/renderer';
 
 export interface Diagnostics {
   region: RegionId | null;
@@ -75,7 +76,9 @@ export class GameRuntime {
           ? window.innerWidth < 700 || window.matchMedia('(pointer: coarse)').matches
             ? 1
             : 1.5
-          : 1 / Math.max(1, Math.min(window.devicePixelRatio, 1.5));
+          : isSoftwareEngine(this.engine)
+            ? 1
+            : 1 / Math.max(1, Math.min(window.devicePixelRatio, 1.5));
       if (this.engine.getHardwareScalingLevel() !== scale)
         this.engine.setHardwareScalingLevel(scale);
       else this.engine.resize();
