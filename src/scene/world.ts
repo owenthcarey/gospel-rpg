@@ -15,7 +15,7 @@ import {
   floorHeight,
   type GroundStyle,
 } from './presentation/ground';
-import { ConversationPresentation } from './presentation/conversation';
+import { ConversationPresentation, conversationAnchor } from './presentation/conversation';
 import { applyCameraPose, cameraPose, type CameraPose } from './presentation/framing';
 import { turnToward, type ScreenRect } from '../game/presence';
 import { HarborPresentation, dressVillage } from './harbor';
@@ -1508,12 +1508,18 @@ export class World {
     }
   }
   private updateOcclusion(elapsed: number): void {
-    // Crowns can cover the traveler well beyond their trunk; use actual scenery geometry.
+    // Dialogue frames both people; a crown can hide the speaker without hiding the traveler.
     const cameraPoint = this.camera.position,
-      focus = this.player.position;
+      focus = this.player.position,
+      participants =
+        !this.travelerBoat && !this.workView?.active
+          ? this.conversationView?.occlusionAnchors
+          : undefined;
     for (const o of this.occluders) {
-      const blocks = this.scenerySightline.blocks(o.meshes, cameraPoint, focus);
-      // Architecture and fabric need a clearer window than leaves to keep the traveler readable.
+      const blocks = participants
+        ? participants.some((point) => this.scenerySightline.blocks(o.meshes, cameraPoint, point))
+        : this.scenerySightline.blocks(o.meshes, cameraPoint, focus);
+      // Architecture and fabric need a clearer window than leaves to keep people readable.
       // Geometry, shadows and collision remain in place throughout the transition.
       const target = blocks ? (o.kind === 'solid' ? 0.18 : 0.3) : 1;
       o.amount = this.reducedMotion
@@ -1760,11 +1766,8 @@ export class World {
       id === 'neri'
         ? this.road?.conversationActor
         : (this.actors.get(id) ?? this.activity?.conversationActor(id));
-    if (
-      !actor ||
-      !actor.root.isEnabled() ||
-      distance(this.position, actor.root.getAbsolutePosition()) > 4.5
-    ) {
+    const anchor = actor ? conversationAnchor(actor) : undefined;
+    if (!actor || !anchor || distance(this.position, anchor) > 4.5) {
       this.conversationView?.clear();
       return;
     }

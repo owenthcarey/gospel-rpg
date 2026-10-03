@@ -6,17 +6,30 @@ import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 export class ScenerySightline {
   private ray = new Ray(Vector3.Zero(), Vector3.Zero());
 
-  blocks(meshes: readonly AbstractMesh[], camera: Vector3, player: Vector3): boolean {
+  blocks(
+    meshes: readonly AbstractMesh[],
+    camera: Readonly<Vector3>,
+    focus: Readonly<Vector3>,
+  ): boolean {
+    if (
+      !Number.isFinite(camera.x) ||
+      !Number.isFinite(camera.y) ||
+      !Number.isFinite(camera.z) ||
+      !Number.isFinite(focus.x) ||
+      !Number.isFinite(focus.y) ||
+      !Number.isFinite(focus.z)
+    )
+      return false;
     this.ray.origin.copyFrom(camera);
     for (const height of [0.9, 1.6]) {
-      this.ray.direction.copyFrom(player);
+      this.ray.direction.copyFrom(focus);
       this.ray.direction.y += height;
       this.ray.direction.subtractInPlace(camera);
       this.ray.length = this.ray.direction.length();
-      if (this.ray.length < 0.001) continue;
+      if (!Number.isFinite(this.ray.length) || this.ray.length < 0.001) continue;
       this.ray.direction.scaleInPlace(1 / this.ray.length);
       for (const mesh of meshes) {
-        if (!mesh.isEnabled() || !mesh.isVisible) continue;
+        if (mesh.isDisposed() || !mesh.isEnabled() || !mesh.isVisible) continue;
         mesh.computeWorldMatrix(true);
         const box = mesh.getBoundingInfo().boundingBox;
         if (!this.ray.intersectsBoxMinMax(box.minimumWorld, box.maximumWorld)) continue;

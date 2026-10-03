@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Conversation participant sightlines · 2026-10-03
+
+Scenery now checks both actual conversation participants, including paused dialogue, before applying its existing foliage or solid fade. Current absolute roots also govern camera framing and the unchanged 4.5-meter selection limit. Same-render local or parent changes are synchronized; disabled, disposed and nonfinite participants cannot supply stale anchors. Ordinary travel, work and boat focus retain their existing fallback. Geometry, collision, shadows, fade targets and easing remain unchanged.
+
+The full check passes **1,513 tests / 93 files in 24.57 seconds**, with evidence, types, lint and production build; formatting and whitespace also pass. **Forty-nine focused tests** cover actual imported participants/scenery, exclusive-speaker rays, same-render root changes, paused and reduced modes, lifecycle/range guards and unchanged navigation/pose state. The original frozen-N **Low desktop ambient-cycle and earned-Amos case passes in 89.448 seconds**, under its unchanged 180/60-second budgets, one worker and zero retries. All eight original PNGs were individually inspected. Forty-two actual delivered JS/CSS/GLB bodies match N, ten complete raw exports retain their original state checks, and all 168 recorded contact events are trusted. Those small or occluded actors do not prove detailed soles or complete visibility through scenery.
+
+The new **normal-motion Home phone probe fails**, rather than accepting opening composition. Its retained first full frame has 723 Miriam and 824 traveler vertices behind the live panel. Fifty naturally reached samples retain both complete skins and all five original coordinate checks. The last sample passes those checks, but the camera still uses the panel's transformed entrance rectangle: published top **180.925** versus actual settled top **168**. The unchanged 60-second convergence check fails; the enclosing run takes 69.398 seconds, and both original PNGs were individually inspected. The panel-layout and opening-camera corrections remain pending. Earlier M Home captures used reduced motion and do not supply a matched normal-opening baseline. The actual Home olive blocks both participants and the player, so participant-exclusive visual improvement is not established by this view. Rejected discovery and earlier diagnostic captures remain preserved.
+
+Frozen N entry is `index-BDl8KU3-.js` (**667,434 bytes**, SHA-256 `63b88d35340752869464bf30b70ad5f200773334d1217f30e1ea0b5ddfa7dcdc`). CSS, engine and models remain byte-identical to M. N's source and desktop validation do not extend M's fifteen-case native acceptance to this build; lighter conversation foliage, opening composition and authored ankle/grip work remain active polish scopes.
+
 ## Compact conversation reading · 2026-10-02
 
 Compact context panels now keep full titles, Close and motion controls in explicit header rows. Short landscapes use a side reader with reserved notice and footer rows; the smallest Large-text portrait gives the reading body enough room for complete wrapped choices. Authored fonts and words remain intact, with original 44-pixel controls. This includes the separately accepted Home header reduction, which retains the full two-line title and 66-by-77 portrait.
@@ -22,7 +32,7 @@ Derived M arithmetic retains **636 full interval records**: **580 ordinary (243 
 
 All **six M notice/recovery/resize cases pass in 94.005871 seconds** of Playwright time (**94.342351 seconds** for the enclosing command). **Eighteen actual bundle responses** match M; **twenty-two raw full exports** retain complete-state comparisons with playTime as the sole allowed difference. Original ratio-one visibility, opacity, full text, focus, touch-target spacing, native scroll and recovered-pixel gates remain intact. All twenty-eight original PNGs were inspected; the retained recovery PNG pairs are byte-identical, separately corroborating each case's original own-buffer comparison. These software-renderer results grant no hardware performance claim.
 
-The current world-occlusion candidate, authored ankle models/previews and grip proposals remain unaccepted polish work. M's scoped native passes do not accept those candidates, flat whole-sole contact, detailed hidden ankle geometry, first-frame mid-blend restoration or complete-target visibility through all scenery. Historical failures and independently served J/K/L evidence retain their original scope.
+At the M checkpoint, the world-occlusion candidate, authored ankle models/previews and grip proposals remained unaccepted polish work. M's scoped native passes do not accept those candidates, flat whole-sole contact, detailed hidden ankle geometry, first-frame mid-blend restoration or complete-target visibility through all scenery. Historical failures and independently served J/K/L evidence retain their original scope.
 
 ## Published Linux checkpoint `930eb8f` · 2026-10-03
 

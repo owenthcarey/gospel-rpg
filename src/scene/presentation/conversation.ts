@@ -12,6 +12,18 @@ interface Participant {
   settling?: ReturnType<Actor['footSupportContinuation']>;
   locomotion?: ReturnType<Actor['bookmarkLocomotionPresentation']>;
 }
+
+/** Read a live participant's genuine current root, including changes within the same render. */
+export function conversationAnchor(actor: Actor): Readonly<Vector3> | undefined {
+  const root = actor.root;
+  if (root.isDisposed() || !root.isEnabled()) return;
+  // Babylon can reuse a same-render matrix before checking dirty local/parent transforms.
+  if (!root.isSynchronized()) root.computeWorldMatrix(true);
+  const at = root.getAbsolutePosition();
+  if (!Number.isFinite(at.x) || !Number.isFinite(at.y) || !Number.isFinite(at.z)) return;
+  return at;
+}
+
 /** Moves only the camera and rig poses; participant navigation roots never change position. */
 export class ConversationPresentation {
   private bookmark?: CameraPose & {
@@ -39,6 +51,14 @@ export class ConversationPresentation {
   }
   get id(): string | undefined {
     return this.targetId;
+  }
+  /** Current navigation anchors for the people framed together, including paused dialogue. */
+  get occlusionAnchors(): readonly [Readonly<Vector3>, Readonly<Vector3>] | undefined {
+    if (!this.speaker || !this.listener) return;
+    const a = conversationAnchor(this.speaker.actor),
+      b = conversationAnchor(this.listener.actor);
+    if (!a || !b) return;
+    return [a, b];
   }
   select(id: string, speaker: Actor, listener: Actor, rect?: ScreenRect): void {
     if (JSON.stringify(this.panel) !== JSON.stringify(rect)) this.layoutChanged = true;
@@ -94,9 +114,10 @@ export class ConversationPresentation {
       (this.paused && !this.layoutChanged)
     )
       return;
+    const anchors = this.occlusionAnchors;
+    if (!anchors) return;
     const time = this.clock.advance(dt, !this.paused, reduced);
-    const a = this.speaker.actor.root.getAbsolutePosition();
-    const b = this.listener.actor.root.getAbsolutePosition();
+    const [a, b] = anchors;
     // Keep the existing camera side to avoid a disorienting reverse shot on approach.
     const center = a
       .add(b)
@@ -163,6 +184,11 @@ export class ConversationPresentation {
   clear(): void {
     for (const person of [this.speaker, this.listener]) {
       if (!person) continue;
+      if (person.actor.root.isDisposed()) {
+        person.locomotion?.release();
+        person.settling?.release();
+        continue;
+      }
       person.actor.lookAt(null);
       person.actor.root.rotation.y = person.heading;
       // Arrival or a settings update may settle the same held pose after select.
