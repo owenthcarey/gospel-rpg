@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Earned observations and work feedback · 2026-10-02
+
+Commits `6d8ff26` and `8a02302` describe the sewing pouch at its actual earned location and bring newly clipped practical-work feedback into view. Examine samples the current state when its native menu action activates. The work panel retains its owned reading position and native keyboard focus; only a new clipped result moves its own body, while repeated results, previews and already visible feedback leave reading in place.
+
+The full application check passes **1,237 tests across 77 files**, evidence, types, lint, production build, formatting and whitespace checks. Browser discovery verifies **428 cases in 200 groups** with the existing Linux timing catalog. All **four focused production cases** pass in **1.2 minutes**, covering the actual pouch return and later stationary Examine, both complete save comparisons, Large-text work feedback, repeated results, preview and larger-body reading behavior. Four original captures were inspected and remain in ignored review artifacts.
+
+The checked production entry is `index-CJcYWpFN.js` (SHA-256 `0f17e3782e312336ec5a73560ba23991df3e0be6308dce36ad02b26774e3ee73`) with unchanged `index-DB1rH7Zb.css` (SHA-256 `4baf3755af5a4aae17fb4d43165f24d5ef4be4d09e6d3bd0a0a80d8066b30804`). The two HUD Follow/Resume cases pass with software rendering in **21.8 seconds** against the preceding travel/spring snapshot; both world-label cases pass in **25.2 seconds** against this snapshot. Commits `0ff30b1` and `df48771` start their genuine approaches farther away so the route remains active during native focus and movement assertions. They retain the original native controls and compare complete earned progress apart from position, elapsed time and the intentionally selected route.
+
+The [completed Linux checkpoint at `ca656ce`](https://github.com/owenthcarey/gospel-rpg/actions/runs/37079379857) fails four approach-timing cases, the phone Capernaum High boat case and its aggregate gate. Preserved traces show the short initial routes arriving during native observations in all four input cases; their longer-fixture software-rendered passes above do not establish a new Linux result. The actual phone boat case reaches the final contact setup before its cumulative **180-second** deadline expires. Its existing contacts, assertions and budgets remain the next validation scope. The canonical bench animation pass is separate from this checked production snapshot.
+
 ## Travel and spring observations · 2026-10-02
 
 Commits `ce44ee6` and `9310bb7` keep inspections consistent with the cleared spring and the scoop's carried/returned state, including settled completion wording. Chosen-point ground and minimap travel now expose the existing Cancel action for the actual active path; afloat courses say “Steering.” Arrival, cancellation and world/graphics pause clear that temporary status, while saved destinations remain resumable under their existing rules.

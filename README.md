@@ -30,6 +30,8 @@ Exploration characters have soft contact shadows, and walking companions match t
 
 Ground and minimap travel show a Cancel control while a chosen-point route is active, including ordinary boat courses. Spring inspections describe the inlet, silt and scoop where they actually are, and completed work keeps its settled observation on later visits.
 
+Pouch observations follow the item into your hands and back to Ruth. New practical-work results stay readable in the work panel, while repeated feedback and previews preserve your reading place and keyboard focus.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
