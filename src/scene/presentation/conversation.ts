@@ -8,6 +8,7 @@ interface Participant {
   actor: Actor;
   heading: number;
   clip: ReturnType<Actor['snapshotPose']>;
+  supportedHold?: boolean;
 }
 /** Moves only the camera and rig poses; participant navigation roots never change position. */
 export class ConversationPresentation {
@@ -60,6 +61,10 @@ export class ConversationPresentation {
       actor: listener,
       heading: listener.root.rotation.y,
       clip: listener.snapshotPose(),
+      supportedHold:
+        ['Carry', 'MatCarry'].includes(listener.playback.clip) &&
+        listener.hasFootSupport &&
+        !listener.performing,
     };
     this.camera.lowerRadiusLimit = 3;
     this.camera.upperRadiusLimit = 100;
@@ -110,6 +115,8 @@ export class ConversationPresentation {
     ] as const) {
       if (this.paused) break;
       const actor = person.actor;
+      // The paused world already sampled and supported this held traveler pose.
+      if (this.keepsSupportedHold(person)) continue;
       // Seated/working characters retain their supported base pose while acknowledging a visitor.
       if (['Sit', 'Row', 'Recline', 'Kneel', 'Carry', 'MatCarry'].includes(person.clip.clip)) {
         actor.sample(person.clip.clip, dt, reduced || person.clip.clip === 'Carry');
@@ -132,12 +139,23 @@ export class ConversationPresentation {
     this.canvas.dataset.conversation = this.targetId;
     this.canvas.dataset.conversationTime = time.toFixed(2);
   }
+  private keepsSupportedHold(person: Participant): boolean {
+    return (
+      person === this.listener &&
+      Boolean(person.supportedHold) &&
+      person.actor.hasFootSupport &&
+      person.actor.playback.clip === person.clip.clip &&
+      !person.actor.performing
+    );
+  }
   clear(): void {
     for (const person of [this.speaker, this.listener]) {
       if (!person) continue;
       person.actor.lookAt(null);
       person.actor.root.rotation.y = person.heading;
-      person.actor.restorePose(person.clip);
+      // Arrival or a settings update may settle the same held pose after select.
+      // Keep that current support instead of restoring a stale animation frame.
+      if (!this.keepsSupportedHold(person)) person.actor.restorePose(person.clip);
     }
     if (this.bookmark) {
       applyCameraPose(this.camera, this.bookmark);

@@ -42,6 +42,9 @@ export class StationaryFeet {
   private source?: Pose[];
   private stationary = false;
   private elapsed = 0;
+  get hasPresentation(): boolean {
+    return Boolean(this.displayed);
+  }
   constructor(
     private model: Model,
     private clearances: (ground: FootSupportOptions['ground']) => Record<Side, number>,

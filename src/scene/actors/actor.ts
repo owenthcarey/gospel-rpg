@@ -189,6 +189,10 @@ export class Actor {
     const fps = clip.targetedAnimations[0]?.animation.framePerSecond ?? 60;
     return (clip.to - clip.from) / fps;
   }
+  /** A composed traveler presentation currently exists; exact poses and ordinary NPCs opt out. */
+  get hasFootSupport(): boolean {
+    return Boolean(this.stationaryFeet?.hasPresentation);
+  }
   /** Compose after terrain lift and roll; exact finite poses and ordinary NPCs stay authored. */
   supportFeet(options: FootSupportOptions): void {
     if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(this.playback.clip)) {
