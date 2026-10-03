@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Native input and transient arrival observations · 2026-10-02
+
+Commits `81854fc` and `2a76f08` observe temporary route and arrival UI while it is active. The Cancel check measures all independent live predicates together and verifies the trusted native button contact occurs before arrival. Follow and Resume retain their distinct focus owners; both actual S keydowns must interrupt an active route, move the traveler, leave the destination resumable and avoid an arrival conversation. The arrival opacity/live observations run concurrently with the unchanged native start flow, before the 4.6-second plaque expires. Game behavior, saved progress, inputs, assertions and deadlines retain their original scope.
+
+Against the frozen `index-CnDvS12-.js` production snapshot below, all **six travel/HUD cases** pass under software rendering in **54.2 seconds**, and all **eight original arrival layout cases** pass in **1.2 minutes**. Both selections use one worker, zero retries and the existing CI budgets. Two cancellation images and four representative arrival images were inspected; crowded screens can yield the visual plaque while retaining its live announcement. Initial failed Linux traces remain in ignored artifacts.
+
+Exact logs from the [published preceding Linux checkpoint](https://github.com/owenthcarey/gospel-rpg/actions/runs/37082154195) confirm both world-label cases pass (**34.2 seconds desktop / 24.9 seconds phone**) and both original Capernaum High boat cases pass (**2.8 minutes desktop / 2.4 minutes phone**) without retries. Anonymous Cancel arrives before native dispatch, HUD Resume arrives before S, and the arrival opacity assertion begins after plaque removal in their failed traces. The run reports failure and its aggregate gate fails. The follow-up observer passes above are local validation, not a successful new Linux outcome.
+
 ## Canonical seating, materials and retained work messages · 2026-10-02
 
 Commits `062d7fb`, `6ce7b95` and `43485c4` keep bench material observations consistent with borrowing, return and fitting; retain accepted channel/screen outcomes in Messages; and rebuild only traveler/villager seating through the reproducible Blender recipe and complete fifteen-actor workshop. Cloth folds across the lap, sandals clear the finite supports, and guests begin directly in their supported pose. The player's approach, turn, seated transition and forward retreat use a cosmetic offset while preserving its navigation root. Pause, cancellation, reset and reduced motion retain their lifecycle behavior.
