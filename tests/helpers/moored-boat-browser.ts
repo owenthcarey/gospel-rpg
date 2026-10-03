@@ -17,6 +17,260 @@ import type { Berth } from '../../src/game/lake/types';
 
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 
+export interface NativeCameraControl {
+  name: string;
+  count: number;
+  enabled: boolean;
+  rendered: boolean;
+  exposed: boolean;
+  inViewport: boolean;
+  point: { x: number; y: number };
+}
+
+interface NativeCameraDiagnostics {
+  initial: NativeCameraControl[];
+  startedAt: number;
+  endedAt: number;
+  pageTimeOrigin: number;
+  frames: number[];
+  longTasksSupported: boolean;
+  longTasks: { startTime: number; duration: number; name: string }[];
+  events: {
+    type: string;
+    trusted: boolean;
+    pointerType: string;
+    at: number;
+    x: number;
+    y: number;
+    name: string | null;
+    control: NativeCameraControl | null;
+  }[];
+}
+
+declare global {
+  interface Window {
+    mooredCameraObservation?: { finish: () => NativeCameraDiagnostics };
+  }
+}
+
+/** Observe real controls at native dispatch; cached coordinates alone never establish ownership. */
+export function armNativeCameraControls(names: string[]): NativeCameraControl[] {
+  if (window.mooredCameraObservation)
+    throw new Error('A native camera observation is already active');
+  const measure = (name: string, contact?: { x: number; y: number }): NativeCameraControl => {
+    const matches = [...document.querySelectorAll<HTMLButtonElement>('button[aria-label]')].filter(
+      (button) => button.getAttribute('aria-label') === name,
+    );
+    const button = matches.length === 1 ? matches[0] : undefined;
+    const rect = button?.getBoundingClientRect();
+    const point = contact ?? {
+      x: rect ? rect.left + rect.width / 2 : NaN,
+      y: rect ? rect.top + rect.height / 2 : NaN,
+    };
+    const surface = [point.x, point.y].every(Number.isFinite)
+      ? document.elementFromPoint(point.x, point.y)
+      : null;
+    const style = button && getComputedStyle(button);
+    return {
+      name,
+      count: matches.length,
+      enabled: !!button && !button.disabled && !button.closest('[inert]'),
+      rendered:
+        !!button?.isConnected &&
+        !!rect &&
+        [rect.left, rect.top, rect.width, rect.height].every(Number.isFinite) &&
+        rect.width > 0 &&
+        rect.height > 0 &&
+        style?.display !== 'none' &&
+        style?.visibility === 'visible',
+      exposed: !!button && (surface === button || (!!surface && button.contains(surface))),
+      inViewport: point.x > 0 && point.x < innerWidth && point.y > 0 && point.y < innerHeight,
+      point,
+    };
+  };
+  const initial = names.map((name) => measure(name));
+  const startedAt = performance.now();
+  const events: NativeCameraDiagnostics['events'] = [];
+  const frames: number[] = [];
+  const longTasks: NativeCameraDiagnostics['longTasks'] = [];
+  const longTasksSupported =
+    typeof PerformanceObserver !== 'undefined' &&
+    PerformanceObserver.supportedEntryTypes.includes('longtask');
+  const tasks = longTasksSupported
+    ? new PerformanceObserver((list) => {
+        for (const entry of list.getEntries())
+          if (entry.startTime >= startedAt)
+            longTasks.push({
+              startTime: entry.startTime,
+              duration: entry.duration,
+              name: entry.name,
+            });
+      })
+    : undefined;
+  tasks?.observe({ type: 'longtask' });
+  let frame = 0;
+  let running = true;
+  const painted = () => {
+    frames.push(performance.now());
+    if (running) frame = requestAnimationFrame(painted);
+  };
+  frame = requestAnimationFrame(painted);
+  const record = (event: PointerEvent) => {
+    const button =
+      event.target instanceof Element ? event.target.closest('button[aria-label]') : null;
+    const name = button?.getAttribute('aria-label') ?? null;
+    events.push({
+      type: event.type,
+      trusted: event.isTrusted,
+      pointerType: event.pointerType,
+      at: event.timeStamp,
+      x: event.clientX,
+      y: event.clientY,
+      name,
+      control: name ? measure(name, { x: event.clientX, y: event.clientY }) : null,
+    });
+  };
+  for (const type of ['pointerdown', 'pointerup', 'click'] as const)
+    window.addEventListener(type, record, { capture: true, passive: true });
+  window.mooredCameraObservation = {
+    finish: () => {
+      running = false;
+      cancelAnimationFrame(frame);
+      for (const type of ['pointerdown', 'pointerup', 'click'] as const)
+        window.removeEventListener(type, record, true);
+      for (const entry of tasks?.takeRecords() ?? [])
+        if (entry.startTime >= startedAt)
+          longTasks.push({
+            startTime: entry.startTime,
+            duration: entry.duration,
+            name: entry.name,
+          });
+      tasks?.disconnect();
+      delete window.mooredCameraObservation;
+      return {
+        initial,
+        startedAt,
+        endedAt: performance.now(),
+        pageTimeOrigin: performance.timeOrigin,
+        frames,
+        longTasksSupported,
+        longTasks,
+        events,
+      };
+    },
+  };
+  return initial;
+}
+
+/** Preserve all five driver-native commands while avoiding a separate read before each press. */
+export async function nativeHullCamera(
+  page: Page,
+  touch: boolean,
+  info: TestInfo,
+  name: string,
+  input: (press: (name: string) => Promise<void>) => Promise<void>,
+) {
+  const initial = await page.evaluate(armNativeCameraControls, [
+    'Reset camera',
+    'Face north',
+    'Zoom in',
+  ]);
+  const driver: {
+    name: string;
+    point: { x: number; y: number };
+    requestedAt: number;
+    completedAt?: number;
+  }[] = [];
+  let result: NativeCameraDiagnostics | undefined;
+  let failure: unknown;
+  let failed = false;
+  try {
+    for (const control of initial)
+      expect(control, name + ' initial ' + control.name).toMatchObject({
+        count: 1,
+        enabled: true,
+        rendered: true,
+        exposed: true,
+        inViewport: true,
+      });
+    await input(async (name) => {
+      const control = initial.find((control) => control.name === name);
+      if (!control) throw new Error('Unobserved native camera command: ' + name);
+      const dispatch = {
+        name,
+        point: control.point,
+        requestedAt: Date.now(),
+        completedAt: undefined as number | undefined,
+      };
+      driver.push(dispatch);
+      if (touch) await page.touchscreen.tap(control.point.x, control.point.y);
+      else await page.mouse.click(control.point.x, control.point.y);
+      dispatch.completedAt = Date.now();
+    });
+  } catch (error) {
+    failed = true;
+    failure = error;
+  }
+  let diagnosticError: unknown;
+  try {
+    result = await page.evaluate(() => {
+      if (!window.mooredCameraObservation) throw new Error('Missing native camera observation');
+      return window.mooredCameraObservation.finish();
+    });
+  } catch (error) {
+    diagnosticError = error;
+  }
+  let deliveryError: unknown;
+  try {
+    await writeFile(
+      info.outputPath(name + '-native-camera.json'),
+      JSON.stringify(
+        {
+          name,
+          touch,
+          driverWallClock: 'Unix milliseconds; separate from browser monotonic timestamps',
+          driver,
+          ...result,
+          inputFailure: failed ? String(failure) : null,
+          diagnosticFailure: diagnosticError ? String(diagnosticError) : null,
+        },
+        null,
+        2,
+      ),
+    );
+  } catch (error) {
+    deliveryError = error;
+  }
+  if (failed) throw failure;
+  if (diagnosticError) throw diagnosticError;
+  if (deliveryError) throw deliveryError;
+  if (!result) throw new Error(name + ' has no native camera evidence');
+  const commands = ['Reset camera', 'Face north', 'Zoom in', 'Zoom in', 'Zoom in'];
+  expect(driver.map((dispatch) => dispatch.name)).toEqual(commands);
+  for (const type of ['pointerdown', 'pointerup', 'click']) {
+    const events = result.events.filter((event) => event.type === type);
+    expect(
+      events.map((event) => event.name),
+      name + ' native ' + type + ' sequence',
+    ).toEqual(commands);
+    for (const [index, event] of events.entries()) {
+      expect(event.trusted, name + ' trusted ' + type).toBe(true);
+      expect(event.pointerType).toBe(touch ? 'touch' : 'mouse');
+      expect(event.control, name + ' live ' + commands[index]).toMatchObject({
+        name: commands[index],
+        count: 1,
+        enabled: true,
+        rendered: true,
+        exposed: true,
+        inViewport: true,
+      });
+      expect(Math.abs(event.x - driver[index]!.point.x)).toBeLessThan(1);
+      expect(Math.abs(event.y - driver[index]!.point.y)).toBeLessThan(1);
+    }
+  }
+  return { ...result, driver };
+}
+
 /** Observe one named native model contact, independently of later normal menu actions. */
 export async function nativeHullInput(
   page: Page,
@@ -62,6 +316,7 @@ export async function nativeHullInput(
     window.addEventListener('pointerup', record, { capture: true, passive: true });
     return {
       preContact: describe(document.elementFromPoint(point.x, point.y)),
+      playerTransform: document.querySelector('#minimap-player')?.getAttribute('transform') ?? null,
       events,
       cleanup: () => {
         window.removeEventListener('pointerdown', record, true);
@@ -72,6 +327,7 @@ export async function nativeHullInput(
   let result:
     | {
         preContact: Awaited<ReturnType<typeof audit.jsonValue>>['preContact'];
+        playerTransform: Awaited<ReturnType<typeof audit.jsonValue>>['playerTransform'];
         events: Awaited<ReturnType<typeof audit.jsonValue>>['events'];
       }
     | undefined;
@@ -91,7 +347,11 @@ export async function nativeHullInput(
   try {
     result = await audit.evaluate((value) => {
       try {
-        return { preContact: value.preContact, events: value.events };
+        return {
+          preContact: value.preContact,
+          playerTransform: value.playerTransform,
+          events: value.events,
+        };
       } finally {
         value.cleanup();
       }

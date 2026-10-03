@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { parseSave } from '../../src/persistence/schema';
@@ -15,6 +15,7 @@ import {
   hullFaces,
   fourAnimationFrames,
   nativeHullInput,
+  nativeHullCamera,
   observeHullProjection,
   observeHullOptions,
 } from '../helpers/moored-boat-browser';
@@ -121,40 +122,6 @@ async function dockNative(page: Page, before: GameState, berth: Berth, touch: bo
   };
 }
 
-async function pressCameraButton(page: Page, name: string, touch: boolean) {
-  const measured = await page.evaluate((name) => {
-    const matches = [...document.querySelectorAll<HTMLButtonElement>('button[aria-label]')].filter(
-      (button) => button.getAttribute('aria-label') === name,
-    );
-    if (matches.length !== 1)
-      throw new Error(`Expected one camera button named ${name}; found ${matches.length}`);
-    const button = matches[0]!;
-    const rect = button.getBoundingClientRect();
-    const point = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-    const surface = document.elementFromPoint(point.x, point.y);
-    return {
-      name: button.getAttribute('aria-label'),
-      enabled: !button.disabled && !button.closest('[inert]'),
-      rendered: rect.width > 0 && rect.height > 0,
-      exposed: surface === button || button.contains(surface),
-      inViewport: point.x > 0 && point.x < innerWidth && point.y > 0 && point.y < innerHeight,
-      rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
-      point,
-    };
-  }, name);
-  // Read actual named, enabled, exposed controls once, then send trusted native input.
-  // Model contacts still require the independent finite-face/camera convergence below.
-  expect(measured).toMatchObject({
-    name,
-    enabled: true,
-    rendered: true,
-    exposed: true,
-    inViewport: true,
-  });
-  if (touch) await page.touchscreen.tap(measured.point.x, measured.point.y);
-  else await page.mouse.click(measured.point.x, measured.point.y);
-}
-
 function hullObservationBudget(): number {
   // Wrappers overriding expect.timeout must declare the same numeric budget in project metadata.
   const declaredBudget = test.info().project.metadata.hullObservationExpectTimeoutMs;
@@ -164,27 +131,35 @@ function hullObservationBudget(): number {
   return observationBudgetMs;
 }
 
-async function visibleHull(page: Page, berth: Berth, standing: Point, touch: boolean) {
+async function visibleHull(
+  page: Page,
+  berth: Berth,
+  standing: Point,
+  touch: boolean,
+  info: TestInfo,
+  phase: string,
+) {
   // Notice expiry and native camera setup are independent; both must finish before projection.
   // Starting the assertion here retains its original deadline instead of extending it after setup.
   const noticeClear = expect(page.locator('#toast')).toBeHidden();
   const zoomClicks = 3;
-  await Promise.all([
+  const [, camera] = await Promise.all([
     noticeClear,
-    (async () => {
-      await pressCameraButton(page, 'Reset camera', touch);
-      await pressCameraButton(page, 'Face north', touch);
+    nativeHullCamera(page, touch, info, phase, async (press) => {
+      await press('Reset camera');
+      await press('Face north');
       await expect
         .poll(() =>
-          page
-            .locator('.minimap-wrap')
-            .evaluate((node) =>
-              Math.abs(parseFloat((node as HTMLElement).style.getPropertyValue('--map-bearing'))),
-            ),
+          page.evaluate(() => {
+            const maps = document.querySelectorAll<HTMLElement>('.minimap-wrap');
+            return maps.length === 1
+              ? Math.abs(parseFloat(maps[0]!.style.getPropertyValue('--map-bearing')))
+              : NaN;
+          }),
         )
         .toBeLessThan(0.04); // The CSS bearing contract is degrees.
-      for (let i = 0; i < zoomClicks; i++) await pressCameraButton(page, 'Zoom in', touch);
-    })(),
+      for (let i = 0; i < zoomClicks; i++) await press('Zoom in');
+    }),
   ]);
   // High quality follows movement smoothly; use actual rendered label stability before projection.
   const label = page.locator(`.world-label[data-value="board-${berth}"]`);
@@ -201,7 +176,7 @@ async function visibleHull(page: Page, berth: Berth, standing: Point, touch: boo
         point,
       )
     )
-      return { chosen, point, geometry, observation };
+      return { chosen, point, geometry, observation, camera };
   }
   throw new Error(
     'No finite first-hit boat face has a bare-canvas contact: ' + JSON.stringify(geometry),
@@ -306,7 +281,14 @@ for (const data of [
         await audit.evaluate((value) => value.cleanup());
         await audit.dispose();
       };
-      const calibration = await visibleHull(page, data.berth, baseline.position, isMobile);
+      const calibration = await visibleHull(
+        page,
+        data.berth,
+        baseline.position,
+        isMobile,
+        info,
+        'examine-camera',
+      );
       await page.screenshot({
         path: info.outputPath('moored-hull-before-contact.png'),
         scale: 'css',
@@ -314,14 +296,14 @@ for (const data of [
       const menu = page.getByRole('menu', { name: 'Choose Option' }),
         hullContacts: Awaited<ReturnType<typeof nativeHullInput>>[] = [];
       const openHullOptions = async (name: string, point: { x: number; y: number }) => {
-        expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.id, point)).toBe(
-          'game-canvas',
-        );
-        const standing = await page.locator('#minimap-player').getAttribute('transform');
-        expect(standing).not.toBeNull();
-        let options: Awaited<ReturnType<typeof observeHullOptions>> | undefined;
-        hullContacts.push(
-          await nativeHullInput(page, point, isMobile, isMobile, info, name, async () => {
+        const contact = await nativeHullInput(
+          page,
+          point,
+          isMobile,
+          isMobile,
+          info,
+          name,
+          async () => {
             if (touch) {
               await touch.send('Input.dispatchTouchEvent', {
                 type: 'touchStart',
@@ -333,33 +315,31 @@ for (const data of [
                 await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
               }
               await fourAnimationFrames(page);
-              options = await observeHullOptions(
-                page,
-                boatName,
-                standing!,
-                hullObservationBudget(),
-              );
             } else await page.mouse.click(point.x, point.y, { button: 'right' });
-          }),
+          },
         );
-        if (touch) {
-          expect(options!.valid).toBe(true);
-          expect(options!.menuVisible).toBe(true);
-          expect(options!.dialogHidden).toBe(true);
-          expect(options!.destinationHidden).toBe(true);
-          expect(options!.playerTransform).toBe(standing);
-          expect(options!.visitVisible).toBe(true);
-          expect(options!.examineVisible).toBe(true);
-          expect(options!.menuOwnsFocus).toBe(true);
-          expect(options!.optionsExposed).toBe(true);
-        } else {
-          await expect(
-            menu.getByRole('menuitem', { name: 'Visit ' + boatName, exact: true }),
-          ).toBeVisible();
-          await expect(
-            menu.getByRole('menuitem', { name: 'Examine ' + boatName, exact: true }),
-          ).toBeVisible();
-        }
+        hullContacts.push(contact);
+        // The contact observer reads standing and bare-canvas ownership together before input.
+        expect(contact.preContact.id).toBe('game-canvas');
+        expect(contact.playerTransform).not.toBeNull();
+        const options = await observeHullOptions(
+          page,
+          boatName,
+          contact.playerTransform!,
+          hullObservationBudget(),
+        );
+        // Both desktop right-click and phone hold retain every named Choose Option predicate.
+        expect(options.valid, 'one Choose Option menu with named Visit and Examine controls').toBe(
+          true,
+        );
+        expect(options.menuVisible).toBe(true);
+        expect(options.dialogHidden).toBe(true);
+        expect(options.destinationHidden).toBe(true);
+        expect(options.playerTransform).toBe(contact.playerTransform);
+        expect(options.visitVisible, 'Visit ' + boatName).toBe(true);
+        expect(options.examineVisible, 'Examine ' + boatName).toBe(true);
+        expect(options.menuOwnsFocus, 'Choose Option owns focus').toBe(true);
+        expect(options.optionsExposed).toBe(true);
       };
       if (!isMobile) {
         await page.mouse.move(calibration.point.x, calibration.point.y);
@@ -374,15 +354,51 @@ for (const data of [
         menu.getByRole('menuitem', { name: 'Examine ' + boatName, exact: true }),
         isMobile,
       );
-      await expect(menu).toBeHidden();
-      await expect(page.getByRole('dialog')).toBeHidden();
-      await expect(page.locator('#toast')).toContainText(
-        examineText(lakeGateways.find((p) => p.id === gate)!),
-      );
+      const examineNotice = examineText(lakeGateways.find((p) => p.id === gate)!);
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const visible = (node: Element) => {
+              const box = node.getBoundingClientRect();
+              const style = getComputedStyle(node);
+              return (
+                box.width > 0 &&
+                box.height > 0 &&
+                style.visibility !== 'hidden' &&
+                style.visibility !== 'collapse'
+              );
+            };
+            const menus = [
+              ...document.querySelectorAll('[role="menu"][aria-label="Choose Option"]'),
+            ];
+            const notices = document.querySelectorAll('#toast');
+            return {
+              menuHidden: menus.length <= 1 && menus.every((node) => !visible(node)),
+              dialogHidden: [...document.querySelectorAll('[role="dialog"]')].every(
+                (node) => !visible(node),
+              ),
+              noticeCount: notices.length,
+              noticeText: notices[0]?.textContent,
+            };
+          }),
+        )
+        .toMatchObject({
+          menuHidden: true,
+          dialogHidden: true,
+          noticeCount: 1,
+          noticeText: expect.stringContaining(examineNotice),
+        });
       const examined = await exported(page);
       expect(examined).toEqual({ ...baseline, playTime: examined.playTime });
       await dismiss(page);
-      const defaultContact = await visibleHull(page, data.berth, examined.position, isMobile);
+      const defaultContact = await visibleHull(
+        page,
+        data.berth,
+        examined.position,
+        isMobile,
+        info,
+        'default-visit-camera',
+      );
       hullContacts.push(
         await nativeHullInput(
           page,
@@ -410,7 +426,14 @@ for (const data of [
       expect(defaultVisit).toEqual(expected);
       expect(defaultVisit.lake.boat.mode).toBe('ashore');
       await dismiss(page);
-      const visitContact = await visibleHull(page, data.berth, defaultVisit.position, isMobile);
+      const visitContact = await visibleHull(
+        page,
+        data.berth,
+        defaultVisit.position,
+        isMobile,
+        info,
+        'visit-options-camera',
+      );
       await openHullOptions('visit-options', visitContact.point);
       await activate(
         menu.getByRole('menuitem', { name: 'Visit ' + boatName, exact: true }),
@@ -429,7 +452,14 @@ for (const data of [
       expect(visited.lake.boat.mode).toBe('ashore');
       // Export opens settings; return through the same actual model before explicitly boarding.
       await dismiss(page);
-      const boardContact = await visibleHull(page, data.berth, visited.position, isMobile);
+      const boardContact = await visibleHull(
+        page,
+        data.berth,
+        visited.position,
+        isMobile,
+        info,
+        'board-context-camera',
+      );
       hullContacts.push(
         await nativeHullInput(
           page,
