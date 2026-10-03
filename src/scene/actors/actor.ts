@@ -8,7 +8,11 @@ import type { Point } from '../../game/types';
 import { distance } from '../../game/pathfinding';
 import type { Model } from '../assets';
 import { turnToward } from '../../game/presence';
-import { StationaryFeet, type FootSupportOptions } from './stationary-feet';
+import {
+  StationaryFeet,
+  type FootSupportOptions,
+  type FootSupportContinuation,
+} from './stationary-feet';
 import { LocomotionClearance, type ActorGround } from './locomotion-clearance';
 
 /** Samples Blender clips using simulation time; no Babylon auto-animation clock. */
@@ -210,6 +214,35 @@ export class Actor {
   get hasFootSupport(): boolean {
     return Boolean(this.stationaryFeet?.hasPresentation);
   }
+  /** Advance only an existing held lower-body composition; playback and navigation stay fixed. */
+  footSupportContinuation(): FootSupportContinuation | undefined {
+    const clip = this.playback.clip;
+    if (!['Carry', 'MatCarry'].includes(clip) || this.performing) return;
+    // The mutable owner is deliberately cleared when this scope is released.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let owner: Actor | undefined = this;
+    const scope = this.stationaryFeet?.continuation(() => {
+      owner = undefined;
+    });
+    if (!scope) return;
+    return {
+      step(dt, immediate) {
+        if (!owner || !owner.hasFootSupport || owner.playback.clip !== clip || owner.performing) {
+          owner = undefined;
+          scope.release();
+          return false;
+        }
+        if (scope.step(dt, immediate)) return true;
+        owner = undefined;
+        scope.release();
+        return false;
+      },
+      release() {
+        owner = undefined;
+        scope.release();
+      },
+    };
+  }
   /** Compose after terrain lift and roll; exact finite poses and ordinary NPCs stay authored. */
   supportFeet(options: FootSupportOptions): void {
     if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(this.playback.clip)) {
@@ -370,6 +403,7 @@ export class Actor {
     model.root.scaling.setAll(1);
   }
   dispose(): void {
+    this.stationaryFeet?.dispose();
     this.locomotionClearance?.dispose();
     for (const animation of this.clips.values()) animation.dispose();
     this.root.dispose();

@@ -9,6 +9,7 @@ interface Participant {
   heading: number;
   clip: ReturnType<Actor['snapshotPose']>;
   supportedHold?: boolean;
+  settling?: ReturnType<Actor['footSupportContinuation']>;
 }
 /** Moves only the camera and rig poses; participant navigation roots never change position. */
 export class ConversationPresentation {
@@ -68,6 +69,7 @@ export class ConversationPresentation {
         listener.hasFootSupport &&
         !listener.performing,
     };
+    if (this.listener.supportedHold) this.listener.settling = listener.footSupportContinuation();
     this.camera.lowerRadiusLimit = 3;
     this.camera.upperRadiusLimit = 100;
     this.camera.lowerBetaLimit = 0.3;
@@ -117,8 +119,11 @@ export class ConversationPresentation {
     ] as const) {
       if (this.paused) break;
       const actor = person.actor;
-      // The paused world already sampled and supported this held traveler pose.
-      if (this.keepsSupportedHold(person)) continue;
+      // Keep the paused world's upper/held pose while its supported legs finish settling.
+      if (this.keepsSupportedHold(person)) {
+        person.settling?.step(dt, reduced);
+        continue;
+      }
       // Seated/working characters retain their supported base pose while acknowledging a visitor.
       if (['Sit', 'Row', 'Recline', 'Kneel', 'Carry', 'MatCarry'].includes(person.clip.clip)) {
         actor.sample(person.clip.clip, dt, reduced || person.clip.clip === 'Carry');
@@ -158,6 +163,7 @@ export class ConversationPresentation {
       // Arrival or a settings update may settle the same held pose after select.
       // Keep that current support instead of restoring a stale animation frame.
       if (!this.keepsSupportedHold(person)) person.actor.restorePose(person.clip);
+      person.settling?.release();
       person.actor.suppressLocomotionPresentation(false);
     }
     if (this.bookmark) {
