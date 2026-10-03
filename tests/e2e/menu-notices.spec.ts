@@ -132,8 +132,13 @@ test('reading notices reserve space through compact layouts, import errors and m
   await clearReading(page);
   await expect(page.getByRole('button', { name: 'Close menu', exact: true })).toBeFocused();
   await dismiss(page);
-  await expect(toast).toBeVisible();
-  await expect(toast).toHaveCSS('opacity', '1');
+  // Observe the live notice before diagnostic capture consumes its ordinary lifetime.
+  await Promise.all([
+    expect(toast).toBeVisible(),
+    expect(toast).toHaveCSS('opacity', '1'),
+    expect(toast).toBeInViewport({ ratio: 1 }),
+    expect(page.locator('#game-canvas')).toBeFocused(),
+  ]);
   const returnedNotice = await toast.evaluate((notice) => {
     const ancestors = [];
     for (let node: Element | null = notice; node; node = node.parentElement) {
@@ -165,8 +170,6 @@ test('reading notices reserve space through compact layouts, import errors and m
     JSON.stringify(returnedNotice, null, 2),
   );
   await page.screenshot({ path: info.outputPath('returned-world-notice.png'), scale: 'css' });
-  await expect(toast).toBeInViewport({ ratio: 1 });
-  await expect(page.locator('#game-canvas')).toBeFocused();
   expect(errors).toEqual([]);
   await writeFile(info.outputPath('reading-notice-bounds.json'), JSON.stringify(report, null, 2));
 });
