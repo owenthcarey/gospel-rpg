@@ -28,7 +28,7 @@ export class Actor {
   private head?: TransformNode | null;
   private feet?: {
     mesh: AbstractMesh;
-    points: { x: number; y: number; z: number; joint: number }[];
+    points: { x: number; y: number; z: number; joint: number; side: 'left' | 'right' }[];
   }[];
   private previousPose: {
     target: TransformNode;
@@ -181,6 +181,14 @@ export class Actor {
   }
   /** Lowest actual sandal vertex; cached rigid vertices avoid deforming the whole skin each tick. */
   soleHeight(): number {
+    const feet = this.footClearance();
+    return Math.min(feet.left, feet.right);
+  }
+  /** Each posed foot's lowest clearance above terrain at its own world coordinates. */
+  footClearance(ground: (x: number, z: number) => number = FLAT_GROUND): {
+    left: number;
+    right: number;
+  } {
     this.feet ??= this.root.getChildMeshes().flatMap((mesh) => {
       const positions = mesh.getVerticesData('position');
       const joints = mesh.getVerticesData('matricesIndices');
@@ -195,13 +203,14 @@ export class Actor {
             y: positions[i * 3 + 1]!,
             z: positions[i * 3 + 2]!,
             joint,
+            side: name === 'leg_left' ? ('left' as const) : ('right' as const),
           });
       }
       return [{ mesh, points }];
     });
     this.root.computeWorldMatrix(true);
     for (const node of this.root.getChildTransformNodes()) node.computeWorldMatrix(true);
-    let lowest = Infinity;
+    const clearance = { left: Infinity, right: Infinity };
     for (const { mesh, points } of this.feet) {
       mesh.skeleton!.prepare(true);
       const bones = mesh.skeleton!.getTransformMatrices(mesh);
@@ -213,10 +222,13 @@ export class Actor {
           p.x * bones[at + 1]! + p.y * bones[at + 5]! + p.z * bones[at + 9]! + bones[at + 13]!;
         const z =
           p.x * bones[at + 2]! + p.y * bones[at + 6]! + p.z * bones[at + 10]! + bones[at + 14]!;
-        lowest = Math.min(lowest, x * world[1]! + y * world[5]! + z * world[9]! + world[13]!);
+        const worldX = x * world[0]! + y * world[4]! + z * world[8]! + world[12]!;
+        const worldY = x * world[1]! + y * world[5]! + z * world[9]! + world[13]!;
+        const worldZ = x * world[2]! + y * world[6]! + z * world[10]! + world[14]!;
+        clearance[p.side] = Math.min(clearance[p.side], worldY - ground(worldX, worldZ));
       }
     }
-    return lowest;
+    return clearance;
   }
   get performing(): boolean {
     return Boolean(this.oneShot);
@@ -308,3 +320,4 @@ export class Actor {
     this.root.dispose();
   }
 }
+const FLAT_GROUND = () => 0;

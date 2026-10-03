@@ -43,6 +43,7 @@ import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import type { GroundMesh } from '@babylonjs/core/Meshes/groundMesh';
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
 import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
@@ -179,7 +180,7 @@ export class World {
   private shadow: ShadowGenerator;
   private stage: StageEnvironment;
   private cover?: GroundCover;
-  private floor?: Mesh;
+  private floor?: GroundMesh;
   private coverQuality?: 'high' | 'low';
   private arrival?: {
     t: number;
@@ -1218,13 +1219,25 @@ export class World {
         this.paused ||
         (clip === 'Carry' && !moving && !this.actorPlayer.performing),
     );
-    this.playerModel.position.y = this.reducedMotion
-      ? 0
-      : moving
-        ? Math.abs(Math.sin((this.strideTime * Math.PI * 2) / 0.8)) * 0.035
-        : Math.sin(this.time * 1.8) * 0.004;
+    // The displayed pose can still be a finite action while its requested base is Carry.
+    // Measure after sampling/blending and roll, without moving the navigation transform.
+    const grounded = ['Idle', 'Walk', 'Carry', 'MatCarry'].includes(this.actorPlayer.playback.clip);
+    this.playerModel.position.y =
+      grounded || this.reducedMotion
+        ? 0
+        : moving
+          ? Math.abs(Math.sin((this.strideTime * Math.PI * 2) / 0.8)) * 0.035
+          : Math.sin(this.time * 1.8) * 0.004;
     this.playerModel.rotation.z =
       moving && !this.reducedMotion ? Math.sin((this.strideTime * Math.PI * 2) / 0.8) * 0.016 : 0;
+    if (grounded) {
+      this.floor?.computeWorldMatrix(true);
+      const ground = this.floor;
+      const feet = this.actorPlayer.footClearance(
+        ground ? (x, z) => ground.getHeightAtCoordinates(x, z) : () => 0,
+      );
+      this.playerModel.position.y = Math.max(0, -Math.min(feet.left, feet.right));
+    }
   }
   setPaused(value: boolean): void {
     this.paused = value;
