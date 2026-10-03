@@ -895,6 +895,18 @@ export class Interface {
       this.active &&
       !this.panel &&
       !this.root.classList.contains('scene-mode');
+    // A notice can scroll its own text, but its frame must fit the action scrollport.
+    const style = enabled && actions.clientHeight > 0 ? getComputedStyle(actions) : null;
+    const noticeHeight = style
+      ? Math.floor(
+          actions.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom),
+        )
+      : 0;
+    const noticeSpace = noticeHeight > 0 ? `${noticeHeight}px` : '';
+    if (actions.style.getPropertyValue('--hud-action-notice-height') !== noticeSpace) {
+      if (noticeSpace) actions.style.setProperty('--hud-action-notice-height', noticeSpace);
+      else actions.style.removeProperty('--hud-action-notice-height');
+    }
     const above = enabled && actions.scrollTop > 1;
     const below = enabled && actions.scrollTop + actions.clientHeight < actions.scrollHeight - 1;
     this.actionScrollCue.hidden = !above && !below;
