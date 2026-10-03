@@ -5,8 +5,8 @@ import { harborActions, harborNotice } from './harbor/actions';
 import { galileeActions } from './galilee/actions';
 import { roadActions } from './road/actions';
 import { actionFor } from './episode/interactions';
-import { traceWater } from '../game/galilee/channel';
-import { checkArrangement } from '../game/galilee/arrangement';
+import { DIRECTIONS, ports, traceWater } from '../game/galilee/channel';
+import { checkArrangement, REST_LAYOUTS } from '../game/galilee/arrangement';
 
 /** The visible physical motion an accepted event plays, if any. Cosmetic only. */
 export function motionFor(
@@ -55,6 +55,17 @@ export function noticeFor(
         : event.id.startsWith('shelter-check-')
           ? checkArrangement(state.galilee.shelter).message
           : galileeActions.find((a) => a.id === event.id)?.notice;
+    case 'galilee-turn': {
+      const rotation = state.galilee.spring.turns[event.id];
+      if (rotation === previous.galilee.spring.turns[event.id]) return undefined;
+      const openings = ports(event.id, rotation).map((direction) => DIRECTIONS[direction]);
+      return `${event.id[0]!.toUpperCase() + event.id.slice(1)} channel turned. Open ends: ${openings.join(' / ')}.`;
+    }
+    case 'galilee-screen': {
+      const shelter = state.galilee.shelter;
+      if (!shelter.site || shelter.screen === previous.galilee.shelter.screen) return undefined;
+      return `${REST_LAYOUTS[shelter.site].title} · Screen moved to the ${DIRECTIONS[shelter.screen]} side.`;
+    }
     case 'journey':
       return event.gateway.startsWith('board-')
         ? 'Steer with arrows or WASD, or choose a map destination. Approach a landing to dock.'
