@@ -248,6 +248,33 @@ function capture(
     s.excludedMinimum = Math.min(s.excludedMinimum, rawMinimum);
   }
 }
+/** Only real reduced controller samples enter this policy branch; exact/finite checks stay separate. */
+function captureReducedStatic(p: Pair, height: Height, s: Stats) {
+  const ordinary =
+    ['Idle', 'Walk'].includes(p.actor.playback.clip) &&
+    !p.actor.performing &&
+    p.actor.root.isEnabled();
+  if (ordinary) expect(p.actor.playback.frame).toBe(0);
+  capture(p, height, s, ordinary);
+  if (!ordinary) return;
+  // Independent complete skin geometry establishes the required scalar, not an eligibility flag alone.
+  const observation = s.previous!,
+    rawFeet = npcFeet(observation.raw, height),
+    rawMinimum = Math.min(rawFeet.left.minimum, rawFeet.right.minimum);
+  expect(observation.lift).toBeCloseTo(Math.max(0, -rawMinimum), 6);
+}
+/** Read the existing visible rig; subtract its known uniform visualY without resetting or resampling. */
+function currentContact(actor: Actor, height: Height) {
+  const skin = npcSkin(actor),
+    feet = npcFeet(skin, height),
+    lift = npcLift(actor),
+    minimum = Math.min(feet.left.minimum, feet.right.minimum);
+  expect([feet.left.count, feet.right.count]).toEqual([16, 16]);
+  // Actors have a yaw-rotated visual wrapper; require its actual unit vertical basis for this oracle.
+  const visualWorld = skin.topology.nodes[skin.topology.visual]!.getWorldMatrix().m;
+  expect([visualWorld[4], visualWorld[5], visualWorld[6]]).toEqual([0, 1, 0]);
+  return { skin, lift, minimum, required: Math.max(0, lift - minimum) };
+}
 function report(id: string, s: Stats, extra: Record<string, unknown> = {}) {
   const values = { ...s, buffers: undefined, previous: undefined, clips: [...s.clips] };
   measurements.push({ id, ...extra, ...values });
@@ -338,7 +365,7 @@ it.each([0, 1, 2, 'tender'] as const)(
     everyday.forEach((e) => e.settings({ ...DEFAULT_SETTINGS, reducedMotion: true }));
     controls.forEach((c) => c.tick(1 / 30, state.position));
     everyday.forEach((e) => e.tick(1 / 30, state.position));
-    capture(p, ground.height, stats(), false);
+    captureReducedStatic(p, ground.height, stats());
     controls.forEach((c) => c.settings(DEFAULT_SETTINGS));
     everyday.forEach((e) => e.settings(DEFAULT_SETTINGS));
     controls.forEach((c) => c.tick(1 / 30, state.position));
@@ -424,7 +451,7 @@ it.each(['passage', 'outer'] as const)(
     activities.forEach((c) => c.settings({ ...DEFAULT_SETTINGS, reducedMotion: true }));
     scene.incrementRenderId();
     activities.forEach((c) => c.tick(1 / 30, state.position));
-    capture(p, ground.height, stats(), false);
+    captureReducedStatic(p, ground.height, stats());
     report('Amos', s, { route, checkpoints: checkpoints[0], savesEqual: true });
     dispose(p);
     ground.mesh.dispose();
@@ -507,13 +534,13 @@ it.each(
         scene.incrementRenderId();
         reduced.forEach((c) => c.tick(1 / 30, before));
         controllerEqual(reduced[0], reduced[1]);
-        const excluded = stats();
-        capture(reducedPair, ground!.height, excluded, false);
+        const supported = stats();
+        captureReducedStatic(reducedPair, ground!.height, supported);
         expect(distance(before, reducedPair.actor.root.position)).toBeGreaterThan(0);
         expect(reducedPair.actor.playback.clip).toBe('Walk');
         expect(reducedPair.actor.playback.frame).toBe(0);
-        expect(excluded.excludedMinimum).toBeLessThan(-0.09);
-        report('reduced-Neri', excluded, { route, region });
+        expect(supported.rawMinimum).toBeLessThan(-0.09);
+        report('reduced-Neri', supported, { route, region, clearancePolicy: 'reduced-static' });
         dispose(reducedPair);
       }
       let ticks = 0;
@@ -644,9 +671,9 @@ it('clears every exact/finite/reset sampling path, effective ancestor disable, a
   parents.forEach((a) => a.setEnabled(true));
   prime();
   p.actor.setLocomotionReducedMotion(true);
-  expect(npcLift(p.actor)).toBe(0);
+  captureReducedStatic(p, ground.height, stats());
   [p.baseline, p.actor].forEach((a) => a.sample('Walk', 0.1, true));
-  capture(p, ground.height, stats(), false);
+  captureReducedStatic(p, ground.height, stats());
   p.actor.setLocomotionReducedMotion(false);
   prime();
   p.actor.clearLocomotionPresentation();
@@ -930,9 +957,11 @@ it.each([false, true])(
         controllerEqual(everyday[0], everyday[1]);
         controllerEqual(roads[0], roads[1]);
       }
-      pairs.forEach((p) =>
-        capture(p, p === neri ? roadGround.height : ground.height, stats(), !reducedMotion),
-      );
+      pairs.forEach((p) => {
+        const height = p === neri ? roadGround.height : ground.height;
+        if (reducedMotion) captureReducedStatic(p, height, stats());
+        else capture(p, height, stats());
+      });
     }
     pairs.forEach(dispose);
     everyday.forEach((e) => e.dispose());
@@ -941,7 +970,7 @@ it.each([false, true])(
   },
 );
 
-it('primes the exact reduced Walk pose before paused settings returns to its first normal World frame', () => {
+it('keeps the exact reduced Walk grounded through paused settings and its first normal World frame', () => {
   let now = 100;
   vi.stubGlobal('performance', { now: () => now });
   vi.stubGlobal('document', { hidden: false });
@@ -1031,7 +1060,10 @@ it('primes the exact reduced Walk pose before paused settings returns to its fir
     now += 1000 / 30;
     world.renderFrame();
     expect(actor.playback).toMatchObject({ clip: 'Walk', frame: 0 });
-    expect(npcLift(actor)).toBe(0);
+    const reduced = currentContact(actor, ground.height);
+    expect(reduced.lift).toBeGreaterThan(0.08);
+    expect(reduced.lift).toBeCloseTo(reduced.required, 6);
+    expect(reduced.minimum).toBeGreaterThanOrEqual(-0.000002);
     world.setPaused(true);
     world.refreshFrame();
     world.renderFrame();
@@ -1039,16 +1071,21 @@ it('primes the exact reduced Walk pose before paused settings returns to its fir
       pose = actor.snapshotPose(),
       root = actor.root.position.asArray(),
       rotation = actor.root.rotation.asArray(),
-      time = world.time;
-    expect(frozen.minimum).toBeLessThan(-0.08);
+      time = world.time,
+      frozenLift = npcLift(actor);
+    expect(frozen.minimum).toBeGreaterThanOrEqual(-0.000002);
+    expect(frozen.minimum - frozenLift).toBeLessThan(-0.08);
+    expect(frozen.skin.coordinates).toEqual(reduced.skin.coordinates);
     world.applySettings(DEFAULT_SETTINGS);
     const immediate = skinAndFloor(),
       lift = npcLift(actor),
-      error = npcGeometryError(frozen.skin, immediate.skin, lift);
+      error = npcGeometryError(frozen.skin, immediate.skin, lift - frozenLift);
     expect(lift).toBeGreaterThan(0.08);
+    expect(lift).toBe(frozenLift);
     expect(immediate.minimum).toBeGreaterThanOrEqual(-0.000002);
     expect(error.local).toBe(0);
     expect(error.skin).toBeLessThan(0.000003);
+    expect(immediate.skin.coordinates).toEqual(frozen.skin.coordinates);
     expect(actor.snapshotPose()).toEqual(pose);
     expect(actor.root.position.asArray()).toEqual(root);
     expect(actor.root.rotation.asArray()).toEqual(rotation);
@@ -1092,10 +1129,22 @@ it('retains sampled ordinary settings eligibility without reviving exact, finite
     p = pair('amos', ground.height),
     actor = p.actor;
   actor.root.position.set(4, groundHeight('galilean-road', { x: 4, z: 1 }), 1);
-  const toggle = () => {
+  const toggle = (supported = false) => {
+    const before = currentContact(actor, ground.height);
     actor.setLocomotionReducedMotion(true);
-    expect(npcLift(actor)).toBe(0);
+    const reduced = currentContact(actor, ground.height),
+      error = npcGeometryError(before.skin, reduced.skin, reduced.lift - before.lift);
+    expect(error.local).toBe(0);
+    expect(error.skin).toBeLessThan(0.000003);
+    if (supported) {
+      expect(reduced.lift).toBeCloseTo(before.required, 6);
+      expect(reduced.minimum).toBeGreaterThanOrEqual(-0.000002);
+      expect(reduced.skin.coordinates).toEqual(before.skin.coordinates);
+    } else expect(reduced.lift).toBe(0);
     actor.setLocomotionReducedMotion(false);
+    const normal = currentContact(actor, ground.height);
+    expect(normal.lift).toBe(reduced.lift);
+    expect(normal.skin.coordinates).toEqual(reduced.skin.coordinates);
   };
   const prime = () => {
     actor.restorePose({ clip: 'Walk', frame: 0, elapsed: 0, oneShot: undefined });
@@ -1111,7 +1160,7 @@ it('retains sampled ordinary settings eligibility without reviving exact, finite
     prime();
     const before = unchanged(),
       lift = npcLift(actor);
-    toggle();
+    toggle(true);
     expect(unchanged()).toEqual(before);
     expect(npcLift(actor)).toBe(lift);
     actor.setLocomotionReducedMotion(false);
@@ -1445,13 +1494,20 @@ it('restores only live ordinary dialogue sources and releases exact, finite and 
     prime(actor);
     const pose = actor.snapshotPose(),
       lift = npcLift(actor),
+      before = currentContact(actor, () => 0),
       scope = actor.bookmarkLocomotionPresentation();
     actor.suppressLocomotionPresentation(true);
     actor.setLocomotionReducedMotion(true);
     actor.sample('Listen', 0.1, true);
     actor.restorePose(pose, scope);
     actor.suppressLocomotionPresentation(false);
-    expect(npcLift(actor)).toBe(0);
+    const restored = currentContact(actor, () => 0),
+      error = npcGeometryError(before.skin, restored.skin, restored.lift - before.lift);
+    expect(restored.lift).toBeCloseTo(before.required, 6);
+    expect(restored.minimum).toBeGreaterThanOrEqual(-0.000002);
+    expect(restored.lift).toBe(lift);
+    expect(error.local).toBe(0);
+    expect(error.skin).toBeLessThan(0.000003);
     expect(actor.snapshotPose()).toEqual(pose);
     actor.setLocomotionReducedMotion(false);
     expect(npcLift(actor)).toBe(lift);

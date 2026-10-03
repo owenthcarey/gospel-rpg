@@ -125,7 +125,7 @@ export class LocomotionClearance {
     else this.refresh();
   }
   apply(clip: ActorClip, still: boolean, performing: boolean): void {
-    // Reduced Walk stays authored, but remains a source for the normal-mode handoff.
+    // Reduced Walk keeps its sampled rig and remains eligible for measured terrain contact.
     this.ordinary =
       !performing && (clip === 'Idle' || (clip === 'Walk' && (!still || this.reduced)));
     this.refresh();
@@ -133,9 +133,9 @@ export class LocomotionClearance {
   /** A controller reset can relocate an already sampled ordinary pose without resampling it. */
   refresh(): void {
     this.clear();
+    // Frozen ordinary rigs still need measured terrain contact; motion settings own sampling.
     if (
       !this.ordinary ||
-      this.reduced ||
       this.suppressed ||
       this.disposed ||
       !this.root?.isEnabled() ||
