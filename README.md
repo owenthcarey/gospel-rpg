@@ -63,7 +63,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | R                                       | Reset camera                             |
 | J / I / M                               | Journal / satchel / map                  |
 | Escape                                  | Pause or close a menu                    |
-| Cancel walk                             | Clear the approach and saved destination |
+| Cancel walk / Cancel course             | Clear the approach and saved destination |
 | Resume route                            | Continue toward the saved destination    |
 
 ## Playable chapters

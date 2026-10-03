@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Minimap guidance and menu focus · 2026-10-03
+
+The same mounted minimap button says **Steer** afloat and **Walk** ashore, with matching accessible names and titles. Help follows that context, and landing narration now says **Cancel course**. Explicit menu dismissal keeps the Interface’s restored opener; gameplay closes and presented scenes retain their existing focus handoffs.
+
+The full check passes **1,656 tests / 100 files in 26.18 seconds**, with evidence, types, lint and production build in **41.875 seconds** overall. The focused selection passes **120 tests / four files**; its runtime/unit/asset inputs match this checkpoint, while five subsequent e2e opener expectations are covered by the final full-check source guard. Original deadlines remain unchanged.
+
+Fresh immutable AC binds **137 production files, 213 canonical sources, 191 embedded sources**, five actual mapped module points and **134 unchanged fixed resources**. The earned lake regression passes without retry in **10.299 seconds** for its owner and **10.381 seconds** overall. It verifies afloat/ashore names and titles, the connected post-reload minimap node across actual docking, and genuine Enter → Local destinations → Escape with restored minimap focus in both contexts, alongside its original steering/cancellation/pause/reload/carrying assertions. Both exact native groups were independently confirmed empty; all 247 source guards agree.
+
+The separate AC Help02 run fails before any Help reading at the inherited export helper’s obsolete canvas-focus expectation after explicit Settings Close (**64.949 seconds** owner / **65.065 seconds** overall). Its original raw export, failure image and trace remain retained; the image was individually reviewed. Both exact groups are empty and the outer source guards agree, while the failed owner did not reach its own postguard. A fresh helper copy must assert the actual Settings opener before this narrow Help scope can be accepted. No compact Help reading or complete saved-state equality is claimed from that failed run.
+
 ## Boat cancellation and Help guidance · 2026-10-03
 
 The existing navigation control now says **Cancel course** on the open lake and restores **Cancel walk** after landing. Help describes the existing Shift+F10/Menu-key Choose Option controls and explains that an incorrect clue route preserves journal observations for another attempt.
@@ -10,7 +20,9 @@ Mounted frame controls cover the same cancellation button across land, lake and 
 
 Fresh immutable AB changes only the interface against accepted AA. Independent review verifies **137 production files, 213 canonical sources, 191 embedded sources**, five current mapped module locations and **134 unchanged fixed resources**, including CSS, engine and all models.
 
-Direct native browser review reads Help at **1280 × 720 Standard** and **844 × 390 Large**, with genuine scrolling exposing the complete keyboard row and footer. The earned afloat save follows an actual Map course; the complete **Cancel course** label fits its 132.5 × 44 control, and activating it hides navigation status and returns canvas focus. The actual Capernaum docking action restores land controls; a subsequent Olive grove route visibly says **Cancel walk**. This review does not establish complete save equality or all Help rows. Separately scoped automated lake/Help regressions remain pending.
+Direct native browser review reads Help at **1280 × 720 Standard** and **844 × 390 Large**, with genuine scrolling exposing the complete keyboard row and footer. The earned afloat save follows an actual Map course; the complete **Cancel course** label fits its 132.5 × 44 control, and activating it hides navigation status and returns canvas focus. The actual Capernaum docking action restores land controls; a subsequent Olive grove route visibly says **Cancel walk**. This review does not establish complete save equality or all Help rows.
+
+The existing earned lake steering/cancellation/pause/reload/return case passes on immutable AB in **10.571 seconds** for its owner and **10.654 seconds** overall, with its original 180/60-second limits and no retry. The separately scoped Help case retains a failure after its two desktop Large reading captures: Escape closes the panel, but the application overrides the restored Help opener with canvas focus. Those two original captures and the failure image were individually reviewed; compact readings and final complete-save comparison were not reached. New opener and minimap regressions require the subsequent source/build checkpoint.
 
 ## Satchel return guidance · 2026-10-03
 

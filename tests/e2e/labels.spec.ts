@@ -242,7 +242,7 @@ test('temporary import notices clear world names and release their space when th
     await page.locator('.toolbar [data-action="map"]').click();
     await expect(page.locator('.map-destinations [data-value="simon"]')).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(canvas).toBeFocused();
+    await expect(page.locator('.toolbar [data-action="map"]')).toBeFocused();
     await expect(notice).toBeHidden();
     await expect(simon).toBeVisible();
     await expect

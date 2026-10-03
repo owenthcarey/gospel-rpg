@@ -38,7 +38,9 @@ Each region owns its asset containers, actors, observers, shadows, meshes and li
 
 Input clears on blur, menus and movement cancellation. Slow exploration frames are consumed in steps of at most 50 ms, up to 250 ms per frame; longer suspension gaps are discarded. Gold route markers clear on arrival, keyboard movement or pause. Menus pause simulation and reduce rendering frequency. Hidden documents stop simulation and rendering.
 
-The mounted navigation cancellation control derives its label from the current region: Cancel course on `galilee-water`, Cancel walk elsewhere. Its existing action and pause/route ownership stay the same. Help documents keyboard Choose Option access and journal-preserving clue retries through the existing content and interaction controls.
+The mounted navigation cancellation control derives its label from the current region: Cancel course on `galilee-water`, Cancel walk elsewhere. The same mounted minimap button updates its accessible name and title between steering and walking; Enter opens the existing local Map in both contexts. Help follows that context and documents keyboard Choose Option access and journal-preserving clue retries.
+
+Explicit menu dismissal preserves the Interface's restored opener after pause synchronization, with the existing lost-focus canvas fallback. Gameplay-driven closes keep their canvas handoff, and presented scenes retain scene-control priority. Welcome and inspection-to-work returns keep their earlier dedicated paths.
 
 Choose Option owns a temporary keyboard focus target. A resize clears its pointer/hold feedback and restores focus only when the visible menu owned focus in an active world. The original label must remain connected, enabled, visible and exposed at its center; otherwise the canvas must satisfy the same checks. Other owners and ordinary cancellation paths keep their focus policy. This handoff does not dispatch a navigation or menu action.
 

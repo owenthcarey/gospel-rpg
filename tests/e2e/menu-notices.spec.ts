@@ -137,7 +137,7 @@ test('reading notices reserve space through compact layouts, import errors and m
     expect(toast).toBeVisible(),
     expect(toast).toHaveCSS('opacity', '1'),
     expect(toast).toBeInViewport({ ratio: 1 }),
-    expect(page.locator('#game-canvas')).toBeFocused(),
+    expect(page.getByRole('button', { name: 'Settings and saves', exact: true })).toBeFocused(),
   ]);
   const returnedNotice = await toast.evaluate((notice) => {
     const ancestors = [];

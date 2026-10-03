@@ -470,6 +470,19 @@ export class Interface {
           : 'Some days later');
     const minimap = this.root.querySelector('.minimap')!;
     minimap.innerHTML = this.mapSvg(false, state.position, state);
+    const sailing = state.region === 'galilee-water';
+    minimap.setAttribute(
+      'aria-label',
+      sailing
+        ? 'Steer using minimap; press Enter to open local map'
+        : 'Walk using minimap; press Enter to open local map',
+    );
+    minimap.setAttribute(
+      'title',
+      sailing
+        ? 'Click to steer. Enter opens the local map.'
+        : 'Click to walk. Enter opens the local map.',
+    );
     const region = regions[view.region];
     const regionTitle = this.root.querySelector('.region-title')!;
     regionTitle.innerHTML =
@@ -1339,9 +1352,18 @@ export class Interface {
   help(): void {
     this.hints.reset();
     this.setHintsFaded(false);
+    const sailing = this.currentState?.region === 'galilee-water';
     const rows = [
-      ['Click / tap the ground', 'Walk to a place'],
-      ['Click / tap the minimap', 'Walk to that point; the flag clears when you arrive'],
+      [
+        sailing ? 'Click / tap open water' : 'Click / tap the ground',
+        sailing ? 'Steer to a point' : 'Walk to a place',
+      ],
+      [
+        'Click / tap the minimap',
+        sailing
+          ? 'Steer to that point; the flag clears when you arrive'
+          : 'Walk to that point; the flag clears when you arrive',
+      ],
       ['Compass / LOCAL MAP', 'Face north / open local destinations'],
       [
         'Click / tap a person or object',
