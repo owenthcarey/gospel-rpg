@@ -273,9 +273,9 @@ function rangeUnchanged(f: ReturnType<typeof fixture>, before: ReturnType<typeof
 
 for (const reduced of [false, true]) {
   it.each([
-    ['speaker only', 4.4, 0, false, true, 0.3],
-    ['listener only', 0, 4.4, true, false, 0.3],
-    ['both people', 0, 0.1, true, true, 0.3],
+    ['speaker only', 4.4, 0, false, true, 0.12],
+    ['listener only', 0, 4.4, true, false, 0.12],
+    ['both people', 0, 0.1, true, true, 0.12],
     ['neither person', 4.4, 4.3, false, false, 1],
   ] as const)(
     `uses the packed olive's finite sightlines for %s; reduced motion ${reduced}`,
@@ -297,7 +297,7 @@ for (const reduced of [false, true]) {
           const fade = stylePlugin(mesh.material!).fade;
           if (amount === 1 || reduced) expect(fade).toBe(amount);
           else {
-            expect(fade).toBeGreaterThan(0.3);
+            expect(fade).toBeGreaterThan(0.12);
             expect(fade).toBeLessThan(1);
           }
         }
@@ -325,7 +325,7 @@ for (const reduced of [false, true]) {
       ]);
       expect(f.view.animated).toBe(false);
       const unchanged = invariants(f);
-      f.fade(0.3);
+      f.fade(0.12);
       unchanged();
       f.world.setConversation('miriam', { ...panel, top: 430 }, true);
       expect(f.view.occlusionAnchors!.map((point) => point.asArray())).toEqual(coordinates);
@@ -335,7 +335,7 @@ for (const reduced of [false, true]) {
       f.fade(
         blocked(f.meshes, f.camera.position, f.listener.root) ||
           blocked(f.meshes, f.camera.position, f.speaker.root)
-          ? 0.3
+          ? 0.12
           : 1,
       );
       f.world.setConversation();
@@ -350,7 +350,7 @@ for (const reduced of [false, true]) {
       f.fade(
         blocked(f.meshes, f.camera.position, f.listener.root) ||
           blocked(f.meshes, f.camera.position, f.speaker.root)
-          ? 0.3
+          ? 0.12
           : 1,
       );
       f.world.setConversation('missing', panel);
@@ -366,25 +366,25 @@ for (const reduced of [false, true]) {
     const f = fixture(reduced);
     try {
       f.world.setConversation('miriam', panel);
-      f.fade(0.3);
+      f.fade(0.12);
       f.speaker.root.setEnabled(false);
       expect(f.view.occlusionAnchors).toBeUndefined();
       f.fade(1);
       f.speaker.root.setEnabled(true);
-      f.fade(0.3);
+      f.fade(0.12);
       f.nav.setEnabled(false);
       expect(f.view.occlusionAnchors).toBeUndefined();
       f.fade(1);
       f.nav.setEnabled(true);
-      f.fade(0.3);
+      f.fade(0.12);
       f.tree.setEnabled(false);
       f.fade(1);
       f.tree.setEnabled(true);
-      f.fade(0.3);
+      f.fade(0.12);
       for (const mesh of f.meshes) mesh.isVisible = false;
       f.fade(1);
       for (const mesh of f.meshes) mesh.isVisible = true;
-      f.fade(0.3);
+      f.fade(0.12);
       f.camera.alpha += Math.PI;
       f.camera.getViewMatrix();
       expect(blocked(f.meshes, f.camera.position, f.listener.root)).toBe(false);
@@ -392,7 +392,7 @@ for (const reduced of [false, true]) {
       f.fade(1);
       f.camera.setPosition(new Vector3(0, 1.3, -10));
       f.camera.getViewMatrix();
-      f.fade(0.3);
+      f.fade(0.12);
       const firstSceneryZ = Math.min(
         ...f.meshes.map((mesh) => {
           mesh.computeWorldMatrix(true);
@@ -413,7 +413,7 @@ for (const reduced of [false, true]) {
       f.fade(1);
       f.nav.position.z = f.speaker.root.position.z = 10;
       f.world.position.z = 10;
-      f.fade(0.3);
+      f.fade(0.12);
       f.speaker.root.position.x = -8;
       // World must reject the moved actor before any public anchor getter refreshes its cache.
       f.world.setConversation('miriam', panel);
@@ -591,7 +591,7 @@ it('rejects nonfinite or disposed participants without querying their stale geom
   const f = fixture(true);
   try {
     f.world.setConversation('miriam', panel);
-    f.fade(0.3);
+    f.fade(0.12);
     const camera = [f.camera.alpha, f.camera.beta, f.camera.radius, ...f.camera.target.asArray()],
       clock = f.canvas.dataset.conversationTime;
     f.speaker.root.position.x = Infinity;
@@ -603,7 +603,7 @@ it('rejects nonfinite or disposed participants without querying their stale geom
     expect(f.canvas.dataset.conversationTime).toBe(clock);
     f.fade(1);
     f.speaker.root.position.x = 0;
-    f.fade(0.3);
+    f.fade(0.12);
     f.speaker.dispose();
     const stalePosition = vi.spyOn(f.speaker.root, 'getAbsolutePosition'),
       restoreSpeaker = vi.spyOn(f.speaker, 'restorePose'),
@@ -629,13 +629,13 @@ it('returns to the physical player for work and boat focus, and bounds dialogue 
   const f = fixture(true);
   try {
     f.world.setConversation('miriam', panel);
-    f.fade(0.3);
+    f.fade(0.12);
     f.world.workView = { active: true };
     const read = vi.spyOn(f.view, 'occlusionAnchors', 'get');
     f.fade(1);
     expect(read).not.toHaveBeenCalled();
     f.world.workView.active = false;
-    f.fade(0.3);
+    f.fade(0.12);
     f.world.state = {
       ...preparedHarbor(f.world.state),
       // Keep this controlled sightline studio at its current physical traveler location.
@@ -659,7 +659,7 @@ it('returns to the physical player for work and boat focus, and bounds dialogue 
     f.fade(1);
     f.world.setWorkFocus();
     f.world.setConversation('miriam', panel);
-    f.fade(0.3);
+    f.fade(0.12);
     f.world.travelerBoat = {};
     read.mockClear();
     f.fade(1);
@@ -700,5 +700,102 @@ it('rejects invalid finite-ray inputs and ignores disposed scenery', () => {
     expect(sightline.blocks([wall], camera, focus)).toBe(false);
   } finally {
     if (!wall.isDisposed()) wall.dispose();
+  }
+});
+
+for (const reduced of [false, true]) {
+  it(`uses the conversation target only until clear, preserving player recovery; reduced motion ${reduced}`, () => {
+    const f = fixture(reduced);
+    try {
+      f.nav.position.x = f.world.position.x = 0;
+      f.speaker.root.position.x = 0.1;
+      expect(blocked(f.meshes, f.camera.position, f.listener.root)).toBe(true);
+      expect(blocked(f.meshes, f.camera.position, f.speaker.root)).toBe(true);
+      // The same real packed geometry first receives the ordinary player policy.
+      f.fade(0.3);
+      const ordinary = stylePlugin(f.meshes[0]!.material!).fade;
+      f.world.setConversation('miriam', panel, true);
+      const unchanged = invariants(f);
+      expect(f.view.active).toBe(true);
+      expect(f.view.animated).toBe(false);
+      f.world.updateOcclusion(0);
+      const entering = stylePlugin(f.meshes[0]!.material!).fade;
+      if (reduced) expect(entering).toBe(0.12);
+      else expect(entering).toBe(ordinary);
+      f.world.updateOcclusion(1 / 60);
+      const next = stylePlugin(f.meshes[0]!.material!).fade;
+      if (reduced) expect(next).toBe(0.12);
+      else {
+        expect(next).toBeGreaterThan(0.12);
+        expect(next).toBeLessThan(entering);
+      }
+      f.fade(0.12);
+      unchanged();
+      f.world.setConversation();
+      expect(f.view.active).toBe(false);
+      const clearedUnchanged = invariants(f),
+        previous = stylePlugin(f.meshes[0]!.material!).fade;
+      f.world.updateOcclusion(0);
+      const cleared = stylePlugin(f.meshes[0]!.material!).fade;
+      if (reduced) expect(cleared).toBe(0.3);
+      else expect(cleared).toBe(previous);
+      f.world.updateOcclusion(1 / 60);
+      const recovering = stylePlugin(f.meshes[0]!.material!).fade;
+      if (reduced) expect(recovering).toBe(0.3);
+      else {
+        // Clearing does not clamp the genuine .12 -> .3 interpolation from below.
+        expect(recovering).toBeGreaterThan(cleared);
+        expect(recovering).toBeLessThan(0.3);
+      }
+      f.fade(0.3);
+      clearedUnchanged();
+      expect(blocked(f.meshes, f.camera.position, f.listener.root)).toBe(true);
+    } finally {
+      f.dispose();
+    }
+  });
+}
+
+it.each([
+  'disabled speaker',
+  'disabled listener',
+  'missing selection',
+  'moved-out selection',
+  'nonfinite speaker',
+  'disposed speaker',
+  'active work',
+  'aboard boat',
+] as const)('restores the blocked physical player target for %s', (kind) => {
+  const f = fixture(true);
+  try {
+    f.nav.position.x = f.world.position.x = 0;
+    f.speaker.root.position.x = 0.1;
+    expect(blocked(f.meshes, f.camera.position, f.listener.root)).toBe(true);
+    expect(blocked(f.meshes, f.camera.position, f.speaker.root)).toBe(true);
+    f.fade(0.3);
+    f.world.setConversation('miriam', panel);
+    f.fade(0.12);
+    if (kind === 'disabled speaker') f.speaker.root.setEnabled(false);
+    else if (kind === 'disabled listener') f.nav.setEnabled(false);
+    else if (kind === 'missing selection') f.world.setConversation('missing', panel);
+    else if (kind === 'moved-out selection') {
+      f.speaker.root.position.x = -8;
+      f.world.setConversation('miriam', panel);
+      expect(f.view.active).toBe(false);
+    } else if (kind === 'nonfinite speaker') f.speaker.root.position.x = Infinity;
+    else if (kind === 'disposed speaker') f.speaker.dispose();
+    else if (kind === 'active work') f.world.workView = { active: true };
+    else f.world.travelerBoat = {};
+    const read = vi.spyOn(f.view, 'occlusionAnchors', 'get');
+    f.world.updateOcclusion(0);
+    for (const mesh of f.meshes) expect(stylePlugin(mesh.material!).fade).toBe(0.3);
+    for (const mesh of f.untouched) expect(stylePlugin(mesh.material!).fade).toBe(1);
+    if (kind === 'active work' || kind === 'aboard boat') expect(read).not.toHaveBeenCalled();
+    else expect(read).toHaveBeenCalledOnce();
+    // This remains a real blocked-player control even when the participant pair is ineligible.
+    expect(blocked(f.meshes, f.camera.position, f.listener.root)).toBe(true);
+    read.mockRestore();
+  } finally {
+    f.dispose();
   }
 });

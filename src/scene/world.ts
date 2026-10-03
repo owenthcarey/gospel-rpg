@@ -1519,9 +1519,10 @@ export class World {
       const blocks = participants
         ? participants.some((point) => this.scenerySightline.blocks(o.meshes, cameraPoint, point))
         : this.scenerySightline.blocks(o.meshes, cameraPoint, focus);
-      // Architecture and fabric need a clearer window than leaves to keep people readable.
+      // Live dialogue needs a clearer window through leaves to frame both people.
+      // Architecture and fabric retain their existing fade.
       // Geometry, shadows and collision remain in place throughout the transition.
-      const target = blocks ? (o.kind === 'solid' ? 0.18 : 0.3) : 1;
+      const target = blocks ? (o.kind === 'solid' ? 0.18 : participants ? 0.12 : 0.3) : 1;
       o.amount = this.reducedMotion
         ? target
         : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
