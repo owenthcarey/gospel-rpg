@@ -2,6 +2,18 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Choose Option while afloat · 2026-10-03
+
+The movement option now says **Steer here** in `galilee-water` and **Walk here** in every land region, matching the canvas and minimap. Its existing callback, target, option order and input behavior are unchanged; region replacement supplies the correct label after boarding or docking. The **96 existing interaction/lake tests** pass in **1.39 seconds** (**1.753 seconds** owner); types and production build pass in **5.602 / 6.086 seconds**. All **563 inputs** agree before, after and at review, and all three process groups are independently empty. Prettier passes for both changed files. No new cases were added.
+
+Direct browser review imports the existing reducer-earned Nain completion save, follows the real road/lanes/shore doorway actions and boards normally. At the normal **512×740** viewport, Choose Option displays **Steer here** on open water. Selecting it reports **Steering to chosen point** and changes the actual minimap position. A genuine return route and **Dock and step ashore** restore **Walk here** on land. Both original menu screenshots were reviewed. This is a wording/dispatch/region-return spot check; full exported-state equality and phone holds are not claimed.
+
+## Measured stress-pose ankle view · 2026-10-03
+
+The next isolated Blender comparison uses authored **Walk key 20 / frame 21 / 0.699999988 seconds**, selected by the measured maximum right-foot local rotation. Both original **1400×816** images were individually reviewed. The exposed lower calf, ankle transition, soles and sandal outlines appear continuous in this view. The raised calf remains partly covered by the robe. This compares raw authored16 with stance16 at equal scale; it does not compare the shipped14 stride or establish complete-motion acceptance.
+
+Manual restoration begins at **23.352 seconds** and finishes at **27.238 seconds**, including **3.877 seconds** cleanup, with **21.639 seconds** reserve under the original **45-second** owned lifetime. The **25-second** gate is the restoration trigger. Scene/UI/data, all **171 complete / 125 canonical Blender inputs**, raw persistence and both PNGs pass their exact checks. The clean `45dfe7c` application qualification retains five UI/text differences from historical AF and all 214 owned AG sources exact. The shipped asset remains unchanged.
+
 ## Joel and the returned crossing · 2026-10-03
 
 Joel now acknowledges the confirmed sheltered landing when the player returns to him, introducing the existing choice of crossing memories. Earlier invitations and both completed endings retain their precedence; no action, route, hint or progress changes. The existing **37 lake tests** pass in **1.38 seconds**, **1.749 seconds** owner; types pass in **5.081 seconds**. Both **563-guard** before/after/current comparisons and exact process groups are independently verified. No new tests were added. This paragraph is source-reviewed; its native reading remains unobserved.

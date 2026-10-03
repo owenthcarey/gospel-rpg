@@ -1008,6 +1008,7 @@ export class World {
       place: (id) => this.destinations.find((p) => p.id === id),
       navigate,
       walk,
+      movementLabel: this.state.region === 'galilee-water' ? 'Steer here' : 'Walk here',
       examine: (place) => examineText(place, this.state),
       notice: this.callbacks.notice,
       cancelTap: () => this.explorationInput?.cancelTap(),
