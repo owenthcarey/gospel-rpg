@@ -136,10 +136,49 @@ for (const compact of [false, true]) {
         targetLabel?: string;
         snapshot: ReturnType<typeof sample>;
       }[] = [];
+      const transition = (current = sample()) => {
+        const before = frames.find((frame) => frame.walking && frame.moved && frame.prompt.hidden);
+        const after =
+          before && frames.find((frame) => frame.at > before.at && frame.walking && frame.miriam);
+        return { before, after, current };
+      };
+      const active = (frame: ReturnType<typeof sample> | undefined) =>
+        !!frame &&
+        frame.walking &&
+        frame.flagVisible &&
+        frame.resumeHidden &&
+        frame.cancelVisible &&
+        frame.cancelEnabled &&
+        frame.nativeTarget &&
+        frame.moved &&
+        frame.beforeArrival &&
+        frame.inViewport &&
+        frame.overlaps.length === 0;
+      let resolveFirst!: (value: ReturnType<typeof transition>) => void;
+      const firstValid = new Promise<ReturnType<typeof transition>>((resolve) => {
+        resolveFirst = resolve;
+      });
+      let resolved = false;
       let running = true;
       let raf = 0;
       const painted = () => {
-        frames.push(sample());
+        const current = sample();
+        frames.push(current);
+        const value = transition(current);
+        if (
+          !resolved &&
+          active(value.before) &&
+          active(value.after) &&
+          active(current) &&
+          !value.before!.miriam &&
+          value.before!.prompt.hidden &&
+          value.after!.miriam &&
+          !value.after!.prompt.hidden &&
+          current.miriam
+        ) {
+          resolved = true;
+          resolveFirst(value);
+        }
         if (running) raf = requestAnimationFrame(painted);
       };
       const record = (event: MouseEvent) => {
@@ -162,15 +201,9 @@ for (const compact of [false, true]) {
       raf = requestAnimationFrame(painted);
       return {
         snapshot: () => ({ frames, events }),
-        transition: () => {
-          const before = frames.find(
-            (frame) => frame.walking && frame.moved && frame.prompt.hidden,
-          );
-          const after =
-            before && frames.find((frame) => frame.at > before.at && frame.walking && frame.miriam);
-          return { before, after, current: sample() };
-        },
+        firstTransition: () => firstValid,
         cleanup: () => {
+          if (!resolved) resolveFirst(transition());
           running = false;
           cancelAnimationFrame(raf);
           for (const type of ['pointerdown', 'pointerup', 'click'] as const)
@@ -181,9 +214,9 @@ for (const compact of [false, true]) {
     const destination = await page.locator('.minimap svg').evaluate((node) => {
       const svg = node as SVGSVGElement;
       const point = svg.createSVGPoint();
-      // This shipped western path passes the baker on its way to the edge of the village.
+      // This shipped western path crosses the baker's proximity on its way to the olive rows.
       point.x = (-20 + 24) * 4;
-      point.y = (24 + 3) * 4;
+      point.y = (24 - 7) * 4;
       const target = point.matrixTransform(svg.getScreenCTM()!);
       return {
         x: target.x,
@@ -204,12 +237,14 @@ for (const compact of [false, true]) {
       overlaps: [],
     };
     let target: { x: number; y: number } | null | undefined;
-    const transitionSample = () => observation.evaluate((value) => value.transition());
+    const transitionSample = () => observation.evaluate((value) => value.firstTransition());
     let transition: Awaited<ReturnType<typeof transitionSample>> | undefined;
     try {
       expect(destination.minimap).toBe(true);
       if (isMobile) await page.touchscreen.tap(destination.x, destination.y);
       else await page.mouse.click(destination.x, destination.y);
+      // The first valid rendered transition was armed before native input. Await it
+      // within the configured poll deadline so serialized backoff cannot miss proximity.
       await expect
         .poll(async () => {
           transition = await transitionSample();
@@ -220,6 +255,8 @@ for (const compact of [false, true]) {
           after: { ...active, miriam: true, prompt: { hidden: false } },
           current: { ...active, miriam: true },
         });
+      expect(transition!.before!.destination).toEqual({ x: 16, y: 68 });
+      expect(transition!.after!.destination).toEqual(transition!.before!.destination);
       const originalTarget = transition!.before!.point;
       // Deliberately use the pre-proximity coordinate: locator retrying would conceal a moving target.
       if (isMobile) await page.touchscreen.tap(originalTarget.x, originalTarget.y);
