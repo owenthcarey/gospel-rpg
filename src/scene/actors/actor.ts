@@ -378,6 +378,10 @@ export class Actor {
       const point = this.route[0]!;
       const current = { x: this.root.position.x, z: this.root.position.z };
       const d = distance(current, point);
+      if (d === 0) {
+        this.route.shift();
+        continue;
+      }
       this.root.rotation.y = turnToward(
         this.root.rotation.y,
         Math.PI + Math.atan2(point.x - current.x, point.z - current.z),

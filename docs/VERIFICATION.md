@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Scripted route start and finish · 2026-10-03
+
+Scripted actors now consume a waypoint already at their current position before choosing a heading or movement clip. Gathering routes retain their genuine starting cell and path legality while avoiding an extra turn toward zero displacement. A current-cell-only route keeps Idle; repeated destinations no longer turn the actor away after arrival. Positive distances, finite gestures and the existing reduced route endpoint policy remain unchanged.
+
+Ten controls use the unchanged shipped villager and real A* routes, comparing complete posed body/head geometry, heading, navigation and playback with the equivalent route without its coincident cell. The unchanged actor fails six controls, including a **22.286-degree** unnecessary turn on a 50 ms eastward start. The corrected actor passes all ten and **60 focused tests / four files**. The complete check passes **1,536 tests / 95 files in 21.71 seconds**, with evidence, types, lint and build; default test deadlines are unchanged. This is imported-model source validation; a native gathering-start capture is not claimed.
+
 ## Conversation opening framing · 2026-10-03
 
 Conversation panels now enter with opacity alone, keeping their published reading rectangle stable. The camera immediately fits a newly published layout, including the first zero-elapsed render; subsequent participant motion retains its existing easing. This fixes the transformed entrance bounds and initially obscured figures observed in frozen N.
