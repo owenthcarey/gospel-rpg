@@ -2,9 +2,15 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Completed-story Journey map · 2026-10-03
+
+The Journey map now acknowledges a completed tracked story and offers exploration. It removes the completed story’s next-passage prompt and highlighted path while keeping every destination command and independent saved route. Unfinished stories and Main’s automatic Roof/Nain progression retain their guidance.
+
+The unchanged view reproduces **three failures / eight passes**: both actual Ruth endings followed by the shore doorway, and a completed local reading. The candidate passes **all 11 focused cases**, including return-before-ending and both automatic Main handoffs, with complete view-state equality. The full evidence/type/lint/test/build check passes **1,665 tests / 100 files in 26.38 seconds**, **41.534 seconds** overall. Both accepted groups are independently empty and all **563 guards** agree before, after and at review. Existing Type Stripping and bundle-size warnings remain. Native reading is not claimed for this checkpoint. The earlier held-name record’s jug labels are corrected here to the exact authored **empty jug** and **filled jug**.
+
 ## Authored held-item names · 2026-10-03
 
-Context panels now use the same authored item names as the Satchel: **empty water jug**, **filled water jug** and **Ruth’s sewing pouch**. Three new reducer/view controls earn both table flows and the pouch investigation, including filling, placement, return, reborrow and set-back/recovery. They preserve complete state and the existing action destinations. **53 focused tests / three files** pass; the full check passes **1,659 tests / 100 files in 36.56 seconds**, with evidence, types, lint and production build in **58.084 seconds** overall.
+Context panels now use the same authored item names as the Satchel: **empty jug**, **filled jug** and **Ruth’s sewing pouch**. Three new reducer/view controls earn both table flows and the pouch investigation, including filling, placement, return, reborrow and set-back/recovery. They preserve complete state and the existing action destinations. **53 focused tests / three files** pass; the full check passes **1,659 tests / 100 files in 36.56 seconds**, with evidence, types, lint and production build in **58.084 seconds** overall.
 
 Immutable AD changes only the held-name expression against AC. Independent review verifies all **137 production files, 213 canonical sources, 191 embedded sources**, five mapped module points and **134 unchanged fixed resources**.
 
