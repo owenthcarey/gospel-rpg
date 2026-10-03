@@ -133,7 +133,8 @@ export class ConversationPresentation {
       1.12,
       this.panel,
     );
-    const amount = reduced || this.paused ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 6);
+    const amount =
+      reduced || this.paused || this.layoutChanged ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 6);
     this.camera.alpha = turnToward(this.camera.alpha, pose.alpha, reduced ? 10 : dt, 6);
     this.camera.beta += (pose.beta - this.camera.beta) * amount;
     this.camera.radius += (pose.radius - this.camera.radius) * amount;

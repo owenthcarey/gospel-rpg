@@ -31,6 +31,10 @@
 .conversation-overlay > [role='dialog'] {
   pointer-events: auto;
 }
+/* Camera framing reads these bounds synchronously; keep entrance motion within them. */
+.conversation-overlay > [data-conversation-person] {
+  animation-name: fade-in;
+}
 :root .conversation-overlay .dialogue-box {
   width: min(780px, calc(100vw - 48px));
   bottom: 24px;
