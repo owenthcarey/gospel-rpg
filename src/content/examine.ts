@@ -50,6 +50,16 @@ export function examineText(place: Interactable, state?: GameState): string {
       observation = 'The resting place is empty. Ruth’s pouch is safe beside her in the courtyard.';
     else if (state.campaign.carrying === 'sewing-pouch')
       observation = 'The dry resting place is empty. Ruth’s pouch is in your hands.';
+  } else if (place.id === 'cord-basket' && state?.life.bench.method === 'lashing') {
+    if (['fitted', 'complete'].includes(state.life.bench.stage))
+      observation = 'The basket is empty. Its spare cord holds the landing bench support.';
+    else if (state.campaign.carrying === 'lashing-cord')
+      observation = 'The basket is empty. Its spare cord is in your hands.';
+  } else if (place.id === 'brace-shelf' && state?.life.bench.method === 'brace') {
+    if (['fitted', 'complete'].includes(state.life.bench.stage))
+      observation = 'The place on the shelf is empty. Its wooden brace supports the landing bench.';
+    else if (state.campaign.carrying === 'wood-brace')
+      observation = 'The place on the shelf is empty. Its wooden brace is in your hands.';
   }
   const description =
     observation ??

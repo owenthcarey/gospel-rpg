@@ -48,14 +48,34 @@ export function lifeText(id: string, s: GameState): string | undefined {
             ? 'The loose pieces are stacked safely beside the seat. '
             : 'Loose pieces still lie beneath the seat. Clear them before fitting the repair. ') +
           (bench.method === 'lashing'
-            ? 'Spare cord waits in the basket near the landing.'
-            : 'A spare wooden brace waits in the bakehouse.') +
-          ' Clearing and fetching can happen in either order; you can leave and return to either step.'
+            ? s.campaign.carrying === 'lashing-cord'
+              ? 'The spare cord is in your hands, ready for a crossing lashing.'
+              : 'Spare cord waits in the basket near the landing.'
+            : s.campaign.carrying === 'wood-brace'
+              ? 'The spare wooden brace is in your hands, ready to fit beneath the seat.'
+              : 'A spare wooden brace waits in the bakehouse.') +
+          (s.campaign.carrying === (bench.method === 'lashing' ? 'lashing-cord' : 'wood-brace')
+            ? bench.cleared
+              ? ' You can fit the repair now.'
+              : ' You can clear the loose pieces while holding the chosen material.'
+            : ' Clearing and fetching can happen in either order; you can leave and return to either step.')
         );
       return 'The landing bench rocks against a loose support. Miriam has placed the fallen pieces underneath so nobody trips over them. A rope lashing around the support would steady it; a fitted wooden brace could do the same. The bench is an ordinary village seat, separate from the boats and landing.';
     case 'cord-basket':
+      if (bench.method === 'lashing') {
+        if (['fitted', 'complete'].includes(bench.stage))
+          return 'The basket is empty. Its spare cord now forms the crossed lashing around the landing bench support.';
+        if (s.campaign.carrying === 'lashing-cord')
+          return 'The basket is empty while you carry its spare cord. Bring it to the landing bench, or return it here safely whenever you need free hands.';
+      }
       return 'A small basket holds spare cord beside the landing. There is enough here for a crossing lashing on the bench support. Borrow it if you chose that method; you can put it back whenever you need free hands.';
     case 'brace-shelf':
+      if (bench.method === 'brace') {
+        if (['fitted', 'complete'].includes(bench.stage))
+          return 'The place on the shelf is empty. Hannah’s spare wooden brace now supports the landing bench beneath its seat.';
+        if (s.campaign.carrying === 'wood-brace')
+          return 'The place on the shelf is empty while you carry Hannah’s spare wooden brace. Bring it to the landing bench, or return it here safely if your work needs to wait.';
+      }
       return 'Hannah has kept a sound offcut with a broad end that will fit beneath the bench. It is available for the wooden-brace repair. Return it to this shelf if your work needs to wait.';
   }
 }
