@@ -33,6 +33,7 @@ class ElementBoundary extends BrowserEventBoundary {
   dataset: Record<string, string> = {};
   style: Record<string, string> = {};
   children: ElementBoundary[] = [];
+  parent?: ElementBoundary;
   attributes = new Map<string, string>();
   offsetWidth = 150;
   offsetHeight = 160;
@@ -45,17 +46,25 @@ class ElementBoundary extends BrowserEventBoundary {
   hasAttribute(name: string) {
     return this.attributes.has(name);
   }
-  closest() {
-    return null;
+  closest(selector: string): ElementBoundary | null {
+    if (
+      (selector === '.world-label' && this.className.split(' ').includes('world-label')) ||
+      (selector === '[hidden], [inert]' && (this.hidden || this.hasAttribute('inert')))
+    )
+      return this;
+    return this.parent?.closest(selector) ?? null;
   }
   contains(target: unknown): boolean {
     return target === this || this.children.some((child) => child.contains(target));
   }
   append(...children: ElementBoundary[]) {
+    for (const child of children) child.parent = this;
     this.children.push(...children);
   }
   replaceChildren(...children: ElementBoundary[]) {
+    for (const child of this.children) child.parent = undefined;
     this.children = children;
+    for (const child of children) child.parent = this;
   }
   querySelector() {
     return this.children.find((child) => child.type === 'button');
@@ -63,7 +72,12 @@ class ElementBoundary extends BrowserEventBoundary {
   getBoundingClientRect() {
     return this.bounds;
   }
-  focus() {}
+  getClientRects() {
+    return this.closest('[hidden], [inert]') ? [] : [this.bounds];
+  }
+  focus() {
+    Object.assign(document, { activeElement: this });
+  }
   remove() {
     this.isConnected = false;
   }
@@ -104,6 +118,21 @@ function studio(
       node.textContent = text;
       return node;
     },
+    elementFromPoint: (x: number, y: number) => {
+      if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return null;
+      return (
+        [...body.children].reverse().find((node) => {
+          const rect = node.bounds;
+          return (
+            node.getClientRects().length > 0 &&
+            x >= rect.left &&
+            y >= rect.top &&
+            x < rect.left + rect.width &&
+            y < rect.top + rect.height
+          );
+        }) ?? canvas
+      );
+    },
   });
   const window = new BrowserEventBoundary();
   vi.stubGlobal('document', document);
@@ -112,6 +141,10 @@ function studio(
   vi.stubGlobal('HTMLElement', ElementBoundary);
   vi.stubGlobal('innerWidth', width);
   vi.stubGlobal('innerHeight', height);
+  vi.stubGlobal('getComputedStyle', (node: ElementBoundary) => ({
+    visibility: node.style.visibility ?? 'visible',
+    opacity: node.style.opacity ?? '1',
+  }));
   engine = new NullEngine({
     renderWidth: width,
     renderHeight: height,
@@ -205,6 +238,128 @@ function studio(
     },
   };
 }
+
+describe('Choose Option resize focus', () => {
+  function openMenu(fromLabel = true) {
+    const state = studio('mouse');
+    const label = new ElementBoundary();
+    label.className = 'world-label';
+    label.dataset.value = 'boat';
+    label.bounds = { left: 300, top: 100, width: 80, height: 48 };
+    state.document.body.append(label);
+    const key = new Event('keydown', { cancelable: true });
+    Object.defineProperties(key, {
+      target: { value: fromLabel ? label : state.canvas },
+      key: { value: 'ContextMenu' },
+    });
+    state.document.dispatchEvent(key);
+    expect(state.menu.hidden).toBe(false);
+    const cancel = state.menu.children.at(-1)!;
+    cancel.focus();
+    expect(state.document.activeElement).toBe(cancel);
+    return { ...state, label, cancel };
+  }
+
+  it('returns focus to the visible world label without dispatching a menu action', () => {
+    const state = openMenu();
+    state.hover();
+    state.window.dispatchEvent(new Event('resize'));
+    expect(state.menu.hidden).toBe(true);
+    expect(state.document.activeElement).toBe(state.label);
+    expect(state.hint.hidden).toBe(true);
+    expect(state.canvas.style.cursor).toBe('');
+    expect(state.navigate).not.toHaveBeenCalled();
+    expect(state.walk).not.toHaveBeenCalled();
+    expect(state.notice).not.toHaveBeenCalled();
+  });
+
+  it('returns a canvas-opened menu to its canvas', () => {
+    const state = openMenu(false);
+    state.window.dispatchEvent(new Event('resize'));
+    expect(state.menu.hidden).toBe(true);
+    expect(state.document.activeElement).toBe(state.canvas);
+  });
+
+  it.each([
+    'hidden',
+    'inert',
+    'disabled',
+    'removed',
+    'collapsed',
+    'zero-size',
+    'transparent',
+    'left-offscreen',
+    'right-offscreen',
+    'above-viewport',
+    'below-viewport',
+    'covered',
+  ])('uses the canvas when the former label becomes %s', (reason) => {
+    const state = openMenu();
+    const parent = new ElementBoundary();
+    parent.append(state.label);
+    if (reason === 'hidden') parent.hidden = true;
+    if (reason === 'inert') parent.setAttribute('inert', '');
+    if (reason === 'disabled') state.label.setAttribute('disabled', '');
+    if (reason === 'removed') state.label.remove();
+    if (reason === 'collapsed') state.label.style.visibility = 'collapse';
+    if (reason === 'zero-size') state.label.bounds.width = 0;
+    if (reason === 'transparent') state.label.style.opacity = '0';
+    if (reason === 'left-offscreen') state.label.bounds.left = -100;
+    if (reason === 'right-offscreen') state.label.bounds.left = 1450;
+    if (reason === 'above-viewport') state.label.bounds.top = -100;
+    if (reason === 'below-viewport') state.label.bounds.top = 910;
+    if (reason === 'covered') {
+      const cover = new ElementBoundary();
+      cover.bounds = { ...state.label.bounds };
+      state.document.body.append(cover);
+    }
+    state.window.dispatchEvent(new Event('resize'));
+    expect(state.menu.hidden).toBe(true);
+    expect(state.document.activeElement).toBe(state.canvas);
+  });
+
+  it.each([true, false])('preserves an outside owner with menu visibility %s', (visible) => {
+    const state = openMenu();
+    const outside = new ElementBoundary();
+    state.document.body.append(outside);
+    if (!visible) state.menu.hidden = true;
+    outside.focus();
+    state.window.dispatchEvent(new Event('resize'));
+    expect(state.menu.hidden).toBe(true);
+    expect(state.document.activeElement).toBe(outside);
+  });
+
+  it('does not focus an unavailable canvas when the label disappears', () => {
+    const state = openMenu();
+    state.label.hidden = true;
+    state.canvas.setAttribute('inert', '');
+    const canvasFocus = vi.spyOn(state.canvas, 'focus');
+    state.window.dispatchEvent(new Event('resize'));
+    expect(state.menu.hidden).toBe(true);
+    expect(canvasFocus).not.toHaveBeenCalled();
+  });
+
+  it.each(['blur', 'hidden', 'pointercancel', 'pause', 'dispose'])(
+    'keeps the existing %s cancellation policy through a later resize',
+    (reason) => {
+      const state = openMenu();
+      const labelFocus = vi.spyOn(state.label, 'focus');
+      const canvasFocus = vi.spyOn(state.canvas, 'focus');
+      if (reason === 'blur') state.window.dispatchEvent(new Event('blur'));
+      if (reason === 'hidden') {
+        state.document.hidden = true;
+        state.document.dispatchEvent(new Event('visibilitychange'));
+      }
+      if (reason === 'pointercancel') state.pointer('pointercancel');
+      if (reason === 'pause') state.pause();
+      if (reason === 'dispose') feedback!.dispose();
+      state.window.dispatchEvent(new Event('resize'));
+      expect(state.menu.hidden).toBe(true);
+      expect(labelFocus).not.toHaveBeenCalled();
+      expect(canvasFocus).not.toHaveBeenCalled();
+    },
+  );
+});
 
 it('resolves the earned observation when Examine is activated, after opening the menu', () => {
   let state = district();

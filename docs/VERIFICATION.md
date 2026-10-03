@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Choose Option resize focus · 2026-10-03
+
+Resizing an open Choose Option menu now returns keyboard focus to its exposed world label, or to the exposed canvas when the label disappears or moves outside the viewport. Restoration requires the visible menu to own focus while the world and document remain active. Another control's focus, pauses, blur, pointer cancellation and disposal retain their existing behavior. Closing the menu dispatches no game action.
+
+The unchanged frozen-U browser baseline reproduces focus on the hidden Cancel button immediately after resize and on the first natural frame, followed by the document body. The first V candidate still chooses an offscreen label with a positive layout box. The corrected source checks positive area, visibility and the actual center hit after closing the menu. Twenty-two new boundary controls cover label/canvas restoration, unavailable and covered targets, outside ownership and the existing cancellation policies. **59 focused tests** pass. The complete check passes **1,635 tests / 98 files in 22.27 seconds**, with evidence, types, lint and build in **35.932 seconds** overall.
+
+The accepted frozen-W browser case passes the same actual keyboard and resize sequence: 1440 × 900 to 844 × 390, then the closed Map and Journal controls. Exposed canvas focus is retained immediately, on the first natural frame and in the later observation; the next genuine Tab reaches Journal. Map and Journal keep their exact focus owners. The owned run completes in **4.399 seconds**, retaining the original 180/60-second limits, one worker and zero retries. Independent review verifies **55 matching delivered bodies, 127 passive records with 124 trusted contacts and three natural-frame reads, and two complete raw native saves**. Every saved state field remains equal except playTime **0→1**. All five baseline and five accepted candidate original PNGs were individually viewed. The Journal screenshot captures its entrance fade and does not establish settled contrast or broader lifecycle artwork.
+
+The first W attempt passes gameplay but fails its strict asset gate because Vite preview sends compressed, chunked responses without a full-length header. The accepted attempt uses the baseline's full-body static transport; status, length, digest and byte limits remain unchanged. The failed server-startup probe and stale-output discovery rejection are also preserved. W changes only the interaction source against U; the other **134 production resources**, including CSS, engine and all 98 models, remain byte-identical.
+
 ## Resting supply artwork · 2026-10-03
 
 The full resting-place inspection now shows the existing mat, water-jug and screen item sprites in place of generic text glyphs. The shared artwork keeps the supplies recognizable between the satchel and the work plan. Each decorative image stays inside a scoped 32-pixel slot, while the existing item names, carrying/placement text and filled borders continue to describe state.

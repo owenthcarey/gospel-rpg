@@ -76,7 +76,7 @@ export class InteractionFeedback {
     document.addEventListener('contextmenu', this.context);
     document.addEventListener('keydown', this.key, true);
     window.addEventListener('blur', this.loseFocus);
-    window.addEventListener('resize', this.clear);
+    window.addEventListener('resize', this.resize);
     const camera = input.scene.activeCamera;
     if (camera) {
       const observer = camera.onViewMatrixChangedObservable.add(this.viewChanged);
@@ -417,6 +417,28 @@ export class InteractionFeedback {
     this.clearHover();
     this.flash.hidden = true;
   };
+  private resize = () => {
+    const restore =
+      !this.disposed &&
+      !this.input.paused() &&
+      !document.hidden &&
+      !this.menu.hidden &&
+      this.menu.contains(document.activeElement);
+    this.clear();
+    if (!restore) return;
+    // A resized label can disappear. Keep keyboard control on the visible world.
+    const target = [this.returnFocus, this.input.canvas].find((node): node is HTMLElement => {
+      if (!node?.isConnected || node.hasAttribute('disabled') || node.closest('[hidden], [inert]'))
+        return false;
+      const css = getComputedStyle(node);
+      if (css.visibility !== 'visible' || Number(css.opacity) === 0) return false;
+      const rect = node.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return false;
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return !!hit && (hit === node || node.contains(hit));
+    });
+    target?.focus({ preventScroll: true });
+  };
   private clearHover = () => {
     this.hoverView = undefined;
     this.hint.hidden = true;
@@ -442,7 +464,7 @@ export class InteractionFeedback {
     document.removeEventListener('contextmenu', this.context);
     document.removeEventListener('keydown', this.key, true);
     window.removeEventListener('blur', this.loseFocus);
-    window.removeEventListener('resize', this.clear);
+    window.removeEventListener('resize', this.resize);
     this.hint.remove();
     this.menu.remove();
     this.flash.remove();
