@@ -2,6 +2,20 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Compact conversation reading · 2026-10-02
+
+Compact context panels now keep full titles, Close and motion controls in explicit header rows. Short landscapes use a side reader with reserved notice and footer rows; the smallest Large-text portrait gives the reading body enough room for complete wrapped choices. Authored fonts and words remain intact, with original 44-pixel controls. This includes the separately accepted Home header reduction, which retains the full two-line title and 66-by-77 portrait.
+
+The full check passes **1,488 tests / 92 files in 22.10 seconds**, plus evidence, types, lint, production build, formatting and whitespace checks. All **four served-production M native cases pass in 40.658084 seconds** with original 180/60-second budgets, one worker and zero retries: Standard 568-by-320, Large 320-by-568 and Large 844-by-390 held-mat conversations, plus unheld Home Large 320-by-568. No stylesheet is injected. Full choices and five hit-test owners are reached through native body gestures while the notice is live; Pause/Resume, ordinary notice expiry, recent messages and final saves complete.
+
+All **twenty original PNGs** were individually inspected. The bounded raw stream retains **1,310 records**, **142 candidate full-skin frames**, **456,856 vertices / 2,284,280 unchanged coordinate predicates**, with zero control, skin, projection, queue or retention errors. All twelve actual bundle responses match M. Eight full native exports contain pairwise identical game-state objects, including playTime. Unheld Home sole shape, grip contact, hidden tabs and hardware performance remain outside this layout proof. An initial runner discovery collected a retained source snapshot; anchoring the same original spec resolved the harness-path collision before any NPC browser execution. The rejected discovery is preserved separately.
+
+Frozen M contains entry `index-B5QCCXGY.js` (**666,703 bytes**, SHA-256 `4a5a0a5157a16b4d39c6911dc47b267b447bdf30c441db9106f6b46ad68cf031`) and CSS `index-BBWRMvHY.css` (**164,455 bytes**, SHA-256 `32a4046c5c06363363f2e5137fa945bdb6c1ce1811599cba444c7fe2561749bc`). Its engine and models remain unchanged. The five combined-build NPC cases and six original notice/recovery/resize cases are pending as separate acceptance scopes.
+
+## Published Linux checkpoint `94cc56d` · 2026-10-02
+
+The [completed Linux run](https://github.com/owenthcarey/gospel-rpg/actions/runs/37099237152) contains **216 jobs: 213 successful and three failed**, attempt one. Compact metadata identifies browser jobs **67 / 127** and final verification as failures; no failure logs or traces have yet been analyzed for this checkpoint. This result is separate from the earlier ab6bf6d rendering evidence and local frozen M layout acceptance.
+
 ## NPC dialogue release · 2026-10-02
 
 An actual World/Road conversation-release reproduction retains the original five-second unit deadline. Its first zero-elapsed Walk-zero render preserves pose, navigation, sampled controller values, complete state and World time **17**, but previously loses **84.813 mm** of ordinary clearance. The candidate bookmarks the proven ordinary source before dialogue suppression and consumes it when restoring that participant; unsuppression recomposes the existing skin before another simulation step. Exact, finite, unopted, disabled and disposed sources cannot revive a bookmark.
