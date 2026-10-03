@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Amos and the cleared passage · 2026-10-03
+
+After the player borrows the handle and moves the cart, Amos acknowledges that the passage is clear and waits for the existing **Begin the walk together** choice. His closed-passage, outer-route, walking, arrived and completed dialogue retain their precedence. The real action sequence and save validator admit this invited/open state. The existing **76 tests / two files** pass in **5.14 seconds**, **5.461 seconds** owner; types pass in **4.318 seconds**. Both **563-guard** before/after/current comparisons and exact process groups are independently verified. The first two checks exited successfully but their owners failed when sandboxed process inspection prevented cleanup verification; those receipts remain preserved. The same checks and limits pass with process inspection enabled. No new tests were added; the corrected paragraph remains source-reviewed rather than natively observed.
+
+## Opposing heel view · 2026-10-03
+
+Blender's second fixed **Walk7** sole comparison uses the opposite horizontal azimuth at the same orthographic scale, pose and datum. The raw authored 16-bone model is screen right and the isolated stance candidate screen left, established from their actual role positions and view rotation. Both untouched **1400×816** native images were individually reviewed. Exposed heel and sandal outlines are visible; robe and leg overlap still hide the calf-to-foot joins. No open gap was judged on the visible surfaces of this pose. Hidden surfaces, other phases and fine-art adoption remain unaccepted; the shipped 14-bone asset remains unchanged.
+
+The actual scene lifetime is **24.368 seconds**, with **24.446 seconds** cleanup reserve, within the original **45 / 25 / 10-second** ownership gates. Original Scene/UI/data and all **171 complete / 125 canonical Blender inputs** restore exactly; strict raw persistence, both native PNGs and pre/postguards pass. The overall capture tool waited longer than the owned scene lifetime, so this is not an RPC-speed claim. Fresh clean `492d89e` source qualification retains the three UI/text differences versus immutable e147 AF, all **214 owned AG sources** exact, and separately qualifies the historical 12/four CPU and two native foot runs.
+
 ## Authored saved-journey checkpoints · 2026-10-03
 
 Settings now names unfinished Roof, Nain and storm saves with their authored scene titles, replacing raw checkpoint IDs. Existing chapter-complete precedence, timestamps, empty/unreadable slots, Save/Load controls and saved progress remain intact. The registry lookups use validated checkpoint IDs and escape each title. **107 existing tests / four files** pass in **1.69 seconds**, **2.084 seconds** owner; types and production build pass in **6.661 seconds**. Six current reducer-earned fixtures validate for browser use. Their **563 / 564 guards** and all three exact groups remain independently verified. No new test cases were added.
