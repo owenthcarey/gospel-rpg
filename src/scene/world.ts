@@ -193,14 +193,13 @@ export class World {
   private galilee?: GalileeActivity;
   private guidance: 'full' | 'explore' = 'full';
   private scenerySightline = new ScenerySightline();
-  private occluders: ({
+  private occluders: {
     node: TransformNode;
+    kind: 'foliage' | 'solid';
+    meshes: AbstractMesh[];
     fade: StylePlugin[];
     amount: number;
-  } & (
-    | { kind: 'foliage'; height: number; x: number; z: number }
-    | { kind: 'solid'; meshes: AbstractMesh[] }
-  ))[] = [];
+  }[] = [];
   private actors = new Map<string, Actor>();
   private activity!: VillageActivity;
   private harbor?: HarborPresentation;
@@ -774,17 +773,18 @@ export class World {
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
-    this.registerOccluder(p.asset, anchor, p.scale ?? 1);
+    this.registerOccluder(p.asset, anchor);
     return anchor;
   }
-  private registerOccluder(asset: string, anchor: TransformNode, scale = 1): void {
+  private registerOccluder(asset: string, anchor: TransformNode): void {
     const foliage = ['olive', 'cypress', 'palm'].includes(asset);
     if (
       foliage ||
       ['house', 'house_large', 'market', 'farm_shelter', 'door_awning'].includes(asset)
     ) {
       // Each view-blocking placement owns a material so other scenery remains opaque.
-      const fade = anchor.getChildMeshes().flatMap((mesh) => {
+      const meshes = anchor.getChildMeshes();
+      const fade = meshes.flatMap((mesh) => {
         const source = mesh.material as StandardMaterial | null;
         if (!source) return [];
         const material = new StandardMaterial(
@@ -799,19 +799,13 @@ export class World {
         mesh.material = material;
         return [plugin];
       });
-      this.occluders.push(
-        foliage
-          ? {
-              kind: 'foliage',
-              node: anchor,
-              height: 3.5 * scale,
-              x: anchor.position.x,
-              z: anchor.position.z,
-              fade,
-              amount: 1,
-            }
-          : { kind: 'solid', node: anchor, meshes: anchor.getChildMeshes(), fade, amount: 1 },
-      );
+      this.occluders.push({
+        kind: foliage ? 'foliage' : 'solid',
+        node: anchor,
+        meshes,
+        fade,
+        amount: 1,
+      });
     }
   }
 
@@ -1495,25 +1489,11 @@ export class World {
     }
   }
   private updateOcclusion(elapsed: number): void {
-    // Dissolve only scenery crossing the camera-to-traveler sightline.
+    // Crowns can cover the traveler well beyond their trunk; use actual scenery geometry.
     const cameraPoint = this.camera.position,
       focus = this.player.position;
-    const vx = cameraPoint.x - focus.x,
-      vz = cameraPoint.z - focus.z,
-      length = vx * vx + vz * vz;
     for (const o of this.occluders) {
-      let blocks: boolean;
-      if (o.kind === 'solid') blocks = this.scenerySightline.blocks(o.meshes, cameraPoint, focus);
-      else {
-        const t = length ? ((o.x - focus.x) * vx + (o.z - focus.z) * vz) / length : -1;
-        const separation = Math.hypot(o.x - focus.x - vx * t, o.z - focus.z - vz * t);
-        const rayHeight = focus.y + 1 + (cameraPoint.y - focus.y - 1) * t;
-        blocks =
-          t > 0 &&
-          t < 1 &&
-          separation < 1.25 &&
-          groundHeight(this.state.region, o) + o.height > rayHeight;
-      }
+      const blocks = this.scenerySightline.blocks(o.meshes, cameraPoint, focus);
       // Architecture and fabric need a clearer window than leaves to keep the traveler readable.
       // Geometry, shadows and collision remain in place throughout the transition.
       const target = blocks ? (o.kind === 'solid' ? 0.18 : 0.3) : 1;
