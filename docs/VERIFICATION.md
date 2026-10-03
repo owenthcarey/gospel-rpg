@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Resting supply artwork · 2026-10-03
+
+The full resting-place inspection now shows the existing mat, water-jug and screen item sprites in place of generic text glyphs. The shared artwork keeps the supplies recognizable between the satchel and the work plan. Each decorative image stays inside a scoped 32-pixel slot, while the existing item names, carrying/placement text and filled borders continue to describe state.
+
+The full check passes **1,613 tests / 98 files in 21.41 seconds**, with evidence, types, lint and production build in **34.055 seconds** overall. Frozen T and U differ only in the two UI source files; the other **133 frozen resources**, including all 98 models and the engine, remain byte-identical.
+
+Both baseline and candidate browser cases pass: Standard desktop olive shade, and Large-text touch at 320 × 568 for the open site, followed by a real 844 × 390 resize. The same actual actions carry, place and recover the mat, inspect the unselected site and place all three supplies without completing the story. Candidate card and plan heights never exceed their matched baseline measurements. The candidate completes in **110.950 seconds** overall under the original 180/60-second case limits, one worker and zero retries. Independent review verifies **97 matching delivered bodies, 218 trusted contacts and eleven complete raw native saves**. All eleven baseline and eleven candidate screenshots were individually reviewed; the three loaded sprites, names and status text remain readable. DOM observations and later screenshots retain separate timing scopes.
+
+The first baseline attempt retains its failed compact-work lookup: the full plan belongs to the existing “Read the full inspection” path. The corrected browser path uses that actual control. Compiler/discovery corrections and the missing fresh candidate report folder remain retained; application assertions, geometry tolerances and deadlines were not relaxed. These cases do not establish full shelter completion or artwork throughout every region.
+
 ## Companion waiting continuity · 2026-10-03
 
 Amos now waits at the existing five-metre separation limit and resumes below 4.5 metres. This small recovery band prevents the faster companion from repeatedly switching between Walk and Idle near the limit. A fresh escort still moves at 4.9 metres. The temporary waiting state changes only during positive simulation time, survives ordinary current-position snapshots and settings, and resets for an actual restored position or new escort interval. Routes, movement speed, meeting conditions and save fields retain their existing behavior.
