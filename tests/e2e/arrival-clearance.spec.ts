@@ -57,11 +57,17 @@ for (const size of [
           }
       }).observe(document, { childList: true, subtree: true });
     });
-    await ready(page);
-    await expect(page.locator('.chapter-card-live')).toContainText('Capernaum');
-    await expect(page.locator('.veil')).toHaveCount(0);
-    await expect(page.locator('.chapter-card')).toHaveCSS('opacity', '1');
-    await page.screenshot({ path: info.outputPath('arrival-plaque.png') });
+    // The plaque lasts 4.6 seconds. Observe it while the native journey input
+    // settles: a slow software renderer can finish ready() after its fade-out.
+    const arrival = (async () => {
+      await Promise.all([
+        expect(page.locator('.chapter-card-live')).toContainText('Capernaum'),
+        expect(page.locator('.chapter-card')).toHaveCSS('opacity', '1'),
+      ]);
+      await expect(page.locator('.veil')).toHaveCount(0);
+      await page.screenshot({ path: info.outputPath('arrival-plaque.png') });
+    })();
+    await Promise.all([ready(page), arrival]);
     await expect(page.locator('.chapter-card')).toHaveCount(0);
     const samples = await page.evaluate(
       () =>
