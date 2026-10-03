@@ -2,6 +2,10 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Remembered-story heading · 2026-10-03
+
+Completed Tamar evidence now says **Story remembered**, replacing the retained direction/hint heading. Eight actual marker-order/ending/hint-level combinations reproduce the stale heading, with **eight failures / 24 passes** before correction and **all 32 road tests passing** afterward. Zero hints remains the natural starting state; three are earned through the existing reducer. Initial, intermediate and arrived headings retain their exact wording, while completed reads preserve the remembered text, single optional Tamar destination and complete saved state. The full evidence/type/lint/test/build check passes **1,669 tests / 100 files in 29.36 seconds**, **44.127 seconds** overall. All **563 guards** agree before, after and at review; both focused and full-check groups are independently empty. Formatting passes for the changed view, controls and this document. The preceding AE browser reading retains its earlier heading and does not certify this follow-up’s rendering.
+
 ## Completed Tamar Journal and compact reading · 2026-10-03
 
 After either actual Tamar ending, the Journal acknowledges the chosen memory and offers **Visit Tamar again**. Before the ending, it retains the request to return and share that memory. The revisit keeps the same Tamar destination; both reads preserve complete state. Both marker orders and both earned endings reproduce **four failures / 24 passes** against the unchanged copy, then pass **all 28 road tests** with the correction. The full evidence/type/lint/test/build check passes **1,665 tests / 100 files in 29.48 seconds**, **45.029 seconds** overall, with all **563 guards** exact and its process group independently empty.
