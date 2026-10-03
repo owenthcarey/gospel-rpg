@@ -13,6 +13,7 @@ import { newGame } from '../../src/game/types';
 import { ACTOR_ASSETS } from '../../src/content/assets';
 import type { ActorClip } from '../../src/content/assets';
 import { posedVertices } from '../helpers/posed-geometry';
+import { benchMotion, BENCH_WALK_SPEED, BENCH_TURN_TIME } from '../../src/scene/bench-motion';
 
 vi.mock('@babylonjs/core/Loading/sceneLoader', async (original) => {
   const actual = await original<typeof import('@babylonjs/core/Loading/sceneLoader')>();
@@ -175,7 +176,9 @@ it.each(['stationary', 'blocked', 'paused', 'seated'] as const)(
       if (mode === 'blocked') world.grid = new WalkGrid([], (point) => point.z <= 0);
       if (mode === 'paused') world.paused = true;
       if (mode === 'seated') {
-        world.seatedAction = { time: 1.2, x: 0.3, z: 0.2, started: true };
+        world.seatedAction = benchMotion(world.position, { x: 0.3, z: 0.5 }, 0);
+        world.seatedAction.time =
+          world.seatedAction.length / BENCH_WALK_SPEED + BENCH_TURN_TIME + 0.3;
         actor.playOnce('SitDown');
       }
       const position = { ...world.position };
@@ -211,25 +214,32 @@ function trackFaceDirection(actor: Actor): () => Vector3 {
   };
 }
 
-it.each([
-  { phase: 'approach', time: 0.2, x: -1.2, z: 0.6 },
-  { phase: 'approach', time: 0.2, x: 0.6, z: -1.2 },
-  { phase: 'approach', time: 0.2, x: 0, z: 1.2 },
-  { phase: 'retreat', time: 3.5, x: -1.2, z: 0.6 },
-  { phase: 'retreat', time: 3.5, x: 0.6, z: -1.2 },
-  { phase: 'retreat', time: 3.5, x: 0, z: 1.2 },
-])('faces actual bench $phase travel from offset ($x, $z)', ({ time, x, z }) => {
+function startBenchCheck(world: ReturnType<typeof actionWorld>['world']) {
+  world.position = { x: 3, z: 5.4 };
+  world.player.position.set(3, 0, 5.4);
+  world.destinations = [{ id: 'landing-bench', x: 3, z: 7 }];
+  world.performInteraction('SitDown', 'landing-bench');
+  return world.seatedAction!;
+}
+
+it.each(['approach', 'retreat'] as const)('faces the actual cosmetic bench %s route', (phase) => {
   const { world, actor, dispose } = actionWorld();
   try {
     const faceDirection = trackFaceDirection(actor);
+    const seat = startBenchCheck(world);
     const navigationPosition = { ...world.position };
-    world.seatedAction = { time, x, z, started: true };
+    seat.time =
+      phase === 'approach'
+        ? 0.2
+        : seat.length / BENCH_WALK_SPEED + BENCH_TURN_TIME + actor.clipDuration('SitDown') + 0.05;
     world.simulate(0.05);
     actor.root.computeWorldMatrix(true);
     const before = actor.root.getAbsolutePosition().clone();
     world.simulate(0.1);
     actor.root.computeWorldMatrix(true);
-    const movement = actor.root.getAbsolutePosition().subtract(before).normalize();
+    const movement = actor.root.getAbsolutePosition().subtract(before);
+    movement.y = 0;
+    movement.normalize();
     expect(movement.lengthSquared()).toBeGreaterThan(0);
     expect(Vector3.Dot(faceDirection(), movement)).toBeGreaterThan(0.99);
     expect(actor.playback.clip).toBe('Walk');
@@ -239,22 +249,81 @@ it.each([
   }
 });
 
-it('keeps the bench sitting heading while starting the sitting gesture', () => {
+it('settles backward facing outward while preserving the authored navigation root', () => {
   const { world, actor, dispose } = actionWorld();
   try {
     const faceDirection = trackFaceDirection(actor);
+    const seat = startBenchCheck(world);
     const navigationPosition = { ...world.position };
-    world.seatedAction = { time: 1.2, x: -1.2, z: 0.6, started: false };
-    world.simulate(0.1);
+    seat.time =
+      seat.length / BENCH_WALK_SPEED + BENCH_TURN_TIME + actor.clipDuration('SitDown') * 0.5;
+    world.simulate(0);
     expect(Vector3.Dot(faceDirection(), new Vector3(0, 0, 1))).toBeGreaterThan(0.99);
-    expect(actor.root.position.asArray()).toEqual([-1.2, 0, 0.6]);
+    expect(actor.root.position.x).toBeCloseTo(-0.45);
+    expect(actor.root.position.z).toBeCloseTo(1.6);
+    expect(actor.root.position.y).toBe(0);
     expect(actor.root.rotation.y).toBe(Math.PI);
     expect(actor.playback.action).toBe('SitDown');
     expect(world.position).toEqual(navigationPosition);
+    expect(world.player.position.asArray()).toEqual([3, 0, 5.4]);
   } finally {
     dispose();
   }
 });
+
+it('freezes and resumes the whole bench check when paused, then restores the navigation pose', () => {
+  const { world, actor, dispose } = actionWorld();
+  try {
+    const seat = startBenchCheck(world);
+    seat.time = seat.length / BENCH_WALK_SPEED + BENCH_TURN_TIME + 0.6;
+    world.simulate(0);
+    const before = actor.root.position.clone(),
+      frame = actor.playback.frame,
+      time = seat.time;
+    world.setPaused(true);
+    world.simulate(0.1);
+    expect(world.seatedAction).toBe(seat);
+    expect(seat.time).toBe(time);
+    expect(actor.playback.frame).toBe(frame);
+    expect(actor.root.position.equals(before)).toBe(true);
+    world.setPaused(false);
+    world.simulate(0.1);
+    expect(seat.time).toBeCloseTo(time + 0.1);
+    world.simulate(10);
+    expect(world.seatedAction).toBeUndefined();
+    expect(actor.root.position.x).toBe(0);
+    expect(actor.root.position.z).toBe(0);
+    expect(actor.performing).toBe(false);
+    expect(world.position).toEqual({ x: 3, z: 5.4 });
+  } finally {
+    dispose();
+  }
+});
+
+it.each(['cancel', 'reduced-motion', 'reset'] as const)(
+  'clears bench offsets and finite action on %s',
+  (mode) => {
+    const { world, actor, dispose } = actionWorld();
+    try {
+      const seat = startBenchCheck(world);
+      seat.time = seat.length / BENCH_WALK_SPEED + BENCH_TURN_TIME + 0.6;
+      world.simulate(0);
+      if (mode === 'cancel') world.stop();
+      else if (mode === 'reduced-motion') {
+        world.reducedMotion = true;
+        world.simulate(0);
+      } else world.setPosition({ x: 2, z: 5 });
+      expect(world.seatedAction).toBeUndefined();
+      expect(actor.root.position.x).toBe(0);
+      expect(actor.root.position.z).toBe(0);
+      expect(actor.root.rotation.z).toBe(0);
+      expect(actor.performing).toBe(false);
+      expect(actor.playback.clip).toBe('Idle');
+    } finally {
+      dispose();
+    }
+  },
+);
 
 // Measured on the exported files: the walk has a visible vertical bob, and the idle has a small,
 // continuous breath that never lifts the feet. Each actor is checked separately, so a rebuilt

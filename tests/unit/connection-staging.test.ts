@@ -87,8 +87,8 @@ describe('connected-journey exported geometry', () => {
           ...posedVertices(guest.root, 'leg_right'),
         ];
         expect(guest.root.isEnabled()).toBe(true);
-        expect(Math.abs(pelvis.y - seatHeight)).toBeLessThan(0.15);
-        expect(Math.abs(Math.min(...feet.map((p) => p.y)))).toBeLessThan(0.12);
+        expect(Math.abs(pelvis.y - seatHeight)).toBeLessThan(0.025);
+        expect(Math.abs(Math.min(...feet.map((p) => p.y)))).toBeLessThan(0.002);
         // The actual seated legs extend north under the table, not into the outer lane.
         expect(feet.reduce((sum, p) => sum + p.z - position.z, 0) / feet.length).toBeGreaterThan(
           0.2,
@@ -199,8 +199,8 @@ describe('connected-journey exported geometry', () => {
     const feet = [...posedVertices(seated, 'leg_left'), ...posedVertices(seated, 'leg_right')];
     expect(pelvis).toBeDefined();
     expect(seat.length).toBeGreaterThan(0);
-    expect(Math.abs(pelvis!.y - Math.max(...seat.map((p) => p.y)))).toBeLessThan(0.15);
-    expect(Math.abs(Math.min(...feet.map((p) => p.y)))).toBeLessThan(0.12);
+    expect(Math.abs(pelvis!.y - Math.max(...seat.map((p) => p.y)))).toBeLessThan(0.025);
+    expect(Math.abs(Math.min(...feet.map((p) => p.y)))).toBeLessThan(0.002);
     review.holding = bakedGeometry(scene);
     s.campaign.carrying = null;
     s.life.bench.stage = 'fitted';

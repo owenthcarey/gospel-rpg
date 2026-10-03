@@ -2,6 +2,7 @@ import type { AnimationGroup } from '@babylonjs/core/Animations/animationGroup';
 import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Space } from '@babylonjs/core/Maths/math.axis';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
+import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
 import type { ActorClip } from '../../content/assets';
 import type { Point } from '../../game/types';
 import { distance } from '../../game/pathfinding';
@@ -25,6 +26,10 @@ export class Actor {
   private lookTarget: Vector3 | null = null;
   private lookYaw = 0;
   private head?: TransformNode | null;
+  private feet?: {
+    mesh: AbstractMesh;
+    points: { x: number; y: number; z: number; joint: number }[];
+  }[];
   private previousPose: {
     target: TransformNode;
     position: Vector3;
@@ -162,6 +167,56 @@ export class Actor {
       Math.max(0, Math.min(1, progress)) * (this.current!.to - this.current!.from);
     this.current!.goToFrame(this.sampledFrame);
     this.previousPose = [];
+  }
+  /** An exact finite pose driven by the cosmetic bench clock, without a second animation clock. */
+  sampleActionAt(name: ActorClip, progress: number): void {
+    this.sampleAt(name, progress);
+    if (progress < 1) this.oneShot = { name, time: progress * this.clipDuration(name) };
+  }
+  clipDuration(name: ActorClip): number {
+    const clip = this.clips.get(name);
+    if (!clip) throw new Error('Character is missing animation ' + name);
+    const fps = clip.targetedAnimations[0]?.animation.framePerSecond ?? 60;
+    return (clip.to - clip.from) / fps;
+  }
+  /** Lowest actual sandal vertex; cached rigid vertices avoid deforming the whole skin each tick. */
+  soleHeight(): number {
+    this.feet ??= this.root.getChildMeshes().flatMap((mesh) => {
+      const positions = mesh.getVerticesData('position');
+      const joints = mesh.getVerticesData('matricesIndices');
+      if (!positions || !joints || !mesh.skeleton) return [];
+      const points = [];
+      for (let i = 0; i < positions.length / 3; i++) {
+        const joint = joints[i * 4]!;
+        const name = mesh.skeleton.bones[joint]?.name.split(':').at(-1);
+        if (name === 'leg_left' || name === 'leg_right')
+          points.push({
+            x: positions[i * 3]!,
+            y: positions[i * 3 + 1]!,
+            z: positions[i * 3 + 2]!,
+            joint,
+          });
+      }
+      return [{ mesh, points }];
+    });
+    this.root.computeWorldMatrix(true);
+    for (const node of this.root.getChildTransformNodes()) node.computeWorldMatrix(true);
+    let lowest = Infinity;
+    for (const { mesh, points } of this.feet) {
+      mesh.skeleton!.prepare(true);
+      const bones = mesh.skeleton!.getTransformMatrices(mesh);
+      const world = mesh.computeWorldMatrix(true).m;
+      for (const p of points) {
+        const at = p.joint * 16;
+        const x = p.x * bones[at]! + p.y * bones[at + 4]! + p.z * bones[at + 8]! + bones[at + 12]!;
+        const y =
+          p.x * bones[at + 1]! + p.y * bones[at + 5]! + p.z * bones[at + 9]! + bones[at + 13]!;
+        const z =
+          p.x * bones[at + 2]! + p.y * bones[at + 6]! + p.z * bones[at + 10]! + bones[at + 14]!;
+        lowest = Math.min(lowest, x * world[1]! + y * world[5]! + z * world[9]! + world[13]!);
+      }
+    }
+    return lowest;
   }
   get performing(): boolean {
     return Boolean(this.oneShot);

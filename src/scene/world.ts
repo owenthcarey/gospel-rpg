@@ -52,6 +52,15 @@ import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { AssetLibrary } from './assets';
 import { Actor } from './actors/actor';
+import {
+  benchMotion,
+  benchRoutePose,
+  benchSeatAmount,
+  BENCH_FRONT_CLEARANCE,
+  BENCH_TURN_TIME,
+  BENCH_WALK_SPEED,
+  type BenchMotion,
+} from './bench-motion';
 import { NeighborhoodActivity } from './actors/neighborhood';
 import { GalileeActivity } from './actors/galilee';
 import { localGalileePlaces } from '../content/galilee/places';
@@ -162,7 +171,7 @@ export class World {
   private road?: RoadActivity;
   private life!: LifeActivity;
   private connection!: ConnectionActivity;
-  private seatedAction?: { time: number; x: number; z: number; started: boolean };
+  private seatedAction?: BenchMotion;
   private cutaways: { node: TransformNode; kind: string }[] = [];
   readonly engine: Engine;
   readonly scene: Scene;
@@ -1013,6 +1022,7 @@ export class World {
       );
       return false;
     }
+    this.clearSeatedAction();
     this.path = path;
     this.destination = undefined;
     const end = path.at(-1)!;
@@ -1031,6 +1041,7 @@ export class World {
       this.interactionFeedback?.completeNavigate(id, false);
       return;
     }
+    this.clearSeatedAction();
     if (distance(this.position, target) < 2.35) {
       this.stop();
       this.face(target);
@@ -1075,7 +1086,17 @@ export class World {
       .filter((p) => distance(p, this.position) < 2.6)
       .sort((a, b) => distance(a, this.position) - distance(b, this.position))[0];
   }
-  stop(): void {
+  private clearSeatedAction(): void {
+    if (!this.seatedAction) return;
+    const heading = this.seatedAction.heading;
+    this.seatedAction = undefined;
+    this.actorPlayer.cancelAction();
+    this.actorPlayer.sampleAt('Idle', 0);
+    this.playerModel.position.set(0, 0, 0);
+    this.playerModel.rotation.set(0, heading, 0);
+  }
+  stop(cancelSeat = true): void {
+    if (cancelSeat) this.clearSeatedAction();
     this.walkRamp = 0;
     this.path = [];
     this.destination = undefined;
@@ -1124,36 +1145,57 @@ export class World {
       this.travelerBoat.pose(moving, dt, this.reducedMotion || this.paused);
       return;
     }
-    if (this.paused && this.actorPlayer.performing && !this.reducedMotion) return;
-    if (this.seatedAction && !this.reducedMotion) {
+    if (this.seatedAction && this.reducedMotion) this.clearSeatedAction();
+    if (this.paused && (this.seatedAction || this.actorPlayer.performing) && !this.reducedMotion)
+      return;
+    if (this.seatedAction) {
       const seat = this.seatedAction;
-      if (!this.paused) seat.time += dt;
-      const arriving = seat.time < 0.8,
-        sitting = seat.time >= 0.8 && seat.time < 3.3;
-      const amount = arriving
-        ? seat.time / 0.8
-        : sitting
-          ? 1
-          : Math.max(0, 1 - (seat.time - 3.3) / 0.8);
-      this.playerModel.position.set(seat.x * amount, 0, seat.z * amount);
-      this.playerModel.rotation.y = sitting
-        ? Math.PI
-        : Math.atan2(seat.x, seat.z) + (arriving ? Math.PI : 0);
-      if (sitting && !seat.started) {
-        this.actorPlayer.playOnce('SitDown');
-        seat.started = true;
+      seat.time += dt;
+      const approachTime = seat.length / BENCH_WALK_SPEED;
+      const sittingStart = approachTime + BENCH_TURN_TIME;
+      const sittingEnd = sittingStart + this.actorPlayer.clipDuration('SitDown');
+      const retreating = seat.time >= sittingEnd;
+      this.playerModel.rotation.z = 0;
+      if (seat.time < approachTime || retreating) {
+        const traveled = Math.min(
+          seat.length,
+          (retreating ? seat.time - sittingEnd : seat.time) * BENCH_WALK_SPEED,
+        );
+        const pose = benchRoutePose(seat, traveled, retreating);
+        this.playerModel.position.set(pose.x, 0, pose.z);
+        this.playerModel.rotation.y = pose.heading;
+        const phase = (traveled / (BENCH_WALK_SPEED * this.actorPlayer.clipDuration('Walk'))) % 1;
+        this.actorPlayer.sampleAt('Walk', phase);
+        // This check is cosmetic: ground the sandals without changing authored navigation.
+        const ground = groundHeight(this.state.region, {
+          x: this.position.x + pose.x,
+          z: this.position.z + pose.z,
+        });
+        this.playerModel.position.y = Math.max(0, ground - this.actorPlayer.soleHeight());
+      } else if (seat.time < sittingStart) {
+        const front = seat.route.at(-1)!;
+        const initial = benchRoutePose(seat, seat.length).heading;
+        const turn = Math.atan2(Math.sin(Math.PI - initial), Math.cos(Math.PI - initial));
+        this.playerModel.position.set(front.x, 0, front.z);
+        this.playerModel.rotation.y =
+          initial + turn * ((seat.time - approachTime) / BENCH_TURN_TIME);
+        this.actorPlayer.sampleAt('Idle', 0);
+        this.playerModel.position.y = Math.max(
+          0,
+          groundHeight(this.state.region, this.position) - this.actorPlayer.soleHeight(),
+        );
+      } else {
+        const phase = (seat.time - sittingStart) / this.actorPlayer.clipDuration('SitDown');
+        this.playerModel.position.set(
+          seat.bench.x - 0.45,
+          0,
+          seat.bench.z + BENCH_FRONT_CLEARANCE * (1 - benchSeatAmount(phase)),
+        );
+        this.playerModel.rotation.y = Math.PI;
+        this.actorPlayer.sampleActionAt('SitDown', phase);
       }
-      if (!this.paused) {
-        this.actorPlayer.setStrideSpeed(Math.hypot(seat.x, seat.z) / 0.8);
-        this.actorPlayer.sample(sitting ? 'Idle' : 'Walk', dt);
-      }
-      if (seat.time < 4.1) return;
-      this.playerModel.position.set(0, 0, 0);
-      this.seatedAction = undefined;
-    }
-    if (this.seatedAction && this.reducedMotion) {
-      this.seatedAction = undefined;
-      this.playerModel.position.set(0, 0, 0);
+      if (seat.time < sittingEnd + approachTime) return;
+      this.clearSeatedAction();
     }
     if (moving && !this.reducedMotion) {
       const before = Math.floor(this.strideTime / 0.4);
@@ -1189,7 +1231,7 @@ export class World {
     this.interactionFeedback?.setPaused(value);
     if (value) {
       this.explorationInput?.clear();
-      this.stop();
+      this.stop(false);
       this.stopCameraMotion();
     }
   }
@@ -1699,18 +1741,15 @@ export class World {
     return this.road?.position();
   }
   performInteraction(motion?: ActionMotion, target?: string): void {
+    if (motion !== 'SitDown') this.clearSeatedAction();
     this.conversationView?.clear();
     if (!motion) this.activity?.perform();
     else {
       const place = this.destinations.find((p) => p.id === target);
       if (motion === 'SitDown' && place && !this.reducedMotion) {
         this.stop();
-        this.seatedAction = {
-          time: 0,
-          x: place.x - 0.45 - this.position.x,
-          z: place.z - this.position.z,
-          started: false,
-        };
+        this.actorPlayer.cancelAction();
+        this.seatedAction = benchMotion(this.position, place, this.playerModel.rotation.y);
         return;
       }
       if (place) {

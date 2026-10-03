@@ -1,4 +1,4 @@
-"""RFC-011 characters: individual people on the shared twelve-bone rig.
+"""RFC-011 characters: individual people on the shared base rig.
 
 Run through Blender MCP (with GOSPEL_RPG_ROOT set) or `npm run assets:build`. The
 recipe builds each actor from a declarative spec: build, face, hair, beard, head
@@ -210,17 +210,18 @@ def person(spec, seed):
 
 
 def build(names=None, report=None):
+    """Keep a complete source workshop; names scopes only the exported GLBs."""
     prior = bpy.context.window.scene
     original = sorted(o.name for o in prior.objects)
     scene = kit_common.begin('The Way - RFC-011 people workshop')
     built = []
     try:
         for index, (name, spec) in enumerate(SPECS):
-            if names and name not in names:
-                continue
             person(spec, index * 7 + 3)
-            rigging.export_character(name, parts, scene, str(OUT), index)
-            built.append(name)
+            selected = not names or name in names
+            rigging.export_character(name, parts, scene, str(OUT), index, export_file=selected)
+            if selected:
+                built.append(name)
         bpy.data.libraries.write(str(ROOT / 'assets/source/people-kit.blend'), {scene},
                                  fake_user=True, compress=True)
     finally:
