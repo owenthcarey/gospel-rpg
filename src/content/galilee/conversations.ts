@@ -45,6 +45,8 @@ export function galileeText(id: string, s: GameState): string {
     return 'Leah has set aside one woven mat, one jar of water and one folding reed screen. Carry one at a time. Unplaced supplies remain here; placed supplies can be picked up again until you finish with Leah.';
   if (id === 'rest-shade' || id === 'rest-breeze')
     return REST_LAYOUTS[id === 'rest-shade' ? 'shade' : 'breeze'].description;
+  if (id.startsWith('channel-') && g.spring.stage === 'complete')
+    return 'This section remains in the arrangement you tested. Water reaches a roadside basin through the connected channel. The work is remembered.';
   return 'This section has two open ends. Turn it a quarter turn clockwise, then follow the openings on the plan. A straight section connects opposite sides; a bend connects neighboring sides. Test the route at the source.';
 }
 export function galileeAcknowledgement(id: string, s: GameState): string {
