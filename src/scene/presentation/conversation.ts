@@ -6,6 +6,7 @@ import { applyCameraPose, cameraPose, frameSubject, type CameraPose } from './fr
 
 interface Participant {
   actor: Actor;
+  pose: ReturnType<Actor['conversationPoseScope']>;
   heading: number;
   clip: ReturnType<Actor['snapshotPose']>;
   supportedHold?: boolean;
@@ -69,6 +70,8 @@ export class ConversationPresentation {
     this.targetId = id;
     const speakerLocomotion = speaker.bookmarkLocomotionPresentation(),
       listenerLocomotion = listener.bookmarkLocomotionPresentation();
+    const speakerPose = speaker.conversationPoseScope(),
+      listenerPose = listener.conversationPoseScope();
     speaker.suppressLocomotionPresentation(true);
     listener.suppressLocomotionPresentation(true);
     this.bookmark = {
@@ -80,12 +83,14 @@ export class ConversationPresentation {
     };
     this.speaker = {
       actor: speaker,
+      pose: speakerPose,
       heading: speaker.root.rotation.y,
       clip: speaker.snapshotPose(),
       locomotion: speakerLocomotion,
     };
     this.listener = {
       actor: listener,
+      pose: listenerPose,
       heading: listener.root.rotation.y,
       clip: listener.snapshotPose(),
       locomotion: listenerLocomotion,
@@ -146,6 +151,7 @@ export class ConversationPresentation {
     ] as const) {
       if (this.paused) break;
       const actor = person.actor;
+      if (!person.pose.active) continue;
       // Keep the paused world's upper/held pose while its supported legs finish settling.
       if (this.keepsSupportedHold(person)) {
         person.settling?.step(dt, reduced);
@@ -153,12 +159,12 @@ export class ConversationPresentation {
       }
       // Seated/working characters retain their supported base pose while acknowledging a visitor.
       if (['Sit', 'Row', 'Recline', 'Kneel', 'Carry', 'MatCarry'].includes(person.clip.clip)) {
-        actor.sample(person.clip.clip, dt, reduced || person.clip.clip === 'Carry');
+        person.pose.sample(person.clip.clip, dt, reduced || person.clip.clip === 'Carry');
         continue;
       }
       actor.turnTo(other, reduced ? 10 : dt, 8);
       actor.lookAt(other.add(new Vector3(0, 1.6, 0)));
-      actor.sample(
+      person.pose.sample(
         speaking && !reduced
           ? time < 1.4
             ? 'Greet'
@@ -186,16 +192,21 @@ export class ConversationPresentation {
     for (const person of [this.speaker, this.listener]) {
       if (!person) continue;
       if (person.actor.root.isDisposed()) {
+        person.pose.release();
         person.locomotion?.release();
         person.settling?.release();
         continue;
       }
-      person.actor.lookAt(null);
-      person.actor.root.rotation.y = person.heading;
-      // Arrival or a settings update may settle the same held pose after select.
-      // Keep that current support instead of restoring a stale animation frame.
-      if (!this.keepsSupportedHold(person))
-        person.actor.restorePose(person.clip, person.locomotion);
+      const restored = person.pose.restore(person.heading, person.locomotion);
+      if (restored === undefined) {
+        person.actor.lookAt(null);
+        person.actor.root.rotation.y = person.heading;
+        // Arrival or a settings update may settle the same held pose after select.
+        // Keep that current support instead of restoring a stale animation frame.
+        if (!this.keepsSupportedHold(person))
+          person.actor.restorePose(person.clip, person.locomotion);
+      }
+      person.pose.release();
       person.locomotion?.release();
       person.settling?.release();
       person.actor.suppressLocomotionPresentation(false);

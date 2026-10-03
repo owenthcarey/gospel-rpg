@@ -15,6 +15,18 @@ import {
 } from './stationary-feet';
 import { LocomotionClearance, type ActorGround } from './locomotion-clearance';
 
+/** A single dialogue owns these samples; unrelated Actor samples revoke retained blends. */
+export interface ConversationPoseScope {
+  readonly active: boolean;
+  sample(name: ActorClip, dt: number, still?: boolean): void;
+  /** Undefined keeps the existing unsupported-pose fallback; false is an invalid/consumed scope. */
+  restore(
+    heading: number,
+    locomotion?: ReturnType<LocomotionClearance['bookmark']>,
+  ): boolean | undefined;
+  release(): void;
+}
+
 /** Samples Blender clips using simulation time; no Babylon auto-animation clock. */
 export class Actor {
   readonly root: TransformNode;
@@ -22,6 +34,8 @@ export class Actor {
   private current?: AnimationGroup;
   private currentName?: ActorClip;
   private elapsed = 0;
+  private ordinarySample = false;
+  private conversationPose?: { group?: AnimationGroup; release: () => void };
   private route: Point[] = [];
   private idle: ActorClip = 'Idle';
   private moving = false;
@@ -67,7 +81,16 @@ export class Actor {
     }
     this.setClip('Idle');
   }
+  /** Unsupported sources keep their existing clear/held continuation fallback. */
+  private releaseRetainedConversationPose(): void {
+    if (this.conversationPose?.group) this.conversationPose.release();
+  }
   setClip(name: ActorClip): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
+    this.selectClip(name);
+  }
+  private selectClip(name: ActorClip): void {
     this.locomotionClearance?.resetSample();
     this.stationaryFeet?.restoreSampledPose();
     if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(name)) this.stationaryFeet?.reset();
@@ -86,7 +109,8 @@ export class Actor {
       }));
       this.blendTime = 0;
     }
-    this.current?.stop();
+    // A genuine unfinished source blend remains paused, with its real runtime frame.
+    if (this.current !== this.conversationPose?.group) this.current?.stop();
     this.current = this.clips.get(name);
     if (!this.current) throw new Error('Character is missing animation ' + name);
     this.currentName = name;
@@ -96,10 +120,15 @@ export class Actor {
     this.current.goToFrame(this.sampledFrame);
   }
   sample(name: ActorClip, dt: number, still = false): void {
+    this.releaseRetainedConversationPose();
+    this.samplePose(name, dt, still);
+  }
+  private samplePose(name: ActorClip, dt: number, still: boolean): void {
+    this.ordinarySample = false;
     this.locomotionClearance?.clear();
     this.stationaryFeet?.restoreSampledPose();
     if (this.oneShot && !still) {
-      this.setClip(this.oneShot.name);
+      this.selectClip(this.oneShot.name);
       this.oneShot.time += dt;
       const fps = this.current!.targetedAnimations[0]?.animation.framePerSecond ?? 60;
       const frame = this.current!.from + this.oneShot.time * fps;
@@ -112,7 +141,7 @@ export class Actor {
       }
     }
     this.oneShot = undefined;
-    this.setClip(name);
+    this.selectClip(name);
     if (!this.current) return;
     if (!still)
       this.elapsed += dt * (['Walk', 'Carry', 'MatCarry'].includes(name) ? this.strideRate : 1);
@@ -124,6 +153,7 @@ export class Actor {
     this.blendPose(dt, still);
     this.applyLook(dt, still);
     this.locomotionClearance?.apply(this.currentName ?? 'Idle', still, this.performing);
+    this.ordinarySample = !still && !this.conversationPose && ['Idle', 'Walk'].includes(name);
   }
   /**
    * Glance toward a world point, or back to the clip's own heading with `null`. Cosmetic:
@@ -177,6 +207,8 @@ export class Actor {
     if (t === 1) this.previousPose = [];
   }
   playOnce(name: ActorClip): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
     this.locomotionClearance?.reset();
     this.stationaryFeet?.reset();
     this.oneShot = { name, time: 0 };
@@ -184,11 +216,15 @@ export class Actor {
   }
   /** Resume the requested base pose on the next sample, retaining its normal blend. */
   cancelAction(): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
     this.locomotionClearance?.reset();
     this.oneShot = undefined;
   }
   /** A bounded presentation pose, reconstructed directly from its local scene clock. */
   sampleAt(name: ActorClip, progress: number): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
     this.locomotionClearance?.reset();
     this.stationaryFeet?.reset();
     this.oneShot = undefined;
@@ -324,6 +360,8 @@ export class Actor {
     pose: ReturnType<Actor['snapshotPose']>,
     locomotion?: ReturnType<LocomotionClearance['bookmark']>,
   ): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
     this.locomotionClearance?.reset(!locomotion);
     this.stationaryFeet?.reset();
     this.setClip(pose.clip);
@@ -334,7 +372,170 @@ export class Actor {
     this.previousPose = [];
     locomotion?.restore();
   }
+  /** Preserve only an actual unfinished ordinary blend; exact/held/finite sources keep their fallback. */
+  conversationPoseScope(): ConversationPoseScope {
+    this.conversationPose?.release();
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let owner: Actor | undefined = this;
+    let root: TransformNode | undefined = this.root;
+    let scene: ReturnType<TransformNode['getScene']> | undefined = root.getScene();
+    let parent = root.parent;
+    const targets = new Set(
+      this.model.animations
+        .flatMap((group) => group.targetedAnimations.map((animation) => animation.target))
+        .filter((node): node is TransformNode => node instanceof TransformNode),
+    );
+    if (this.head) targets.add(this.head);
+    const eligible =
+      this.blendTransitions &&
+      this.ordinarySample &&
+      !this.performing &&
+      !this.hasFootSupport &&
+      this.previousPose.length > 0 &&
+      this.blendTime < 0.16 &&
+      this.current?.isStarted &&
+      !this.current.isPlaying &&
+      !root.isDisposed() &&
+      root.isEnabled() &&
+      [...targets].every(
+        (target) => !target.isDisposed() && target.isEnabled() && target.isDescendantOf(root!),
+      );
+    let saved = eligible
+      ? {
+          group: this.current!,
+          pose: this.snapshotPose(),
+          blendTime: this.blendTime,
+          strideRate: this.strideRate,
+          lookTarget: this.lookTarget?.clone() ?? null,
+          lookYaw: this.lookYaw,
+          locals: [...targets].map((target) => ({
+            target,
+            parent: target.parent,
+            position: target.position.clone(),
+            scaling: target.scaling.clone(),
+            euler: target.rotation.clone(),
+            rotation: target.rotationQuaternion?.clone() ?? null,
+          })),
+          previous: this.previousPose.map((value) => ({
+            ...value,
+            position: value.position.clone(),
+            scaling: value.scaling.clone(),
+            rotation: value.rotation?.clone() ?? null,
+          })),
+        }
+      : undefined;
+    // No disposable model, skeleton or animation group is cloned.
+    let unsubscribe: (() => void)[] = [];
+    const state = { group: saved?.group, release: () => release() };
+    const valid = () =>
+      Boolean(
+        owner &&
+        root &&
+        scene &&
+        !scene.isDisposed &&
+        !root.isDisposed() &&
+        root.isEnabled() &&
+        root.parent === parent &&
+        owner.conversationPose === state &&
+        (!saved ||
+          (owner.clips.get(saved.pose.clip) === saved.group &&
+            scene.animationGroups.includes(saved.group) &&
+            saved.group.isStarted &&
+            !saved.group.isPlaying &&
+            saved.locals.every(
+              (value) =>
+                !value.target.isDisposed() &&
+                value.target.isEnabled() &&
+                value.target.parent === value.parent &&
+                value.target.isDescendantOf(root!),
+            ))),
+      );
+    function release(keepSource = false) {
+      if (!owner) return;
+      if (!keepSource && saved && owner.current !== saved.group) saved.group.stop(true);
+      if (owner.conversationPose === state) owner.conversationPose = undefined;
+      for (const remove of unsubscribe) remove();
+      unsubscribe = [];
+      saved = undefined;
+      state.group = undefined;
+      owner = undefined;
+      root = undefined;
+      // The scope retains no scene or parent after it has been consumed.
+      scene = undefined;
+      parent = null;
+      targets.clear();
+    }
+    this.conversationPose = state;
+    const disposed = root.onDisposeObservable.add(() => release());
+    unsubscribe.push(() => root?.onDisposeObservable.remove(disposed));
+    const disabled = root.onEffectiveEnabledStateChangedObservable.add((enabled) => {
+      if (!enabled) release();
+    });
+    unsubscribe.push(() => root?.onEffectiveEnabledStateChangedObservable.remove(disabled));
+    const sceneDisposed = scene.onDisposeObservable.add(() => release());
+    unsubscribe.push(() => scene?.onDisposeObservable.remove(sceneDisposed));
+    return {
+      get active() {
+        if (valid()) return true;
+        release();
+        return false;
+      },
+      sample(name, dt, still = false) {
+        if (!valid()) {
+          release();
+          return;
+        }
+        owner!.samplePose(name, dt, still);
+      },
+      restore(heading, locomotion) {
+        if (!valid()) {
+          release();
+          return false;
+        }
+        const actor = owner!,
+          source = saved;
+        if (!source) {
+          release();
+          return undefined;
+        }
+        // Consume before writing; retain the actual paused source without start/seek/sample.
+        release(true);
+        actor.locomotionClearance?.reset(!locomotion);
+        actor.stationaryFeet?.reset();
+        if (actor.current !== source.group) actor.current?.stop();
+        actor.current = source.group;
+        actor.currentName = source.pose.clip;
+        actor.elapsed = source.pose.elapsed;
+        actor.oneShot = undefined;
+        actor.sampledFrame = source.pose.frame;
+        actor.blendTime = source.blendTime;
+        actor.strideRate = source.strideRate;
+        actor.lookTarget = source.lookTarget;
+        actor.lookYaw = source.lookYaw;
+        actor.previousPose = source.previous;
+        for (const value of source.locals) {
+          value.target.position.copyFrom(value.position);
+          value.target.scaling.copyFrom(value.scaling);
+          value.target.rotation.copyFrom(value.euler);
+          if (value.rotation) {
+            if (value.target.rotationQuaternion)
+              value.target.rotationQuaternion.copyFrom(value.rotation);
+            else value.target.rotationQuaternion = value.rotation;
+          } else value.target.rotationQuaternion = null;
+        }
+        actor.root.rotation.y = heading;
+        actor.ordinarySample = true;
+        locomotion?.restore();
+        return true;
+      },
+      release() {
+        release();
+      },
+    };
+  }
   setStrideSpeed(speed: number): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
     this.strideRate = Math.max(0, Math.min(1.5, speed / 3.25));
   }
   /** No-op for unopted actors; navigation controllers clear before relocating a sampled pose. */
@@ -348,6 +549,7 @@ export class Actor {
     this.locomotionClearance?.setReducedMotion(value);
   }
   suppressLocomotionPresentation(value: boolean): void {
+    if (!value) this.releaseRetainedConversationPose();
     this.locomotionClearance?.suppress(value);
   }
   bookmarkLocomotionPresentation() {
@@ -363,6 +565,8 @@ export class Actor {
     this.setClip(name);
   }
   walk(path: readonly Point[]): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
     this.route = path.map((point) => ({ ...point }));
   }
   tick(dt: number, still: boolean): void {
@@ -407,6 +611,8 @@ export class Actor {
       Math.PI + Math.atan2(point.x - this.root.position.x, point.z - this.root.position.z);
   }
   attach(model: Model, socket = 'carry_socket'): void {
+    this.releaseRetainedConversationPose();
+    this.ordinarySample = false;
     model.root.parent = this.model.socket(socket);
     model.root.position.copyFrom(Vector3.Zero());
     model.root.rotation.setAll(0);
@@ -414,6 +620,8 @@ export class Actor {
     model.root.scaling.setAll(1);
   }
   dispose(): void {
+    this.conversationPose?.release();
+    this.ordinarySample = false;
     this.stationaryFeet?.dispose();
     this.locomotionClearance?.dispose();
     for (const animation of this.clips.values()) animation.dispose();
