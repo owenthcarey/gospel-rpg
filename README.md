@@ -32,6 +32,8 @@ Ground and minimap travel show a Cancel control while a chosen-point route is ac
 
 Pouch observations follow the item into your hands and back to Ruth. New practical-work results stay readable in the work panel, while repeated feedback and previews preserve your reading place and keyboard focus.
 
+Bench material inspections describe the cord or brace in your hands and at the repaired seat. Channel turns and screen moves retain their actual outcome in Messages. The traveler walks around the bench before sitting, folds the robe across the lap, and retreats facing forward; neighbors at the landing and shared tables start in supported seated poses.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -78,7 +80,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 - **Through the Roof:** eight narrated Gospel scenes, three aftermath visits and a chosen reflection; explorable lanes and two enterable buildings.
 - **Four independent neighborhood stories:** investigate Ruth’s missing sewing pouch, repair the landing bench with cord or a brace, choose a walking route with Amos, or a table location with Hannah; carry bread and water, clear a passage, and return to visible results.
 - **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
-- **98 original Blender assets** with baked ambient occlusion, fifteen individually built people on a shared skinned rig, nineteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling, plus scattered grass, shrubs, flowers and pebbles. Passage markers and refined landing edges help identify deliberate crossings.
+- **98 original Blender assets** with baked ambient occlusion, fifteen individually built people on a shared skinned rig, nineteen shared clips, three specialized procession clips and a supported bench pose for traveler and villager, including walking, carrying, sitting, rowing, hauling and kneeling, plus scattered grass, shrubs, flowers and pebbles. Passage markers and refined landing edges help identify deliberate crossings.
 - A compact nearby-action tray for practical tasks, distinct pick-up/put-down/repair/sit motions, stationary holding, persistent repaired benches and seated table company.
 - A journal organized into **Stories, People, Places, and Memories**, with story/status filters, investigation evidence, destinations, a journey recap and a completed-account replay library.
 - A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.
