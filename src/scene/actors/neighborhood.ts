@@ -20,6 +20,7 @@ export class NeighborhoodActivity {
   private time = 0;
   private still = false;
   private requested = false;
+  private waitingForPlayer = false;
   constructor(
     library: AssetLibrary,
     private actors: Map<string, Actor>,
@@ -92,6 +93,18 @@ export class NeighborhoodActivity {
     this.cart?.root.position.set(walk.gateOpen ? 2.4 : 0, 0, walk.gateOpen ? -2 : 0);
     const amos = this.actors.get('amos');
     if (amos) {
+      // Ordinary reducer snapshots already contain the current visible position.
+      // A restored/relocated position starts a new physical escort interval.
+      if (
+        !old ||
+        old.region !== state.region ||
+        old.campaign.walk.step !== walk.step ||
+        old.campaign.walk.stage !== walk.stage ||
+        old.campaign.walk.route !== walk.route ||
+        amos.root.position.x !== walk.position.x ||
+        amos.root.position.z !== walk.position.z
+      )
+        this.waitingForPlayer = false;
       amos.clearLocomotionPresentation();
       amos.root.position.set(walk.position.x, 0, walk.position.z);
       if (!old || old.campaign.walk.step !== walk.step || old.campaign.walk.stage !== walk.stage) {
@@ -142,7 +155,14 @@ export class NeighborhoodActivity {
     const target = WALK_ROUTES[walk.route][walk.step];
     if (!target) return;
     // Physical escort movement is identical with reduced motion. Only clip sampling differs.
-    const together = distance(player, position) < 5;
+    const gap = distance(player, position);
+    // Keep the existing outer stop limit. Wait for a little room before restarting
+    // so the faster companion does not change clips at every threshold crossing.
+    if (dt > 0) {
+      if (gap >= 5) this.waitingForPlayer = true;
+      else if (gap < 4.5) this.waitingForPlayer = false;
+    }
+    const together = !this.waitingForPlayer && gap < 5;
     if (together && distance(position, target) > 0.25) {
       if (!this.path.length) this.path = findPath(this.grid(), position, target);
       const step = stepPath(position, this.path, dt * 0.52);
