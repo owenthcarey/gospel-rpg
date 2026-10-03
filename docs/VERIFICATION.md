@@ -2,6 +2,10 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## CI formatting recovery · 2026-10-03
+
+The published [855737d build](https://github.com/owenthcarey/gospel-rpg/actions/runs/37151148669/job/111285141832) and [435bd56 build](https://github.com/owenthcarey/gospel-rpg/actions/runs/37150398667/job/111282936490) both stop at Prettier’s check of the graphics-focus assertion; browser jobs are skipped. Their actual merge checkouts are `d8b34f370363328bdf5c80d82d2c8768a572a980` and `da9418bf09fb393c07773d32cb886d4f7d06b99f`, respectively. Formatting now wraps that same assertion according to the installed formatter, with its exact focus owner unchanged. The complete **npm run format:check** passes in **6.824 seconds**; all **563 guards** agree and the exact process group is independently empty. This local recovery does not establish a subsequent CI result.
+
 ## Completed-story Journey map · 2026-10-03
 
 The Journey map now acknowledges a completed tracked story and offers exploration. It removes the completed story’s next-passage prompt and highlighted path while keeping every destination command and independent saved route. Unfinished stories and Main’s automatic Roof/Nain progression retain their guidance.

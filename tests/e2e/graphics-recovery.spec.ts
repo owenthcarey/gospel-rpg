@@ -137,9 +137,7 @@ test('graphics loss and recovery reveal fresh feedback after scrolling and prese
   await expect(page.locator('#ui')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(toast).toHaveAttribute('data-held', 'false');
   await expect(toast).toBeInViewport({ ratio: 1 });
-  await expect(
-    page.getByRole('button', { name: 'Settings and saves', exact: true }),
-  ).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Settings and saves', exact: true })).toBeFocused();
   const cadence = await renderingCadence(page);
   const pixelsAfter = await worldPixels(page);
   await page.screenshot({
