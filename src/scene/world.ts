@@ -209,6 +209,7 @@ export class World {
   private destinations: Interactable[] = activeInteractables(this.state);
   private player!: TransformNode;
   private playerModel!: TransformNode;
+  private playerRing?: Mesh;
   private marker: Mesh;
   private interactionFeedback?: InteractionFeedback;
   private explorationInput?: ExplorationInputBinding;
@@ -507,6 +508,7 @@ export class World {
       { diameter: 0.92, thickness: 0.025, tessellation: 40 },
       this.scene,
     );
+    this.playerRing = ring;
     ring.material = this.material('player-ring-material', '#fff1c6', 0.65);
     ring.parent = this.player;
     ring.position.y = 0.045;
@@ -1095,6 +1097,22 @@ export class World {
     this.actorPlayer.sampleAt('Idle', 0);
     this.playerModel.position.set(0, 0, 0);
     this.playerModel.rotation.set(0, heading, 0);
+    this.playerRing?.position.set(0, 0.045, 0);
+  }
+  /** Follow the displayed land actor without moving its navigation or camera anchor. */
+  private syncPlayerRing(): void {
+    if (!this.playerRing || this.travelerBoat) return;
+    this.playerModel.computeWorldMatrix(true);
+    const displayed = this.playerModel.getAbsolutePosition();
+    this.floor?.computeWorldMatrix(true);
+    const height = this.floor
+      ? this.floor.getHeightAtCoordinates(displayed.x, displayed.z)
+      : groundHeight(this.state.region, { x: displayed.x, z: displayed.z });
+    this.playerRing.position.set(
+      this.playerModel.position.x,
+      height - this.player.getAbsolutePosition().y + 0.045,
+      this.playerModel.position.z,
+    );
   }
   stop(cancelSeat = true): void {
     if (cancelSeat) this.clearSeatedAction();
@@ -1195,6 +1213,7 @@ export class World {
         this.playerModel.rotation.y = Math.PI;
         this.actorPlayer.sampleActionAt('SitDown', phase);
       }
+      this.syncPlayerRing();
       if (seat.time < sittingEnd + approachTime) return;
       this.clearSeatedAction();
     }
