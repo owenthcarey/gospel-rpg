@@ -1034,7 +1034,7 @@ kbd {
   max-width: min(600px, 90vw);
   text-align: left;
   z-index: 50;
-  animation: ribbon-in 420ms var(--ease-out) both;
+  animation: toast-in 200ms var(--ease-out) both;
 }
 .toast-icon {
   display: grid;
