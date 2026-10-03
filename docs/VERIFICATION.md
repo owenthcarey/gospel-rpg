@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Accessible unread feedback · 2026-10-03
+
+The Messages button keeps its exact **Recent game messages** name and now describes the existing unread counter through `aria-describedby`. Zero, singular and plural text update beside the visual badge. The existing toast remains the announcer; no new live region or read/reset policy is added.
+
+Types and production build pass in **4.311 / 5.334 seconds**. The unchanged existing Messages browser case passes in **8.3 seconds** (**10.388 seconds** owner), covering natural expiry, repeated history, badge reset and opener focus. It uses the current production preview at 4359 with original deadlines, assertions and retries. All canonical sources and **563 / 565 before/after guards** agree; only the completed type/build owners' later config admission differs at review, with their original exact source reconstructed. All three process groups are independently empty.
+
+A direct normal **512×740** browser check reads **No unread game messages**, then **1 unread game message** and **2 unread game messages** after actual Examine actions. The description remains after natural toast expiry. Opening history and Escape restore Messages focus and zero unread text. The exact name and description binding remain present. Screen-reader delivery and full exported-state equality are not claimed. No new cases were added.
+
 ## Choose Option while afloat · 2026-10-03
 
 The movement option now says **Steer here** in `galilee-water` and **Walk here** in every land region, matching the canvas and minimap. Its existing callback, target, option order and input behavior are unchanged; region replacement supplies the correct label after boarding or docking. The **96 existing interaction/lake tests** pass in **1.39 seconds** (**1.753 seconds** owner); types and production build pass in **5.602 / 6.086 seconds**. All **563 inputs** agree before, after and at review, and all three process groups are independently empty. Prettier passes for both changed files. No new cases were added.
