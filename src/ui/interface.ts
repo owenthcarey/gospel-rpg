@@ -555,6 +555,10 @@ export class Interface {
     const selected = allInteractables.find((p) => p.id === destination);
     const plan = this.travelPlan;
     const walking = !!this.activeWalkTarget && !this.worldPaused && !this.graphicsPaused;
+    const cancel = travel.querySelector<HTMLButtonElement>('[data-action="cancel-navigation"]')!;
+    const cancelText =
+      this.currentState?.region === 'galilee-water' ? 'Cancel course' : 'Cancel walk';
+    if (cancel.textContent !== cancelText) cancel.textContent = cancelText;
     travel.hidden = !selected && !plan && !walking;
     const currentTravel = selected
       ? 'Approaching ' + selected.name
@@ -1344,6 +1348,10 @@ export class Interface {
         'Walk over and interact; names and map destinations work too',
       ],
       ['Right-click / hold a world target', 'Choose an action'],
+      [
+        'World name: Shift+F10 / Menu key',
+        'Open Choose Option; ↑ / ↓ selects, Enter confirms, Escape cancels',
+      ],
       ['W A S D / arrow keys', 'Move relative to the camera'],
       ['E', 'Interact with a nearby person or place'],
       ['Middle or right mouse drag / two fingers', 'Rotate the camera'],
@@ -1358,7 +1366,7 @@ export class Interface {
       this.panelShell(
         'Find your own pace',
         'A LITTLE GUIDANCE',
-        `<p class="panel-lead">Speak with Simon by the boats to begin. Follow the chapter card, or wander and discover the village. There is no combat or timer. An unsupported route interpretation explains the mismatch and lets you try again without losing evidence.</p><dl class="controls-list">${rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="content-note">Progress is stored in this browser. Export a save from Settings before clearing browser data or changing devices.</p>`,
+        `<p class="panel-lead">Speak with Simon by the boats to begin. Follow the chapter card, or wander and discover the village. There is no combat or timer. If a route doesn't match the clues, your observations stay in the journal and you can try again.</p><dl class="controls-list">${rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="content-note">Progress is stored in this browser. Export a save from Settings before clearing browser data or changing devices.</p>`,
       ),
     );
   }

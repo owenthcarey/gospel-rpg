@@ -8,7 +8,7 @@ afterEach(() => vi.unstubAllGlobals());
 /** Exercise the actual frame and pause handoffs with only the unrelated layout surfaces stubbed. */
 function studio(plan?: RoutePlan) {
   const resume = { hidden: true, disabled: false, dataset: {} as Record<string, string> };
-  const cancel = { hidden: false, disabled: false };
+  const cancel = { hidden: false, disabled: false, textContent: 'Cancel walk' };
   const travel = {
     hidden: true,
     querySelector: (selector: string) => (selector.includes('route-resume') ? resume : cancel),
@@ -61,7 +61,7 @@ const savedRoute = () => {
 };
 
 describe('active walk status', () => {
-  it('describes an anonymous water course as steering while retaining its Cancel control', () => {
+  it('describes an anonymous water course and its actual cancellation as steering', () => {
     const { frame, fixture, travel, resume, cancel, guidance, minimap } = studio();
     fixture.currentState = { ...newGame(), region: 'galilee-water' };
     const target = { x: 16, z: 12 };
@@ -69,7 +69,7 @@ describe('active walk status', () => {
     expect(travel.hidden).toBe(false);
     expect(guidance.textContent).toBe('Steering to chosen point');
     expect(resume.hidden).toBe(true);
-    expect(cancel).toEqual({ hidden: false, disabled: false });
+    expect(cancel).toEqual({ hidden: false, disabled: false, textContent: 'Cancel course' });
     expect(minimap.update.mock.calls.at(-1)?.at(-1)).toEqual(target);
   });
 
@@ -82,7 +82,7 @@ describe('active walk status', () => {
     expect(travel.hidden).toBe(false);
     expect(guidance.textContent).toBe('Walking to chosen point');
     expect(resume.hidden).toBe(true);
-    expect(cancel).toEqual({ hidden: false, disabled: false });
+    expect(cancel).toEqual({ hidden: false, disabled: false, textContent: 'Cancel walk' });
     expect(minimap.update.mock.calls.at(-1)?.at(-1)).toEqual(target);
     // Both arrival and manual cancellation report an empty path through the next frame.
     frame();
@@ -103,6 +103,46 @@ describe('active walk status', () => {
     ui.setWorldPaused(false);
     frame();
     expect(travel.hidden).toBe(true);
+  });
+
+  it('keeps the same cancellation control across land, lake, and landing frame handoffs', () => {
+    const { frame, fixture, travel, cancel, guidance } = studio();
+    fixture.currentState = newGame();
+    const landState = fixture.currentState;
+    frame({ x: -12, z: -3 });
+    expect(cancel.textContent).toBe('Cancel walk');
+    expect(travel.querySelector('[data-action="cancel-navigation"]')).toBe(cancel);
+    fixture.currentState = { ...landState, region: 'galilee-water' };
+    frame({ x: 16, z: 12 });
+    expect(guidance.textContent).toBe('Steering to chosen point');
+    expect(cancel.textContent).toBe('Cancel course');
+    expect(travel.querySelector('[data-action="cancel-navigation"]')).toBe(cancel);
+    fixture.currentState = { ...landState, region: 'reed-landing' };
+    frame({ x: 4, z: 3 });
+    expect(guidance.textContent).toBe('Walking to chosen point');
+    expect(cancel.textContent).toBe('Cancel walk');
+    expect(cancel.hidden).toBe(false);
+    expect(cancel.disabled).toBe(false);
+    expect(travel.querySelector('[data-action="cancel-navigation"]')).toBe(cancel);
+  });
+
+  it('retains the saved route and water cancellation name across pause and resume', () => {
+    const plan = savedRoute();
+    const { ui, frame, fixture, travel, cancel, resume, minimap } = studio(plan);
+    fixture.currentState = { ...newGame(), region: 'galilee-water' };
+    frame({ x: 16, z: 12 });
+    ui.setWorldPaused(true);
+    expect(cancel.textContent).toBe('Cancel course');
+    expect(fixture.travelPlan).toBe(plan);
+    expect(travel.hidden).toBe(false);
+    expect(resume.hidden).toBe(false);
+    expect(minimap.clearDestination).toHaveBeenCalledOnce();
+    ui.setWorldPaused(false);
+    frame({ x: 17, z: 12 });
+    expect(cancel.textContent).toBe('Cancel course');
+    expect(cancel.hidden).toBe(false);
+    expect(cancel.disabled).toBe(false);
+    expect(fixture.travelPlan).toBe(plan);
   });
 
   it('does not describe a stale target as active while graphics are paused', () => {

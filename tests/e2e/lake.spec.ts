@@ -157,7 +157,7 @@ test('steering, cancelled routes and menus preserve actual afloat position, head
   await page.locator('.toolbar [data-action="map"]').click();
   await page.locator('.map-destinations [data-value="dock-sheltered-cove"]').click();
   await expect(page.locator('#travel-status')).toBeVisible();
-  await page.getByRole('button', { name: 'Cancel walk' }).click();
+  await page.getByRole('button', { name: 'Cancel course' }).click();
   const stopped = await exported(page);
   await page.locator('[data-setting="reducedMotion"]').check();
   await page.waitForTimeout(400);

@@ -2,6 +2,16 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Boat cancellation and Help guidance · 2026-10-03
+
+The existing navigation control now says **Cancel course** on the open lake and restores **Cancel walk** after landing. Help describes the existing Shift+F10/Menu-key Choose Option controls and explains that an incorrect clue route preserves journal observations for another attempt.
+
+Mounted frame controls cover the same cancellation button across land, lake and landing, including saved-route pause/resume. **120 focused tests / four files** pass. The full check passes **1,656 tests / 100 files in 20.87 seconds**, with evidence, types, lint and production build in **34.883 seconds** overall.
+
+Fresh immutable AB changes only the interface against accepted AA. Independent review verifies **137 production files, 213 canonical sources, 191 embedded sources**, five current mapped module locations and **134 unchanged fixed resources**, including CSS, engine and all models.
+
+Direct native browser review reads Help at **1280 × 720 Standard** and **844 × 390 Large**, with genuine scrolling exposing the complete keyboard row and footer. The earned afloat save follows an actual Map course; the complete **Cancel course** label fits its 132.5 × 44 control, and activating it hides navigation status and returns canvas focus. The actual Capernaum docking action restores land controls; a subsequent Olive grove route visibly says **Cancel walk**. This review does not establish complete save equality or all Help rows. Separately scoped automated lake/Help regressions remain pending.
+
 ## Satchel return guidance · 2026-10-03
 
 After both spring clearances, a still-carried scoop now has one control for its return rack. The Satchel retains the item status, return explanation and unfinished story text. Before the second clearance, the rack and remaining task remain separate choices. The comparison uses complete destinations, preserving two distinct routes when both first pass through the same doorway.
