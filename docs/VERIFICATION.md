@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## NPC dialogue release · 2026-10-02
+
+An actual World/Road conversation-release reproduction retains the original five-second unit deadline. Its first zero-elapsed Walk-zero render preserves pose, navigation, sampled controller values, complete state and World time **17**, but previously loses **84.813 mm** of ordinary clearance. The candidate bookmarks the proven ordinary source before dialogue suppression and consumes it when restoring that participant; unsuppression recomposes the existing skin before another simulation step. Exact, finite, unopted, disabled and disposed sources cannot revive a bookmark.
+
+All **24 scoped NPC tests** and the full check pass: **1,488 tests / 92 files in 25.30 seconds**, with evidence, types, lint, build, formatting and whitespace checks. The first restored minimum is **+0.0034 µm**, with exact rig locals and zero uniform-translation skin error. Six subsequent actual World renders advance the original Walk and clock while retaining full lower clearance. Repeated selection, replacement, clear, reduced changes, consumed handles and lifecycle overrides pass. An initial unopted control accidentally captured an in-progress Idle-to-Walk blend that the existing clip/frame snapshot cannot represent; its failed evidence is preserved, and the corrected control primes the authored Walk before testing ordinary unopted sampling. Mid-blend pose restoration remains a separate investigation.
+
+Frozen **L** contains `index-CHZ9JEfW.js` (**666,703 bytes**, SHA-256 `485855e2f1e6f79def2de6be4b0842d53a015a62ec76d8f5aa9dc682abe2079f`); CSS, engine and models remain byte-identical to K. Native L acceptance is pending. Independently frozen J and K retain their previously tested bytes.
+
 ## NPC motion-setting handoff · 2026-10-02
 
 The first substantive frozen-build NPC review stops with **one desktop lane pass, one desktop road failure and three unrun cases**, zero retries and unchanged **180-second case / 60-second action and expectation** budgets. The Playwright cases take **89.365 / 45.043 seconds**, with **135.354 seconds** total; the lane's separately measured driver phase is 87.697 seconds. Native ambient cycles, earned Amos progression and exact paused repeats pass. Submitted shader-head records retain adjacent-frame changes of **25.167 mm** for a neighbor and **31.954 mm** for Amos, with their actual 50.6 / 115.7 ms intervals. These are observed head steps, not a constant-cadence smoothness claim. Wide captures render people approximately 50 pixels tall, limiting detailed sole visibility.

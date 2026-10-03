@@ -68,7 +68,7 @@ export class Actor {
     this.setClip('Idle');
   }
   setClip(name: ActorClip): void {
-    this.locomotionClearance?.reset();
+    this.locomotionClearance?.resetSample();
     this.stationaryFeet?.restoreSampledPose();
     if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(name)) this.stationaryFeet?.reset();
     if (this.currentName === name) return;
@@ -320,8 +320,11 @@ export class Actor {
       oneShot: this.oneShot ? { ...this.oneShot } : undefined,
     };
   }
-  restorePose(pose: ReturnType<Actor['snapshotPose']>): void {
-    this.locomotionClearance?.reset();
+  restorePose(
+    pose: ReturnType<Actor['snapshotPose']>,
+    locomotion?: ReturnType<LocomotionClearance['bookmark']>,
+  ): void {
+    this.locomotionClearance?.reset(!locomotion);
     this.stationaryFeet?.reset();
     this.setClip(pose.clip);
     this.elapsed = pose.elapsed;
@@ -329,6 +332,7 @@ export class Actor {
     this.sampledFrame = pose.frame;
     this.current?.goToFrame(pose.frame);
     this.previousPose = [];
+    locomotion?.restore();
   }
   setStrideSpeed(speed: number): void {
     this.strideRate = Math.max(0, Math.min(1.5, speed / 3.25));
@@ -345,6 +349,9 @@ export class Actor {
   }
   suppressLocomotionPresentation(value: boolean): void {
     this.locomotionClearance?.suppress(value);
+  }
+  bookmarkLocomotionPresentation() {
+    return this.locomotionClearance?.bookmark();
   }
   turnTo(point: Point, dt: number, rate = 12): void {
     const at = this.root.getAbsolutePosition();

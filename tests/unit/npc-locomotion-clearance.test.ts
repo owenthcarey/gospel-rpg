@@ -711,13 +711,22 @@ it('suppresses before dialogue bookmarks and releases after clear/disposal with 
   p.actor.sample('Walk', 0.1);
   expect(npcLift(p.actor)).toBe(0);
   conversation.tick(0.1, false);
+  conversation.select('neighbor', p.actor, listener);
   conversation.clear();
   expect(p.actor.snapshotPose()).toEqual(snapshot);
   expect(p.actor.root.position.asArray()).toEqual(root);
   expect(p.actor.root.rotation.y).toBe(heading);
+  expect(npcLift(p.actor)).toBeGreaterThan(0.08);
+  expect(npcLift(listener)).toBeGreaterThan(0.08);
   prime();
   conversation.select('neighbor', p.actor, listener);
+  conversation.tick(0.1, false);
+  conversation.select('replacement', p.actor, listener);
+  conversation.tick(0.1, false);
   conversation.dispose();
+  expect(p.actor.snapshotPose()).toEqual(snapshot);
+  expect(npcLift(p.actor)).toBeGreaterThan(0.08);
+  expect(npcLift(listener)).toBeGreaterThan(0.08);
   prime();
   expect(p.actor.root.position.asArray()).toEqual(root);
   dispose(p);
@@ -1150,5 +1159,313 @@ it('retains sampled ordinary settings eligibility without reviving exact, finite
   } finally {
     dispose(p);
     ground.mesh.dispose();
+  }
+});
+
+it('restores ordinary clearance at the zero-elapsed World conversation-release boundary', () => {
+  let now = 100;
+  vi.stubGlobal('performance', { now: () => now });
+  vi.stubGlobal('document', { hidden: false });
+  let state = roadAction(gateway(roadStart(), 'to-farm'), 'company-accept');
+  state = transition(state, { type: 'road-route', id: 'terrace' });
+  state = roadAction(state, 'company-start');
+  while (state.road.company.step < 4) {
+    const meeting = companyMeeting(state.road.company)!;
+    state.position = { x: meeting.x, z: meeting.z };
+    state.road.company.position = { ...state.position };
+    const step = state.road.company.step;
+    state = meeting.exit
+      ? gateway(state, meeting.exit)
+      : transition(state, { type: 'road-step', step });
+    expect(state.road.company.step).toBe(step + 1);
+  }
+  expect(state.region).toBe('galilean-road');
+  const saved = structuredClone(state),
+    ground = floor(state.region),
+    navigation = grid(state),
+    road = new RoadActivity(
+      library,
+      'galilean-road',
+      () => navigation,
+      () => {},
+      ground.height,
+    ),
+    actor = road.conversationActor;
+  road.update(state);
+  actor.attach(library.instantiate('jug', 'dialogue-boundary-held-jug'));
+  const camera = new ArcRotateCamera(
+      'dialogue-boundary-journey-camera',
+      -Math.PI / 2,
+      0.65,
+      18,
+      actor.root.position.clone(),
+      scene,
+    ),
+    player = new TransformNode('dialogue-boundary-player-root', scene),
+    marker = new TransformNode('dialogue-boundary-route-marker', scene);
+  player.position.copyFrom(actor.root.position);
+  // Use actual World settings/pause/simulation/render ordering; unrelated stage/traveler
+  // scaffolding does not load a second world or alter the NPC controller under review.
+  const world = Object.assign(Object.create(World.prototype), {
+    canvas: { dataset: {}, clientWidth: 1440, clientHeight: 900 },
+    camera,
+    cameraAspectScale: 1,
+    layout: campaignLayout(state.region),
+    active: true,
+    paused: false,
+    reducedMotion: false,
+    lastRender: 0,
+    lastFrame: Infinity,
+    cadence: new PausedCadence(),
+    time: 17,
+    pendingRotation: 0,
+    keys: new Set(),
+    boats: [],
+    people: new Map(),
+    cutaways: [],
+    occluders: [],
+    destinations: [],
+    player,
+    position: { ...state.position },
+    path: [],
+    routeDots: [],
+    marker,
+    actors: new Map(),
+    dataCache: new Map(),
+    state,
+    road,
+    engine,
+    scene,
+    stage: { applySettings: () => {}, setView: () => {}, tick: () => {} },
+    actorPlayer: { playback: { clip: 'Idle', frame: 0, action: 'Idle' }, performing: false },
+  });
+  const skinAndFloor = () => {
+    const skin = npcSkin(actor),
+      feet = npcFeet(skin, ground.height);
+    expect([feet.left.count, feet.right.count]).toEqual([16, 16]);
+    expect(state).toEqual(saved);
+    return { skin, minimum: Math.min(feet.left.minimum, feet.right.minimum) };
+  };
+
+  const listener = new Actor(library.instantiate('traveler', 'dialogue-boundary-listener'), true);
+  listener.root.parent = player;
+  const view = new ConversationPresentation(camera, world.canvas);
+  world.actorPlayer = listener;
+  world.conversationView = view;
+  const controller = () => {
+    const record = road as unknown as Record<string, unknown>;
+    return Object.fromEntries(
+      ['state', 'path', 'requested', 'time', 'still', 'low']
+        .filter((key) => key in record)
+        .map((key) => [
+          key,
+          record[key] === undefined ? undefined : JSON.parse(JSON.stringify(record[key])),
+        ]),
+    );
+  };
+  try {
+    world.applySettings(DEFAULT_SETTINGS);
+    actor.restorePose({ clip: 'Walk', frame: 0, elapsed: 0, oneShot: undefined });
+    actor.sample('Walk', 0);
+    scene.render();
+    const before = skinAndFloor(),
+      lift = npcLift(actor),
+      pose = actor.snapshotPose(),
+      root = actor.root.position.asArray(),
+      rotation = actor.root.rotation.asArray(),
+      time = world.time,
+      control = controller();
+    expect(lift).toBeGreaterThan(0.08);
+    expect(before.minimum).toBeGreaterThanOrEqual(-0.000002);
+    world.setPaused(true);
+    world.setConversation('neri', { x: 960, y: 82, width: 460, height: 700 });
+    expect(view.active).toBe(true);
+    now += 1000 / 30;
+    world.renderFrame();
+    expect(npcLift(actor)).toBe(0);
+    world.setConversation();
+    world.refreshFrame();
+    world.setPaused(false);
+    const renderId = scene.getRenderId();
+    world.renderFrame();
+    expect(scene.getRenderId()).toBeGreaterThan(renderId);
+    const first = skinAndFloor(),
+      firstRenderId = scene.getRenderId(),
+      firstLift = npcLift(actor),
+      error = npcGeometryError(before.skin, first.skin, firstLift - lift);
+    expect(actor.snapshotPose()).toEqual(pose);
+    expect(actor.root.position.asArray()).toEqual(root);
+    expect(actor.root.rotation.asArray()).toEqual(rotation);
+    expect(world.time).toBe(time);
+    expect(controller()).toEqual(control);
+    expect(error.local).toBe(0);
+    expect(error.skin).toBeLessThan(0.000003);
+    expect(npcLift(actor)).toBe(lift);
+    expect(first.minimum).toBeGreaterThanOrEqual(-0.000002);
+    const subsequent: Record<string, unknown>[] = [];
+    for (let i = 0; i < 6; i++) {
+      now += 1000 / 30;
+      world.renderFrame();
+      expect(actor.playback.clip).toBe('Walk');
+      expect(actor.playback.frame).toBeGreaterThan(0);
+      const sampled = skinAndFloor();
+      expect(sampled.minimum).toBeGreaterThanOrEqual(-0.000002);
+      expect(world.time).toBeCloseTo(time + (i + 1) / 30, 10);
+      subsequent.push({
+        renderId: scene.getRenderId(),
+        pose: actor.snapshotPose(),
+        worldTime: world.time,
+        minimum: sampled.minimum,
+        lift: npcLift(actor),
+      });
+    }
+    measurements.push({
+      kind: 'conversation-release-candidate',
+      renderId: firstRenderId,
+      pose,
+      worldTime: time,
+      beforeMinimum: before.minimum,
+      beforeLift: lift,
+      firstMinimum: first.minimum,
+      firstLift,
+      error,
+      subsequent,
+    });
+  } finally {
+    view.dispose();
+    listener.dispose();
+    actor.dispose();
+    camera.dispose();
+    player.dispose();
+    marker.dispose();
+    ground.mesh.dispose();
+    vi.unstubAllGlobals();
+  }
+});
+
+it('restores only live ordinary dialogue sources and releases exact, finite and lifecycle overrides', () => {
+  const fresh = (opted = true) =>
+    new Actor(
+      library.instantiate('villager', 'dialogue-source-control-' + serial++),
+      true,
+      opted ? { locomotionClearance: { ground: () => 0 } } : {},
+    );
+  const prime = (actor: Actor) => {
+    actor.restorePose({ clip: 'Walk', frame: 0, elapsed: 0, oneShot: undefined });
+    actor.sample('Walk', 0);
+  };
+  for (const excluded of ['exact', 'still', 'finite', 'default'] as const) {
+    const actor = fresh(excluded !== 'default');
+    try {
+      if (excluded === 'exact') actor.sampleAt('Walk', 0);
+      else if (excluded === 'still') actor.sample('Walk', 0, true);
+      else if (excluded === 'finite') actor.sampleActionAt('Use', 0.2);
+      else {
+        actor.restorePose({ clip: 'Walk', frame: 0, elapsed: 0, oneShot: undefined });
+        actor.sample('Walk', 0);
+      }
+      const pose = actor.snapshotPose(),
+        before = npcSkin(actor),
+        position = actor.root.position.asArray(),
+        rotation = actor.root.rotation.asArray(),
+        scope = actor.bookmarkLocomotionPresentation();
+      expect(scope).toBeUndefined();
+      actor.suppressLocomotionPresentation(true);
+      actor.sample('Greet', 0.1);
+      actor.restorePose(pose, scope);
+      actor.suppressLocomotionPresentation(false);
+      expect(npcLift(actor)).toBe(0);
+      expect(actor.snapshotPose()).toEqual(pose);
+      expect(actor.root.position.asArray()).toEqual(position);
+      expect(actor.root.rotation.asArray()).toEqual(rotation);
+      const after = npcSkin(actor),
+        error = npcGeometryError(before, after, 0);
+      measurements.push({
+        kind: 'conversation-excluded-source',
+        excluded,
+        error,
+        locals: Array.from(before.locals).flatMap((value, index) =>
+          value === after.locals[index]
+            ? []
+            : [
+                {
+                  node: before.topology.nodes[Math.floor(index / 10)]!.name,
+                  component: index % 10,
+                  before: value,
+                  after: after.locals[index],
+                },
+              ],
+        ),
+      });
+      expect(error.local, excluded).toBe(0);
+      expect(error.skin).toBeLessThan(0.000003);
+    } finally {
+      actor.dispose();
+    }
+  }
+  const overrides: ((actor: Actor) => void)[] = [
+    (actor) => actor.sampleAt('Walk', 0),
+    (actor) => actor.sampleActionAt('Use', 0.2),
+    (actor) => actor.playOnce('Use'),
+    (actor) => actor.cancelAction(),
+    (actor) => actor.restorePose(actor.snapshotPose()),
+    (actor) => {
+      actor.root.setEnabled(false);
+      actor.root.setEnabled(true);
+    },
+  ];
+  for (const override of overrides) {
+    const actor = fresh();
+    try {
+      prime(actor);
+      const pose = actor.snapshotPose(),
+        before = npcSkin(actor),
+        lift = npcLift(actor),
+        scope = actor.bookmarkLocomotionPresentation();
+      expect(lift).toBeGreaterThan(0.08);
+      expect(scope).toBeDefined();
+      actor.suppressLocomotionPresentation(true);
+      override(actor);
+      actor.restorePose(pose, scope);
+      actor.suppressLocomotionPresentation(false);
+      scope?.restore();
+      scope?.release();
+      scope?.release();
+      expect(actor.snapshotPose()).toEqual(pose);
+      expect(npcLift(actor)).toBe(0);
+      const error = npcGeometryError(before, npcSkin(actor), -lift);
+      expect(error.local).toBe(0);
+      expect(error.skin).toBeLessThan(0.000003);
+    } finally {
+      actor.dispose();
+    }
+  }
+  const actor = fresh();
+  try {
+    prime(actor);
+    const pose = actor.snapshotPose(),
+      lift = npcLift(actor),
+      scope = actor.bookmarkLocomotionPresentation();
+    actor.suppressLocomotionPresentation(true);
+    actor.setLocomotionReducedMotion(true);
+    actor.sample('Listen', 0.1, true);
+    actor.restorePose(pose, scope);
+    actor.suppressLocomotionPresentation(false);
+    expect(npcLift(actor)).toBe(0);
+    expect(actor.snapshotPose()).toEqual(pose);
+    actor.setLocomotionReducedMotion(false);
+    expect(npcLift(actor)).toBe(lift);
+    actor.sampleAt('Walk', 0);
+    scope?.restore();
+    expect(npcLift(actor)).toBe(0);
+    prime(actor);
+    const abandoned = actor.bookmarkLocomotionPresentation();
+    actor.dispose();
+    expect(() => {
+      abandoned?.restore();
+      abandoned?.release();
+    }).not.toThrow();
+  } finally {
+    if (!actor.root.isDisposed()) actor.dispose();
   }
 });

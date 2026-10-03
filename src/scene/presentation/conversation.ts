@@ -10,6 +10,7 @@ interface Participant {
   clip: ReturnType<Actor['snapshotPose']>;
   supportedHold?: boolean;
   settling?: ReturnType<Actor['footSupportContinuation']>;
+  locomotion?: ReturnType<Actor['bookmarkLocomotionPresentation']>;
 }
 /** Moves only the camera and rig poses; participant navigation roots never change position. */
 export class ConversationPresentation {
@@ -46,6 +47,8 @@ export class ConversationPresentation {
     this.clear();
     this.panel = rect;
     this.targetId = id;
+    const speakerLocomotion = speaker.bookmarkLocomotionPresentation(),
+      listenerLocomotion = listener.bookmarkLocomotionPresentation();
     speaker.suppressLocomotionPresentation(true);
     listener.suppressLocomotionPresentation(true);
     this.bookmark = {
@@ -59,11 +62,13 @@ export class ConversationPresentation {
       actor: speaker,
       heading: speaker.root.rotation.y,
       clip: speaker.snapshotPose(),
+      locomotion: speakerLocomotion,
     };
     this.listener = {
       actor: listener,
       heading: listener.root.rotation.y,
       clip: listener.snapshotPose(),
+      locomotion: listenerLocomotion,
       supportedHold:
         ['Carry', 'MatCarry'].includes(listener.playback.clip) &&
         listener.hasFootSupport &&
@@ -162,7 +167,9 @@ export class ConversationPresentation {
       person.actor.root.rotation.y = person.heading;
       // Arrival or a settings update may settle the same held pose after select.
       // Keep that current support instead of restoring a stale animation frame.
-      if (!this.keepsSupportedHold(person)) person.actor.restorePose(person.clip);
+      if (!this.keepsSupportedHold(person))
+        person.actor.restorePose(person.clip, person.locomotion);
+      person.locomotion?.release();
       person.settling?.release();
       person.actor.suppressLocomotionPresentation(false);
     }

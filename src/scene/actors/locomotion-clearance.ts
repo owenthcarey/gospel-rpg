@@ -29,6 +29,7 @@ export class LocomotionClearance {
   private matrices = new Map<TransformNode, { local: Matrix; world: Matrix; epoch: number }>();
   private epoch = 0;
   private rotation = Quaternion.Identity();
+  private bookmarks = new Set<() => void>();
 
   constructor(
     model: Model,
@@ -82,9 +83,35 @@ export class LocomotionClearance {
   clear(): void {
     if (this.visual) this.visual.position.y = this.originalY;
   }
-  reset(): void {
+  reset(invalidate = true): void {
     this.clear();
     this.ordinary = false;
+    if (invalidate) for (const release of this.bookmarks) release();
+  }
+  /** Scripted dialogue sampling can retain the source of its original ordinary pose. */
+  resetSample(): void {
+    this.reset(!this.suppressed);
+  }
+  bookmark(): { restore(): void; release(): void } | undefined {
+    if (!this.ordinary || this.suppressed || this.disposed || !this.root?.isEnabled()) return;
+    // A released scope retains no owner or sampled meshes.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let owner: LocomotionClearance | undefined = this;
+    const release = () => {
+      owner?.bookmarks.delete(release);
+      owner = undefined;
+    };
+    this.bookmarks.add(release);
+    return {
+      restore() {
+        const current = owner;
+        release();
+        if (!current?.suppressed || current.disposed || !current.root?.isEnabled()) return;
+        current.ordinary = true;
+        current.refresh();
+      },
+      release,
+    };
   }
   setReducedMotion(value: boolean): void {
     if (this.reduced === value) return;
@@ -94,7 +121,8 @@ export class LocomotionClearance {
   }
   suppress(value: boolean): void {
     this.suppressed = value;
-    this.reset();
+    if (value) this.reset(false);
+    else this.refresh();
   }
   apply(clip: ActorClip, still: boolean, performing: boolean): void {
     // Reduced Walk stays authored, but remains a source for the normal-mode handoff.
