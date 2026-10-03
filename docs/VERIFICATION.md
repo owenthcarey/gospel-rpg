@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Native boat observations · 2026-10-02
+
+Commit `65cf3b5` overlaps the original save-notice expiry observation with independent, trusted camera commands, then joins both before freshly projecting the hull. Phone post-hold checks sample all actual menu, route, standing and control-ownership predicates together; every final assertion remains explicit. Five regression controls reject missing or duplicate nodes, invalid standing coordinates, active routes/readings, lost focus, occluded controls and hidden or disabled options. No game behavior, native contact or deadline was changed.
+
+An isolated archive of this committed checkpoint passes the full evidence/types/lint/build/format checks and **1,242 tests across 78 files**. Its production entry remains byte-identical to the observation/work snapshot below. Both original Capernaum High boat cases pass with software rendering in **44.0 seconds desktop / 46.7 seconds phone**, **1.6 minutes** total, with unchanged CI **180/60/60/60-second** budgets, one worker and zero retries. All eight trusted hull contacts, full reducer-based state comparisons, deliberate boarding and docking remain intact; four original captures were inspected. Browser discovery remains **428 cases in 200 groups**, with unchanged test identities and the retained Linux timing catalog.
+
+These local software-rendered results do not establish a new Linux deadline outcome. The completed Linux failure below remains historical evidence. The new material observations, retained work messages and canonical seating changes were excluded from this committed archive and remain separate verification scopes.
+
 ## Earned observations and work feedback · 2026-10-02
 
 Commits `6d8ff26` and `8a02302` describe the sewing pouch at its actual earned location and bring newly clipped practical-work feedback into view. Examine samples the current state when its native menu action activates. The work panel retains its owned reading position and native keyboard focus; only a new clipped result moves its own body, while repeated results, previews and already visible feedback leave reading in place.
