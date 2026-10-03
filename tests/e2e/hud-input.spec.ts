@@ -2,11 +2,16 @@ import { test, expect } from '@playwright/test';
 import { ready, settled, exported, visit, dismiss } from '../helpers/connection-browser';
 import { harborAction, preparedHarbor } from '../helpers/harbor';
 import { nearbyActions } from '../../src/ui/views/actions';
+import { newGame } from '../../src/game/types';
 
 test('WASD takes over Follow the path and Resume route while retaining the saved destination', async ({
   page,
 }) => {
-  await ready(page);
+  const initial = newGame();
+  // The ordinary spawn is only a short walk from Simon. A real southern
+  // approach leaves time to interrupt it even while software WebGL observes the HUD.
+  initial.position = { x: -1, z: -15 };
+  await ready(page, initial);
   const follow = page.locator('#quest-card [data-action="navigate"]');
   const flag = page.locator('.minimap-destination');
   const player = page.locator('#minimap-player');
@@ -41,6 +46,12 @@ test('WASD takes over Follow the path and Resume route while retaining the saved
   const saved = await exported(page);
   expect(saved.connection.route?.target).toBe(target);
   expect(saved.quest).toBe('not-started');
+  expect(saved).toEqual({
+    ...initial,
+    position: saved.position,
+    playTime: saved.playTime,
+    connection: { ...initial.connection, route: { target } },
+  });
 });
 
 test('a repeatable nearby action keeps native keyboard activation and yields to walking', async ({
