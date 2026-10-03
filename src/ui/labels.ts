@@ -7,6 +7,8 @@ export interface LabelBox {
 }
 export interface LabelCandidate extends ScreenLabel {
   priority: number;
+  /** The actual focus owner may use one additional nearby placement step. */
+  focused?: boolean;
 }
 export interface SizedLabel extends LabelCandidate {
   width: number;
@@ -42,7 +44,7 @@ export function measureLabels(
   }
 }
 
-/** Preserve projected locations; crowded or HUD-covered labels remain available on the map. */
+/** Keep names near their projection; blocked names remain available on the map. */
 export function arrangeLabels(
   labels: readonly SizedLabel[],
   reserved: readonly LabelBox[],
@@ -75,7 +77,9 @@ export function arrangeLabels(
         const edges = occupied
           .filter((r) => x - label.width / 2 < r.right + 5 && x + label.width / 2 > r.left - 5)
           .flatMap((r) => [r.bottom + label.height + 5, r.top - 5])
-          .filter((y) => Math.abs(y - label.y) <= 56);
+          // A new notice can cover the label just restored by Examine. Give only
+          // its real focus owner one extra 28px step before hiding it loses focus.
+          .filter((y) => Math.abs(y - label.y) <= (label.focused ? 84 : 56));
         for (const y of [...new Set(edges)].sort(
           (a, b) => Math.abs(a - label.y) - Math.abs(b - label.y) || a - b,
         ))

@@ -665,7 +665,11 @@ export class Interface {
             this.labelNodes.get(label.id)?.classList.contains('place') &&
             !!point &&
             nearbyPeople.some((person) => person.x === point.x && person.z === point.z);
-          return { ...label, priority: s ? labelPlacementPriority(s, !!personSharesPoint) : 0 };
+          return {
+            ...label,
+            priority: s ? labelPlacementPriority(s, !!personSharesPoint) : 0,
+            focused: s?.focused ?? false,
+          };
         }),
         this.labelNodes,
       ),
