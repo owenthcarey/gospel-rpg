@@ -8,6 +8,7 @@ import type { Point } from '../../game/types';
 import { distance } from '../../game/pathfinding';
 import type { Model } from '../assets';
 import { turnToward } from '../../game/presence';
+import { StationaryFeet, type FootSupportOptions } from './stationary-feet';
 
 /** Samples Blender clips using simulation time; no Babylon auto-animation clock. */
 export class Actor {
@@ -36,11 +37,15 @@ export class Actor {
     scaling: Vector3;
     rotation: Quaternion | null;
   }[] = [];
+  private stationaryFeet?: StationaryFeet;
   constructor(
     readonly model: Model,
     private blendTransitions = false,
+    options: { stationaryFeet?: boolean } = {},
   ) {
     this.root = model.root;
+    if (options.stationaryFeet)
+      this.stationaryFeet = new StationaryFeet(model, (ground) => this.footClearance(ground));
     for (const group of model.animations) {
       const name = group.name.split(':').at(-1) as ActorClip;
       this.clips.set(name, group);
@@ -48,6 +53,8 @@ export class Actor {
     this.setClip('Idle');
   }
   setClip(name: ActorClip): void {
+    this.stationaryFeet?.restoreSampledPose();
+    if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(name)) this.stationaryFeet?.reset();
     if (this.currentName === name) return;
     if (this.blendTransitions && this.current) {
       const nodes = new Set(
@@ -73,6 +80,7 @@ export class Actor {
     this.current.goToFrame(this.sampledFrame);
   }
   sample(name: ActorClip, dt: number, still = false): void {
+    this.stationaryFeet?.restoreSampledPose();
     if (this.oneShot && !still) {
       this.setClip(this.oneShot.name);
       this.oneShot.time += dt;
@@ -151,6 +159,7 @@ export class Actor {
     if (t === 1) this.previousPose = [];
   }
   playOnce(name: ActorClip): void {
+    this.stationaryFeet?.reset();
     this.oneShot = { name, time: 0 };
     this.setClip(name);
   }
@@ -160,6 +169,7 @@ export class Actor {
   }
   /** A bounded presentation pose, reconstructed directly from its local scene clock. */
   sampleAt(name: ActorClip, progress: number): void {
+    this.stationaryFeet?.reset();
     this.oneShot = undefined;
     this.setClip(name);
     this.sampledFrame =
@@ -178,6 +188,14 @@ export class Actor {
     if (!clip) throw new Error('Character is missing animation ' + name);
     const fps = clip.targetedAnimations[0]?.animation.framePerSecond ?? 60;
     return (clip.to - clip.from) / fps;
+  }
+  /** Compose after terrain lift and roll; exact finite poses and ordinary NPCs stay authored. */
+  supportFeet(options: FootSupportOptions): void {
+    if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(this.playback.clip)) {
+      this.stationaryFeet?.reset();
+      return;
+    }
+    this.stationaryFeet?.apply(options);
   }
   /** Lowest actual sandal vertex; cached rigid vertices avoid deforming the whole skin each tick. */
   soleHeight(): number {
@@ -249,6 +267,7 @@ export class Actor {
     };
   }
   restorePose(pose: ReturnType<Actor['snapshotPose']>): void {
+    this.stationaryFeet?.reset();
     this.setClip(pose.clip);
     this.elapsed = pose.elapsed;
     this.oneShot = pose.oneShot;

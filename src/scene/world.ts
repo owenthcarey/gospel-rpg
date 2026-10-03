@@ -498,7 +498,7 @@ export class World {
     this.workView = new WorkPresentation(this.scene, this.camera, this.canvas);
     this.player = new TransformNode('player', this.scene);
     const playerModel = this.library.instantiate('traveler', 'traveler');
-    this.actorPlayer = new Actor(playerModel, true);
+    this.actorPlayer = new Actor(playerModel, true, { stationaryFeet: true });
     this.playerModel = playerModel.root;
     this.playerModel.parent = this.player;
     this.conversationView = new ConversationPresentation(this.camera, this.canvas);
@@ -1252,10 +1252,19 @@ export class World {
     if (grounded) {
       this.floor?.computeWorldMatrix(true);
       const ground = this.floor;
-      const feet = this.actorPlayer.footClearance(
-        ground ? (x, z) => ground.getHeightAtCoordinates(x, z) : () => 0,
-      );
+      const height = ground
+        ? (x: number, z: number) => ground.getHeightAtCoordinates(x, z)
+        : () => 0;
+      const feet = this.actorPlayer.footClearance(height);
       this.playerModel.position.y = Math.max(0, -Math.min(feet.left, feet.right));
+      this.actorPlayer.supportFeet({
+        stationary: !moving || this.reducedMotion,
+        dt,
+        ground: height,
+        immediate: this.reducedMotion || dt === 0,
+        // Settings may deliberately resolve a static pose while the world remains paused.
+        frozen: this.paused && !this.reducedMotion,
+      });
     }
   }
   setPaused(value: boolean): void {
