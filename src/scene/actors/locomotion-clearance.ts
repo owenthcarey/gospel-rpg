@@ -89,14 +89,17 @@ export class LocomotionClearance {
   setReducedMotion(value: boolean): void {
     if (this.reduced === value) return;
     this.reduced = value;
-    this.reset();
+    // Recompose the existing ordinary pose before a paused menu can reveal it.
+    this.refresh();
   }
   suppress(value: boolean): void {
     this.suppressed = value;
     this.reset();
   }
   apply(clip: ActorClip, still: boolean, performing: boolean): void {
-    this.ordinary = !performing && (clip === 'Idle' || (clip === 'Walk' && !still));
+    // Reduced Walk stays authored, but remains a source for the normal-mode handoff.
+    this.ordinary =
+      !performing && (clip === 'Idle' || (clip === 'Walk' && (!still || this.reduced)));
     this.refresh();
   }
   /** A controller reset can relocate an already sampled ordinary pose without resampling it. */

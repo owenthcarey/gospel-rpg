@@ -15,6 +15,7 @@ import { EverydayActivity } from '../../src/scene/actors/everyday';
 import { RoadActivity } from '../../src/scene/actors/road';
 import { World } from '../../src/scene/world';
 import { ConversationPresentation } from '../../src/scene/presentation/conversation';
+import { PausedCadence } from '../../src/scene/presentation/cadence';
 import { DEFAULT_SETTINGS, type GameState } from '../../src/game/types';
 import { WalkGrid, distance } from '../../src/game/pathfinding';
 import { campaignLayout, groundHeight, layoutObstacles } from '../../src/content/campaign/layouts';
@@ -930,3 +931,224 @@ it.each([false, true])(
     roadGround.mesh.dispose();
   },
 );
+
+it('primes the exact reduced Walk pose before paused settings returns to its first normal World frame', () => {
+  let now = 100;
+  vi.stubGlobal('performance', { now: () => now });
+  vi.stubGlobal('document', { hidden: false });
+  let state = roadAction(gateway(roadStart(), 'to-farm'), 'company-accept');
+  state = transition(state, { type: 'road-route', id: 'terrace' });
+  state = roadAction(state, 'company-start');
+  while (state.road.company.step < 4) {
+    const meeting = companyMeeting(state.road.company)!;
+    state.position = { x: meeting.x, z: meeting.z };
+    state.road.company.position = { ...state.position };
+    const step = state.road.company.step;
+    state = meeting.exit
+      ? gateway(state, meeting.exit)
+      : transition(state, { type: 'road-step', step });
+    expect(state.road.company.step).toBe(step + 1);
+  }
+  expect(state.region).toBe('galilean-road');
+  const saved = structuredClone(state),
+    ground = floor(state.region),
+    navigation = grid(state),
+    road = new RoadActivity(
+      library,
+      'galilean-road',
+      () => navigation,
+      () => {},
+      ground.height,
+    ),
+    actor = road.conversationActor;
+  road.update(state);
+  actor.attach(library.instantiate('jug', 'settings-held-jug'));
+  const camera = new ArcRotateCamera(
+      'settings-journey-camera',
+      -Math.PI / 2,
+      0.65,
+      18,
+      actor.root.position.clone(),
+      scene,
+    ),
+    player = new TransformNode('settings-player-root', scene),
+    marker = new TransformNode('settings-route-marker', scene);
+  player.position.copyFrom(actor.root.position);
+  // Use actual World settings/pause/simulation/render ordering; unrelated stage/traveler
+  // scaffolding does not load a second world or alter the NPC controller under review.
+  const world = Object.assign(Object.create(World.prototype), {
+    canvas: { dataset: {}, clientWidth: 1440, clientHeight: 900 },
+    camera,
+    cameraAspectScale: 1,
+    layout: campaignLayout(state.region),
+    active: true,
+    paused: false,
+    reducedMotion: false,
+    lastRender: 0,
+    lastFrame: Infinity,
+    cadence: new PausedCadence(),
+    time: 17,
+    pendingRotation: 0,
+    keys: new Set(),
+    boats: [],
+    people: new Map(),
+    cutaways: [],
+    occluders: [],
+    destinations: [],
+    player,
+    position: { ...state.position },
+    path: [],
+    routeDots: [],
+    marker,
+    actors: new Map(),
+    dataCache: new Map(),
+    state,
+    road,
+    engine,
+    scene,
+    stage: { applySettings: () => {}, setView: () => {}, tick: () => {} },
+    actorPlayer: { playback: { clip: 'Idle', frame: 0, action: 'Idle' }, performing: false },
+  });
+  const skinAndFloor = () => {
+    const skin = npcSkin(actor),
+      feet = npcFeet(skin, ground.height);
+    expect([feet.left.count, feet.right.count]).toEqual([16, 16]);
+    expect(state).toEqual(saved);
+    return { skin, minimum: Math.min(feet.left.minimum, feet.right.minimum) };
+  };
+  try {
+    world.renderFrame();
+    world.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+    now += 1000 / 30;
+    world.renderFrame();
+    expect(actor.playback).toMatchObject({ clip: 'Walk', frame: 0 });
+    expect(npcLift(actor)).toBe(0);
+    world.setPaused(true);
+    world.refreshFrame();
+    world.renderFrame();
+    const frozen = skinAndFloor(),
+      pose = actor.snapshotPose(),
+      root = actor.root.position.asArray(),
+      rotation = actor.root.rotation.asArray(),
+      time = world.time;
+    expect(frozen.minimum).toBeLessThan(-0.08);
+    world.applySettings(DEFAULT_SETTINGS);
+    const immediate = skinAndFloor(),
+      lift = npcLift(actor),
+      error = npcGeometryError(frozen.skin, immediate.skin, lift);
+    expect(lift).toBeGreaterThan(0.08);
+    expect(immediate.minimum).toBeGreaterThanOrEqual(-0.000002);
+    expect(error.local).toBe(0);
+    expect(error.skin).toBeLessThan(0.000003);
+    expect(actor.snapshotPose()).toEqual(pose);
+    expect(actor.root.position.asArray()).toEqual(root);
+    expect(actor.root.rotation.asArray()).toEqual(rotation);
+    expect(world.time).toBe(time);
+    // A repeated setting notification keeps eligibility and the exact frozen pose.
+    world.applySettings(DEFAULT_SETTINGS);
+    expect(npcLift(actor)).toBe(lift);
+    expect(actor.snapshotPose()).toEqual(pose);
+    world.refreshFrame();
+    world.setPaused(false);
+    const previousRender = scene.getRenderId();
+    world.renderFrame();
+    expect(scene.getRenderId()).toBeGreaterThan(previousRender);
+    const first = skinAndFloor();
+    expect(first.minimum).toBeGreaterThanOrEqual(-0.000002);
+    expect(first.skin.coordinates).toEqual(immediate.skin.coordinates);
+    expect(actor.snapshotPose()).toEqual(pose);
+    expect(actor.root.position.asArray()).toEqual(root);
+    expect(actor.root.rotation.asArray()).toEqual(rotation);
+    expect(world.time).toBe(time);
+    for (let i = 0; i < 6; i++) {
+      now += 1000 / 30;
+      world.renderFrame();
+      expect(actor.playback.clip).toBe('Walk');
+      expect(actor.playback.frame).toBeGreaterThan(0);
+      expect(skinAndFloor().minimum).toBeGreaterThanOrEqual(-0.000002);
+      expect(world.time).toBeCloseTo(time + (i + 1) / 30, 10);
+    }
+  } finally {
+    actor.dispose();
+    camera.dispose();
+    player.dispose();
+    marker.dispose();
+    ground.mesh.dispose();
+    vi.unstubAllGlobals();
+  }
+});
+
+it('retains sampled ordinary settings eligibility without reviving exact, finite or excluded NPC poses', () => {
+  const ground = floor('galilean-road'),
+    p = pair('amos', ground.height),
+    actor = p.actor;
+  actor.root.position.set(4, groundHeight('galilean-road', { x: 4, z: 1 }), 1);
+  const toggle = () => {
+    actor.setLocomotionReducedMotion(true);
+    expect(npcLift(actor)).toBe(0);
+    actor.setLocomotionReducedMotion(false);
+  };
+  const prime = () => {
+    actor.restorePose({ clip: 'Walk', frame: 0, elapsed: 0, oneShot: undefined });
+    actor.sample('Walk', 0);
+    expect(npcLift(actor)).toBeGreaterThan(0.08);
+  };
+  const unchanged = () => ({
+    pose: actor.snapshotPose(),
+    position: actor.root.position.asArray(),
+    rotation: actor.root.rotation.asArray(),
+  });
+  try {
+    prime();
+    const before = unchanged(),
+      lift = npcLift(actor);
+    toggle();
+    expect(unchanged()).toEqual(before);
+    expect(npcLift(actor)).toBe(lift);
+    actor.setLocomotionReducedMotion(false);
+    expect(npcLift(actor)).toBe(lift);
+    expect(unchanged()).toEqual(before);
+    actor.sample('Walk', 0, true);
+    toggle();
+    expect(npcLift(actor)).toBe(0);
+    actor.sampleAt('Walk', 0);
+    toggle();
+    expect(npcLift(actor)).toBe(0);
+    actor.setLocomotionReducedMotion(true);
+    actor.sample('Walk', 0, true);
+    actor.sampleAt('Walk', 0);
+    actor.setLocomotionReducedMotion(false);
+    expect(npcLift(actor)).toBe(0);
+    actor.playOnce('Use');
+    actor.sample('Idle', 0.1);
+    const finite = unchanged();
+    toggle();
+    expect(unchanged()).toEqual(finite);
+    expect(npcLift(actor)).toBe(0);
+    actor.cancelAction();
+    prime();
+    actor.root.setEnabled(false);
+    toggle();
+    actor.root.setEnabled(true);
+    expect(npcLift(actor)).toBe(0);
+    prime();
+    actor.suppressLocomotionPresentation(true);
+    actor.setLocomotionReducedMotion(true);
+    actor.sample('Walk', 0, true);
+    actor.setLocomotionReducedMotion(false);
+    expect(npcLift(actor)).toBe(0);
+    const unopted = new Actor(library.instantiate('amos', 'default-settings-control'), true);
+    try {
+      unopted.sample('Walk', 0);
+      unopted.setLocomotionReducedMotion(true);
+      unopted.sample('Walk', 0, true);
+      unopted.setLocomotionReducedMotion(false);
+      expect(npcLift(unopted)).toBe(0);
+    } finally {
+      unopted.dispose();
+    }
+  } finally {
+    dispose(p);
+    ground.mesh.dispose();
+  }
+});
