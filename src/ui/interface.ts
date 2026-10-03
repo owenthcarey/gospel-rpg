@@ -1423,6 +1423,11 @@ export class Interface {
     const open = [...this.overlay.querySelectorAll<HTMLDetailsElement>('details[open]')].map(
       (node) => node.className,
     );
+    const previous = this.overlay.querySelector<HTMLElement>('.work-panel');
+    const newFeedback =
+      !!feedback.trim() &&
+      (previous?.dataset.workTarget !== target ||
+        previous?.querySelector('.work-result')?.textContent?.trim() !== feedback.trim());
     const scroll = this.overlay.querySelector('.work-body')?.scrollTop ?? 0;
     // Mount an empty live region before updating its text, so feedback is announced
     // even when an action also replaces the list of available controls.
@@ -1435,13 +1440,32 @@ export class Interface {
       const body = this.overlay.querySelector('.work-body');
       if (body) body.scrollTop = scroll;
     }
+    const body = this.overlay.querySelector<HTMLElement>('.work-body');
+    const readingTop = body?.scrollTop;
+    const focusOwner = document.activeElement;
     requestAnimationFrame(() => {
       if (this.overlay.firstElementChild !== surface) return;
       this.measureWork();
+      const focusTaken = wasWork && document.activeElement !== focusOwner && !focusLost();
       // Restore only focus the re-render dropped; a control focused since then keeps it.
       if (restore && focusLost()) restoreFocus(this.overlay, action, value, active?.dataset.workId);
       const result = this.overlay.querySelector('.work-result');
-      if (result) result.textContent = feedback;
+      if (!result) return;
+      const readingUnchanged = body?.scrollTop === readingTop;
+      result.textContent = feedback;
+      if (!body || focusTaken || !readingUnchanged) return;
+      // The temporary empty live region can clamp scrolling or move a browser anchor.
+      // Restore the owned position after its text has regained its actual height.
+      if (wasWork && body.scrollTop !== scroll) body.scrollTop = scroll;
+      if (!newFeedback) return;
+      // Reveal only a new result, without moving focus or any outer reading surface.
+      const viewport = body.getBoundingClientRect();
+      const top = viewport.top + body.clientTop;
+      const bottom = top + body.clientHeight;
+      const message = result.getBoundingClientRect();
+      if (message.height > body.clientHeight || message.top < top)
+        body.scrollTop += message.top - top;
+      else if (message.bottom > bottom) body.scrollTop += message.bottom - bottom;
     });
     return true;
   }
