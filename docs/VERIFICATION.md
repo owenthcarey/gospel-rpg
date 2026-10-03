@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Authored saved-journey checkpoints · 2026-10-03
+
+Settings now names unfinished Roof, Nain and storm saves with their authored scene titles, replacing raw checkpoint IDs. Existing chapter-complete precedence, timestamps, empty/unreadable slots, Save/Load controls and saved progress remain intact. The registry lookups use validated checkpoint IDs and escape each title. **107 existing tests / four files** pass in **1.69 seconds**, **2.084 seconds** owner; types and production build pass in **6.661 seconds**. Six current reducer-earned fixtures validate for browser use. Their **563 / 564 guards** and all three exact groups remain independently verified. No new test cases were added.
+
+Direct browser review on the fresh production build imports the earned Roof **bearers** checkpoint through the actual file chooser. Settings displays **Through the Roof · Four people and a mat** in Autosave and manual Journey 3. Enter saves with focus retained, and actual Load resumes **Scene 2 of 8 · Four people and a mat**. The original screenshot was reviewed. The Export download-event wait times out after ten seconds with no recorded console errors; no full downloaded-state equality is claimed. Nain, storm and completed-label rendering remain source-reviewed but unobserved in this browser scope.
+
 ## Remembered spring inspections · 2026-10-03
 
 Completed channel inspections now describe the tested arrangement and remembered work, replacing instructions to turn and test after those actions have retired. The connected channel reaches a basin; the wording makes no claim that the unused branch is wet. Both actual work/context consumers share this paragraph. All unfinished instructions and existing actions, source/rack descriptions and saved progress remain intact. The existing **51 tests / two files** pass in **3.88 seconds**, **4.307 seconds** owner; types pass in **6.640 seconds**. No new test cases were added. Both **563-guard** before/after/current comparisons and exact process groups are independently verified. This is a copy-only source checkpoint; native spring reading is unobserved.
