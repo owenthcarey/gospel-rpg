@@ -16,6 +16,7 @@ import {
   fourAnimationFrames,
   nativeHullInput,
   observeHullProjection,
+  observeHullOptions,
 } from '../helpers/moored-boat-browser';
 
 const earned = (state: GameState) =>
@@ -154,29 +155,41 @@ async function pressCameraButton(page: Page, name: string, touch: boolean) {
   else await page.mouse.click(measured.point.x, measured.point.y);
 }
 
-async function visibleHull(page: Page, berth: Berth, standing: Point, touch: boolean) {
-  await expect(page.locator('#toast')).toBeHidden();
-  await pressCameraButton(page, 'Reset camera', touch);
-  await pressCameraButton(page, 'Face north', touch);
-  await expect
-    .poll(() =>
-      page
-        .locator('.minimap-wrap')
-        .evaluate((node) =>
-          Math.abs(parseFloat((node as HTMLElement).style.getPropertyValue('--map-bearing'))),
-        ),
-    )
-    .toBeLessThan(0.04); // The CSS bearing contract is degrees.
-  const zoomClicks = 3;
-  for (let i = 0; i < zoomClicks; i++) await pressCameraButton(page, 'Zoom in', touch);
-  // High quality follows movement smoothly; use actual rendered label stability before projection.
-  const label = page.locator(`.world-label[data-value="board-${berth}"]`);
-  await expect(label).toBeVisible();
+function hullObservationBudget(): number {
   // Wrappers overriding expect.timeout must declare the same numeric budget in project metadata.
   const declaredBudget = test.info().project.metadata.hullObservationExpectTimeoutMs;
   const observationBudgetMs = declaredBudget ?? (process.env.CI ? 60_000 : 20_000);
   if (typeof observationBudgetMs !== 'number')
     throw new Error('Hull observation expect budget must be explicitly numeric');
+  return observationBudgetMs;
+}
+
+async function visibleHull(page: Page, berth: Berth, standing: Point, touch: boolean) {
+  // Notice expiry and native camera setup are independent; both must finish before projection.
+  // Starting the assertion here retains its original deadline instead of extending it after setup.
+  const noticeClear = expect(page.locator('#toast')).toBeHidden();
+  const zoomClicks = 3;
+  await Promise.all([
+    noticeClear,
+    (async () => {
+      await pressCameraButton(page, 'Reset camera', touch);
+      await pressCameraButton(page, 'Face north', touch);
+      await expect
+        .poll(() =>
+          page
+            .locator('.minimap-wrap')
+            .evaluate((node) =>
+              Math.abs(parseFloat((node as HTMLElement).style.getPropertyValue('--map-bearing'))),
+            ),
+        )
+        .toBeLessThan(0.04); // The CSS bearing contract is degrees.
+      for (let i = 0; i < zoomClicks; i++) await pressCameraButton(page, 'Zoom in', touch);
+    })(),
+  ]);
+  // High quality follows movement smoothly; use actual rendered label stability before projection.
+  const label = page.locator(`.world-label[data-value="board-${berth}"]`);
+  await expect(label).toBeVisible();
+  const observationBudgetMs = hullObservationBudget();
   const observation = await observeHullProjection(page, berth, observationBudgetMs);
   const { rect, bearing } = observation;
   const geometry = await hullFaces(berth, standing, rect.width, rect.height, bearing, zoomClicks);
@@ -305,6 +318,8 @@ for (const data of [
           'game-canvas',
         );
         const standing = await page.locator('#minimap-player').getAttribute('transform');
+        expect(standing).not.toBeNull();
+        let options: Awaited<ReturnType<typeof observeHullOptions>> | undefined;
         hullContacts.push(
           await nativeHullInput(page, point, isMobile, isMobile, info, name, async () => {
             if (touch) {
@@ -318,19 +333,33 @@ for (const data of [
                 await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
               }
               await fourAnimationFrames(page);
-              await expect(menu).toBeVisible();
-              await expect(page.getByRole('dialog')).toBeHidden();
-              await expect(page.locator('.minimap-destination')).toBeHidden();
-              await expect(page.locator('#minimap-player')).toHaveAttribute('transform', standing!);
+              options = await observeHullOptions(
+                page,
+                boatName,
+                standing!,
+                hullObservationBudget(),
+              );
             } else await page.mouse.click(point.x, point.y, { button: 'right' });
           }),
         );
-        await expect(
-          menu.getByRole('menuitem', { name: 'Visit ' + boatName, exact: true }),
-        ).toBeVisible();
-        await expect(
-          menu.getByRole('menuitem', { name: 'Examine ' + boatName, exact: true }),
-        ).toBeVisible();
+        if (touch) {
+          expect(options!.valid).toBe(true);
+          expect(options!.menuVisible).toBe(true);
+          expect(options!.dialogHidden).toBe(true);
+          expect(options!.destinationHidden).toBe(true);
+          expect(options!.playerTransform).toBe(standing);
+          expect(options!.visitVisible).toBe(true);
+          expect(options!.examineVisible).toBe(true);
+          expect(options!.menuOwnsFocus).toBe(true);
+          expect(options!.optionsExposed).toBe(true);
+        } else {
+          await expect(
+            menu.getByRole('menuitem', { name: 'Visit ' + boatName, exact: true }),
+          ).toBeVisible();
+          await expect(
+            menu.getByRole('menuitem', { name: 'Examine ' + boatName, exact: true }),
+          ).toBeVisible();
+        }
       };
       if (!isMobile) {
         await page.mouse.move(calibration.point.x, calibration.point.y);

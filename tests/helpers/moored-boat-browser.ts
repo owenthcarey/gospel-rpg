@@ -321,6 +321,103 @@ export async function fourAnimationFrames(page: Page) {
   );
 }
 
+/** Read all post-hold ownership predicates in one actual DOM sample. */
+export function measureHullOptions({ boatName }: { boatName: string }) {
+  const one = (selector: string) => {
+    const nodes = document.querySelectorAll(selector);
+    return nodes.length === 1 ? nodes[0] : undefined;
+  };
+  const visible = (node?: Element) => {
+    if (!node?.isConnected) return false;
+    const box = node.getBoundingClientRect();
+    const visibility = getComputedStyle(node).visibility;
+    return (
+      [box.left, box.top, box.width, box.height].every(Number.isFinite) &&
+      box.width > 0 &&
+      box.height > 0 &&
+      visibility !== 'hidden' &&
+      visibility !== 'collapse'
+    );
+  };
+  const menu = one('[role="menu"][aria-label="Choose Option"]');
+  const player = one('#minimap-player');
+  const destination = one('.minimap-destination');
+  const namedOption = (name: string) => {
+    const nodes = [...(menu?.querySelectorAll('[role="menuitem"]') ?? [])].filter(
+      (node) => node.textContent?.trim() === name,
+    );
+    return nodes.length === 1 ? nodes[0] : undefined;
+  };
+  const visit = namedOption('Visit ' + boatName);
+  const examine = namedOption('Examine ' + boatName);
+  const exposed = (node?: Element) => {
+    if (!(node instanceof HTMLButtonElement) || node.disabled || node.closest('[inert]'))
+      return false;
+    const box = node.getBoundingClientRect();
+    const x = box.left + box.width / 2;
+    const y = box.top + box.height / 2;
+    const topmost = document.elementFromPoint(x, y);
+    return (
+      visible(node) &&
+      x > 0 &&
+      x < innerWidth &&
+      y > 0 &&
+      y < innerHeight &&
+      (topmost === node || (!!topmost && node.contains(topmost)))
+    );
+  };
+  const playerTransform = player?.getAttribute('transform') ?? null;
+  const coordinates = playerTransform?.match(/^translate\(([^,]+),([^)]*)\)$/);
+  const validTransform =
+    !!coordinates &&
+    coordinates.slice(1).every((value) => value.trim() !== '' && Number.isFinite(Number(value)));
+  return {
+    valid: !!menu && !!player && !!destination && !!visit && !!examine && validTransform,
+    menuVisible: visible(menu),
+    dialogHidden: [...document.querySelectorAll('[role="dialog"]')].every((node) => !visible(node)),
+    destinationHidden: !!destination && !visible(destination),
+    playerTransform,
+    visitVisible: visible(visit),
+    examineVisible: visible(examine),
+    menuOwnsFocus: !!menu && !!document.activeElement && menu.contains(document.activeElement),
+    optionsExposed: exposed(visit) && exposed(examine),
+  };
+}
+
+export async function observeHullOptions(
+  page: Page,
+  boatName: string,
+  standing: string,
+  budgetMs: number,
+) {
+  if (!Number.isFinite(budgetMs) || budgetMs <= 0 || budgetMs > 60_000)
+    throw new Error('Hull option observation requires the unchanged explicit expect budget');
+  let observation: ReturnType<typeof measureHullOptions> | undefined;
+  await expect
+    .poll(
+      async () => {
+        observation = await page.evaluate(measureHullOptions, { boatName });
+        return observation;
+      },
+      {
+        timeout: budgetMs,
+        message: 'native hull options retain their visible menu and shore ownership',
+      },
+    )
+    .toEqual({
+      valid: true,
+      menuVisible: true,
+      dialogHidden: true,
+      destinationHidden: true,
+      playerTransform: standing,
+      visitVisible: true,
+      examineVisible: true,
+      menuOwnsFocus: true,
+      optionsExposed: true,
+    });
+  return observation!;
+}
+
 /** Passive projection measurements after the original native camera and visibility checks. */
 export async function observeHullProjection(page: Page, berth: Berth, budgetMs: number) {
   if (!Number.isFinite(budgetMs) || budgetMs <= 0 || budgetMs > 60_000)
