@@ -67,7 +67,9 @@ export function lakeContext(id: string, s: GameState): { title: string; body: st
         ? t.ending === 'attention'
           ? '“You took time to look. The same water can seem a different place when its landmarks become familiar.”'
           : '“I am glad there was a welcome at the far landing. You are welcome here again, too.”'
-        : '“There is a boat you may use at the landing. Two shores lie across this stretch of water. I remember a sheltered place beyond the stone headland. Would you look for it?”',
+        : t.stage === 'arrived'
+          ? '“You found the sheltered landing beyond the headland. What will you remember of the crossing?”'
+          : '“There is a boat you may use at the landing. Two shores lie across this stretch of water. I remember a sheltered place beyond the stone headland. Would you look for it?”',
     'lake-reeds': lakeEvidence.reeds.text,
     'lake-split-rock': lakeEvidence['split-rock'].text,
     'reed-shore':
