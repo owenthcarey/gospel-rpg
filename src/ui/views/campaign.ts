@@ -153,5 +153,6 @@ export function carriedView(s: GameState): string {
   if (!s.campaign.carrying) return '';
   const item = heldItems[s.campaign.carrying];
   const next = campaignGoal({ ...s, tracking: item.story });
-  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">${esc(heldItemStatus(s).toUpperCase())}</span><h3>${esc(item.name)}</h3><p>${esc(heldReturn(s)!.text)}</p>${button('Find the return point', 'travel', item.target)}${next && !next.done ? `<div class="carried-next-step"><span class="eyebrow">${esc(next.title)}</span><p>${esc(next.text)}</p>${button('Find the next stop', 'travel', next.destination ?? next.target)}</div>` : ''}</div></article>`;
+  const nextDestination = next?.destination ?? next?.target;
+  return `<article class="carried-object"><span class="item-art">${icon('bag')}</span><div><span class="eyebrow">${esc(heldItemStatus(s).toUpperCase())}</span><h3>${esc(item.name)}</h3><p>${esc(heldReturn(s)!.text)}</p>${button('Find the return point', 'travel', item.target)}${next && !next.done ? `<div class="carried-next-step"><span class="eyebrow">${esc(next.title)}</span><p>${esc(next.text)}</p>${nextDestination !== item.target ? button('Find the next stop', 'travel', nextDestination) : ''}</div>` : ''}</div></article>`;
 }

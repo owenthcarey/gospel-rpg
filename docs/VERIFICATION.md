@@ -2,6 +2,18 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Satchel return guidance · 2026-10-03
+
+After both spring clearances, a still-carried scoop now has one control for its return rack. The Satchel retains the item status, return explanation and unfinished story text. Before the second clearance, the rack and remaining task remain separate choices. The comparison uses complete destinations, preserving two distinct routes when both first pass through the same doorway.
+
+Ten new state controls cover both clearance orders, early return/reborrow, another tracked story, a farm doorway, distinct held-item destinations, shared first doorways and empty hands. **98 focused tests / six files** pass. The full check passes **1,654 tests / 100 files in 21.50 seconds**, with evidence, types, lint and production build in **35.231 seconds** overall. Formatting and whitespace checks pass.
+
+The accepted frozen-Z baseline reproduces two rack controls after both clearances. Fresh AA changes only the campaign view against the current baseline source; all **134 fixed production resources**, including CSS, engine and all 98 models, retain their bytes. Independent review verifies all **137 frozen files**, **213 canonical sources**, **191 exact embedded sources** and five freshly derived module locations.
+
+The same desktop Chromium case passes on AA in **12.929 seconds** for its owner and **13.007 seconds** overall, under the original 180/60-second limits, one worker and zero retries. It legally imports the earned scoop, performs both nearby clearances, reads the complete item and story separately, resizes from **1440 × 900 Standard text** to **844 × 390 Large text**, and activates the direct return button. Independent review verifies **nine original full exports**, the generated earned import, complete reducer state oracles, **32 matching received-body digest receipts / 5,320,398 bytes** and **182 trusted pointer/key records**. The direct return retains exactly one trusted down/up/click tuple. Both exact process groups are independently empty. Full received bodies were digested during execution; retained receipts do not provide independent body rehashes.
+
+All five baseline and five candidate original PNGs were individually viewed. The desktop carried card is shorter and retains its complete task prose; compact item and story text each fit their own scroll scope. The first baseline attempt retains its six-pixel status clipping failure from centering only the paragraph. The fresh reader measures the whole declared group and uses a genuine wheel gesture when that group fits; original word, clipping, save and deadline assertions remain. Final travel validates the observed navigation position and playTime through the actual route-selection reducer, with every other field exact. Separate captures do not establish simultaneous whole-card fit, continuous motion or detailed scene artwork.
+
 ## Consistent item feedback · 2026-10-03
 
 Accepted jug, handle and bread/water placement notices now use the existing bag cue in both floating feedback and Messages. The original wording, 4.8-second expiry and warning/save/memory priority remain. Short-landscape item notices retain a 17-pixel cue with a six-pixel gap beside the complete message.
