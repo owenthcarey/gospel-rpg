@@ -1405,6 +1405,7 @@
   :root .bottom-center {
     left: 12px;
     bottom: 18px;
+    width: calc(100vw - 180px);
     max-width: calc(100vw - 180px);
     transform: none;
     align-items: flex-start;
@@ -1426,6 +1427,7 @@
   }
   :root .travel-status {
     display: grid;
+    align-self: stretch;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 8px;
     gap: 6px;
@@ -1796,6 +1798,7 @@
   }
   :root .bottom-center {
     left: calc(var(--quest-column) + 24px);
+    width: calc(100vw - var(--quest-column) - 194px);
     max-width: calc(100vw - var(--quest-column) - 194px);
     align-items: stretch;
   }
@@ -1945,6 +1948,7 @@
   :root .bottom-center {
     left: 308px;
     bottom: 18px;
+    width: calc(100vw - 570px);
     max-width: calc(100vw - 570px);
     transform: none;
     align-items: flex-start;

@@ -109,18 +109,12 @@ test('an anonymous native minimap walk offers Cancel and stops without changing 
   try {
     if (isMobile) await page.touchscreen.tap(point.x, point.y);
     else await page.mouse.click(point.x, point.y);
-    let contact: { x: number; y: number } | undefined;
-    // Observe all live route predicates together, then contact the measured native button.
+    // Observe all live route predicates together before the original native locator input.
     // Serial assertions and a WebGL screenshot can otherwise consume the entire walk.
-    await expect
-      .poll(async () => {
-        const observed = await audit.evaluate((value) => value.sample());
-        contact = observed.point;
-        return observed;
-      })
-      .toMatchObject(activeWalk);
-    if (isMobile) await page.touchscreen.tap(contact!.x, contact!.y);
-    else await page.mouse.click(contact!.x, contact!.y);
+    await expect.poll(() => audit.evaluate((value) => value.sample())).toMatchObject(activeWalk);
+    const cancel = status.locator('[data-action="cancel-navigation"]');
+    if (isMobile) await cancel.tap();
+    else await cancel.click();
     const events = await audit.evaluate((value) => value.events);
     await info.attach('chosen-point-native-cancel', {
       body: JSON.stringify(events, null, 2),
