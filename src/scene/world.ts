@@ -181,6 +181,10 @@ export class World {
   private stage: StageEnvironment;
   private cover?: GroundCover;
   private floor?: GroundMesh;
+  private actorGround = (x: number, z: number): number => this.renderedActorHeight(x, z);
+  private renderedActorHeight(x: number, z: number): number {
+    return this.floor?.getHeightAtCoordinates(x, z) ?? 0;
+  }
   private coverQuality?: 'high' | 'low';
   private arrival?: {
     t: number;
@@ -493,7 +497,7 @@ export class World {
       this.registerOccluder('door_awning', awning);
     if (this.state.region === 'capernaum')
       this.harbor = new HarborPresentation(this.scene, this.library);
-    this.everyday = new EverydayActivity(this.library, this.actors, this.state);
+    this.everyday = new EverydayActivity(this.library, this.actors, this.state, this.actorGround);
     this.workView = new WorkPresentation(this.scene, this.camera, this.canvas);
     this.player = new TransformNode('player', this.scene);
     const playerModel = this.library.instantiate('traveler', 'traveler');
@@ -518,6 +522,7 @@ export class World {
         this.state.region,
         () => this.grid,
         this.callbacks.roadCheckpoint,
+        this.actorGround,
       );
     else if (this.layout && !isLakeRegion(this.state.region))
       this.neighborhood = new NeighborhoodActivity(
@@ -526,6 +531,7 @@ export class World {
         () => this.grid,
         this.callbacks.walkCheckpoint,
         this.state.region,
+        this.actorGround,
       );
     else if (!this.layout)
       this.activity = new VillageActivity(
@@ -763,7 +769,20 @@ export class World {
       interactionId,
     );
     const anchor = model.root;
-    if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model, true));
+    if (isActorAsset(p.asset)) {
+      const laneAmos =
+        this.state.region === 'capernaum-lanes' &&
+        p.asset === 'amos' &&
+        (interactionId ?? p.asset) === 'amos';
+      this.actors.set(
+        interactionId ?? p.asset,
+        new Actor(
+          model,
+          true,
+          laneAmos ? { locomotionClearance: { ground: this.actorGround } } : {},
+        ),
+      );
+    }
     anchor.position.set(
       p.x,
       p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : groundHeight(this.state.region, p),

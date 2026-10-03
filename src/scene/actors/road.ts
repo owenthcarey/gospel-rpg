@@ -6,6 +6,7 @@ import { distance, findPath, type WalkGrid } from '../../game/pathfinding';
 import { stepPath } from '../../game/navigation';
 import type { AssetLibrary } from '../assets';
 import { Actor } from './actor';
+import type { ActorGround } from './locomotion-clearance';
 
 /** Actual position is snapshotted by the runtime; only the reducer crosses a gateway. */
 export class RoadActivity {
@@ -19,11 +20,17 @@ export class RoadActivity {
     private region: RoadRegion,
     private grid: () => WalkGrid,
     private checkpoint: (step: number) => void,
+    ground?: ActorGround,
   ) {
-    this.actor = new Actor(library.instantiate('amos', 'neri', 'neri'), true);
+    this.actor = new Actor(
+      library.instantiate('amos', 'neri', 'neri'),
+      true,
+      ground ? { locomotionClearance: { ground } } : {},
+    );
     this.actor.root.setEnabled(false);
   }
   update(s: GameState): void {
+    this.actor.clearLocomotionPresentation();
     const c = s.road.company,
       old = this.state?.road.company;
     if (!old || old.step !== c.step || old.stage !== c.stage || old.region !== c.region) {
@@ -59,6 +66,7 @@ export class RoadActivity {
   }
   settings(s: Settings): void {
     this.still = s.reducedMotion;
+    this.actor.setLocomotionReducedMotion(s.reducedMotion);
   }
   tick(dt: number, player: Point, approaching = false): void {
     const c = this.state?.road.company,

@@ -8,6 +8,7 @@ import {
 import { distance } from '../../game/pathfinding';
 import type { AssetLibrary } from '../assets';
 import { Actor } from './actor';
+import type { ActorGround } from './locomotion-clearance';
 
 /** Owns only ambient actors. Named quest actors keep their positions and interaction targets. */
 export class EverydayActivity {
@@ -21,12 +22,22 @@ export class EverydayActivity {
   private still = false;
   private low = false;
   private state: GameState;
-  constructor(library: AssetLibrary, actors: Map<string, Actor>, state: GameState) {
+  constructor(
+    library: AssetLibrary,
+    actors: Map<string, Actor>,
+    state: GameState,
+    ground?: ActorGround,
+  ) {
     this.state = state;
     for (const definition of VILLAGE_STATIONS.filter((s) => s.region === state.region)) {
       const existing = definition.actorId ? actors.get(definition.actorId) : undefined;
       const actor =
-        existing ?? new Actor(library.instantiate('villager', 'everyday-' + definition.id), true);
+        existing ??
+        new Actor(
+          library.instantiate('villager', 'everyday-' + definition.id),
+          true,
+          ground && definition.id === 'water-tender' ? { locomotionClearance: { ground } } : {},
+        );
       this.stations.push({ definition, actor, owned: !existing, active: false });
     }
     this.update(state);
@@ -37,6 +48,7 @@ export class EverydayActivity {
   update(state: GameState): void {
     this.state = state;
     for (const s of this.stations) {
+      s.actor.clearLocomotionPresentation();
       s.active = stationActive(s.definition, state);
       s.actor.root.setEnabled(!s.owned || (s.active && (!this.low || s.definition.low)));
     }
@@ -45,6 +57,7 @@ export class EverydayActivity {
   settings(s: Settings): void {
     this.still = s.reducedMotion;
     this.low = s.quality === 'low';
+    for (const station of this.stations) station.actor.setLocomotionReducedMotion(s.reducedMotion);
     this.update(this.state);
   }
   tick(dt: number, player: Point): void {

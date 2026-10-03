@@ -9,6 +9,7 @@ import { distance } from '../../game/pathfinding';
 import type { Model } from '../assets';
 import { turnToward } from '../../game/presence';
 import { StationaryFeet, type FootSupportOptions } from './stationary-feet';
+import { LocomotionClearance, type ActorGround } from './locomotion-clearance';
 
 /** Samples Blender clips using simulation time; no Babylon auto-animation clock. */
 export class Actor {
@@ -38,14 +39,24 @@ export class Actor {
     rotation: Quaternion | null;
   }[] = [];
   private stationaryFeet?: StationaryFeet;
+  private locomotionClearance?: LocomotionClearance;
   constructor(
     readonly model: Model,
     private blendTransitions = false,
-    options: { stationaryFeet?: boolean } = {},
+    options: { stationaryFeet?: boolean; locomotionClearance?: { ground: ActorGround } } = {},
   ) {
     this.root = model.root;
     if (options.stationaryFeet)
       this.stationaryFeet = new StationaryFeet(model, (ground) => this.footClearance(ground));
+    if (options.locomotionClearance)
+      this.locomotionClearance = new LocomotionClearance(
+        model,
+        options.locomotionClearance.ground,
+        () => {
+          this.feet = undefined;
+          this.locomotionClearance = undefined;
+        },
+      );
     for (const group of model.animations) {
       const name = group.name.split(':').at(-1) as ActorClip;
       this.clips.set(name, group);
@@ -53,6 +64,7 @@ export class Actor {
     this.setClip('Idle');
   }
   setClip(name: ActorClip): void {
+    this.locomotionClearance?.reset();
     this.stationaryFeet?.restoreSampledPose();
     if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(name)) this.stationaryFeet?.reset();
     if (this.currentName === name) return;
@@ -80,6 +92,7 @@ export class Actor {
     this.current.goToFrame(this.sampledFrame);
   }
   sample(name: ActorClip, dt: number, still = false): void {
+    this.locomotionClearance?.clear();
     this.stationaryFeet?.restoreSampledPose();
     if (this.oneShot && !still) {
       this.setClip(this.oneShot.name);
@@ -106,6 +119,7 @@ export class Actor {
     this.current.goToFrame(this.sampledFrame);
     this.blendPose(dt, still);
     this.applyLook(dt, still);
+    this.locomotionClearance?.apply(this.currentName ?? 'Idle', still, this.performing);
   }
   /**
    * Glance toward a world point, or back to the clip's own heading with `null`. Cosmetic:
@@ -159,16 +173,19 @@ export class Actor {
     if (t === 1) this.previousPose = [];
   }
   playOnce(name: ActorClip): void {
+    this.locomotionClearance?.reset();
     this.stationaryFeet?.reset();
     this.oneShot = { name, time: 0 };
     this.setClip(name);
   }
   /** Resume the requested base pose on the next sample, retaining its normal blend. */
   cancelAction(): void {
+    this.locomotionClearance?.reset();
     this.oneShot = undefined;
   }
   /** A bounded presentation pose, reconstructed directly from its local scene clock. */
   sampleAt(name: ActorClip, progress: number): void {
+    this.locomotionClearance?.reset();
     this.stationaryFeet?.reset();
     this.oneShot = undefined;
     this.setClip(name);
@@ -271,6 +288,7 @@ export class Actor {
     };
   }
   restorePose(pose: ReturnType<Actor['snapshotPose']>): void {
+    this.locomotionClearance?.reset();
     this.stationaryFeet?.reset();
     this.setClip(pose.clip);
     this.elapsed = pose.elapsed;
@@ -281,6 +299,19 @@ export class Actor {
   }
   setStrideSpeed(speed: number): void {
     this.strideRate = Math.max(0, Math.min(1.5, speed / 3.25));
+  }
+  /** No-op for unopted actors; navigation controllers clear before relocating a sampled pose. */
+  clearLocomotionPresentation(): void {
+    this.locomotionClearance?.clear();
+  }
+  refreshLocomotionPresentation(): void {
+    this.locomotionClearance?.refresh();
+  }
+  setLocomotionReducedMotion(value: boolean): void {
+    this.locomotionClearance?.setReducedMotion(value);
+  }
+  suppressLocomotionPresentation(value: boolean): void {
+    this.locomotionClearance?.suppress(value);
   }
   turnTo(point: Point, dt: number, rate = 12): void {
     const at = this.root.getAbsolutePosition();
@@ -339,6 +370,7 @@ export class Actor {
     model.root.scaling.setAll(1);
   }
   dispose(): void {
+    this.locomotionClearance?.dispose();
     for (const animation of this.clips.values()) animation.dispose();
     this.root.dispose();
   }

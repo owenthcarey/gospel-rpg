@@ -45,6 +45,8 @@ export class ConversationPresentation {
     this.clear();
     this.panel = rect;
     this.targetId = id;
+    speaker.suppressLocomotionPresentation(true);
+    listener.suppressLocomotionPresentation(true);
     this.bookmark = {
       ...cameraPose(this.camera),
       min: this.camera.lowerRadiusLimit,
@@ -156,6 +158,7 @@ export class ConversationPresentation {
       // Arrival or a settings update may settle the same held pose after select.
       // Keep that current support instead of restoring a stale animation frame.
       if (!this.keepsSupportedHold(person)) person.actor.restorePose(person.clip);
+      person.actor.suppressLocomotionPresentation(false);
     }
     if (this.bookmark) {
       applyCameraPose(this.camera, this.bookmark);

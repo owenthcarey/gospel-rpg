@@ -5,6 +5,7 @@ import { stepPath } from '../../game/navigation';
 import type { ActorClip } from '../../content/assets';
 import type { AssetLibrary, Model } from '../assets';
 import { Actor } from './actor';
+import type { ActorGround } from './locomotion-clearance';
 
 /** Narrative progress stays in the reducer; this class owns only visible movement. */
 export class NeighborhoodActivity {
@@ -25,6 +26,7 @@ export class NeighborhoodActivity {
     private grid: () => WalkGrid,
     private checkpoint: () => void,
     region: string,
+    ground?: ActorGround,
   ) {
     if (region === 'bakehouse') {
       for (const [id, asset, x, z, target] of [
@@ -44,7 +46,11 @@ export class NeighborhoodActivity {
         [1, 12, 7],
         [2, 8, 7],
       ] as const) {
-        const actor = new Actor(library.instantiate('villager', 'street-neighbor-' + i), true);
+        const actor = new Actor(
+          library.instantiate('villager', 'street-neighbor-' + i),
+          true,
+          ground ? { locomotionClearance: { ground } } : {},
+        );
         actor.root.position.set(x, 0, z);
         this.crowd.push({ actor, a: { x, z }, b: { x, z: z + 2 }, period: 12 + i * 4 });
       }
@@ -86,15 +92,19 @@ export class NeighborhoodActivity {
     this.cart?.root.position.set(walk.gateOpen ? 2.4 : 0, 0, walk.gateOpen ? -2 : 0);
     const amos = this.actors.get('amos');
     if (amos) {
+      amos.clearLocomotionPresentation();
       amos.root.position.set(walk.position.x, 0, walk.position.z);
       if (!old || old.campaign.walk.step !== walk.step || old.campaign.walk.stage !== walk.stage) {
         this.path = [];
         this.requested = false;
       }
+      amos.refreshLocomotionPresentation();
     }
   }
   settings(s: Settings): void {
     this.still = s.reducedMotion;
+    this.actors.get('amos')?.setLocomotionReducedMotion(s.reducedMotion);
+    this.crowd.forEach((c) => c.actor.setLocomotionReducedMotion(s.reducedMotion));
     this.crowd.forEach((c, i) => c.actor.root.setEnabled(i < (s.quality === 'low' ? 2 : 3)));
   }
   position(): Point | undefined {
