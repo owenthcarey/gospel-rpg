@@ -94,6 +94,13 @@ test('bench material inspections follow native borrowing, return and fitting', a
   }
   await expect(await inspect(page, source)).toContainText('empty.');
   await expect(page.getByRole('dialog').locator('.panel-lead')).toContainText('landing bench');
+  await expect(page.getByRole('dialog').locator('.content-note')).toContainText(
+    'The repair is in place. Return to the landing bench to sit and check the seat.',
+  );
+  await expect(page.getByRole('dialog')).not.toContainText(
+    'Choose this repair method at the landing bench, then free your hands.',
+  );
+  await expect(page.locator('.panel')).toHaveCSS('opacity', '1');
   await page.screenshot({ path: info.outputPath('fitted-material-source.png'), scale: 'css' });
   await dismiss(page);
   await examine(page, source, 'landing bench');

@@ -19,6 +19,7 @@ for (const [method, source, item, otherSource] of [
     const cleared = action(held, 'life-clear-bench');
     const fitted = action(cleared, 'life-fit-' + method);
     const complete = action(fitted, 'life-test-bench');
+    const preparation = 'Choose this repair method at the landing bench, then free your hands.';
 
     for (const [stage, earned] of [
       ['initial', initial],
@@ -33,6 +34,9 @@ for (const [method, source, item, otherSource] of [
         const place = activeInteractables(local).find((p) => p.id === source)!;
         expect(examineText(place, local)).toBe(examineText(place));
         expect(local.campaign.carrying).toBeNull();
+        const body = contextView(source, local)!.body;
+        if (stage === 'initial' || stage === 'planning') expect(body).toContain(preparation);
+        else expect(body).toContain(`data-value="life-take-${method}"`);
       });
     }
 
@@ -61,13 +65,43 @@ for (const [method, source, item, otherSource] of [
           expect(narration).not.toContain('Borrow');
           expect(narration).not.toContain('Return');
         }
-        expect(contextView(source, saved)?.body).toContain(narration);
+        const body = contextView(source, saved)!.body;
+        expect(body).toContain(narration);
+        if (stage === 'held') expect(body).toContain(`data-value="life-return-${method}"`);
+        else {
+          expect(body).toContain(
+            stage === 'fitted'
+              ? 'Return to the landing bench to sit and check the seat.'
+              : 'The repair is complete. A neighbor has a steady place to rest beside the landing.',
+          );
+          expect(body).not.toContain(preparation);
+          expect(body).not.toContain('data-action="campaign-action"');
+          expect(contextView(otherSource, at(saved, otherSource))!.body).toContain(preparation);
+        }
         expect(saved).toEqual(before);
         expect(lifeText(otherSource, saved)).toBe(lifeText(otherSource, initial));
         for (const other of allInteractables.filter((p) => p.id !== source))
           expect(examineText(other, saved)).toBe(examineText(other));
       });
     }
+
+    it('keeps the preparation and free-hands guidance when other work occupies your hands', () => {
+      const invited = action(chosen, 'walk-accept');
+      const passage = action(invited, 'walk-passage');
+      const local = at(action(passage, 'borrow-handle'), source);
+      const before = structuredClone(local);
+      expect(local.campaign.carrying).toBe('cart-handle');
+      expect(local.life.bench.stage).toBe('working');
+      const body = contextView(source, local)!.body;
+      expect(body).toContain(preparation);
+      expect(body).toContain(
+        'To free your hands, return the handcart handle to its bakehouse bracket.',
+      );
+      expect(body).not.toContain(`data-value="life-take-${method}"`);
+      expect(body).not.toContain('The repair is in place.');
+      expect(body).not.toContain('The repair is complete.');
+      expect(local).toEqual(before);
+    });
 
     for (const [earned, ready] of [
       [held, false],
