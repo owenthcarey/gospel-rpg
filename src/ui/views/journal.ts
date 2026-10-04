@@ -79,12 +79,12 @@ export function journalPeople(s: GameState): string {
     .join('')}</div>`;
 }
 export function journalPlaces(s: GameState): string {
-  return `<p class="panel-lead">Places you have reached in this artistic interpretation of Galilee. Each destination offers a walk from your current region.</p><button class="secondary-button" data-action="journey-map">See the connected journey map</button><div class="journal-directory">${knownRegions(
+  return `<p class="panel-lead">Places you have reached in this artistic interpretation of Galilee. Follow paths and lake crossings to reach your destination.</p><button class="secondary-button" data-action="journey-map">See the connected journey map</button><div class="journal-directory">${knownRegions(
     s,
   )
     .map(
       (id) =>
-        `<article><div class="directory-entry-copy"><h3>${esc(regions[id].title)}</h3><p>${esc(journeyPlaces[id].description)}</p></div><button class="secondary-button" data-action="travel" data-value="${journeyPlaces[id].destination}">Walk to this place</button></article>`,
+        `<article><div class="directory-entry-copy"><h3>${esc(regions[id].title)}</h3><p>${esc(journeyPlaces[id].description)}</p></div><button class="secondary-button" data-action="travel" data-value="${journeyPlaces[id].destination}">Travel to this place</button></article>`,
     )
     .join('')}</div>`;
 }

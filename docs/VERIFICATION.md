@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Journal Places describes travel across paths and water · 2026-10-03
+
+The Places lead now mentions paths and lake crossings; its directory command reads **Travel to this place**. Legal boarding records the water region, whose existing directory destination already calls for steering. The former universal walking promise did not describe that route. Only two strings change; authored descriptions, destination IDs, ordering, route selection and explicit boarding/docking retain their behavior.
+
+Existing **86 tests / three life/connection/lake files** pass in **2.57 seconds**, **3.101 seconds** owner; types/build pass in **10.427 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. No tests, harness or deadlines change.
+
+Native review continues the actual lanes autosave and reads an ordinary land row. Original **index-BaU5DA8x.js** Standard at normal **512 × 740** and explicitly reloaded **index-BgMe6FK4.js** Standard/Large inline images are visually read: the lead, complete command and footer remain clear, with native body scrolling for later rows. The candidate tab became 0×0 before capture, so its responsive comparison uses an explicit 512×740 override, subsequently cleared. Large is selected through Settings and Standard restored. Native afloat rows, boarding/travel activation, other layouts, pixel equality and serialized save equality remain unobserved; no manual slot is overwritten. The preceding full checkpoint predates this change.
+
 ## Nearby prompt dismissal returns its own keyboard focus · 2026-10-03
 
 The existing frame now returns focus from its disappearing Nearby prompt to the canvas when the world remains eligible. A different focused control, visible replacement person, open Journal/Work panel, pause, inert HUD/root and hidden document retain their owner. The original prompt availability, tray order and nearest-person policy remain.
