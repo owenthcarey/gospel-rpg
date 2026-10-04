@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Completed landing Journal visit · 2026-10-03
+
+The completed **A clear way to the water** story offers **Visit Eliab again**, retaining its existing destination and travel action. Unfinished cards still say **Find the next stop**. The existing **13 harbor tests** pass in **6.78 seconds**, **8.593 seconds** owner; typecheck and production build pass in **38.449 seconds**. Both **565-guard** before/after/current comparisons and exact process groups are independently verified. No new cases were added.
+
+Direct browser play continues the saved shore journey and earns both inspections, turns and places the northern plank, coils the rope, observes the real cargo-blocked test, stores the nets, passes the test and remembers patient work with Eliab. At the normal **512×740** viewport, the actual Stories register marks the landing complete. Opening its story shows the remembered crossing and **Visit Eliab again**; the full paragraph and button fit in the original screenshot. Clicking the revisit opens Eliab's completed dialogue with no work choices. This accepts the northern/patience playthrough and local revisit dispatch; full exported-state equality, other native endings and physical-device behavior are not claimed.
+
 ## Movement-audio keyboard target · 2026-10-03
 
 The existing movement-audio browser case now explicitly focuses the game canvas after closing Settings and asserts that keyboard target. Closing Settings restores its opener; world movement correctly ignores that ordinary menu button. The original silence, minimap movement, positive effect peak, key release and audio-meter cleanup checks remain unchanged, as do case count, deadlines and retries.
