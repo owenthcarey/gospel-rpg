@@ -316,7 +316,7 @@ export class RoofRegion implements RegionView {
         clip = lowering ? 'Haul' : before ? 'Carry' : 'Idle';
       }
       if (name.startsWith('neighbor-')) {
-        actor.root.setEnabled(Number(name.at(-1)) < (this.low ? 4 : 8));
+        actor.root.setEnabled(!this.low || Number(name.at(-1)) % 4 < 2);
         clip = Number(name.at(-1)) < 2 ? 'Sit' : id === 'amazement' ? 'Gesture' : 'Idle';
       }
       if (!this.paused || (dt === 0 && this.time === 0) || this.reduced)

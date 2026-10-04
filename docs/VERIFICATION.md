@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Roof's Low crowd gathers on both sides · 2026-10-03
+
+Low quality now keeps two existing neighbors per side of the narrated room instead of all four on its left. One enable predicate selects IDs 0/1/4/5, preserving four neighbors and the two Sit / two Idle-or-Gesture mix. High retains all eight. Principal/bearer transforms, sampling/clocks, mat/ropes, camera, adopted earthen floor, assets and progress retain their behavior; no new draw layer is added.
+
+Existing **84 tests / four imported presence/motion/campaign/lighting files** pass in **3.48 seconds**, **3.835 seconds** owner; types/build pass in **7.386 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. No tests or deadlines change.
+
+Matched native review uses genuine Journey 3 bearers, legal Roof controls and the actual autosaved question checkpoint at normal **512 × 740 / reduced motion**. Original **index-C7o8kwiC.js** and explicitly reloaded **index-BaU5DA8x.js** inline images are visually read. Low question and Rise now show understandable side groups with the central figures/mat and complete footer clear; original/candidate High question retain the eight-neighbor arrangement. The transient chapter banner is excluded from acceptance. Low is restored through Settings. Full pixel equality, quantitative overlap, fine contact, submitted draw/performance, other layouts/normal motion/house/bearers/amazement and serialized save equality remain unmeasured; no manual slot is overwritten. The preceding full checkpoint predates this change.
+
 ## Quiet earth variation beneath the Roof scene · 2026-10-03
 
 The narrated Roof house now reuses the muted lane-earth palette on its existing flat floor. Eight subdivisions supply interior color samples on the same 16×20 mesh and single material; default non-mosaic painting adds opaque vertex colors without another layer. Floor bounds/heights, shadows, pickability, actors, mat, ropes, shots and progress retain their behavior. Expected 81 vertices / 128 triangles come from the installed builder's source, not a live draw measurement.
