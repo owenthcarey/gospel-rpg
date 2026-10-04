@@ -362,6 +362,191 @@ describe('scene-owned presence', () => {
       lake.dispose();
     }
   });
+  it.each(['invitation', 'lowering'] as const)(
+    'resumes ordinary Lake %s motion from the actual unpaused interval',
+    async (checkpoint) => {
+      const journey = async (pause: boolean) => {
+        let now = 1000;
+        vi.stubGlobal('performance', { now: () => now });
+        vi.stubGlobal('document', {
+          hidden: false,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+        });
+        const { canvas } = studio();
+        const ownedEngine = engine;
+        ownedEngine.getRenderingCanvas = () => canvas;
+        let state = onLake();
+        const lake = new LakeRegion(ownedEngine, state);
+        try {
+          await lake.load(() => {});
+          lake.update(state);
+          lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+          lake.setPaused(false);
+          const draw = (milliseconds: number, rendered = true) => {
+            now += milliseconds;
+            const before = lake.scene.getFrameId();
+            lake.renderFrame();
+            if (rendered) expect(lake.scene.getFrameId()).toBeGreaterThan(before);
+            else expect(lake.scene.getFrameId()).toBe(before);
+          };
+          // Establish genuine display/cover/flock before capturing any invariants.
+          draw(0);
+          for (const id of SCENE_IDS) {
+            if (id === checkpoint) break;
+            state = transition(state, { type: 'advance-scene', checkpoint: id });
+            lake.update(state);
+            draw(50);
+          }
+          expect(state.episode.checkpoint).toBe(checkpoint);
+          const saved = structuredClone(state);
+          const actors = (lake as unknown as { actors: Map<string, Actor> }).actors;
+          const simon = actors.get('simon')!;
+          const boats = [0, 1].map((id) => lake.scene.getTransformNodeByName('lake-boat-' + id)!);
+          const oars = [0, 1].flatMap((id) =>
+            ['left', 'right'].map((side) =>
+              lake.scene.getTransformNodeByName('boat-' + id + '-oar-' + side)!,
+            ),
+          );
+          const nets = ['folded', 'cast', 'full'].map((id) =>
+            lake.scene.getTransformNodeByName('lake-net-' + id)!,
+          );
+          const cords = lake.scene.getMeshByName('net-working-cords')!;
+          const locals = (root: Actor['root']) =>
+            [root, ...root.getChildTransformNodes()].map((node) => ({
+              name: node.name,
+              parent: node.parent?.name ?? null,
+              position: node.position.asArray(),
+              rotation: node.rotation.asArray(),
+              quaternion: node.rotationQuaternion?.asArray() ?? null,
+              scaling: node.scaling.asArray(),
+            }));
+          const capture = () => ({
+            time: lake.scene.metadata.lake.time as number,
+            entrance: lake.scene.metadata.lake.entrance as number,
+            camera: [
+              lake.camera.alpha,
+              lake.camera.beta,
+              lake.camera.radius,
+              ...lake.camera.target.asArray(),
+            ],
+            actors: [...actors].map(([id, actor]) => ({
+              id,
+              pose: actor.snapshotPose(),
+              rig: locals(actor.root),
+              geometry: posedVertices(actor.root).flatMap((point) => point.asArray()),
+            })),
+            props: [...boats, ...oars, ...nets].map((root) => ({
+              name: root.name,
+              enabled: root.isEnabled(),
+              rig: locals(root),
+              geometry: posedVertices(root).flatMap((point) => point.asArray()),
+            })),
+            cords: {
+              enabled: cords.isEnabled(),
+              parent: cords.parent?.name,
+              indices: Array.from(cords.getIndices()!),
+              positions: Array.from(cords.getVerticesData('position')!),
+            },
+            meshCount: lake.scene.meshes.length,
+          });
+          for (const milliseconds of [50, 70, 250]) draw(milliseconds);
+          expect(simon.playback.clip).toBe(checkpoint === 'invitation' ? 'Row' : 'Haul');
+          expect(simon.playback.frame).toBeGreaterThan(0);
+          const held = capture();
+          if (pause) {
+            now += 10;
+            lake.setPaused(true);
+            draw(16, false);
+            expect(capture()).toEqual(held);
+            draw(300);
+            expect(capture()).toEqual(held);
+            // A naturally skipped cadence callback leaves a gap after the last paused draw.
+            draw(96, false);
+            expect(capture()).toEqual(held);
+            lake.setPaused(false);
+          }
+          const samples = [];
+          for (const milliseconds of [1, 17, 250]) {
+            draw(milliseconds);
+            samples.push(capture());
+          }
+          const moving = samples[0]!;
+          const last = samples.at(-1)!;
+          expect(lake.scene.metadata.lake.time - samples[1]!.time).toBeCloseTo(0.1, 12);
+          expect(simon.playback.clip).toBe(
+            held.actors.find((actor) => actor.id === 'simon')!.pose.clip,
+          );
+
+          // Reduced Settings still owns its new frame0 tableau and retained clock.
+          lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+          draw(0);
+          expect(lake.scene.metadata.lake.time).toBe(last.time);
+          expect(simon.playback.frame).toBe(0);
+          const reduced = capture();
+          lake.setPaused(true);
+          draw(16, false);
+          draw(300);
+          expect(capture()).toEqual(reduced);
+          lake.setPaused(false);
+          draw(1);
+          expect(capture()).toEqual(reduced);
+          expect(state).toEqual(saved);
+          expect(lake.getPosition()).toEqual(saved.position);
+          return { held, moving, samples };
+        } finally {
+          lake.dispose();
+          ownedEngine.dispose();
+        }
+      };
+      // Complete/dispose the reference before another fixture owns performance.now.
+      const reference = await journey(false);
+      const actual = await journey(true);
+      const maximumVertexDistance = (before: number[], after: number[]) => {
+        expect(after.length).toBe(before.length);
+        expect(after.length).toBeGreaterThan(0);
+        expect(after.length % 3).toBe(0);
+        let maximum = 0;
+        for (let i = 0; i < after.length; i += 3)
+          maximum = Math.max(
+            maximum,
+            Math.hypot(
+              after[i]! - before[i]!,
+              after[i + 1]! - before[i + 1]!,
+              after[i + 2]! - before[i + 2]!,
+            ),
+          );
+        return maximum;
+      };
+      for (const [index, expected] of reference.samples.entries()) {
+        const observed = actual.samples[index]!;
+        for (const [i, actor] of expected.actors.entries()) {
+          expect(
+            maximumVertexDistance(actor.geometry, observed.actors[i]!.geometry),
+          ).toBeLessThanOrEqual(0.000003);
+          expect(observed.actors[i]!.rig).toEqual(actor.rig);
+          expect(observed.actors[i]!.pose).toEqual(actor.pose);
+        }
+        for (const [i, prop] of expected.props.entries()) {
+          expect(
+            maximumVertexDistance(prop.geometry, observed.props[i]!.geometry),
+          ).toBeLessThanOrEqual(0.000003);
+          expect(observed.props[i]!.rig).toEqual(prop.rig);
+          expect(observed.props[i]!.enabled).toBe(prop.enabled);
+        }
+        expect(observed.time).toBe(expected.time);
+        expect(observed.entrance).toBe(expected.entrance);
+        expect(observed.camera).toEqual(expected.camera);
+        expect(observed.cords).toEqual(expected.cords);
+        expect(observed.meshCount).toBe(expected.meshCount);
+      }
+      expect(actual.moving.time).toBe(actual.held.time + 0.001);
+      const before = actual.held.actors.find((actor) => actor.id === 'simon')!.pose;
+      const after = actual.moving.actors.find((actor) => actor.id === 'simon')!.pose;
+      expect(after.elapsed).toBe(before.elapsed + 0.001);
+      expect(after.frame).toBeGreaterThan(before.frame);
+    },
+  );
   it.each(['from the checkpoint', 'after normal motion'] as const)(
     'holds the reduced Roof rise tableau %s',
     async (entry) => {

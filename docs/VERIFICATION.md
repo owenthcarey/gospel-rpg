@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Lake motion resumes from the pause boundary · 2026-10-03
+
+Lake now records the current timestamp in its pause setter, matching Roof, Nain and Storm. An ordinary same-document resume measures its actual running interval instead of including time since the last paused draw. The original .1-second cap, entrance, reduced tableau, cadence, actor/prop order and progress retain their policies.
+
+The first unchanged-production run is retained as a document-cleanup fixture failure; it did not reach the paused journey. Adding only the required document event methods permits real reference region/engine disposal before the independently owned paused journey. The fresh unchanged-production baseline fails both Row/Haul cases at the complete CPU-skin gate: **two failures / 16 skipped / 18 cases**, units **6.22 seconds**, owner **6.528 seconds**. The first failed corresponding-vertex distances are **0.073897 / 0.085043 metres** against the unchanged **3 µm Euclidean** threshold; these are CPU geometry measurements, not native jump magnitudes.
+
+Two new default-deadline cases preserve the original sixteen cases and hooks. They compare genuine resumed draws to independent running references, protect all four actors, hulls/oars/nets, cords, clocks, entrance, camera, topology, reduced freeze and original state. Fresh presence/staging/cadence checks pass **26 tests / three files**, units **9.83 seconds**, owner **10.137 seconds**; types/build **7.980 seconds**, lint **6.054 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact groups. Scoped formatting and whitespace checks pass. The output is **index-B9_Ago8D.js**. Native resume pixels, GPU submission, other layouts and serialized save equality remain unobserved; the full 3b04652 checkpoint below predates this change.
+
 ## Fresh full checkpoint at 3b04652 · 2026-10-03
 
 At clean **3b0465264757132afd71d55964bd97b0c0d22532**, the complete evidence/types/lint/unit/build check passes **1,762 tests / 100 files**, units **48.13 seconds**, owner **67.914 seconds**. Subsequent formatting passes in **6.296 seconds**. Root reads both complete logs and independently verifies all **571 guards** before/after/current, clean Git identity, original caps and fresh exact groups. The original 120-second owner, three-second cleanup reserve, 1 MiB per-log cap, four-worker limit and default test/hook deadlines remain. This owner has no failure or retry; earlier fixture and timeout history remains separate. The output is **index-BVkVPOYe.js**. This checkpoint includes Actor cadence and crossing focus; the proposed Lake pause timestamp remains unapplied. No fresh hosted result is established.

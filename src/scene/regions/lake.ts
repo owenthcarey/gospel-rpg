@@ -463,6 +463,7 @@ export class LakeRegion implements RegionView {
   }
   setPaused(paused: boolean): void {
     this.paused = paused;
+    this.last = performance.now();
   }
   getPosition(): Point {
     return { ...this.shorePosition };
