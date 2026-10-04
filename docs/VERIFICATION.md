@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Stable work-pane entrance · 2026-10-03
+
+Work panes retain their existing fade but enter without horizontal translation. Their first measured left edge now stays fixed throughout opening, avoiding a transform-only drift in the cached camera reservation. Dimensions, observer updates, actions and focus behavior are unchanged.
+
+The existing **14 framing/feedback tests / two files** pass in **1.07 seconds**, **1.567 seconds** owner; types and production build pass in **9.167 seconds**. The unchanged ordinary-motion desktop Chromium/SwiftShader spring work flow passes in **35.7 seconds**, **38.270 seconds** owner, covering a channel turn, inspection/return, keyboard focus, walk-away and reload. Source checks preserve **571 guards**; native discovery/execution preserve **710 guards**, final log caps and independently empty groups. No cases, assertions, deadlines or retries changed.
+
+The original **1440×900** spring PNG is individually reviewed, but captures the returned pane before it draws and does not accept its visual reading. A separate direct **1440×900** shore review opens the boat work pane normally: its complete words, action and footer are visible in the original screenshot, and settled DOM bounds are **left 1044 / top 82 / right 1424 / bottom 884**, with opacity **1**, transform **none** and the existing **220 ms** animation. Escape restores the canvas; the temporary viewport is reset. The original animated cache residual, early-frame viewport and other layouts remain unmeasured.
+
 ## Hannah's table completion cue · 2026-10-03
 
 An accepted **Tell Hannah the table is ready** action now plays the existing completion motif. Main dispatch reaches feedback only after a successful transition; incomplete, distant and repeated actions retain their silent no-op path. This Listen action has no physical effect to duplicate. The existing mixer, mute, cooldown and save-status behavior remain unchanged; the cue acknowledges completion before asynchronous storage.

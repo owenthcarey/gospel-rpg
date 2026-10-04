@@ -121,7 +121,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 30;
-  /* The panel slides in from the right edge; never let it widen the page. */
+  /* Keep the work overlay inside the page while its panel fades in. */
   overflow: clip;
 }
 .work-panel {
@@ -145,7 +145,6 @@
 @keyframes work-in {
   from {
     opacity: 0;
-    transform: translateX(16px);
   }
 }
 .work-header {
