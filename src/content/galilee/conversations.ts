@@ -41,8 +41,11 @@ export function galileeText(id: string, s: GameState): string {
         : `Use it to ${g.spring.cleared.length ? 'clear the remaining ' + (g.spring.cleared.includes('inlet') ? 'entry silt' : 'inlet stones') : 'lift the inlet stones and entry silt'}. Put it back before turning the channel with both hands.`;
     return `${rack} ${task} You can leave and return without losing work.`;
   }
-  if (id === 'rest-supplies')
+  if (id === 'rest-supplies') {
+    if (g.shelter.stage === 'complete')
+      return `Your work with Leah is complete. Travelers use ${g.shelter.site === 'shade' ? 'the shaded place' : 'the open resting place'} you prepared. Your chosen memory remains in the journal.`;
     return 'Leah has set aside one woven mat, one jar of water and one folding reed screen. Carry one at a time. Unplaced supplies remain here; placed supplies can be picked up again until you finish with Leah.';
+  }
   if (id === 'rest-shade' || id === 'rest-breeze')
     return REST_LAYOUTS[id === 'rest-shade' ? 'shade' : 'breeze'].description;
   if (id.startsWith('channel-') && g.spring.stage === 'complete')

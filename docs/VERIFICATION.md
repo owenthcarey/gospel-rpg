@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Work guidance matches earned progress · 2026-10-03
+
+An empty work-action list now describes current availability without claiming the story is complete. Completed resting supplies acknowledge the place prepared with Leah and its chosen memory; unfinished carrying/recovery instructions and existing held-item returns remain intact. Actions, progress, layout and input behavior are unchanged.
+
+The existing **162 exploration/work/Galilee/item-status/connection tests / six files** pass in **4.77 seconds**, **5.190 seconds** owner; types/build pass in **16.066 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact process groups are independently verified. No cases or assertions are added. The completed-item Satchel control assigns completion after parsing its fixture; it is not a serialized completed-and-held native import check.
+
+Direct ordinary browser play reaches the scoop rack before starting the spring story. The original normal **512×740** baseline screenshot shows **Look at the source to begin** beside the contradictory remembered-work sentence. After an explicit production reload, the original current-build screenshot shows the same source instruction beside the new availability sentence, with complete words and both inspection/frame footer buttons visible. Escape restores the nearby rack opener. The served script is `index-CIT4MzTj.js`. Completed-supplies native reading, other layouts, full save equality and screen-reader delivery remain outside this spot check. These later follow-ups do not rerun the full pipeline recorded for Carry.
+
 ## Ordinary story completion cues · 2026-10-03
 
 Eight previously silent nonphysical endings now reuse the existing completion motif: Amos/Neri walks, both Ruth memories, both spring memories and both shelter memories. The mapper uses exact event types and IDs; table completion and all other existing mappings remain. The accepted-transition caller returns before feedback for rejected/stale repeats, and these endings have no physical motion cue. Bench completion retains its existing placement sound. Preferences, context unlock/pause, effects mix and cooldown are unchanged. The cue acknowledges accepted progress before asynchronous saving.
