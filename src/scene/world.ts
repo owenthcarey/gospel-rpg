@@ -1245,6 +1245,14 @@ export class World {
         this.activity?.playerClip(moving, Boolean(this.state.episode.carrying)) ??
         (moving ? 'Walk' : 'Idle'));
     this.actorPlayer.setStrideSpeed(speed);
+    if (
+      clip === 'Carry' &&
+      !moving &&
+      !this.paused &&
+      !this.reducedMotion &&
+      !this.actorPlayer.performing
+    )
+      this.actorPlayer.resetStoppedCarryPhase(clip);
     this.actorPlayer?.sample(
       clip,
       dt,

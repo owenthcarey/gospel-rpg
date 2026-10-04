@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Carry restart from the displayed stop · 2026-10-03
+
+Ordinary stopped Carry now aligns its elapsed clock with the frame-zero pose it already displays. The next step advances from that pose instead of returning to an earlier moving phase. The reset requires requested/current Carry and no finite action; World limits it to normal stopped presentation. Paused and reduced-motion clocks, existing move-to-stop sampling, lower-foot settlement, navigation and all model bytes remain unchanged.
+
+The new imported regression first fails against unchanged production: a genuine stop displays frame zero but retains **0.208333328 seconds**. After the fix, two added cases compare two duration-derived moving phases, actual stop/hold/restart and a fresh imported Carry0 reference, including authored upper/socket locals, full skin, held geometry and complete sole envelopes. Positive-clock pause/reduced controls, finite Carry/Repair and mismatched requested/current clips retain their original behavior. All original cases, **5-second** case policy, **60-second** import hook and geometry bounds remain intact. The existing basket/cart-handle fixture is a held-socket diagnostic, not a new legal cart save or art claim.
+
+Affected **180 tests / seven files** pass in **15.58 seconds**, **15.961 seconds** owner; types/build pass in **8.876 seconds**. The complete evidence/types/lint/unit/build pipeline passes in **103.197 seconds** with **1,671 tests / 100 files**, units **58.81 seconds**. All **571** source guards and exact process groups are independently checked. The unchanged ordinary shore basket pickup, route and focused tray-placement browser case passes in **28.6 seconds**, **33.527 seconds** owner, with **710** current-build guards. That desktop Chromium/SwiftShader case verifies its original carrying/preparation contract; it adds no native geometry/timing assertion or screenshot. Native restart magnitude, continuous-motion judgment and other layouts remain unmeasured.
+
 ## Concise final route guidance · 2026-10-03
 
 Final named approaches now say **Approaching Olive grove** rather than repeating the destination. Intermediate gateway legs retain the final destination and current gateway; anonymous walks, interruptions, unavailable routes and Resume behavior are unchanged. The existing exact text expectation is updated without adding a case or removing a control.

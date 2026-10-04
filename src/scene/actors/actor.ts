@@ -541,6 +541,11 @@ export class Actor {
     this.ordinarySample = false;
     this.strideRate = Math.max(0, Math.min(1.5, speed / 3.25));
   }
+  /** A normal stopped Carry displays frame zero; its next step starts there too. */
+  resetStoppedCarryPhase(requested: ActorClip): void {
+    if (requested !== 'Carry' || this.currentName !== 'Carry' || this.oneShot) return;
+    this.elapsed = 0;
+  }
   /** No-op for unopted actors; navigation controllers clear before relocating a sampled pose. */
   clearLocomotionPresentation(): void {
     this.locomotionClearance?.clear();

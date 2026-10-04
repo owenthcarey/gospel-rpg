@@ -405,6 +405,31 @@ function sameUpper(current: ReturnType<typeof fixture>, control: ReturnType<type
   expect(current.world.player.position.equals(control.world.player.position)).toBe(true);
   expect(current.world.state).toEqual(control.world.state);
 }
+/** Authored locals exclude the placement wrapper and the lower-foot compositor. */
+function carryUpperLocals(actor: Actor) {
+  return [
+    'root',
+    'body',
+    'robe',
+    'head',
+    'arm_left',
+    'arm_right',
+    'forearm_left',
+    'forearm_right',
+    'seat_hem',
+    'seat_satchel',
+    'carry_socket',
+  ].map((name) => {
+    const node = actor.model.socket(name);
+    return {
+      name,
+      position: node.position.asArray(),
+      scaling: node.scaling.asArray(),
+      rotation: node.rotation.asArray(),
+      quaternion: node.rotationQuaternion?.asArray() ?? null,
+    };
+  });
+}
 const soleIndices = new WeakMap<Actor, Record<'left' | 'right', number[]>>();
 function soleFaces(actor: Actor, height: SurfaceHeight) {
   let indices = soleIndices.get(actor);
@@ -536,6 +561,157 @@ it('freezes the complete real World Carry transition during pause and resumes th
   } finally {
     current.dispose();
     control.dispose();
+  }
+});
+
+it('restarts real World Carry from its displayed stopped pose instead of an earlier moving phase', () => {
+  for (const phase of [0.25, 0.625]) {
+    const current = fixture(undefined, { stationaryFeet: true, held: true }),
+      reference = fixture(undefined, { stationaryFeet: true, held: true });
+    try {
+      for (const { world, actor } of [current, reference]) {
+        world.state.campaign.carrying = 'cart-handle';
+        actor.root.rotation.y = 0.65;
+        world.poseTraveler(false, 0);
+      }
+      const neutral = carryUpperLocals(reference.actor),
+        saved = JSON.stringify(current.world.state),
+        nav = { ...current.world.position },
+        player = current.world.player.position.clone(),
+        time = current.world.time;
+      current.world.poseTraveler(true, current.actor.clipDuration('Carry') * phase, 3.25);
+      const moving = current.actor.snapshotPose();
+      expect(moving.clip).toBe('Carry');
+      expect(moving.frame).toBeGreaterThan(0);
+      expect(moving.elapsed).toBeGreaterThan(0);
+      expect(carryUpperLocals(current.actor)).not.toEqual(neutral);
+      supported(current.actor, flat);
+
+      // A genuine stop already displays Carry0; the next step must begin there too.
+      current.world.stop(false);
+      expect(current.actor.playback).toEqual({ clip: 'Carry', frame: 0, action: '' });
+      expect(current.actor.snapshotPose().elapsed).toBe(0);
+      expect(carryUpperLocals(current.actor)).toEqual(neutral);
+      sameUpper(current, reference);
+      expect(
+        skinDifference(posedVertices(current.actor.root), posedVertices(reference.actor.root)),
+      ).toBeLessThan(0.000001);
+      flatPlanted(current.actor);
+      const stopped = current.actor.snapshotPose();
+      for (let step = 0; step < 3; step++) {
+        current.world.poseTraveler(false, 0.02);
+        reference.world.poseTraveler(false, 0.02);
+        expect(current.actor.snapshotPose()).toEqual(stopped);
+        expect(carryUpperLocals(current.actor)).toEqual(neutral);
+        sameUpper(current, reference);
+        flatPlanted(current.actor);
+      }
+
+      // The fresh imported reference supplies actual phase/geometry, without an exact seek.
+      for (const dt of [0.02, 0.06]) {
+        current.world.poseTraveler(true, dt, 1.625);
+        reference.world.poseTraveler(true, dt, 1.625);
+        expect(current.actor.snapshotPose()).toEqual(reference.actor.snapshotPose());
+        expect(current.actor.playback.frame).toBeGreaterThan(stopped.frame);
+        expect(carryUpperLocals(current.actor)).toEqual(carryUpperLocals(reference.actor));
+        sameUpper(current, reference);
+        expect(
+          skinDifference(posedVertices(current.actor.root), posedVertices(reference.actor.root)),
+        ).toBeLessThan(0.000001);
+        supported(current.actor, flat);
+      }
+
+      // Pause and Settings deliberately display frame zero while retaining the moving clock.
+      const elapsed = current.actor.snapshotPose().elapsed;
+      expect(elapsed).toBeGreaterThan(0);
+      for (const { world } of [current, reference]) world.setPaused(true);
+      expect(current.actor.playback.frame).toBe(0);
+      expect(current.actor.snapshotPose().elapsed).toBe(elapsed);
+      const paused = posedVertices(current.actor.root),
+        pausedPose = current.actor.snapshotPose();
+      current.world.simulate(0.7);
+      expect(current.actor.snapshotPose()).toEqual(pausedPose);
+      expect(skinDifference(paused, posedVertices(current.actor.root))).toBe(0);
+      for (const { world } of [current, reference])
+        world.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+      expect(current.actor.snapshotPose().elapsed).toBe(elapsed);
+      expect(carryUpperLocals(current.actor)).toEqual(neutral);
+      sameUpper(current, reference);
+      flatPlanted(current.actor);
+      const reduced = posedVertices(current.actor.root);
+      for (const { world } of [current, reference]) world.setPaused(false);
+      current.world.poseTraveler(false, 0.04);
+      reference.world.poseTraveler(false, 0.04);
+      expect(current.actor.snapshotPose().elapsed).toBe(elapsed);
+      expect(current.actor.playback.frame).toBe(0);
+      expect(skinDifference(reduced, posedVertices(current.actor.root))).toBe(0);
+      sameUpper(current, reference);
+      expect(current.world.position).toEqual(nav);
+      expect(current.world.player.position.equals(player)).toBe(true);
+      expect(current.world.path).toEqual([]);
+      expect(current.world.time).toBe(time);
+      expect(JSON.stringify(current.world.state)).toBe(saved);
+    } finally {
+      current.dispose();
+      reference.dispose();
+    }
+  }
+});
+
+it('limits the stopped Carry clock reset to its requested ordinary Carry source', () => {
+  const current = fixture(undefined, { stationaryFeet: true, held: true }),
+    reference = fixture(undefined, { stationaryFeet: true, held: true });
+  try {
+    for (const { world } of [current, reference]) {
+      world.state.campaign.carrying = 'cart-handle';
+      world.poseTraveler(true, 0.3, 3.25);
+    }
+    function unchangedReset(requested: Parameters<Actor['resetStoppedCarryPhase']>[0]) {
+      const pose = current.actor.snapshotPose(),
+        locals = carryUpperLocals(current.actor),
+        skin = posedVertices(current.actor.root);
+      current.actor.resetStoppedCarryPhase(requested);
+      expect(current.actor.snapshotPose()).toEqual(pose);
+      expect(carryUpperLocals(current.actor)).toEqual(locals);
+      expect(skinDifference(skin, posedVertices(current.actor.root))).toBe(0);
+    }
+    unchangedReset('Idle');
+
+    // Public finite Carry is a defensive API control, not a claimed story action.
+    for (const { actor } of [current, reference]) actor.playOnce('Carry');
+    expect(current.actor.snapshotPose().elapsed).toBeGreaterThan(0);
+    unchangedReset('Carry');
+    current.world.poseTraveler(false, 0.02);
+    reference.world.poseTraveler(false, 0.02);
+    expect(current.actor.snapshotPose()).toEqual(reference.actor.snapshotPose());
+    expect(current.actor.playback.action).toBe('Carry');
+    sameUpper(current, reference);
+    expect(
+      skinDifference(posedVertices(current.actor.root), posedVertices(reference.actor.root)),
+    ).toBe(0);
+
+    for (const { actor, world } of [current, reference]) {
+      actor.playOnce('Repair');
+      world.poseTraveler(false, 0.04);
+    }
+    unchangedReset('Carry');
+    current.world.poseTraveler(false, 0.04);
+    reference.world.poseTraveler(false, 0.04);
+    expect(current.actor.snapshotPose()).toEqual(reference.actor.snapshotPose());
+    expect(current.actor.playback.action).toBe('Repair');
+    sameUpper(current, reference);
+
+    for (const { actor, world } of [current, reference]) {
+      actor.cancelAction();
+      world.state.campaign.carrying = null;
+      world.poseTraveler(true, 0.3, 3.25);
+    }
+    expect(current.actor.playback.clip).toBe('Walk');
+    expect(current.actor.snapshotPose().elapsed).toBeGreaterThan(0);
+    unchangedReset('Carry');
+  } finally {
+    current.dispose();
+    reference.dispose();
   }
 });
 
