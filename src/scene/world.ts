@@ -1766,6 +1766,8 @@ export class World {
     }
     // A new Work frame replaces old camera motion; live same-target updates retain input.
     if (target && target.id !== this.workView?.id) this.stopCameraMotion();
+    // Work close restores its bookmark; a step started inside Work ends at that handoff.
+    if (!target && this.workView?.active) this.stopCameraMotion();
     if (target) this.stop();
     this.workView?.select(target, this.state, preview);
     this.canvas.dataset.workTarget = target?.id ?? '';

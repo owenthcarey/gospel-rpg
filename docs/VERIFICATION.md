@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Work close retires its released button turn · 2026-10-03
+
+Closing real active Work now clears its preceding camera motion before the existing bookmark restore. Work already retired native orbit/zoom on clear; World-owned button rotation previously survived the unpaused close and turned the restored exploration view on later frames. Inactive/absent empty publications preserve ordinary turns/returns, same-target refresh retains Work input, and fresh input after close remains usable. Physically held input is not disabled.
+
+Against unchanged production, the two queued/coasting button controls reach rendered alpha mismatches after the exact immediate bookmark restoration; the four released native orbit/pinch parity controls pass. The six selected cases take **0.958 seconds**, **1.283 seconds** owner, with **50** others skipped. Ten new existing-scope controls complete direct references before constructing actual, compare full camera values at **0 / 100 / 300 / 600 ms**, preserve state/navigation/player/time, and protect fresh normal/reduced input plus inactive/absent ordinary return progression. The one old active-close queue-survival assertion is intentionally migrated to cleared motion/exact bookmark; its earlier same-target/fresh and reduced re-entry gates remain.
+
+After correction, **94 tests / six affected camera/input/Work files** pass in **1.72 seconds**, **2.126 seconds** owner; types/build pass in **6.218 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. These are actual World/Scene camera-value controls using the existing real Work/earned preparedSpring fixture, not native browser timing or contact/paint proof. Close-time native button magnitude, other layouts and the earlier full pipeline remain unobserved/not rerun for this change.
+
 ## Found lake landing guidance names the remaining memory · 2026-10-03
 
 At the earned arrived stage, the shared lake evidence now acknowledges the sheltered landing and points to sharing a memory with Joel, with an optional Return to Joel destination button. Earlier hints, completed disclosure omission, authored evidence/interpretation and saved fields retain their outputs. The existing travel path still requires explicit boarding/docking and proximity; beside Joel it can reopen his context without choosing an ending. The preserved first proposal's boat-specific sentence was rejected because this same evidence also appears beside Joel; the accepted neutral sentence works in both contexts. The hint reducer still accepts old arrived requests below three: only its UI increment changes.
