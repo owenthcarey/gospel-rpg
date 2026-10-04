@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Reduced Roof holds its carrying tableau · 2026-10-03
+
+Roof now advances its cosmetic clock only when unpaused and normal motion is enabled, matching the other narrated presenters. Its existing reduced rise composition holds MatCarry frame zero with the rolled mat; previously the running clock still translated that frozen rig toward the doorway. The one-line guard preserves the retained clock on settings changes, normal Rise/Idle/MatCarry handoffs, actor sampling, camera, props and gameplay.
+
+The first preserved controls-only baseline reaches sliding after normal motion, while its fresh-checkpoint case stops at the legitimate Settings `+0`/`-0` representation change. The narrow correction requires exactly zero Vector3 distance only across that initial handoff; captured reduced placement/rig/full geometry retain strict equality. The fresh baseline reaches both actual **three-second** reduced root mismatches: **0 → -0.8100000000000012** and **-0.3150000000000005 → -3.014999999999997**, in **1.11 seconds**, **1.392 seconds** owner, with **14** other cases skipped.
+
+After correction, **84 tests / four imported presence/clip/campaign/world-in-light files** pass in **3.44 seconds**, **3.800 seconds** owner; types/build pass in **6.916 seconds**. Two new default-deadline controls protect real legal rise, normal 1.4/2.1-second handoffs, capped callbacks, complete CPU patient/mat geometry, reduced toggles, pause/hidden/foreground and retained-clock normal resume. The original imported lake case keeps 15 seconds. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. Native review explicitly reloads **index-BniB5Pz8.js**, loads the authentic existing Journey 3 Roof checkpoint, enables reduced motion through Settings and legally advances to rise at normal **512 × 740 / Low**. The original inline screenshot shows its carrying tableau and complete footer. Fine mat/hand contact, timed native root values, other layouts and serialized save equality remain unmeasured; the earlier full pipeline is not rerun. No manual slot is overwritten.
+
 ## Working net cords follow the displayed Haul pose · 2026-10-03
 
 The lake now refreshes its existing net-cord mesh after actors animate, beside the existing oar refresh. The earlier composition refresh remains; both authored hull/net anchors, six vertices, mesh identity and visibility policy retain their behavior. Lowering, abundance and partners previously submitted cord endpoints from the preceding hand pose. Actors, clocks, boats, camera, progression and assets are unchanged.

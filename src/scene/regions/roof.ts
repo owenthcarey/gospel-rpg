@@ -333,7 +333,7 @@ export class RoofRegion implements RegionView {
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
     this.cadence.rendered(now);
-    if (!this.paused) this.time += dt;
+    if (!this.paused && !this.reduced) this.time += dt;
     this.compose(this.paused ? 0 : dt);
     this.shots.tick(dt, { running: !this.paused, reduced: this.reduced });
     this.stage.setView(this.camera.target);
