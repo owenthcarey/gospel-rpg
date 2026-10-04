@@ -191,6 +191,174 @@ describe('scene-owned presence', () => {
     expect(lake.scene.isDisposed).toBe(true);
     // Loads the complete lake presentation and inspects imported skins on the CPU.
   }, 15_000);
+  it('keeps the working net ropes attached to the Haul hands actually drawn', async () => {
+    const { canvas } = studio();
+    engine.getRenderingCanvas = () => canvas;
+    const visibility = { hidden: false };
+    let now = 1000;
+    vi.stubGlobal('document', visibility);
+    vi.stubGlobal('performance', { now: () => now });
+    let state = onLake();
+    const lake = new LakeRegion(engine, state);
+    try {
+      await lake.load(() => {});
+      lake.update(state);
+      lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+      lake.setPaused(false);
+      const initialized = lake.scene.getFrameId();
+      lake.renderFrame();
+      expect(lake.scene.getFrameId()).toBeGreaterThan(initialized);
+      const actors = (lake as unknown as { actors: Map<string, Actor> }).actors,
+        simon = actors.get('simon')!,
+        cords = lake.scene.getMeshByName('net-working-cords')!,
+        boat = lake.scene.getTransformNodeByName('lake-boat-0')!;
+      const originalIndices = Array.from(cords.getIndices()!);
+      const meshCount = lake.scene.meshes.length;
+      const draw = (milliseconds: number, rendered = true) => {
+        now += milliseconds;
+        const before = lake.scene.getFrameId();
+        lake.renderFrame();
+        if (rendered) expect(lake.scene.getFrameId()).toBeGreaterThan(before);
+        else expect(lake.scene.getFrameId()).toBe(before);
+      };
+      // Read the currently sampled exported tip directly, independently of handGrip.
+      const grips = () =>
+        (['left', 'right'] as const).map((side) =>
+          Vector3.TransformCoordinates(
+            new Vector3(0, 0.2, 0),
+            simon.model.socket('forearm_' + side).computeWorldMatrix(true),
+          ),
+        );
+      const localGrips = () => {
+        const inverse = Matrix.Invert(boat.computeWorldMatrix(true));
+        return grips().map((point) => Vector3.TransformCoordinates(point, inverse));
+      };
+      const attached = (id: (typeof SCENE_IDS)[number]) => {
+        expect(cords.isEnabled(), id).toBe(true);
+        expect(cords.parent).toBe(boat);
+        expect(lake.scene.getMeshByName('net-working-cords')).toBe(cords);
+        expect(lake.scene.meshes.length).toBe(meshCount);
+        expect(Array.from(cords.getIndices()!)).toEqual(originalIndices);
+        const data = cords.getVerticesData('position')!;
+        expect(data.length).toBe(18);
+        const cordWorld = cords.computeWorldMatrix(true),
+          boatWorld = boat.computeWorldMatrix(true),
+          hand = grips(),
+          net = lake.scene.getTransformNodeByName('lake-net-' + lakeCompositions[id].net)!;
+        for (const side of [0, 1]) {
+          const point = (n: number) =>
+            Vector3.TransformCoordinates(Vector3.FromArray(data, (side * 3 + n) * 3), cordWorld);
+          // The Float32 cord buffer must meet the same current world-space forearm tip.
+          expect(
+            Vector3.Distance(point(0), hand[side]!),
+            id + ': hand ' + side,
+          ).toBeLessThanOrEqual(0.000002);
+          expect(
+            Vector3.Distance(
+              point(1),
+              Vector3.TransformCoordinates(new Vector3(0.86, 0.66, side ? 0.65 : -0.25), boatWorld),
+            ),
+          ).toBeLessThanOrEqual(0.000002);
+          expect(
+            Vector3.Distance(
+              point(2),
+              Vector3.TransformCoordinates(
+                new Vector3(1.5, net.position.y + 0.08, side ? 0.8 : -0.1),
+                boatWorld,
+              ),
+            ),
+          ).toBeLessThanOrEqual(0.000002);
+        }
+      };
+      const held = () => ({
+        pose: simon.snapshotPose(),
+        rig: [simon.root, ...simon.root.getChildTransformNodes()].map((node) => ({
+          name: node.name,
+          position: node.position.asArray(),
+          rotation: node.rotation.asArray(),
+          quaternion: node.rotationQuaternion?.asArray(),
+          scaling: node.scaling.asArray(),
+        })),
+        cords: Array.from(cords.getVerticesData('position')!),
+        boat: {
+          position: boat.position.asArray(),
+          rotation: boat.rotation.asArray(),
+          scaling: boat.scaling.asArray(),
+        },
+        time: lake.scene.metadata.lake.time as number,
+        label: canvas.dataset.lakeTime,
+      });
+      const observed: string[] = [];
+      for (const id of SCENE_IDS) {
+        expect(state.episode.checkpoint).toBe(id);
+        const saved = structuredClone(state);
+        lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+        lake.update(state);
+        lake.setPaused(false);
+        draw(0);
+        if (!['lowering', 'abundance', 'partners'].includes(id)) {
+          expect(cords.isEnabled(), id).toBe(false);
+        } else {
+          observed.push(id);
+          expect(simon.playback.clip).toBe('Haul');
+          let previous = localGrips();
+          for (const milliseconds of [50, 70, 250]) {
+            const clock = simon.snapshotPose().elapsed,
+              time = lake.scene.metadata.lake.time as number;
+            draw(milliseconds);
+            expect(simon.snapshotPose().elapsed).toBeGreaterThan(clock);
+            expect(lake.scene.metadata.lake.time).toBeGreaterThan(time);
+            const current = localGrips();
+            expect(
+              Math.max(...current.map((point, i) => Vector3.Distance(point, previous[i]!))),
+              id + ': genuine changing Haul grip',
+            ).toBeGreaterThan(0.000002);
+            attached(id);
+            previous = current;
+          }
+
+          // Paused cadence first records render cost, then reaches its natural due frame.
+          const paused = held();
+          lake.setPaused(true);
+          draw(100, false);
+          draw(300);
+          attached(id);
+          expect(held()).toEqual(paused);
+
+          visibility.hidden = true;
+          draw(500, false);
+          expect(held()).toEqual(paused);
+          visibility.hidden = false;
+          // The real GameRuntime foreground path resets this clock before drawing again.
+          lake.refreshFrame();
+          draw(0);
+          attached(id);
+          expect(held()).toEqual(paused);
+
+          lake.setPaused(false);
+          draw(50);
+          attached(id);
+          expect(simon.snapshotPose().elapsed).toBeGreaterThan(paused.pose.elapsed);
+
+          // Reduced Settings legitimately changes Haul to frame0; capture that actual draw.
+          lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+          draw(50);
+          attached(id);
+          expect(simon.playback.frame).toBe(0);
+          const reduced = held();
+          draw(100);
+          attached(id);
+          expect(held()).toEqual(reduced);
+        }
+        expect(state).toEqual(saved);
+        expect(lake.getPosition()).toEqual(state.position);
+        state = transition(state, { type: 'advance-scene', checkpoint: id });
+      }
+      expect(observed).toEqual(['lowering', 'abundance', 'partners']);
+    } finally {
+      lake.dispose();
+    }
+  });
   it('bounds cosmetic time and turns without crossing the long side of a heading wrap', () => {
     const clock = new PresentationClock();
     expect(clock.advance(10, true)).toBe(0.1);

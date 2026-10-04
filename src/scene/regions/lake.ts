@@ -307,23 +307,7 @@ export class LakeRegion implements RegionView {
       net.root.position.y = c.net === 'cast' ? 0.04 : 0.6;
       if (!this.reduced) net.root.position.y += Math.sin(this.time * 1.2) * 0.08;
     }
-    if (this.netCords) {
-      const working = c.net === 'cast' || c.net === 'full';
-      this.netCords.setEnabled(working);
-      if (working && net)
-        CreateLineSystem(
-          'net-working-cords',
-          {
-            lines: (['left', 'right'] as const).map((side, i) => [
-              handGrip(this.actors.get('simon')!, side, this.boats[0]!.root),
-              new Vector3(0.86, 0.66, i ? 0.65 : -0.25),
-              new Vector3(1.5, net.root.position.y + 0.08, i ? 0.8 : -0.1),
-            ]),
-            instance: this.netCords,
-          },
-          this.scene,
-        );
-    }
+    this.stageNetCords();
     this.stageOars();
     this.water.tick(this.time, this.reduced);
     this.water.setRipples(
@@ -339,6 +323,25 @@ export class LakeRegion implements RegionView {
       lake: { checkpoint: this.checkpoint, time: this.time, entrance: t, extent: c.extent },
     };
     canvas.dataset.lakeTime = this.checkpoint + ':' + this.time.toFixed(2);
+  }
+  private stageNetCords(): void {
+    if (!this.current || !this.netCords) return;
+    const working = this.current.net === 'cast' || this.current.net === 'full',
+      net = this.nets.get(this.current.net);
+    this.netCords.setEnabled(working);
+    if (working && net)
+      CreateLineSystem(
+        'net-working-cords',
+        {
+          lines: (['left', 'right'] as const).map((side, i) => [
+            handGrip(this.actors.get('simon')!, side, this.boats[0]!.root),
+            new Vector3(0.86, 0.66, i ? 0.65 : -0.25),
+            new Vector3(1.5, net.root.position.y + 0.08, i ? 0.8 : -0.1),
+          ]),
+          instance: this.netCords,
+        },
+        this.scene,
+      );
   }
   private stageOars(): void {
     this.oars.forEach((oar, i) => {
@@ -430,6 +433,8 @@ export class LakeRegion implements RegionView {
       for (const actor of this.actors.values()) actor.tick(dt, this.reduced);
       for (const actor of this.extras) actor.tick(dt, this.reduced);
     } else this.positionScene(0);
+    // Haul advances after composition; ropes must meet the hands in the pose we draw.
+    this.stageNetCords();
     this.stageOars();
     this.stage.setView(this.camera.target);
     this.stage.tick(dt, !this.paused);

@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Working net cords follow the displayed Haul pose · 2026-10-03
+
+The lake now refreshes its existing net-cord mesh after actors animate, beside the existing oar refresh. The earlier composition refresh remains; both authored hull/net anchors, six vertices, mesh identity and visibility policy retain their behavior. Lowering, abundance and partners previously submitted cord endpoints from the preceding hand pose. Actors, clocks, boats, camera, progression and assets are unchanged.
+
+Two preserved baseline attempts stop before contact measurement because the fixture first omitted High cover initialization, then the lazy first-running-frame flock. The accepted control initializes genuine gathering through load/update/settings/unpaused public dt0 render before capturing the exact mesh inventory. Against unchanged production, it then reaches **lowering hand 0: 0.001868400543597688 world units**, exceeding the unchanged **0.000002** attachment gate, in **0.839 seconds**, **1.198 seconds** owner. Boat-local grip motion witnesses exclude boat-only motion; the independent oracle compares the actual Float32 endpoints to current exported forearm-tip matrices after real rendered frames.
+
+After correction, **51 tests / three imported presence/lake staging/clip motion files** pass in **5.48 seconds**, **5.845 seconds** owner; types/build pass in **13.953 seconds** and lint in **10.792 seconds**. The new default-deadline case traverses all legal checkpoints and protects moving/capped callbacks, natural pause cadence, hidden no-render, foreground refresh, resume, reduced first-frame-zero then frozen geometry, anchors/topology/count and input state/navigation. Existing deadlines remain unchanged. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. Native review explicitly reloads **index-B0qwdiN7.js** and follows the already-earned replay through all three working tableaux at normal **512 × 740**; original inline images show the boats/net and complete footer. Fine screen-space attachment magnitude, GPU draw geometry, other layouts and serialized save equality remain unmeasured; the earlier full pipeline is not rerun. The replay is left paused at partners.
+
 ## Hannah remembers the authored olive grove · 2026-10-03
 
 Hannah's post-Roof acknowledgement now displays **olive grove** for the saved village memory `olive`, matching Ezra's real choice and the authored place. Well/shore/null, complete-table precedence, other reflections and saved keys retain their behavior. Root and an independent source peer read the genuine village choice, Roof-return guard and actual campaign/Life narration consumer; this is a one-expression display correction.
