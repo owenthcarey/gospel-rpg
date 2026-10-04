@@ -590,7 +590,8 @@ export class Actor {
       this.root.position.z = end.z;
       this.route = [];
     }
-    let remaining = dt * 1.35;
+    let remaining = dt * 1.35,
+      traveled = 0;
     while (this.route.length && remaining > 0) {
       const point = this.route[0]!;
       const current = { x: this.root.position.x, z: this.root.position.z };
@@ -606,17 +607,19 @@ export class Actor {
       );
       this.moving = true;
       if (d <= remaining) {
+        traveled += d;
         this.root.position.x = point.x;
         this.root.position.z = point.z;
         this.route.shift();
         remaining -= d;
       } else {
+        traveled += remaining;
         this.root.position.x += ((point.x - current.x) / d) * remaining;
         this.root.position.z += ((point.z - current.z) / d) * remaining;
         remaining = 0;
       }
     }
-    this.setStrideSpeed(1.35);
+    this.setStrideSpeed(this.moving && dt > 0 && remaining > 0 ? traveled / dt : 1.35);
     this.sample(this.moving ? 'Walk' : this.idle, dt, still);
   }
   face(point: Point): void {
