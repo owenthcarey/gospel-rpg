@@ -1,6 +1,6 @@
 import { expect, type Page, type TestInfo } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Scene } from '@babylonjs/core/scene.js';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
@@ -67,7 +67,7 @@ export async function nativeMooredButtons(
 ) {
   if (!Number.isFinite(budgetMs) || budgetMs <= 0 || budgetMs > 60_000)
     throw new Error('Native moored controls require the unchanged action budget');
-  const observer = await page.evaluateHandle((touch) => {
+  const installObserver = (touch: boolean) => {
     const normalized = (text: string | null) => (text ?? '').replace(/\s+/g, ' ').trim();
     const matches = (target: MooredButtonTarget) =>
       [...document.querySelectorAll<HTMLButtonElement>(target.selector)].filter(
@@ -213,6 +213,8 @@ export async function nativeMooredButtons(
       receivedAt: number;
       deadline: number;
       withinDeadline: boolean;
+      coordinateRule: 'native-contact-within-one-pixel' | 'touch-click-inside-stable-button';
+      coordinatesValid: boolean;
       rect: number[];
       ancestors: Owner['ancestors'];
       viewportOverflow: Owner['viewportOverflow'];
@@ -241,6 +243,20 @@ export async function nativeMooredButtons(
       const receivedAt = Date.now(),
         withinDeadline = receivedAt < pending.deadline;
       const expectedPointer = pending.target.pointerType ?? (touch ? 'touch' : 'mouse');
+      // A native touch click may carry an adjusted activation point inside the same button.
+      // The physical down/up contact and every mouse event retain the original one-pixel gate.
+      const touchActivation = event.type === 'click' && expectedPointer === 'touch';
+      const coordinateRule = touchActivation
+        ? 'touch-click-inside-stable-button'
+        : 'native-contact-within-one-pixel';
+      const rect = pending.owner.rect;
+      const coordinatesValid = touchActivation
+        ? event.clientX > rect[0]! &&
+          event.clientX < rect[0]! + rect[2]! &&
+          event.clientY > rect[1]! &&
+          event.clientY < rect[1]! + rect[3]!
+        : Math.abs(event.clientX - pending.owner.point.x) < 1 &&
+          Math.abs(event.clientY - pending.owner.point.y) < 1;
       if (
         !event.isTrusted ||
         event.pointerType !== expectedPointer ||
@@ -254,8 +270,7 @@ export async function nativeMooredButtons(
         measured.node !== pending.owner.node ||
         !equal(measured.rect, pending.owner.rect) ||
         !withinDeadline ||
-        Math.abs(event.clientX - pending.owner.point.x) >= 1 ||
-        Math.abs(event.clientY - pending.owner.point.y) >= 1
+        !coordinatesValid
       )
         deliveryInvalid = true;
       events.push({
@@ -269,6 +284,8 @@ export async function nativeMooredButtons(
         receivedAt,
         deadline: pending.deadline,
         withinDeadline,
+        coordinateRule,
+        coordinatesValid,
         rect: measured.rect,
         ancestors: measured.ancestors,
         viewportOverflow: measured.viewportOverflow,
@@ -401,7 +418,118 @@ export async function nativeMooredButtons(
         return { events, pendingIndex: pending?.index ?? null, deliveryInvalid };
       },
     };
-  }, touch);
+  };
+  type Observer = ReturnType<typeof installObserver>;
+  const cdp = await page.context().newCDPSession(page);
+  const objectGroup = 'native-moored-passive-' + randomUUID();
+  let objectId: string | undefined;
+  type Invocation =
+    | { method: 'prepare'; values: Parameters<Observer['prepare']> }
+    | { method: 'finish'; values: [] };
+  // Only the transport wraps the plain packet. Preserve non-JSON numeric failure facts.
+  const invokeObserver = async function (this: Observer, args: Invocation) {
+    const value = args.method === 'prepare' ? await this.prepare(...args.values) : this.finish();
+    return JSON.stringify(value, (_key, item) => {
+      if (typeof item === 'number' && (!Number.isFinite(item) || Object.is(item, -0)))
+        return { __mooredTransportNumber: Object.is(item, -0) ? '-0' : String(item) };
+      return item;
+    });
+  };
+  const call = async (args: Invocation) => {
+    if (!objectId) throw new Error('Native moored passive object is not owned');
+    const result = await cdp.send('Runtime.callFunctionOn', {
+      objectId,
+      objectGroup,
+      functionDeclaration: invokeObserver.toString(),
+      arguments: [{ value: args }],
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (result.exceptionDetails)
+      throw new Error(
+        'Native moored passive call rejected: ' + JSON.stringify(result.exceptionDetails),
+      );
+    if (result.result.type !== 'string' || typeof result.result.value !== 'string')
+      throw new Error('Native moored passive call has no complete by-value packet');
+    return JSON.parse(result.result.value, (_key, item) => {
+      if (
+        item &&
+        typeof item === 'object' &&
+        Object.keys(item).length === 1 &&
+        Object.prototype.hasOwnProperty.call(item, '__mooredTransportNumber')
+      ) {
+        const number = item.__mooredTransportNumber;
+        if (!['NaN', 'Infinity', '-Infinity', '-0'].includes(number))
+          throw new Error('Invalid native moored transport number');
+        return Number(number);
+      }
+      return item;
+    });
+  };
+  const observer = {
+    prepare: async (
+      ...args: Parameters<Observer['prepare']>
+    ): Promise<Awaited<ReturnType<Observer['prepare']>>> =>
+      call({ method: 'prepare', values: args }),
+    finish: async (): Promise<ReturnType<Observer['finish']>> =>
+      call({ method: 'finish', values: [] }),
+  };
+  try {
+    const created = await cdp.send('Runtime.evaluate', {
+      expression: '(' + installObserver.toString() + ')(' + JSON.stringify(touch) + ')',
+      objectGroup,
+      awaitPromise: true,
+      returnByValue: false,
+    });
+    if (typeof created.result.objectId === 'string' && created.result.objectId.length > 0)
+      objectId = created.result.objectId;
+    if (created.exceptionDetails)
+      throw new Error(
+        'Native moored passive installation rejected: ' + JSON.stringify(created.exceptionDetails),
+      );
+    if (!objectId || created.result.type !== 'object' || created.result.subtype !== undefined)
+      throw new Error('Native moored passive installation has no owned observer object');
+  } catch (error) {
+    const failures: string[] = [];
+    // A known object must remove its listeners/cancel preparation before any release.
+    if (objectId) {
+      try {
+        await observer.finish();
+      } catch (cleanupError) {
+        failures.push('listener removal: ' + String(cleanupError));
+      }
+    } else failures.push('listener removal unconfirmed: no observer object returned');
+    try {
+      await cdp.send('Runtime.releaseObjectGroup', { objectGroup });
+    } catch (cleanupError) {
+      failures.push('object-group release: ' + String(cleanupError));
+    }
+    try {
+      await cdp.detach();
+    } catch (cleanupError) {
+      failures.push('session detach: ' + String(cleanupError));
+    }
+    try {
+      await writeFile(
+        info.outputPath('moored-button-native-actions.json'),
+        JSON.stringify(
+          {
+            touch,
+            budgetMs,
+            transport: 'public-CDP-Runtime',
+            objectGroup,
+            setupFailure: String(error),
+            cleanupErrors: failures,
+          },
+          null,
+          2,
+        ),
+      );
+    } catch (cleanupError) {
+      failures.push('publication: ' + String(cleanupError));
+    }
+    throw error;
+  }
   const attempts: MooredAttempt[] = [];
   const bounded = async <T>(deadline: number, action: () => Promise<T>): Promise<T> => {
     const remaining = deadline - Date.now();
@@ -430,10 +558,7 @@ export async function nativeMooredButtons(
       attempts.push(attempt);
       try {
         let admission = await bounded(deadline, () =>
-          observer.evaluate(
-            (value, args) => value.prepare(args.target, args.index, args.deadline, false),
-            { target, index, deadline },
-          ),
+          observer.prepare(target, index, deadline, false),
         );
         if (admission?.scroll) {
           // Retain the existing locator's scrolling only when the measured center is clipped.
@@ -451,10 +576,7 @@ export async function nativeMooredButtons(
             );
           await bounded(deadline, () => locator.scrollIntoViewIfNeeded());
           admission = await bounded(deadline, () =>
-            observer.evaluate(
-              (value, args) => value.prepare(args.target, args.index, args.deadline, true),
-              { target, index, deadline },
-            ),
+            observer.prepare(target, index, deadline, true),
           );
         }
         attempt.admission = admission;
@@ -491,7 +613,7 @@ export async function nativeMooredButtons(
       let observed: unknown;
       const failures: string[] = [];
       try {
-        const packet = await observer.evaluate((value) => value.finish());
+        const packet = await observer.finish();
         observed = packet;
         expect(packet.pendingIndex).toBeNull();
         expect(packet.deliveryInvalid).toBe(false);
@@ -533,8 +655,24 @@ export async function nativeMooredButtons(
               stable: true,
             });
             expect(event.rect).toEqual(admission.rect);
-            expect(Math.abs(event.x - admission.point.x)).toBeLessThan(1);
-            expect(Math.abs(event.y - admission.point.y)).toBeLessThan(1);
+            const touchActivation =
+              event.type === 'click' &&
+              (attempt.target.pointerType ?? (touch ? 'touch' : 'mouse')) === 'touch';
+            expect(event.coordinateRule).toBe(
+              touchActivation
+                ? 'touch-click-inside-stable-button'
+                : 'native-contact-within-one-pixel',
+            );
+            expect(event.coordinatesValid).toBe(true);
+            if (touchActivation) {
+              expect(event.x).toBeGreaterThan(admission.rect[0]!);
+              expect(event.x).toBeLessThan(admission.rect[0]! + admission.rect[2]!);
+              expect(event.y).toBeGreaterThan(admission.rect[1]!);
+              expect(event.y).toBeLessThan(admission.rect[1]! + admission.rect[3]!);
+            } else {
+              expect(Math.abs(event.x - admission.point.x)).toBeLessThan(1);
+              expect(Math.abs(event.y - admission.point.y)).toBeLessThan(1);
+            }
             expect(event.deadline).toBe(attempt.startedAt + attempt.budgetMs);
             expect(event.withinDeadline).toBe(true);
             expect(event.receivedAt).toBeGreaterThanOrEqual(attempt.startedAt);
@@ -545,9 +683,14 @@ export async function nativeMooredButtons(
         failures.push('retention/removal/delivery: ' + String(error));
       }
       try {
-        await observer.dispose();
+        await cdp.send('Runtime.releaseObjectGroup', { objectGroup });
       } catch (error) {
-        failures.push('handle disposal: ' + String(error));
+        failures.push('object-group release: ' + String(error));
+      }
+      try {
+        await cdp.detach();
+      } catch (error) {
+        failures.push('session detach: ' + String(error));
       }
       try {
         await writeFile(
@@ -556,6 +699,8 @@ export async function nativeMooredButtons(
             {
               touch,
               budgetMs,
+              transport: 'public-CDP-Runtime',
+              objectGroup,
               attempts,
               observed,
               cleanupErrors: failures,
@@ -717,6 +862,75 @@ export function armNativeCameraControls(names: string[]): NativeCameraControl[] 
     },
   };
   return initial;
+}
+
+/** The same observed CSS north predicate and polling schedule, in one browser task. */
+export async function observeNativeNorthBearing(page: Page, budgetMs: number) {
+  if (!Number.isFinite(budgetMs) || budgetMs <= 0 || budgetMs > 60_000)
+    throw new Error('North bearing requires the unchanged explicit expect budget');
+  const startedAt = Date.now();
+  const deadline = startedAt + budgetMs;
+  return page.evaluate(
+    ({ budgetMs, startedAt, deadline }) =>
+      new Promise<{
+        absoluteDegrees: number;
+        budgetMs: number;
+        elapsedMs: number;
+        samples: { count: number; absoluteDegrees: number; at: number }[];
+      }>((resolve, reject) => {
+        const intervals = [100, 250, 500, 1000];
+        const samples: { count: number; absoluteDegrees: number; at: number }[] = [];
+        let intervalIndex = 0;
+        let sampleTimer: number | undefined;
+        let deadlineTimer: number | undefined;
+        let finished = false;
+        const cleanup = () => {
+          if (sampleTimer !== undefined) window.clearTimeout(sampleTimer);
+          if (deadlineTimer !== undefined) window.clearTimeout(deadlineTimer);
+          sampleTimer = deadlineTimer = undefined;
+        };
+        const fail = (error: unknown) => {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(error);
+        };
+        const expired = () => {
+          if (Date.now() < deadline) return false;
+          fail(new Error(`North bearing observation exceeded ${budgetMs}ms`));
+          return true;
+        };
+        const sample = () => {
+          sampleTimer = undefined;
+          if (finished || expired()) return;
+          try {
+            const maps = document.querySelectorAll<HTMLElement>('.minimap-wrap');
+            const absoluteDegrees =
+              maps.length === 1
+                ? Math.abs(parseFloat(maps[0]!.style.getPropertyValue('--map-bearing')))
+                : NaN;
+            samples.push({ count: maps.length, absoluteDegrees, at: performance.now() });
+            if (expired()) return;
+            if (absoluteDegrees < 0.04) {
+              finished = true;
+              cleanup();
+              resolve({ absoluteDegrees, budgetMs, elapsedMs: Date.now() - startedAt, samples });
+              return;
+            }
+            const interval = intervals[Math.min(intervalIndex++, intervals.length - 1)]!;
+            sampleTimer = window.setTimeout(sample, interval);
+          } catch (error) {
+            fail(error);
+          }
+        };
+        deadlineTimer = window.setTimeout(
+          () => fail(new Error(`North bearing observation exceeded ${budgetMs}ms`)),
+          Math.max(0, deadline - Date.now()),
+        );
+        sample();
+      }),
+    { budgetMs, startedAt, deadline },
+  );
 }
 
 /** Preserve all five driver-native commands while avoiding a separate read before each press. */
@@ -1235,12 +1449,14 @@ export async function observeHullOptions(
   return observation!;
 }
 
-/** Passive projection measurements after the original native camera and visibility checks. */
+/** Admit actual label visibility, then measure projection under its separate original budget. */
 export async function observeHullProjection(page: Page, berth: Berth, budgetMs: number) {
   if (!Number.isFinite(budgetMs) || budgetMs <= 0 || budgetMs > 60_000)
     throw new Error('Hull observation requires the unchanged explicit expect budget');
+  const visibilityStartedAt = Date.now();
+  const visibilityDeadline = visibilityStartedAt + budgetMs;
   return page.evaluate(
-    ({ labelId, budgetMs }) =>
+    ({ labelId, budgetMs, visibilityStartedAt, visibilityDeadline }) =>
       new Promise<{
         rect: { x: number; y: number; width: number; height: number };
         bearing: number;
@@ -1255,6 +1471,14 @@ export async function observeHullProjection(page: Page, berth: Berth, budgetMs: 
         frameCount: number;
         budgetMs: number;
         elapsedMs: number;
+        visibilityAdmission: {
+          count: number;
+          connected: boolean;
+          visibility: string;
+          rect: number[];
+          budgetMs: number;
+          elapsedMs: number;
+        };
       }>((resolve, reject) => {
         const labelSamples: {
           x: number;
@@ -1265,7 +1489,17 @@ export async function observeHullProjection(page: Page, berth: Berth, budgetMs: 
           change: number | null;
         }[] = [];
         const intervals = [100, 250, 500, 1000];
-        const startedAt = performance.now();
+        let startedAt = performance.now();
+        let visibilityAdmission:
+          | {
+              count: number;
+              connected: boolean;
+              visibility: string;
+              rect: number[];
+              budgetMs: number;
+              elapsedMs: number;
+            }
+          | undefined;
         let previous: { x: number; y: number } | undefined;
         let intervalIndex = 0;
         let sampleTimer: number | undefined;
@@ -1286,6 +1520,11 @@ export async function observeHullProjection(page: Page, berth: Berth, budgetMs: 
           reject(error);
         };
         const expired = () => {
+          if (!visibilityAdmission) {
+            if (Date.now() < visibilityDeadline) return false;
+            fail(new Error(`Hull label visibility admission exceeded ${budgetMs}ms`));
+            return true;
+          }
           if (performance.now() - startedAt < budgetMs) return false;
           fail(new Error(`Hull label projection observation exceeded ${budgetMs}ms`));
           return true;
@@ -1321,6 +1560,7 @@ export async function observeHullProjection(page: Page, berth: Berth, budgetMs: 
               frameCount,
               budgetMs,
               elapsedMs: performance.now() - startedAt,
+              visibilityAdmission: visibilityAdmission!,
             });
           } catch (error) {
             fail(error);
@@ -1340,6 +1580,45 @@ export async function observeHullProjection(page: Page, berth: Berth, budgetMs: 
           sampleTimer = undefined;
           if (finished || expired()) return;
           try {
+            if (!visibilityAdmission) {
+              const matches = document.querySelectorAll<HTMLElement>(
+                `.world-label[data-value="${labelId}"]`,
+              );
+              if (matches.length > 1)
+                throw new Error(`Expected one hull label; found ${matches.length}`);
+              const label = matches[0];
+              const box = label?.getBoundingClientRect();
+              const visibility = label ? getComputedStyle(label).visibility : '';
+              if (expired()) return;
+              if (
+                !label?.isConnected ||
+                !box ||
+                ![box.left, box.top, box.width, box.height].every(Number.isFinite) ||
+                box.width <= 0 ||
+                box.height <= 0 ||
+                visibility === 'hidden' ||
+                visibility === 'collapse'
+              ) {
+                const interval = intervals[Math.min(intervalIndex++, intervals.length - 1)]!;
+                sampleTimer = window.setTimeout(sample, interval);
+                return;
+              }
+              visibilityAdmission = {
+                count: matches.length,
+                connected: label.isConnected,
+                visibility,
+                rect: [box.left, box.top, box.width, box.height],
+                budgetMs,
+                elapsedMs: Date.now() - visibilityStartedAt,
+              };
+              startedAt = performance.now();
+              intervalIndex = 0;
+              if (deadlineTimer !== undefined) window.clearTimeout(deadlineTimer);
+              deadlineTimer = window.setTimeout(
+                () => fail(new Error(`Hull label projection observation exceeded ${budgetMs}ms`)),
+                budgetMs,
+              );
+            }
             const label = unique<HTMLElement>(`.world-label[data-value="${labelId}"]`);
             const box = label.getBoundingClientRect();
             const visibility = getComputedStyle(label).visibility;
@@ -1375,11 +1654,11 @@ export async function observeHullProjection(page: Page, berth: Berth, budgetMs: 
           }
         };
         deadlineTimer = window.setTimeout(
-          () => fail(new Error(`Hull label projection observation exceeded ${budgetMs}ms`)),
-          budgetMs,
+          () => fail(new Error(`Hull label visibility admission exceeded ${budgetMs}ms`)),
+          Math.max(0, visibilityDeadline - Date.now()),
         );
         sample();
       }),
-    { labelId: 'board-' + berth, budgetMs },
+    { labelId: 'board-' + berth, budgetMs, visibilityStartedAt, visibilityDeadline },
   );
 }

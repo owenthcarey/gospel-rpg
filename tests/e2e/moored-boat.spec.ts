@@ -16,6 +16,7 @@ import {
   fourAnimationFrames,
   nativeHullInput,
   nativeHullCamera,
+  observeNativeNorthBearing,
   observeHullProjection,
   observeHullOptions,
   nativeMooredButtons,
@@ -189,22 +190,12 @@ async function visibleHull(
     nativeHullCamera(page, touch, info, phase, async (press) => {
       await press('Reset camera');
       await press('Face north');
-      await expect
-        .poll(() =>
-          page.evaluate(() => {
-            const maps = document.querySelectorAll<HTMLElement>('.minimap-wrap');
-            return maps.length === 1
-              ? Math.abs(parseFloat(maps[0]!.style.getPropertyValue('--map-bearing')))
-              : NaN;
-          }),
-        )
-        .toBeLessThan(0.04); // The CSS bearing contract is degrees.
+      const north = await observeNativeNorthBearing(page, hullObservationBudget());
+      expect(north.absoluteDegrees).toBeLessThan(0.04); // The CSS bearing contract is degrees.
       for (let i = 0; i < zoomClicks; i++) await press('Zoom in');
     }),
   ]);
-  // High quality follows movement smoothly; use actual rendered label stability before projection.
-  const label = page.locator(`.world-label[data-value="board-${berth}"]`);
-  await expect(label).toBeVisible();
+  // The browser observation admits visibility, then preserves the separate projection budget.
   const observationBudgetMs = hullObservationBudget();
   const observation = await observeHullProjection(page, berth, observationBudgetMs);
   const { rect, bearing } = observation;
