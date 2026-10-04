@@ -29,7 +29,7 @@ export function neighborhoodText(id: string, s: GameState): string {
         : '') +
       (s.villageMemory
         ? ' The memory of the ' +
-          s.villageMemory +
+          (s.villageMemory === 'olive' ? 'olive grove' : s.villageMemory) +
           ' that you shared with Ezra stays with you here.'
         : '');
     if (c.table.stage === 'complete')

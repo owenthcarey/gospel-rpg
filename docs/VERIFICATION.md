@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Hannah remembers the authored olive grove · 2026-10-03
+
+Hannah's post-Roof acknowledgement now displays **olive grove** for the saved village memory `olive`, matching Ezra's real choice and the authored place. Well/shore/null, complete-table precedence, other reflections and saved keys retain their behavior. Root and an independent source peer read the genuine village choice, Roof-return guard and actual campaign/Life narration consumer; this is a one-expression display correction.
+
+Existing **75 tests / three quest/episode/campaign files** pass in **2.46 seconds**, **3.123 seconds** owner; types/build pass in **6.753 seconds**. No new literal assertion, fixture or harness is added. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. Existing episode independence uses the well; the source-read native Ezra reload flow chooses olive and the separate campaign flow visits Hannah, but their combined olive-to-Hannah reading is not executed here. Actual revised sentence fit and native reading remain unobserved; the earlier full pipeline is not rerun for this correction.
+
 ## Work close retires its released button turn · 2026-10-03
 
 Closing real active Work now clears its preceding camera motion before the existing bookmark restore. Work already retired native orbit/zoom on clear; World-owned button rotation previously survived the unpaused close and turned the restored exploration view on later frames. Inactive/absent empty publications preserve ordinary turns/returns, same-target refresh retains Work input, and fresh input after close remains usable. Physically held input is not disabled.
