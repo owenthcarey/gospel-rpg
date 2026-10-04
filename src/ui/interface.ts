@@ -1193,6 +1193,18 @@ export class Interface {
       });
     }
   }
+  focusTrailHint(): void {
+    if (this.panel !== 'journal' && this.panel !== 'context') return;
+    const heading = this.overlay.querySelector<HTMLElement>('.road-hint h4');
+    if (!heading) return;
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+    heading.closest<HTMLElement>('.road-hint')?.scrollIntoView({
+      block: 'start',
+      inline: 'nearest',
+      behavior: 'instant',
+    });
+  }
   focusCrossing(mode: 'review' | 'feedback' | 'hint'): void {
     // Replacing a reading panel must keep the relevant clue/control in view.
     // Run after show()'s initial focus so keyboard users can keep reading.

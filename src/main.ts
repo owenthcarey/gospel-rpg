@@ -913,6 +913,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       await apply(parseStoryCommand(name)!);
       if (contextId && ui.panel === 'context') ui.context(contextId, snapshot());
       else ui.journal(snapshot(), 'stories', 'trail', 'all');
+      ui.focusTrailHint();
       break;
     case 'lake-action':
     case 'lake-interpret':
