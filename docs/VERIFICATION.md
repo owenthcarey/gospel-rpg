@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Hannah's table completion cue · 2026-10-03
+
+An accepted **Tell Hannah the table is ready** action now plays the existing completion motif. Main dispatch reaches feedback only after a successful transition; incomplete, distant and repeated actions retain their silent no-op path. This Listen action has no physical effect to duplicate. The existing mixer, mute, cooldown and save-status behavior remain unchanged; the cue acknowledges completion before asynchronous storage.
+
+The existing **34 audio/scheduler/campaign tests / three files** pass in **2.69 seconds**, **3.420 seconds** owner; types and production build pass in **13.541 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact process groups are independently verified. No cases or assertions were added. The exact new mapping and accepted-event caller are source-reviewed; native auditory judgment remains unobserved.
+
 ## Completed Galilee Journal revisits · 2026-10-03
 
 Completed spring and resting-place cards now offer **Visit the spring again** and **Visit Leah again**. Their original travel destinations and tracking controls remain intact; unfinished cards retain **Find the next stop**.
