@@ -1493,6 +1493,8 @@ export class Interface {
     const restore = wasWork && !!active && this.overlay.contains(active);
     const action = active?.dataset.action,
       value = active?.dataset.value;
+    const hintAction =
+      action === 'galilee-hint' || (action === 'harbor-action' && value === 'hint');
     const open = [...this.overlay.querySelectorAll<HTMLDetailsElement>('details[open]')].map(
       (node) => node.className,
     );
@@ -1521,7 +1523,14 @@ export class Interface {
       this.measureWork();
       const focusTaken = wasWork && document.activeElement !== focusOwner && !focusLost();
       // Restore only focus the re-render dropped; a control focused since then keeps it.
-      if (restore && focusLost()) restoreFocus(this.overlay, action, value, active?.dataset.workId);
+      if (restore && focusLost()) {
+        const summary =
+          hintAction && !this.overlay.querySelector('.work-hints button')
+            ? this.overlay.querySelector<HTMLElement>('.work-hints summary')
+            : undefined;
+        if (summary) summary.focus();
+        else restoreFocus(this.overlay, action, value, active?.dataset.workId);
+      }
       const result = this.overlay.querySelector('.work-result');
       if (!result) return;
       const readingUnchanged = body?.scrollTop === readingTop;

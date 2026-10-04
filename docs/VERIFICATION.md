@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Final practical hints retain their reading owner · 2026-10-03
+
+When the final spring or landing hint removes its own action button, a refresh that dropped that button's focus now selects the surviving help summary. Earlier hint buttons retain their original restoration. The existing same-surface/lost-focus guards preserve later focused controls; missing disclosures and unrelated actions keep the original fallback. No hint words, progression, timer, Tab stop or modal policy changes.
+
+Direct ordinary **512×740** browser play starts the spring and earns both inspections. Native Enter earns hints one/two and retains their button focus. The earned second-hint state is saved to the empty Journey 1 slot. On the original `index-JN_cVG4H.js` build, reopening nearby South channel and using Tab/Enter for the final hint focuses **Close menu**. Its complete final paragraph is already visible, so this is a focus regression rather than a paragraph-fit failure. After an explicit reload of `index-D-xkyxxw.js`, native Settings/Load restores that actual second-hint checkpoint. The same Tab/Enter boundary leaves **Help with the channel** focused and expanded; the complete authored final paragraph and both footer buttons remain visible in the individually reviewed original screenshot. Tab reaches **Choose a nearby work target**, Shift+Tab returns to the help summary, and Escape restores the actual nearby **E Explore South channel** opener.
+
+Existing **132 Work feedback/exploration/Galilee/Harbor/narration tests / five files** pass in **8.85 seconds**, **9.911 seconds** owner; types/build pass in **14.902 seconds**, lint in **13.225 seconds**. Every **571-guard** before/after/current comparison, final log cap and exact group is independently verified. No cases, assertions, deadlines or retries change. These surrounding controls retain later-focus/scroll and progression behavior; the direct spring check establishes the final keyboard boundary. Final landing keyboard behavior, Large/other layouts, full save equality and screen-reader delivery remain unobserved. The earlier gesture full pipeline is not rerun for this UI change.
+
 ## Work takes ownership of a returning camera · 2026-10-03
 
 Opening a real Work target during a dialogue camera return now settles that return's recorded ordinary destination before Work captures its bookmark. Work's first fitted frame keeps ownership, and closing Work restores the genuine ordinary view. Empty Work publications retain the existing return. Arrival, manual camera commands, viewport fitting and navigation retain their separate policies.
