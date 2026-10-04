@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Movement-audio keyboard target · 2026-10-03
+
+The existing movement-audio browser case now explicitly focuses the game canvas after closing Settings and asserts that keyboard target. Closing Settings restores its opener; world movement correctly ignores that ordinary menu button. The original silence, minimap movement, positive effect peak, key release and audio-meter cleanup checks remain unchanged, as do case count, deadlines and retries.
+
+The desktop and mobile Chromium case passes in **4.9 / 4.8 seconds**, **12.833 seconds** owner; types pass in **10.173 seconds**. Both **565-guard** before/after/current comparisons and exact process groups are independently verified. The production application is unchanged. This is local validation, not a claim that hosted CI has recovered.
+
+The preceding exact `ac5691b` CI metadata records **213 successful / three failed checks**. Retained desktop and mobile job logs both time out on the unchanged minimap position before the movement-audio peak assertion; the third failure is the browser dependency gate. Expected opener focus is source-backed, not an active-element measurement in those logs. Both runners actually check out synthetic merge `796be1f321dd3feb2e3158dbe3389f141099f520`, merging the exact branch head into `b33451ec4b023118c0544a9d5a39ab9e9fe067ee`. The three bounded plain-log reads finish in **3.346 / 3.287 / 2.081 seconds** with independently empty owned groups; the original failed evidence remains retained.
+
 ## Accessible unread feedback · 2026-10-03
 
 The Messages button keeps its exact **Recent game messages** name and now describes the existing unread counter through `aria-describedby`. Zero, singular and plural text update beside the visual badge. The existing toast remains the announcer; no new live region or read/reset policy is added.
