@@ -2,6 +2,10 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Fresh full checkpoint at 3b04652 · 2026-10-03
+
+At clean **3b0465264757132afd71d55964bd97b0c0d22532**, the complete evidence/types/lint/unit/build check passes **1,762 tests / 100 files**, units **48.13 seconds**, owner **67.914 seconds**. Subsequent formatting passes in **6.296 seconds**. Root reads both complete logs and independently verifies all **571 guards** before/after/current, clean Git identity, original caps and fresh exact groups. The original 120-second owner, three-second cleanup reserve, 1 MiB per-log cap, four-worker limit and default test/hook deadlines remain. This owner has no failure or retry; earlier fixture and timeout history remains separate. The output is **index-BVkVPOYe.js**. This checkpoint includes Actor cadence and crossing focus; the proposed Lake pause timestamp remains unapplied. No fresh hosted result is established.
+
 ## Crossing reading retains the player's later focus choice · 2026-10-03
 
 The crossing helper now focuses and reveals the newly mounted clue, feedback or hint immediately. The existing initializer respects that selected target; a later control or replacement reading panel has no old crossing callback left to reclaim its focus or scroll. Selectors, panel admission, negative reading tabindex, hint disclosure order and scroll alignment retain their policies.
