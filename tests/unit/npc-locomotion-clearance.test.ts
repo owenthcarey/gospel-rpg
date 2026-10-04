@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import membership from '../fixtures/villager-foot-membership.json';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine';
@@ -62,6 +64,9 @@ beforeAll(async () => {
   engine.getCaps().maxVertexUniformVectors = 1024;
   scene = new Scene(engine);
   library = new AssetLibrary(scene);
+  const villagerBytes = readFileSync('public/assets/models/villager.glb');
+  expect(villagerBytes.length).toBe(membership.artifact.bytes);
+  expect(createHash('sha256').update(villagerBytes).digest('hex')).toBe(membership.artifact.sha256);
   await library.load(
     ['amos', 'villager', 'traveler', 'bread_basket', 'jug', 'gate', 'handcart'],
     () => {},
@@ -112,6 +117,44 @@ function pair(asset: 'amos' | 'villager', height: Height): Pair {
       locomotionClearance: { ground: height },
     }),
   };
+}
+/** Independent source IDs catch either real collector silently dropping the new soles. */
+function articulatedCollectors(actor: Actor) {
+  const packed = npcSkin(actor),
+    skin = packed.topology.meshes.find(({ mesh }) =>
+      mesh.skeleton?.bones.some((bone) => bone.name.split(':').at(-1) === 'foot_left'),
+    )!;
+  expect(skin).toBeDefined();
+  for (const side of ['left', 'right'] as const) {
+    const base = skin.offset / 3;
+    expect(packed.topology.feet[side]).toEqual(membership.lower[side].map((id) => base + id));
+    expect(packed.topology.soles[side]).toEqual(membership.sole[side].map((id) => base + id));
+  }
+  const mesh = skin.mesh,
+    positions = mesh.getVerticesData('position')!,
+    joints = mesh.getVerticesData('matricesIndices')!,
+    ordered = [...membership.lower.left, ...membership.lower.right].sort((a, b) => a - b),
+    expected = ordered.map((id) => ({
+      x: positions[id * 3]!,
+      y: positions[id * 3 + 1]!,
+      z: positions[id * 3 + 2]!,
+      joint: joints[id * 4]!,
+      side: membership.lower.left.includes(id) ? 'left' : 'right',
+    })),
+    caches = actor as unknown as {
+      feet?: { mesh: unknown; points: typeof expected }[];
+      locomotionClearance?: {
+        sandals: { mesh: unknown; points: Omit<(typeof expected)[number], 'side'>[] }[];
+      };
+    };
+  expect(caches.feet).toHaveLength(1);
+  expect(caches.feet![0]!.mesh).toBe(mesh);
+  expect(caches.feet![0]!.points).toEqual(expected);
+  expect(caches.locomotionClearance?.sandals).toHaveLength(1);
+  expect(caches.locomotionClearance!.sandals[0]!.mesh).toBe(mesh);
+  expect(caches.locomotionClearance!.sandals[0]!.points).toEqual(
+    expected.map(({ x, y, z, joint }) => ({ x, y, z, joint })),
+  );
 }
 function attach(p: Pair) {
   p.baseline.attach(library.instantiate('jug', 'raw-prop-' + serial++));
@@ -328,7 +371,24 @@ it.each([0, 1, 2, 'tender'] as const)(
       assert.equal(JSON.stringify(state), saved);
     }
     expect(s.samples).toBe(720);
-    expect(s.rawMinimum).toBeLessThan(-0.08);
+    for (const actor of [p.baseline, p.actor]) {
+      const packed = npcSkin(actor),
+        skin = packed.topology.meshes.find(({ mesh }) =>
+          mesh.skeleton?.bones.some((bone) => bone.name.split(':').at(-1) === 'foot_left'),
+        )!;
+      expect(skin).toBeDefined();
+      for (const side of ['left', 'right'] as const) {
+        expect(packed.topology.feet[side]).toEqual(
+          membership.lower[side].map((id) => skin.offset / 3 + id),
+        );
+        expect(packed.topology.soles[side]).toEqual(
+          membership.sole[side].map((id) => skin.offset / 3 + id),
+        );
+      }
+    }
+    // The new art need not recreate the old burial defect. The maximum actual visual
+    // correction must equal the independently measured worst complete raw envelope.
+    expect(s.maxLift).toBeCloseTo(Math.max(0, -s.rawMinimum), 6);
     expect(s.eligible).toBe(which === 'tender' ? 312 : 720);
     if (which === 'tender') {
       while (p.actor.playback.clip !== 'Walk') {
@@ -622,7 +682,7 @@ it.each(
 
 it('clears every exact/finite/reset sampling path, effective ancestor disable, and default actor controls', () => {
   const ground = floor('capernaum-lanes'),
-    p = pair('villager', ground.height);
+    p = pair('amos', ground.height);
   attach(p);
   const prime = () => {
     [p.baseline, p.actor].forEach((a) => {
@@ -648,7 +708,6 @@ it('clears every exact/finite/reset sampling path, effective ancestor disable, a
   clear((a) => a.cancelAction());
   for (const clip of [
     'Sit',
-    'BenchSit',
     'Row',
     'Kneel',
     'Repair',
@@ -681,13 +740,47 @@ it('clears every exact/finite/reset sampling path, effective ancestor disable, a
   capture(p, ground.height, stats(), false);
   p.actor.refreshLocomotionPresentation();
   expect(npcLift(p.actor)).toBeGreaterThan(0.08);
-  const unopted = new Actor(library.instantiate('villager', 'unopted-' + serial++), true);
+  const unopted = new Actor(library.instantiate('amos', 'unopted-' + serial++), true);
   unopted.sampleAt('Walk', 0);
   unopted.sample('Walk', 0);
   expect(npcLift(unopted)).toBe(0);
   const unoptedFeet = npcFeet(npcSkin(unopted), ground.height);
   expect(Math.min(unoptedFeet.left.minimum, unoptedFeet.right.minimum)).toBeLessThan(-0.08);
   expect(unopted.hasFootSupport).toBe(false);
+  const articulated = pair('villager', () => 0);
+  for (const actor of [articulated.baseline, articulated.actor]) {
+    actor.sampleAt('Walk', 0);
+    actor.sample('Walk', 0);
+  }
+  const authored = npcSkin(articulated.baseline),
+    authoredFeet = npcFeet(authored, () => 0);
+  expect(Math.min(authoredFeet.left.minimum, authoredFeet.right.minimum)).toBeGreaterThanOrEqual(
+    -0.000002,
+  );
+  expect(npcLift(articulated.baseline)).toBe(0);
+  expect(npcLift(articulated.actor)).toBe(0);
+  expect(articulated.baseline.hasFootSupport).toBe(false);
+  const clearances = articulated.actor.footClearance(() => 0);
+  expect(Math.abs(clearances.left - authoredFeet.left.minimum)).toBeLessThanOrEqual(0.000002);
+  expect(Math.abs(clearances.right - authoredFeet.right.minimum)).toBeLessThanOrEqual(0.000002);
+  articulatedCollectors(articulated.actor);
+  capture(articulated, () => 0, stats());
+  dispose(articulated);
+  // Amos has no BenchSit; exercise that exclusion on the real articulated villager.
+  // A raised plane supplies positive clearance pressure without restoring the old buried gait.
+  const benchGround = () => 0.1,
+    bench = pair('villager', benchGround);
+  attach(bench);
+  for (const actor of [bench.baseline, bench.actor]) {
+    actor.sampleAt('Walk', 0);
+    actor.sample('Walk', 0);
+  }
+  expect(npcLift(bench.actor)).toBeGreaterThan(0.08);
+  capture(bench, benchGround, stats());
+  for (const actor of [bench.baseline, bench.actor]) actor.sample('BenchSit', 0.1);
+  expect(npcLift(bench.actor)).toBe(0);
+  capture(bench, benchGround, stats(), false);
+  dispose(bench);
   const traveler = new Actor(
     library.instantiate('traveler', 'traveler-control-' + serial++),
     true,
@@ -708,8 +801,8 @@ it('clears every exact/finite/reset sampling path, effective ancestor disable, a
 
 it('suppresses before dialogue bookmarks and releases after clear/disposal with roots and headings restored', () => {
   vi.stubGlobal('document', { hidden: false });
-  const p = pair('villager', () => 0),
-    listener = new Actor(library.instantiate('villager', 'listener-' + serial++), true, {
+  const p = pair('amos', () => 0),
+    listener = new Actor(library.instantiate('amos', 'listener-' + serial++), true, {
       locomotionClearance: { ground: () => 0 },
     });
   listener.root.position.x = 2;
@@ -767,8 +860,8 @@ it.each(['actor', 'root', 'scene'] as const)(
   async (owner) => {
     const localScene = new Scene(engine),
       localLibrary = new AssetLibrary(localScene);
-    await localLibrary.load(['villager'], () => {});
-    const model = localLibrary.instantiate('villager', 'dispose-' + owner),
+    await localLibrary.load(['amos'], () => {});
+    const model = localLibrary.instantiate('amos', 'dispose-' + owner),
       originalDispose = model.root.dispose;
     const actor = new Actor(model, true, { locomotionClearance: { ground: () => 0 } });
     actor.sampleAt('Walk', 0);
@@ -1395,7 +1488,7 @@ it('restores ordinary clearance at the zero-elapsed World conversation-release b
 it('restores only live ordinary dialogue sources and releases exact, finite and lifecycle overrides', () => {
   const fresh = (opted = true) =>
     new Actor(
-      library.instantiate('villager', 'dialogue-source-control-' + serial++),
+      library.instantiate('amos', 'dialogue-source-control-' + serial++),
       true,
       opted ? { locomotionClearance: { ground: () => 0 } } : {},
     );

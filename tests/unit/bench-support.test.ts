@@ -10,6 +10,7 @@ import { LifeActivity } from '../../src/scene/actors/life';
 import { campaignLayout } from '../../src/content/campaign/layouts';
 import { heldAssets } from '../../src/content/life/presentation';
 import { DEFAULT_SETTINGS, newGame } from '../../src/game/types';
+import { authoredFootMembership } from '../helpers/posed-geometry';
 import {
   BENCH_FRONT_CLEARANCE,
   BENCH_WALK_SPEED,
@@ -99,6 +100,10 @@ function surface(root: TransformNode, deform = true): Surface {
   const clothVertices: Vector3[] = [];
   const triangles: Triangle[] = [];
   for (const mesh of root.getChildMeshes()) {
+    const membership = authoredFootMembership(mesh);
+    const footIds = membership
+      ? new Set([...membership.lower.left, ...membership.lower.right])
+      : undefined;
     mesh.skeleton?.prepare(true);
     const positions = mesh.getPositionData(deform && Boolean(mesh.skeleton)) ?? [];
     const joints = mesh.getVerticesData('matricesIndices');
@@ -112,7 +117,8 @@ function surface(root: TransformNode, deform = true): Surface {
           .split(':')
           .at(-1)!
           .replace(/\.\d+$/, '');
-      if (bone && /^leg_(left|right)$/.test(bone)) footVertices.push(point);
+      if (footIds ? footIds.has(index) : bone && /^leg_(left|right)$/.test(bone))
+        footVertices.push(point);
       if (bone === 'robe' || bone === 'seat_hem') clothVertices.push(point);
       return point;
     });
@@ -341,6 +347,7 @@ it.each(['traveler', 'villager'] as const)(
         actor.sampleAt('BenchSit', phase);
         const skin = surface(actor.root);
         expect(skin.footVertices.length).toBeGreaterThan(0);
+        if (id === 'villager') expect(skin.footVertices).toHaveLength(648);
         const floor = Math.min(...skin.footVertices.map((point) => point.y));
         expect(Math.abs(floor), `sole height at phase ${phase}`).toBeLessThanOrEqual(
           SOLE_TOLERANCE,

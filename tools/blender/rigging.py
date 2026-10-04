@@ -17,7 +17,7 @@ CLIPS = {
     "Greet": 42, "Listen": 96, "Respond": 72,
 }
 
-def export_character(name, parts, scene, output, grid_index, export_file=True):
+def export_character(name, parts, scene, output, grid_index, export_file=True, source_report=None):
     bench_actor = name in ("traveler", "villager")
     bpy.ops.object.select_all(action="DESELECT")
     arm_data = bpy.data.armatures.new(name + "_skeleton")
@@ -137,6 +137,8 @@ def export_character(name, parts, scene, output, grid_index, export_file=True):
     socket.parent = rig
     socket.location = (0, -.48, .80)
     socket.empty_display_size = .08
+    if source_report is not None:
+        source_report['socketName'] = socket.name
     for bone in rig.pose.bones:
         bone.rotation_mode = "XYZ"
     foot_groups = {skin.vertex_groups[n].index for n in ("leg_left", "leg_right")}

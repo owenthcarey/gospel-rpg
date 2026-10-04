@@ -3,6 +3,7 @@ import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { Scene } from '@babylonjs/core/scene';
 import type { Observer } from '@babylonjs/core/Misc/observable';
 import type { Model } from '../assets';
+import { requireSupportedFootPair } from './foot-geometry';
 
 type Pose = { position: Vector3; scaling: Vector3; rotation: Quaternion };
 type Side = 'left' | 'right';
@@ -66,7 +67,10 @@ export class StationaryFeet {
   ) {
     this.model = model;
     this.clearances = clearances;
+    const feet = requireSupportedFootPair(model);
     this.nodes = ['thigh_left', 'thigh_right', 'leg_left', 'leg_right'].map(model.socket);
+    // Preserve thigh indices and restore parents before the actual child feet.
+    if (feet) this.nodes.push(feet.left, feet.right);
     // Keep the imported basis relative to the placement, before Idle adds its small root lean.
     // Packed rest rotations are not quaternion identity.
     this.rest = this.presentation(model.root);

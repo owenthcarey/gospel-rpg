@@ -17,7 +17,12 @@ import { obstacles, isLand } from '../../src/content/region';
 import { campaignLayout, layoutObstacles } from '../../src/content/campaign/layouts';
 import { WalkGrid } from '../../src/game/pathfinding';
 import { approachPath } from '../../src/game/navigation';
-import { posedVertices, bakedGeometry, nearestDistance } from '../helpers/posed-geometry';
+import {
+  posedVertices,
+  posedLowerVertices,
+  bakedGeometry,
+  nearestDistance,
+} from '../helpers/posed-geometry';
 
 vi.mock('@babylonjs/core/Loading/sceneLoader', async (original) => {
   const actual = await original<typeof import('@babylonjs/core/Loading/sceneLoader')>();
@@ -82,10 +87,7 @@ describe('connected-journey exported geometry', () => {
       for (const guest of company) {
         const position = guest.root.position.clone();
         const pelvis = guest.model.socket('body').getAbsolutePosition();
-        const feet = [
-          ...posedVertices(guest.root, 'leg_left'),
-          ...posedVertices(guest.root, 'leg_right'),
-        ];
+        const feet = posedLowerVertices(guest.root);
         expect(guest.root.isEnabled()).toBe(true);
         expect(Math.abs(pelvis.y - seatHeight)).toBeLessThan(0.025);
         expect(Math.abs(Math.min(...feet.map((p) => p.y)))).toBeLessThan(0.002);
@@ -132,7 +134,7 @@ describe('connected-journey exported geometry', () => {
     activity.tick(0.5);
     expect(people.every((p) => p.isEnabled())).toBe(true);
     for (const person of people) {
-      const feet = [...posedVertices(person, 'leg_left'), ...posedVertices(person, 'leg_right')];
+      const feet = posedLowerVertices(person);
       expect(feet.length).toBeGreaterThan(0);
       expect(Math.abs(Math.min(...feet.map((p) => p.y)))).toBeLessThan(0.06);
     }
@@ -196,7 +198,7 @@ describe('connected-journey exported geometry', () => {
     expect(seated.isEnabled()).toBe(true);
     const seat = posedVertices(scene.getTransformNodeByName('life-bench_braced')!);
     const pelvis = body?.getAbsolutePosition();
-    const feet = [...posedVertices(seated, 'leg_left'), ...posedVertices(seated, 'leg_right')];
+    const feet = posedLowerVertices(seated);
     expect(pelvis).toBeDefined();
     expect(seat.length).toBeGreaterThan(0);
     expect(Math.abs(pelvis!.y - Math.max(...seat.map((p) => p.y)))).toBeLessThan(0.025);

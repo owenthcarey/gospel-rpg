@@ -1,3 +1,4 @@
+import { authoredFootMembership } from '../helpers/posed-geometry';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { afterAll, afterEach, beforeAll, beforeEach, expect, it, vi } from 'vitest';
@@ -617,10 +618,12 @@ function footMinimum(
   for (const mesh of source.root.getChildMeshes()) {
     if (!mesh.getTotalVertices()) continue;
     const indices = mesh.getVerticesData('matricesIndices')!,
-      weights = mesh.getVerticesData('matricesWeights')!;
+      weights = mesh.getVerticesData('matricesWeights')!,
+      authored = authoredFootMembership(mesh),
+      lower = authored ? new Set([...authored.lower.left, ...authored.lower.right]) : undefined;
     for (let i = 0; i < mesh.getTotalVertices(); i++) {
       const joint = mesh.skeleton!.bones[indices[i * 4]!]!.name.split(':').at(-1);
-      if (joint !== 'leg_left' && joint !== 'leg_right') continue;
+      if (lower ? !lower.has(i) : joint !== 'leg_left' && joint !== 'leg_right') continue;
       assert.equal(weights[i * 4], 1, 'current rigid authored sandal/leg oracle domain');
       const at = offset + i * 3;
       minimum = Math.min(

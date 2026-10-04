@@ -17,7 +17,12 @@ import {
   cargoPosition,
 } from '../../src/game/harbor/arrangement';
 import { clearHarbor, harborAction } from '../helpers/harbor';
-import { posedVertices, bakedGeometry, nearestDistance } from '../helpers/posed-geometry';
+import {
+  posedVertices,
+  posedLowerVertices,
+  bakedGeometry,
+  nearestDistance,
+} from '../helpers/posed-geometry';
 import type { ExplorationRegion } from '../../src/game/campaign/types';
 import { capernaumScenery } from '../../src/content/harbor/scenery';
 import { campaignLayout } from '../../src/content/campaign/layouts';
@@ -206,7 +211,7 @@ it.each(['capernaum-lanes', 'bakehouse', 'gathering-house'] as const)(
     );
     expect(people.length).toBeGreaterThan(0);
     for (const person of people) {
-      const feet = [...posedVertices(person, 'leg_left'), ...posedVertices(person, 'leg_right')];
+      const feet = posedLowerVertices(person);
       expect(Math.abs(Math.min(...feet.map((p) => p.y))), person.name).toBeLessThan(0.06);
     }
     if (region === 'bakehouse') {

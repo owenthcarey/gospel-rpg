@@ -14,6 +14,7 @@ import {
   type FootSupportContinuation,
 } from './stationary-feet';
 import { LocomotionClearance, type ActorGround } from './locomotion-clearance';
+import { requireSupportedFootPair, footSide } from './foot-geometry';
 
 /** A single dialogue owns these samples; unrelated Actor samples revoke retained blends. */
 export interface ConversationPoseScope {
@@ -64,6 +65,7 @@ export class Actor {
     options: { stationaryFeet?: boolean; locomotionClearance?: { ground: ActorGround } } = {},
   ) {
     this.root = model.root;
+    requireSupportedFootPair(model);
     if (options.stationaryFeet)
       this.stationaryFeet = new StationaryFeet(model, (ground) => this.footClearance(ground));
     if (options.locomotionClearance)
@@ -305,13 +307,14 @@ export class Actor {
       for (let i = 0; i < positions.length / 3; i++) {
         const joint = joints[i * 4]!;
         const name = mesh.skeleton.bones[joint]?.name.split(':').at(-1);
-        if (name === 'leg_left' || name === 'leg_right')
+        const side = footSide(name);
+        if (side)
           points.push({
             x: positions[i * 3]!,
             y: positions[i * 3 + 1]!,
             z: positions[i * 3 + 2]!,
             joint,
-            side: name === 'leg_left' ? ('left' as const) : ('right' as const),
+            side,
           });
       }
       return [{ mesh, points }];

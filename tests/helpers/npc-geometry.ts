@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { authoredFootMembership } from './posed-geometry';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
@@ -43,15 +45,29 @@ function topology(actor: Actor): Topology {
       joints.push(indices ? label(mesh.skeleton!.bones[indices[i * 4]!]!.name) : '');
       restY.push(rest[i * 3 + 1]!);
     }
-    return { mesh, offset };
+    return { mesh, offset, membership: authoredFootMembership(mesh) };
   });
   const feet = { left: [] as number[], right: [] as number[] };
   const soles = { left: [] as number[], right: [] as number[] };
   const hands = { left: [] as number[], right: [] as number[] };
+  const articulated = meshes.filter((value) => value.membership);
+  assert.ok(articulated.length <= 1, 'one exact articulated actor skin');
   for (const side of ['left', 'right'] as const) {
-    feet[side] = joints.flatMap((name, i) => (name === 'leg_' + side ? [i] : []));
-    const bottom = Math.min(...feet[side].map((i) => restY[i]!));
-    soles[side] = feet[side].filter((i) => restY[i]! < bottom + 0.0001);
+    if (articulated.length) {
+      const skin = articulated[0]!,
+        base = skin.offset / 3;
+      feet[side] = skin.membership!.lower[side].map((id) => base + id);
+      soles[side] = skin.membership!.sole[side].map((id) => base + id);
+      assert.deepEqual(
+        feet[side],
+        joints.flatMap((name, i) => (name === 'leg_' + side || name === 'foot_' + side ? [i] : [])),
+      );
+    } else {
+      // Preserve the original 14-bone oracle for all unaffected actors.
+      feet[side] = joints.flatMap((name, i) => (name === 'leg_' + side ? [i] : []));
+      const bottom = Math.min(...feet[side].map((i) => restY[i]!));
+      soles[side] = feet[side].filter((i) => restY[i]! < bottom + 0.0001);
+    }
     const arm = joints.flatMap((name, i) => (name === 'forearm_' + side ? [i] : []));
     const wrist = Math.min(...arm.map((i) => restY[i]!));
     hands[side] = arm.filter((i) => restY[i]! < wrist + 0.13);

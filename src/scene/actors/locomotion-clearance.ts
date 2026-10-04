@@ -5,6 +5,7 @@ import { Matrix, Quaternion } from '@babylonjs/core/Maths/math.vector';
 import type { Observer } from '@babylonjs/core/Misc/observable';
 import type { ActorClip } from '../../content/assets';
 import type { Model } from '../assets';
+import { footSide } from './foot-geometry';
 
 export type ActorGround = (x: number, z: number) => number;
 type SandalMesh = {
@@ -50,7 +51,7 @@ export class LocomotionClearance {
       for (let i = 0; i < positions.length / 3; i++) {
         const joint = joints[i * 4]!;
         const name = mesh.skeleton.bones[joint]?.name.split(':').at(-1);
-        if (name === 'leg_left' || name === 'leg_right')
+        if (footSide(name))
           points.push({
             x: positions[i * 3]!,
             y: positions[i * 3 + 1]!,

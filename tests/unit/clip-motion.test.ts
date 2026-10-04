@@ -12,7 +12,7 @@ import { WalkGrid } from '../../src/game/pathfinding';
 import { newGame } from '../../src/game/types';
 import { ACTOR_ASSETS } from '../../src/content/assets';
 import type { ActorClip } from '../../src/content/assets';
-import { posedVertices } from '../helpers/posed-geometry';
+import { posedVertices, posedLowerVertices } from '../helpers/posed-geometry';
 import { benchMotion, BENCH_WALK_SPEED, BENCH_TURN_TIME } from '../../src/scene/bench-motion';
 
 vi.mock('@babylonjs/core/Loading/sceneLoader', async (original) => {
@@ -55,10 +55,7 @@ const centre = (points: Vector3[]) =>
 function trace(actor: Actor, clip: ActorClip, steps = 12) {
   return Array.from({ length: steps }, (_, i) => {
     actor.sampleAt(clip, i / steps);
-    const feet = [
-      ...posedVertices(actor.root, 'leg_left'),
-      ...posedVertices(actor.root, 'leg_right'),
-    ];
+    const feet = posedLowerVertices(actor.root);
     return {
       head: centre(posedVertices(actor.root, 'head')),
       floor: Math.min(...feet.map((p) => p.y)),
