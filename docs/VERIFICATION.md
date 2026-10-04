@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Camera retains its last fit while the canvas is undisplayed · 2026-10-03
+
+Ordinary fitting now defers nonpositive or nonfinite canvas extents before changing zoom, limits or conversation return endpoints. The next displayed frame uses the original positive aspect math and selected zoom. Work, Conversation, hidden-tab and skipped-frame ownership guards remain; no Reset is required for recovery.
+
+Six new public-path controls preserve the original four cases and deadlines. Against unchanged World, **five fail / one passes / four skip**, units **0.509 seconds**, owner **0.815 seconds**: zero width produces infinite zoom/limits/scale, and a pending return also produces infinite endpoint radii and a NaN live radius. The initial positive-width/zero-height case already passes the old formula. Candidate fitting/reset/keyboard/conversation checks pass **91 tests / four files**, units **2.64 seconds**, owner **3.247 seconds**; types/build **66.747 seconds**, lint **52.954 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh empty groups. The full 1,770-test checkpoint below predates this change.
+
+Fresh native **index--YGmFSKz.js** starts at actual viewport/canvas CSS **0×0**. Continue has no clickable location there; after a temporary **512×740** override, genuine Continue restores the bakehouse autosave and visible room/labels without Reset. Full inline images are read. This initial zero is the launch scene before positive-size Continue, so it is qualitative recovery evidence rather than a matched reproduction of the earlier bakehouse blank view. Camera values, GPU/pixel and exact save equality remain unmeasured. Low, Reduce and Standard remain selected; the override is cleared, normal 512×740 confirmed and manual slots untouched.
+
 ## Full imported-geometry checkpoint after atmosphere · 2026-10-03
 
 The first clean **f372bde4a77f8ac457fbe68c39201ce28d53514c** full run passes evidence, types, lint and **1,768 tests**, but the two new Lake cases exceed their original **five-second** deadlines. Units take **64.12 seconds**, owner **80.897 seconds**; the later build and format stages are not reached. That failure remains retained.

@@ -1316,10 +1316,11 @@ export class World {
   private fitCamera(): void {
     if (!this.layout || this.workView?.active || this.conversationView?.active || document.hidden)
       return;
-    const scale = Math.max(
-      1,
-      0.9 / (this.canvas.clientWidth / Math.max(1, this.canvas.clientHeight)),
-    );
+    const width = this.canvas.clientWidth,
+      height = this.canvas.clientHeight;
+    // Keep the last valid fit until the canvas has a displayed extent.
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return;
+    const scale = Math.max(1, 0.9 / (width / height));
     if (Math.abs(scale - this.cameraAspectScale) < 0.001) return;
     const ratio = scale / this.cameraAspectScale;
     this.camera.radius *= ratio;
