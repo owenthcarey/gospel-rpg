@@ -5,6 +5,11 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { World } from '../../src/scene/world';
+import { WorkPresentation } from '../../src/scene/work';
+import { workTarget } from '../../src/content/exploration/work';
+import { groundHeight } from '../../src/content/campaign/layouts';
+import { at } from '../helpers/campaign';
+import { preparedSpring } from '../helpers/galilee';
 import { bindExplorationInput } from '../../src/scene/input';
 import { PausedCadence } from '../../src/scene/presentation/cadence';
 import { newGame } from '../../src/game/types';
@@ -201,7 +206,109 @@ function nativeGestures(camera: ArcRotateCamera, enabled: () => boolean) {
   };
 }
 
+function workHandoffStudio() {
+  const s = studio(),
+    state = at(preparedSpring(), 'channel-entry'),
+    target = workTarget(state, 'channel-entry')!;
+  Object.assign(s.fixture.canvas, { clientWidth: 1440, clientHeight: 900 });
+  s.fixture.state = state;
+  s.fixture.position = { ...state.position };
+  s.fixture.player.position.set(
+    state.position.x,
+    groundHeight(state.region, state.position),
+    state.position.z,
+  );
+  const work = new WorkPresentation(
+    s.camera.getScene(),
+    s.camera,
+    s.fixture.canvas as unknown as HTMLCanvasElement,
+  );
+  work.setBounds({ left: 1050, right: 1440, top: 80, bottom: 900 });
+  s.fixture.workView = work;
+  expect(target.near).toBe(true);
+  const framed = () => ({
+    ...s.pose(),
+    target: s.camera.target.asArray(),
+    limits: s.context().limits,
+    viewport: [
+      s.camera.viewport.x,
+      s.camera.viewport.y,
+      s.camera.viewport.width,
+      s.camera.viewport.height,
+    ],
+  });
+  return { ...s, work, target, framed };
+}
+
 describe('command camera timing', () => {
+  it.each([0, 300])(
+    'hands an unfinished dialogue return to actual Work after %s ms without losing its fit or bookmark',
+    (delay) => {
+      // A direct opening supplies the actual Work frame and close bookmark. This
+      // retains the same camera-return fixture used by the original timing cases.
+      const control = workHandoffStudio(),
+        ordinary = control.framed(),
+        expected: ReturnType<typeof control.framed>[] = [];
+      control.world.setWorkFocus(control.target);
+      for (const dt of [0, 100, 600, 100]) {
+        control.render(dt);
+        expected.push(control.framed());
+      }
+      control.world.setWorkFocus();
+      expect(control.framed()).toEqual(ordinary);
+
+      const actual = workHandoffStudio(),
+        saved = structuredClone(actual.fixture.state),
+        nav = { ...actual.fixture.position },
+        player = actual.fixture.player.position.clone();
+      try {
+        actual.returning();
+        if (delay) actual.render(delay);
+        expect(actual.fixture.cameraReturn).toBeDefined();
+        actual.world.setWorkFocus(actual.target);
+        for (const [i, dt] of [0, 100, 600, 100].entries()) {
+          actual.render(dt);
+          expect(actual.framed()).toEqual(expected[i]);
+          expect(actual.fixture.cameraReturn).toBeUndefined();
+        }
+        actual.world.setWorkFocus();
+        expect(actual.framed()).toEqual(ordinary);
+        expect(actual.fixture.state).toEqual(saved);
+        expect(actual.fixture.position).toEqual(nav);
+        expect(actual.fixture.player.position.equals(player)).toBe(true);
+      } finally {
+        actual.work.dispose();
+        control.work.dispose();
+      }
+    },
+  );
+
+  it('preserves an ordinary return on an empty Work publication and retains reduced Work ownership', () => {
+    const actual = workHandoffStudio();
+    try {
+      actual.returning();
+      const pending = actual.fixture.cameraReturn,
+        pose = actual.framed();
+      actual.world.setWorkFocus();
+      expect(actual.fixture.cameraReturn).toBe(pending);
+      expect(actual.framed()).toEqual(pose);
+      actual.world.zoom(0);
+      const ordinary = actual.framed();
+      expect(actual.fixture.cameraReturn).toBeUndefined();
+      actual.fixture.reducedMotion = true;
+      actual.world.setWorkFocus(actual.target);
+      actual.render(0);
+      const reduced = actual.framed();
+      expect(reduced.target).toEqual(actual.work.focusPoint!.asArray());
+      actual.render(100);
+      expect(actual.framed()).toEqual(reduced);
+      actual.world.setWorkFocus();
+      expect(actual.framed()).toEqual(ordinary);
+    } finally {
+      actual.work.dispose();
+    }
+  });
+
   it('settles Face north on a slow visible frame while keeping simulation catch-up capped', () => {
     const { camera, fixture, world, render } = studio();
     world.faceNorth();

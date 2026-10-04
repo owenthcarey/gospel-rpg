@@ -1759,6 +1759,11 @@ export class World {
   }
   setWorkFocus(target?: WorkTarget, preview?: ScreenPreview): void {
     if (target) this.conversationView?.clear();
+    if (target && this.cameraReturn) {
+      // Work owns the next frame; retain the ordinary destination for its bookmark.
+      applyCameraPose(this.camera, this.cameraReturn.to);
+      this.cameraReturn = undefined;
+    }
     if (target) this.stop();
     this.workView?.select(target, this.state, preview);
     this.canvas.dataset.workTarget = target?.id ?? '';

@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Work takes ownership of a returning camera · 2026-10-03
+
+Opening a real Work target during a dialogue camera return now settles that return's recorded ordinary destination before Work captures its bookmark. Work's first fitted frame keeps ownership, and closing Work restores the genuine ordinary view. Empty Work publications retain the existing return. Arrival, manual camera commands, viewport fitting and navigation retain their separate policies.
+
+Against unchanged production, both new immediate/**300 ms** handoff controls fail on the actual first rendered camera: radius **24** and stale angles/target replace the direct Work reference's radius **16.260904138**. They fail in **3.41 seconds**, **4.224 seconds** owner; **22** other cases are skipped. Root places the retained return-absence assertion after the rendered-value gate, so the baseline reaches the visible camera mismatch. After correction, **59 tests / five camera/Work/conversation files** pass in **1.35 seconds**, **1.709 seconds** owner; types/build pass in **6.184 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact groups are independently verified. Original default case deadlines and rendering clocks remain unchanged.
+
+The three added cases reuse the existing camera-keyboard World/synthetic-return fixture, real WorkPresentation and earned preparedSpring/current WorkTarget. Direct Work framing supplies the reference across the first frame, **100 ms** and beyond the old **700 ms** return; clear restores its exact bookmark with state/navigation/player preserved. Empty publication and reduced Work retain their original behavior. The production Leah→nearby rack handoff is separately source-reviewed through overlapping interaction ranges and actual publication order. This is camera-unit evidence, without a new imported-dialogue or native handoff observation. Pending arrival conflicts, native pixel magnitude, hidden handoff and other layout behavior are not newly verified. The preceding gesture commit's full pipeline is not a rerun of this change.
+
 ## Repeated practical gestures retain their displayed pose · 2026-10-03
 
 Restarting the same active finite gesture now captures its displayed local pose before resetting its clock. Opt-in exploration actors use the existing **160 ms** transition; ordinary clip changes retain their original capture path. Default nonblending actors, exact samples without an active finite clock, reduced motion, pause and movement cancellation retain their behavior. No animation asset, action duration, reducer, save or navigation policy changes.
