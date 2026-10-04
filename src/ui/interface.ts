@@ -584,7 +584,9 @@ export class Interface {
           : 'Walking to chosen point'
         : undefined;
     const travelText = plan
-      ? plan.title + ' · ' + (currentTravel ?? plan.message)
+      ? plan.target === destination && currentTravel
+        ? currentTravel
+        : plan.title + ' · ' + (currentTravel ?? plan.message)
       : (currentTravel ?? '');
     const resume = travel.querySelector<HTMLButtonElement>('[data-action="route-resume"]')!;
     resume.hidden = !plan || !!destination;

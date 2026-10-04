@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Concise final route guidance · 2026-10-03
+
+Final named approaches now say **Approaching Olive grove** rather than repeating the destination. Intermediate gateway legs retain the final destination and current gateway; anonymous walks, interruptions, unavailable routes and Resume behavior are unchanged. The existing exact text expectation is updated without adding a case or removing a control.
+
+The existing **39 travel-status/connection tests / two files** pass in **1.50 seconds**, **1.817 seconds** owner; types and production build pass in **5.818 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact process groups are independently verified. Direct normal **512×740** browser play follows the Journal's spring route through both deliberate gateways and reaches its work pane. The intermediate ribbon retains **The spring channel · Approaching The road into Capernaum**. A subsequent local map visit shows **Approaching Tamar** once, with the complete line and Cancel walk visible in the original screenshot and the canvas focused. Full save equality, other layouts and the existing four-gateway browser case remain outside this spot check.
+
 ## Stable work-pane entrance · 2026-10-03
 
 Work panes retain their existing fade but enter without horizontal translation. Their first measured left edge now stays fixed throughout opening, avoiding a transform-only drift in the cached camera reservation. Dimensions, observer updates, actions and focus behavior are unchanged.

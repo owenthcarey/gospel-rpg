@@ -162,7 +162,7 @@ describe('active walk status', () => {
     const { frame, travel, resume, guidance } = studio(savedRoute());
     frame({ x: -7, z: -5 }, 'olive');
     expect(travel.hidden).toBe(false);
-    expect(guidance.textContent).toBe('Olive grove · Approaching Olive grove');
+    expect(guidance.textContent).toBe('Approaching Olive grove');
     expect(resume.hidden).toBe(true);
     frame();
     expect(travel.hidden).toBe(false);
