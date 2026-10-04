@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Nearby prompt dismissal returns its own keyboard focus · 2026-10-03
+
+The existing frame now returns focus from its disappearing Nearby prompt to the canvas when the world remains eligible. A different focused control, visible replacement person, open Journal/Work panel, pause, inert HUD/root and hidden document retain their owner. The original prompt availability, tray order and nearest-person policy remain.
+
+The actual imported frame with its recorded DOM-owner fixture fails against unchanged production: **one failure / 18 skipped**, **0.942 seconds**, **1.641 seconds** owner. Ten added default-deadline cases bring that file to 19 cases. The malformed initial product packaging is preserved unapplied; the first unrelated-control setup is retained before its source-only correction to an actually visible Cancel control. Same-frame tray publication is source-reviewed, not independently executed by this fixture.
+
+After correction, **111 tests / five UI/interaction files** pass in **1.26 seconds**, **1.727 seconds** owner; types/build pass in **11.064 seconds**, lint in **7.142 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. Native keyboard and route attempts do not isolate prompt disappearance and are retained as inconclusive; browser hidden-focus behavior, physical range, other layouts and serialized save equality remain unobserved. The preceding full checkpoint predates this change.
+
 ## Lane patrols resume from their reduced-motion hold · 2026-10-03
 
 Neighborhood's private ambient clock now advances only with normal motion. Reduced Settings already hold the three street neighbors in Idle0; previously their hidden patrol phase kept advancing and reassigned their roots when motion resumed. The next normal callback now takes its ordinary small step from the held phase. Amos's separate physical escort branch still receives its original dt, path, latch and checkpoint policy; no saved clock is added.

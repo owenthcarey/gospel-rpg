@@ -717,8 +717,20 @@ export class Interface {
     this.minimap.update(heading, bounds, position, walkTarget);
     const button = this.root.querySelector<HTMLButtonElement>('#nearby-action')!;
     const person = allInteractables.find((p) => p.id === nearest);
+    const ownedFocus = document.activeElement === button;
     // An explicit available action already serves this object; keep the extra prompt for people.
     button.hidden = !person || (person.kind !== 'person' && this.trayTargets.has(person.id));
+    if (
+      ownedFocus &&
+      button.hidden &&
+      !this.panel &&
+      !this.worldPaused &&
+      !this.graphicsPaused &&
+      !this.hud.inert &&
+      !this.root.inert &&
+      !document.hidden
+    )
+      document.querySelector<HTMLElement>('#game-canvas')?.focus({ preventScroll: true });
     if (nearest !== this.lastNearest) {
       this.lastNearest = nearest;
       if (person)

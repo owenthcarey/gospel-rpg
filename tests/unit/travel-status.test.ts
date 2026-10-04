@@ -15,10 +15,22 @@ function studio(plan?: RoutePlan) {
   };
   const guidance = { textContent: '', title: '', scrollTop: 0 };
   const minimap = { update: vi.fn(), setPaused: vi.fn(), clearDestination: vi.fn() };
-  const nearby = { hidden: true };
+  const dom = { activeElement: null as object | null, hidden: false };
+  const canvas = {
+    focus: vi.fn(() => {
+      dom.activeElement = canvas;
+    }),
+  };
+  const nearby = {
+    hidden: true,
+    focus: () => {
+      dom.activeElement = nearby;
+    },
+  };
   const fixture = Object.assign(Object.create(Interface.prototype), {
     root: {
       dataset: {},
+      inert: false,
       clientHeight: 900,
       clientWidth: 1440,
       querySelector: (selector: string) =>
@@ -32,7 +44,8 @@ function studio(plan?: RoutePlan) {
     trayTargets: new Set(),
     lastNearest: null,
     labels: { inert: false },
-    hud: { querySelectorAll: () => [] },
+    hud: { inert: false, querySelectorAll: () => [] },
+    panel: null,
     minimap,
     worldPaused: false,
     graphicsPaused: false,
@@ -43,15 +56,20 @@ function studio(plan?: RoutePlan) {
     reserveQuestNoticeSpace: vi.fn(),
     pauseWorldControls: vi.fn(),
   });
-  vi.stubGlobal('document', { activeElement: null });
+  vi.stubGlobal(
+    'document',
+    Object.assign(dom, {
+      querySelector: (selector: string) => (selector === '#game-canvas' ? canvas : null),
+    }),
+  );
   vi.stubGlobal(
     'requestAnimationFrame',
     vi.fn(() => 1),
   );
   const ui = fixture as Interface;
-  const frame = (target?: Point, destination?: string) =>
-    ui.frame({ x: -1, z: -3 }, [], -Math.PI / 2, null, destination, target);
-  return { ui, frame, fixture, resume, cancel, travel, guidance, minimap };
+  const frame = (target?: Point, destination?: string, nearest: string | null = null) =>
+    ui.frame({ x: -1, z: -3 }, [], -Math.PI / 2, nearest, destination, target);
+  return { ui, frame, fixture, resume, cancel, travel, guidance, minimap, dom, canvas, nearby };
 }
 
 const savedRoute = () => {
@@ -192,4 +210,65 @@ describe('active walk status', () => {
     expect(resume.hidden).toBe(false);
     expect(resume.disabled).toBe(true);
   });
+});
+
+describe('nearby prompt focus handoff', () => {
+  it('returns its owned focus to the canvas when the nearest prompt disappears', () => {
+    const { frame, nearby, dom, canvas } = studio();
+    frame(undefined, undefined, 'miriam');
+    expect(nearby.hidden).toBe(false);
+    nearby.focus();
+    expect(dom.activeElement).toBe(nearby);
+    frame();
+    expect(nearby.hidden).toBe(true);
+    expect(dom.activeElement).toBe(canvas);
+    expect(canvas.focus).toHaveBeenCalledOnce();
+  });
+
+  it('leaves a different HUD control focused when the nearest prompt disappears', () => {
+    const { frame, nearby, dom, canvas, cancel, travel } = studio();
+    const target = { x: -12, z: -3 };
+    frame(target, undefined, 'miriam');
+    expect(nearby.hidden).toBe(false);
+    expect(travel.hidden).toBe(false);
+    expect(cancel.hidden).toBe(false);
+    expect(cancel.disabled).toBe(false);
+    dom.activeElement = cancel;
+    frame(target);
+    expect(nearby.hidden).toBe(true);
+    expect(travel.hidden).toBe(false);
+    expect(cancel.hidden).toBe(false);
+    expect(cancel.disabled).toBe(false);
+    expect(dom.activeElement).toBe(cancel);
+    expect(canvas.focus).not.toHaveBeenCalled();
+  });
+
+  it('keeps the same visible prompt focused when a different person becomes nearest', () => {
+    const { frame, nearby, dom, canvas } = studio();
+    frame(undefined, undefined, 'miriam');
+    expect(nearby.hidden).toBe(false);
+    nearby.focus();
+    frame(undefined, undefined, 'ezra');
+    expect(nearby.hidden).toBe(false);
+    expect(dom.activeElement).toBe(nearby);
+    expect(canvas.focus).not.toHaveBeenCalled();
+  });
+
+  it.each(['journal', 'work', 'worldPaused', 'graphicsPaused', 'hudInert', 'rootInert', 'hidden'])(
+    'does not return focus to the canvas while %s blocks the world owner',
+    (guard) => {
+      const { frame, nearby, dom, canvas, fixture } = studio();
+      frame(undefined, undefined, 'miriam');
+      expect(nearby.hidden).toBe(false);
+      nearby.focus();
+      if (guard === 'journal' || guard === 'work') fixture.panel = guard;
+      else if (guard === 'hudInert') fixture.hud.inert = true;
+      else if (guard === 'rootInert') fixture.root.inert = true;
+      else if (guard === 'hidden') dom.hidden = true;
+      else fixture[guard] = true;
+      frame();
+      expect(nearby.hidden).toBe(true);
+      expect(canvas.focus).not.toHaveBeenCalled();
+    },
+  );
 });
