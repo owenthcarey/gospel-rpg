@@ -420,6 +420,9 @@ export class Interface {
         openingGuidance(state) ??
           (state.region === 'galilee-water' ? 'Click to steer' : 'Click to walk'),
       );
+    this.root.querySelector('.control-hints > span:nth-child(2)')!.lastChild!.textContent =
+      state.region === 'galilee-water' ? ' Steer' : ' Move';
+
     const quest = questView(state);
     if (this.quest.dataset.content !== quest) {
       const active = document.activeElement;
@@ -1377,7 +1380,10 @@ export class Interface {
         'World name: Shift+F10 / Menu key',
         'Open Choose Option; ↑ / ↓ selects, Enter confirms, Escape cancels',
       ],
-      ['W A S D / arrow keys', 'Move relative to the camera'],
+      [
+        'W A S D / arrow keys',
+        sailing ? 'Steer relative to the camera' : 'Move relative to the camera',
+      ],
       ['E', 'Interact with a nearby person or place'],
       ['Middle or right mouse drag / two fingers', 'Rotate the camera'],
       ['Mouse wheel / pinch / zoom buttons', 'Zoom in or out'],

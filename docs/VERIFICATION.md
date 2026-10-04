@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Sailing keyboard cues · 2026-10-03
+
+The mounted WASD cue and Help row now say **Steer** in the lake crossing and retain **Move** ashore, matching the existing click/minimap descriptions. The four key nodes and trailing text node remain mounted; input, routes and focus behavior are unchanged.
+
+The existing **52 lake/HUD tests / two files** pass in **2.18 seconds**, **2.637 seconds** owner; types and production build pass in **8.011 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact process groups are independently verified. The unchanged desktop Chromium/SwiftShader steering/cancel/pause/reload/docking case passes in **31.2 seconds**, **33.374 seconds** owner; single-case discovery and execution preserve all **710 guards** and independently empty groups. No cases, assertions, deadlines or retries changed.
+
+Direct browser play boards, reloads afloat and docks normally. Both original **1440×900** HUD screenshots show the appropriate complete keyboard label. Both original normal **512×740** Help screenshots show the corresponding camera-relative row; Escape restores the controls opener afloat. The temporary desktop viewport is reset. This accepts these labels and the existing functional journey, without mobile-case, full-state equality or screen-reader claims.
+
 ## Help for the current journey · 2026-10-03
 
 Help now directs the player to the current chapter card instead of sending every saved journey to Simon, who leaves the active scene after the opening story. The first-journey toast retains its opening instruction. Controls, save advice and story state are unchanged.
