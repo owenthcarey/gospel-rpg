@@ -1764,6 +1764,8 @@ export class World {
       applyCameraPose(this.camera, this.cameraReturn.to);
       this.cameraReturn = undefined;
     }
+    // A new Work frame replaces old camera motion; live same-target updates retain input.
+    if (target && target.id !== this.workView?.id) this.stopCameraMotion();
     if (target) this.stop();
     this.workView?.select(target, this.state, preview);
     this.canvas.dataset.workTarget = target?.id ?? '';
