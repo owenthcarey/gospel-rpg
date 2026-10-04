@@ -1314,13 +1314,20 @@ export class World {
     return { ...this.position };
   }
   private fitCamera(): void {
-    if (!this.layout || this.workView?.active || this.conversationView?.active) return;
+    if (!this.layout || this.workView?.active || this.conversationView?.active || document.hidden)
+      return;
     const scale = Math.max(
       1,
       0.9 / (this.canvas.clientWidth / Math.max(1, this.canvas.clientHeight)),
     );
     if (Math.abs(scale - this.cameraAspectScale) < 0.001) return;
-    this.camera.radius *= scale / this.cameraAspectScale;
+    const ratio = scale / this.cameraAspectScale;
+    this.camera.radius *= ratio;
+    // Resize the same return path, without restarting its visible duration.
+    if (this.cameraReturn) {
+      this.cameraReturn.from.radius *= ratio;
+      this.cameraReturn.to.radius *= ratio;
+    }
     this.camera.lowerRadiusLimit = this.layout.camera.min * scale;
     this.camera.upperRadiusLimit = this.layout.camera.max * scale;
     this.cameraAspectScale = scale;
@@ -1766,9 +1773,14 @@ export class World {
         // Restore the exact bookmark, then glide there from the conversation framing.
         const from = cameraPose(this.camera);
         this.conversationView.clear();
+        // Reading owns its viewport fit; restore the ordinary layout at its current size.
+        this.fitCamera();
         this.cameraReturn = { from, to: cameraPose(this.camera), t: 0 };
         applyCameraPose(this.camera, from);
-      } else this.conversationView?.clear();
+      } else {
+        this.conversationView?.clear();
+        this.fitCamera();
+      }
       return;
     }
     this.cameraReturn = undefined;

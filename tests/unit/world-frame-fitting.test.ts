@@ -95,6 +95,11 @@ describe('world camera fitting across skipped paused frames', () => {
   it('defers hidden-tab sizing until the foreground frame is invalidated', () => {
     const { world, camera, size, render, documentState } = pausedFrame();
     documentState.hidden = true;
+    // Interface's resize layout publication also clears an absent conversation.
+    // The synchronous close path must keep the existing hidden-frame deferral.
+    world.setConversation();
+    expect(size.reads).toBe(0);
+    expect(camera.radius).toBe(20);
     world.renderFrame();
     expect(size.reads).toBe(0);
     expect(camera.radius).toBe(20);

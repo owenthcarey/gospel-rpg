@@ -8,7 +8,11 @@ import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { AssetLibrary } from '../../src/scene/assets';
 import { Actor } from '../../src/scene/actors/actor';
 import { ConversationPresentation } from '../../src/scene/presentation/conversation';
-import { frameSubject } from '../../src/scene/presentation/framing';
+import { frameSubject, type CameraPose } from '../../src/scene/presentation/framing';
+import { World } from '../../src/scene/world';
+import { PausedCadence } from '../../src/scene/presentation/cadence';
+import { houseLayout } from '../../src/content/campaign/layouts';
+import { newGame } from '../../src/game/types';
 import { posedVertices } from '../helpers/posed-geometry';
 
 // Intended canonical destination: tests/unit/conversation-opening-framing.test.ts.
@@ -360,5 +364,238 @@ it('restores the exact camera limits, heading and pose bookmarks while keeping n
     expect(f.canvas.dataset.conversation).toBeUndefined();
   } finally {
     f.dispose();
+  }
+});
+
+/** Actual World camera/return ordering with the same imported dialogue participants.
+ * NullEngine has no DOM-backed resize: only its viewport-size boundary follows this
+ * test canvas. World and ConversationPresentation still own all camera/rig writes.
+ */
+function returningDialogue(reduced = false) {
+  const f = fixture(),
+    size = { width: 568, height: 320 },
+    state = newGame();
+  let now = 1000;
+  state.region = 'gathering-house';
+  state.position = { x: f.nav.position.x, z: f.nav.position.z };
+  Object.defineProperties(f.canvas, {
+    clientWidth: { get: () => size.width },
+    clientHeight: { get: () => size.height },
+  });
+  const width = vi.spyOn(engine, 'getRenderWidth').mockImplementation(() => size.width),
+    height = vi.spyOn(engine, 'getRenderHeight').mockImplementation(() => size.height);
+  vi.stubGlobal('performance', { now: () => now });
+  f.camera.radius = houseLayout.camera.radius;
+  f.camera.beta = houseLayout.camera.beta;
+  f.camera.lowerRadiusLimit = houseLayout.camera.min;
+  f.camera.upperRadiusLimit = houseLayout.camera.max;
+  f.camera.target.setAll(0);
+  const world = Object.assign(Object.create(World.prototype), {
+    engine,
+    scene,
+    camera: f.camera,
+    canvas: f.canvas,
+    layout: houseLayout,
+    state,
+    position: { ...state.position },
+    player: f.nav,
+    actorPlayer: f.listener,
+    actors: new Map([['miriam', f.speaker]]),
+    conversationView: f.view,
+    cameraAspectScale: 1,
+    keys: new Set<string>(),
+    path: [],
+    routeDots: [],
+    marker: { setEnabled() {} },
+    boats: [],
+    cutaways: [],
+    occluders: [],
+    destinations: [],
+    dataCache: new Map(),
+    stage: { setView() {}, tick() {} },
+    cadence: new PausedCadence(),
+    callbacks: { frame() {} },
+    active: true,
+    paused: false,
+    reducedMotion: reduced,
+    pendingRotation: 0,
+    time: 0,
+    lastRender: now,
+    lastFrame: Infinity,
+    // The camera fixture has no playerModel, as in camera-keyboard.test.ts;
+    // unrelated traveler support is not part of this camera regression.
+  }) as World;
+  const internal = world as unknown as {
+    cameraAspectScale: number;
+    cameraReturn?: {
+      from: CameraPose;
+      to: CameraPose;
+      t: number;
+    };
+    time: number;
+  };
+  const draw = (milliseconds = 0) => {
+    now += milliseconds;
+    world.renderFrame();
+  };
+  const bounds = () => ({
+    left: 10,
+    right: size.width - 10,
+    top: size.height === 568 ? 240 : 192,
+    bottom: size.height - 10,
+  });
+  const reading = () => world.setConversation('miriam', bounds());
+  const resize = (portrait: boolean) => {
+    size.width = portrait ? 320 : 568;
+    size.height = portrait ? 568 : 320;
+    world.refreshFrame(false);
+  };
+  world.setPaused(true);
+  reading();
+  draw();
+  return {
+    f,
+    world,
+    internal,
+    state,
+    draw,
+    reading,
+    resize,
+    bounds,
+    close: () => {
+      // Interface.close publishes the cleared presentation before main.syncPause resumes.
+      world.setConversation();
+      world.setPaused(false);
+    },
+    dispose: () => {
+      try {
+        f.dispose();
+      } finally {
+        width.mockRestore();
+        height.mockRestore();
+      }
+    },
+  };
+}
+
+it('returns to the resized layout after a portrait dialogue while preserving reading ownership', async () => {
+  await scene.whenReadyAsync();
+  const s = returningDialogue();
+  try {
+    const nav = navigation(s.f),
+      state = structuredClone(s.state),
+      originalClock = clock(s.f);
+    for (const portrait of [true, false, true]) {
+      s.resize(portrait);
+      s.reading();
+      s.draw();
+      // Existing complete skins/five inclusive predicates, at their original320x568 viewport.
+      if (portrait) wholeBodies(s.f, s.bounds());
+      expect(s.internal.cameraAspectScale).toBe(1);
+      expect(s.f.camera.lowerRadiusLimit).toBe(3);
+      expect(s.f.camera.upperRadiusLimit).toBe(100);
+      expect(clock(s.f)).toBe(originalClock);
+      expect(navigation(s.f)).toEqual(nav);
+    }
+    const readingCamera = cameraState(s.f);
+    s.close();
+    expect(s.f.view.active).toBe(false);
+    expect(cameraState(s.f)).toMatchObject({
+      alpha: readingCamera.alpha,
+      beta: readingCamera.beta,
+      radius: readingCamera.radius,
+      target: readingCamera.target,
+    });
+    expect(s.internal.cameraReturn?.t).toBe(0);
+    // The reading source was already fitted to portrait; closing must not scale it twice.
+    expect(s.internal.cameraReturn?.from.radius).toBe(readingCamera.radius);
+    expect(s.internal.cameraReturn?.to.radius).toBeCloseTo(23 * 1.5975, 12);
+    expect(s.f.camera.lowerRadiusLimit).toBeCloseTo(16 * 1.5975, 12);
+    expect(s.f.camera.upperRadiusLimit).toBeCloseTo(28 * 1.5975, 12);
+    s.draw(699);
+    expect(s.internal.cameraReturn).toBeDefined();
+    s.draw(1);
+    expect(s.internal.cameraReturn).toBeUndefined();
+    expect(s.f.camera.radius).toBeCloseTo(23 * 1.5975, 12);
+    expect(s.f.camera.beta).toBe(houseLayout.camera.beta);
+    expect(s.f.camera.target).toEqual(Vector3.Zero());
+    expect(navigation(s.f)).toEqual(nav);
+    expect(s.state).toEqual(state);
+  } finally {
+    s.dispose();
+  }
+});
+
+it.each([100, 350])(
+  'keeps the same return timeline through repeated orientation changes after %s ms',
+  async (elapsed) => {
+    await scene.whenReadyAsync();
+    const s = returningDialogue();
+    try {
+      const nav = navigation(s.f),
+        state = structuredClone(s.state);
+      s.close();
+      s.draw(elapsed);
+      const r = s.internal.cameraReturn!;
+      const original = {
+        t: r.t,
+        from: { ...r.from, target: r.from.target.clone() },
+        to: { ...r.to, target: r.to.target.clone() },
+        time: s.internal.time,
+      };
+      for (const portrait of [true, false, true, false, true]) {
+        s.resize(portrait);
+        s.draw();
+        const scale = portrait ? 1.5975 : 1;
+        expect(s.internal.cameraReturn).toBe(r);
+        expect(r.t).toBe(original.t);
+        expect(s.internal.time).toBe(original.time);
+        expect(r.from.radius).toBeCloseTo(original.from.radius * scale, 12);
+        expect(r.to.radius).toBeCloseTo(original.to.radius * scale, 12);
+        expect({ ...r.from, radius: original.from.radius }).toEqual(original.from);
+        expect({ ...r.to, radius: original.to.radius }).toEqual(original.to);
+        expect(s.f.camera.lowerRadiusLimit).toBeCloseTo(16 * scale, 12);
+        expect(s.f.camera.upperRadiusLimit).toBeCloseTo(28 * scale, 12);
+        expect(navigation(s.f)).toEqual(nav);
+        expect(s.state).toEqual(state);
+      }
+      s.draw(699 - elapsed);
+      expect(s.internal.cameraReturn).toBe(r);
+      s.draw(1);
+      expect(s.internal.cameraReturn).toBeUndefined();
+      expect(s.f.camera.radius).toBeCloseTo(23 * 1.5975, 12);
+      expect(s.f.camera.beta).toBe(houseLayout.camera.beta);
+      expect(s.f.camera.target).toEqual(Vector3.Zero());
+      expect(navigation(s.f)).toEqual(nav);
+      expect(s.state).toEqual(state);
+    } finally {
+      s.dispose();
+    }
+  },
+);
+
+it('restores the current portrait layout immediately after reduced dialogue without a return', async () => {
+  await scene.whenReadyAsync();
+  const s = returningDialogue(true);
+  try {
+    const nav = navigation(s.f),
+      state = structuredClone(s.state);
+    s.resize(true);
+    s.reading();
+    s.draw();
+    wholeBodies(s.f, s.bounds());
+    expect(clock(s.f)).toBe(0);
+    expect(s.internal.cameraAspectScale).toBe(1);
+    s.close();
+    expect(s.internal.cameraReturn).toBeUndefined();
+    expect(s.f.camera.radius).toBeCloseTo(23 * 1.5975, 12);
+    expect(s.f.camera.lowerRadiusLimit).toBeCloseTo(16 * 1.5975, 12);
+    expect(s.f.camera.upperRadiusLimit).toBeCloseTo(28 * 1.5975, 12);
+    s.draw();
+    expect(s.f.camera.radius).toBeCloseTo(23 * 1.5975, 12);
+    expect(navigation(s.f)).toEqual(nav);
+    expect(s.state).toEqual(state);
+  } finally {
+    s.dispose();
   }
 });
