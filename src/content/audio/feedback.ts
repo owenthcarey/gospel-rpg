@@ -4,7 +4,18 @@ import type { SoundEffect } from '../../audio/types';
 export function feedbackForEvent(event: GameEvent): SoundEffect | undefined {
   if (
     event.type.endsWith('reflect') ||
-    (event.type === 'campaign-action' && event.id === 'table-finish') ||
+    (event.type === 'campaign-action' &&
+      ['table-finish', 'walk-finish', 'life-ending-route', 'life-ending-welcome'].includes(
+        event.id,
+      )) ||
+    (event.type === 'road-action' && event.id === 'company-finish') ||
+    (event.type === 'galilee-action' &&
+      [
+        'spring-finish-patience',
+        'spring-finish-sharing',
+        'shelter-finish-welcome',
+        'shelter-finish-care',
+      ].includes(event.id)) ||
     ['lake-ending', 'road-ending', 'finish-village-story', 'listen', 'remember-village'].includes(
       event.type,
     )

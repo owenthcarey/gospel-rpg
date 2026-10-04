@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Ordinary story completion cues · 2026-10-03
+
+Eight previously silent nonphysical endings now reuse the existing completion motif: Amos/Neri walks, both Ruth memories, both spring memories and both shelter memories. The mapper uses exact event types and IDs; table completion and all other existing mappings remain. The accepted-transition caller returns before feedback for rejected/stale repeats, and these endings have no physical motion cue. Bench completion retains its existing placement sound. Preferences, context unlock/pause, effects mix and cooldown are unchanged. The cue acknowledges accepted progress before asynchronous saving.
+
+The existing **129 audio/scheduler/campaign/Road/Galilee/Life tests / six files** pass in **8.56 seconds**, **9.369 seconds** owner; types/build pass in **16.925 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact process groups are independently verified. No new cases or assertions are added. The eight exact mappings, reducer admission and single feedback/motion caller are source-reviewed; native auditory mix judgment remains unobserved. The full pipeline recorded for the prior Carry commit is not a rerun of these later follow-ups.
+
 ## Sailing target instructions in Help · 2026-10-03
 
 The person/object Help row now says **Steer over and interact** aboard the lake boat. It retains the exact **Walk over and interact** sentence on land, using the existing sailing flag. Named target routes still approach before opening their context; docking stays an explicit action. No input, state, row structure or layout behavior changes.
