@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 import { ready, dismiss, exported, readableContrast } from '../helpers/connection-browser';
 import { arrangedShelter, chosenShelter } from '../helpers/galilee';
 
@@ -241,6 +242,331 @@ test('landscape feedback makes room for actions and returns to the overlay for m
   }
 });
 
+/** Case-local Chromium transport for the existing scroll/size/viewport checks. */
+async function compactReachability(page: Page, selector: string, budgetMs: number, sized = true) {
+  const cdp = await page.context().newCDPSession(page);
+  const objectGroup = 'compact-reachability-' + randomUUID();
+  let failed = false;
+  let failure: unknown;
+  const cleanupErrors: unknown[] = [];
+  const check = (result: { exceptionDetails?: unknown }) => {
+    if (result.exceptionDetails)
+      throw new Error(
+        'Compact reachability observation failed: ' + JSON.stringify(result.exceptionDetails),
+      );
+  };
+  const within = async <T>(deadline: number, task: () => Promise<T>): Promise<T> => {
+    if (Date.now() >= deadline) throw new Error('Compact reachability phase budget exhausted');
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const value = await Promise.race([
+        task(),
+        new Promise<never>((_resolve, reject) => {
+          timer = setTimeout(
+            () => reject(new Error('Compact reachability phase timed out')),
+            Math.max(0, deadline - Date.now()),
+          );
+        }),
+      ]);
+      if (Date.now() > deadline) throw new Error('Late compact reachability phase result');
+      return value;
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+    }
+  };
+  const prepare = (selector: string, index: number, deadline: number, strict: boolean) =>
+    new Promise<Element>((resolve, reject) => {
+      const lookup = () => {
+        const elements = [...document.querySelectorAll(selector)];
+        if (!strict) return elements;
+        // Current UI Resume is an actual plain-text BUTTON. Preserve the original exact role/name.
+        return elements.filter((element) => {
+          if (!(element instanceof HTMLButtonElement)) return false;
+          if (element.hasAttribute('aria-labelledby'))
+            throw new Error('Unsupported referenced button name in compact Resume lookup');
+          const label = element.getAttribute('aria-label');
+          const name = (label?.trim() ? label : (element.textContent ?? ''))
+            .replace(/[\u200b\u00ad]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          if (name !== 'Resume route') return false;
+          const role = element.getAttribute('role');
+          if (role !== null && role.trim() !== 'button')
+            throw new Error('Unsupported explicit Resume button role');
+          if (!label?.trim() && element.children.length > 0)
+            throw new Error('Unsupported non-plaintext Resume button name');
+          const style = getComputedStyle(element);
+          if (style.visibility !== 'visible' || !element.checkVisibility()) return false;
+          for (let parent: Element | null = element; parent; parent = parent.parentElement) {
+            if (
+              getComputedStyle(parent).display === 'none' ||
+              parent.getAttribute('aria-hidden')?.toLowerCase() === 'true'
+            )
+              return false;
+          }
+          return true;
+        });
+      };
+      let frame: number | undefined;
+      let wait: number | undefined;
+      let node: Element | undefined;
+      let last: { x: number; y: number; width: number; height: number } | undefined;
+      let attachAttempt = 0;
+      let stableAttempt = 0;
+      const clear = () => {
+        if (frame !== undefined) cancelAnimationFrame(frame);
+        if (wait !== undefined) clearTimeout(wait);
+        clearTimeout(timer);
+      };
+      const fail = (error: unknown) => {
+        clear();
+        reject(error);
+      };
+      const timer = window.setTimeout(
+        () => fail(new Error('Compact button attachment/stability budget exceeded')),
+        Math.max(0, deadline - Date.now()),
+      );
+      const sample = () => {
+        try {
+          if (Date.now() > deadline) throw new Error('Late compact button attachment/stability');
+          if (!node) {
+            const matches = lookup();
+            if (strict && matches.length > 1)
+              throw new Error('Multiple compact Resume route buttons');
+            node = matches[index];
+            if (!node) {
+              wait = window.setTimeout(
+                sample,
+                [20, 50, 100, 100, 500][Math.min(attachAttempt++, 4)]!,
+              );
+              return;
+            }
+          }
+          if (!node.isConnected) throw new Error('Compact button detached during scroll admission');
+          const box = node.getBoundingClientRect();
+          const rect = { x: box.top, y: box.left, width: box.width, height: box.height };
+          if (last) {
+            const stable =
+              rect.x === last.x &&
+              rect.y === last.y &&
+              rect.width === last.width &&
+              rect.height === last.height;
+            if (stable) {
+              clear();
+              resolve(node);
+              return;
+            }
+            last = undefined;
+            wait = window.setTimeout(() => {
+              frame = requestAnimationFrame(sample);
+            }, [0, 20, 100, 100, 500][Math.min(stableAttempt++, 4)]!);
+            return;
+          }
+          last = rect;
+          frame = requestAnimationFrame(sample);
+        } catch (error) {
+          fail(error);
+        }
+      };
+      frame = requestAnimationFrame(sample);
+    });
+  const viewport = function (
+    this: Element,
+    selector: string,
+    index: number,
+    deadline: number,
+    strict: boolean,
+  ) {
+    return new Promise<number>((resolve, reject) => {
+      const lookup = () => {
+        const elements = [...document.querySelectorAll(selector)];
+        if (!strict) return elements;
+        // Current UI Resume is an actual plain-text BUTTON. Preserve the original exact role/name.
+        return elements.filter((element) => {
+          if (!(element instanceof HTMLButtonElement)) return false;
+          if (element.hasAttribute('aria-labelledby'))
+            throw new Error('Unsupported referenced button name in compact Resume lookup');
+          const label = element.getAttribute('aria-label');
+          const name = (label?.trim() ? label : (element.textContent ?? ''))
+            .replace(/[\u200b\u00ad]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          if (name !== 'Resume route') return false;
+          const role = element.getAttribute('role');
+          if (role !== null && role.trim() !== 'button')
+            throw new Error('Unsupported explicit Resume button role');
+          if (!label?.trim() && element.children.length > 0)
+            throw new Error('Unsupported non-plaintext Resume button name');
+          const style = getComputedStyle(element);
+          if (style.visibility !== 'visible' || !element.checkVisibility()) return false;
+          for (let parent: Element | null = element; parent; parent = parent.parentElement) {
+            if (
+              getComputedStyle(parent).display === 'none' ||
+              parent.getAttribute('aria-hidden')?.toLowerCase() === 'true'
+            )
+              return false;
+          }
+          return true;
+        });
+      };
+      let observer: IntersectionObserver | undefined;
+      let frame: number | undefined;
+      let wait: number | undefined;
+      let attempt = 0;
+      const clear = () => {
+        observer?.disconnect();
+        if (frame !== undefined) cancelAnimationFrame(frame);
+        if (wait !== undefined) clearTimeout(wait);
+        clearTimeout(timer);
+      };
+      const fail = (error: unknown) => {
+        clear();
+        reject(error);
+      };
+      const timer = window.setTimeout(
+        () => fail(new Error('Compact button viewport expectation budget exceeded')),
+        Math.max(0, deadline - Date.now()),
+      );
+      const sample = () => {
+        try {
+          if (Date.now() > deadline) throw new Error('Late compact button viewport observation');
+          // The original Locator expectation resolves the current nth match on each attempt.
+          const matches = lookup();
+          if (strict && matches.length > 1)
+            throw new Error('Multiple compact Resume route buttons');
+          const node = matches[index];
+          if (!node?.isConnected) {
+            wait = window.setTimeout(sample, [0, 20, 50, 100, 100, 500][Math.min(attempt++, 5)]!);
+            return;
+          }
+          observer = new IntersectionObserver((entries) => {
+            try {
+              observer?.disconnect();
+              const ratio = entries[0]!.intersectionRatio;
+              if (Date.now() > deadline) throw new Error('Late compact button viewport delivery');
+              // The installed toBeInViewport({ ratio: 1 }) matcher uses this exact predicate.
+              if (ratio > 0 && ratio > 1 - 1e-9) {
+                clear();
+                resolve(ratio);
+                return;
+              }
+              wait = window.setTimeout(sample, [0, 20, 50, 100, 100, 500][Math.min(attempt++, 5)]!);
+            } catch (error) {
+              fail(error);
+            }
+          });
+          observer.observe(node);
+          frame = requestAnimationFrame(() => {});
+        } catch (error) {
+          fail(error);
+        }
+      };
+      sample();
+    });
+  };
+  try {
+    const counted = await cdp.send('Runtime.evaluate', {
+      expression: 'document.querySelectorAll(' + JSON.stringify(selector) + ').length',
+      returnByValue: true,
+    });
+    check(counted);
+    const count = sized ? counted.result.value : 1;
+    if (!Number.isInteger(count) || count < 0) throw new Error('Invalid compact button count');
+    for (let index = 0; index < count; index++) {
+      const actionDeadline = Date.now() + budgetMs;
+      let objectId: string | undefined;
+      let retry = 0;
+      while (true) {
+        const admitted = await within(actionDeadline, () =>
+          cdp.send('Runtime.evaluate', {
+            expression:
+              '(' +
+              prepare.toString() +
+              ')(' +
+              JSON.stringify(selector) +
+              ',' +
+              index +
+              ',' +
+              actionDeadline +
+              ',' +
+              !sized +
+              ')',
+            objectGroup,
+            awaitPromise: true,
+            returnByValue: false,
+          }),
+        );
+        check(admitted);
+        objectId = admitted.result.objectId;
+        if (!objectId || admitted.result.subtype !== 'node')
+          throw new Error('Missing compact button node');
+        if (Date.now() > actionDeadline) throw new Error('Late compact button scroll admission');
+        try {
+          // This is the installed Playwright Chromium scroll primitive, with the same omitted rect.
+          await within(actionDeadline, () => cdp.send('DOM.scrollIntoViewIfNeeded', { objectId }));
+          if (Date.now() > actionDeadline) throw new Error('Late compact button native scroll');
+          break;
+        } catch (error) {
+          if (!String(error).includes('Node does not have a layout object')) throw error;
+          const delay = [0, 20, 100, 100, 500][Math.min(retry++, 4)]!;
+          if (Date.now() + delay >= actionDeadline) throw error;
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+      if (sized) {
+        // Read the original border quad, rather than substituting a rectangle/clipping oracle.
+        const boxDeadline = Date.now() + budgetMs;
+        const result = await within(boxDeadline, () => cdp.send('DOM.getBoxModel', { objectId }));
+        const quad = result.model.border;
+        const x = Math.min(quad[0]!, quad[2]!, quad[4]!, quad[6]!);
+        const y = Math.min(quad[1]!, quad[3]!, quad[5]!, quad[7]!);
+        const width = Math.max(quad[0]!, quad[2]!, quad[4]!, quad[6]!) - x;
+        const height = Math.max(quad[1]!, quad[3]!, quad[5]!, quad[7]!) - y;
+        expect(width).toBeGreaterThanOrEqual(44);
+        expect(height).toBeGreaterThanOrEqual(44);
+      }
+      // The expectation has its original separate budget, starting after the size assertions.
+      const expectDeadline = Date.now() + budgetMs;
+      const observed = await within(expectDeadline, () =>
+        cdp.send('Runtime.callFunctionOn', {
+          objectId,
+          objectGroup,
+          functionDeclaration: viewport.toString(),
+          arguments: [
+            { value: selector },
+            { value: index },
+            { value: expectDeadline },
+            { value: !sized },
+          ],
+          awaitPromise: true,
+          returnByValue: true,
+        }),
+      );
+      check(observed);
+      if (Date.now() > expectDeadline) throw new Error('Late compact button viewport result');
+      const ratio = observed.result.value;
+      expect(typeof ratio === 'number' && ratio > 0 && ratio > 1 - 1e-9).toBe(true);
+    }
+  } catch (error) {
+    failed = true;
+    failure = error;
+  } finally {
+    try {
+      await cdp.send('Runtime.releaseObjectGroup', { objectGroup });
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    try {
+      await cdp.detach();
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+  }
+  if (failed) throw failure;
+  if (cleanupErrors.length)
+    throw new Error('Compact reachability cleanup failed: ' + cleanupErrors.map(String).join('; '));
+}
+
 test('saved routes keep touch controls and nearby work reachable in compact landscapes', async ({
   page,
 }, info) => {
@@ -258,6 +584,7 @@ test('saved routes keep touch controls and nearby work reachable in compact land
   await expect(resume).toBeEnabled();
   const touch =
     info.project.name === 'mobile-chromium' ? await page.context().newCDPSession(page) : undefined;
+  let detachFailure: { error: unknown } | undefined;
   try {
     for (const size of [
       { width: 480, height: 320 },
@@ -456,14 +783,11 @@ test('saved routes keep touch controls and nearby work reachable in compact land
         await expect(page.getByRole('dialog')).toBeHidden();
         await expect(resume).toBeEnabled();
       }
-      const candidates = page.locator('#travel-status button:not([hidden]), #action-tray button');
-      for (const button of await candidates.all()) {
-        await button.scrollIntoViewIfNeeded();
-        const target = (await button.boundingBox())!;
-        expect(target.width).toBeGreaterThanOrEqual(44);
-        expect(target.height).toBeGreaterThanOrEqual(44);
-        await expect(button).toBeInViewport({ ratio: 1 });
-      }
+      await compactReachability(
+        page,
+        '#travel-status button:not([hidden]), #action-tray button',
+        process.env.CI ? 60_000 : 20_000,
+      );
       if (size.height <= 420) await expect(cue).toContainText('↑');
       await actions.evaluate((element) => (element.scrollTop = 0));
       await page.screenshot({
@@ -474,10 +798,18 @@ test('saved routes keep touch controls and nearby work reachable in compact land
       await expect(page.locator('.message-list')).toContainText('Journey exported');
       await dismiss(page);
       await expect(page.locator('#toast')).toBeHidden();
-      await resume.scrollIntoViewIfNeeded();
-      await expect(resume).toBeInViewport({ ratio: 1 });
+      await compactReachability(page, 'button', process.env.CI ? 60_000 : 20_000, false);
     }
   } finally {
-    await touch?.detach();
+    try {
+      await touch?.detach();
+    } catch (error) {
+      detachFailure = { error };
+      info.annotations.push({
+        type: 'cleanup-error',
+        description: 'touch.detach: ' + String(error),
+      });
+    }
   }
+  if (detachFailure) throw detachFailure.error;
 });
