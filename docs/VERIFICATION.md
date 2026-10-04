@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Found lake landing guidance names the remaining memory · 2026-10-03
+
+At the earned arrived stage, the shared lake evidence now acknowledges the sheltered landing and points to sharing a memory with Joel, with an optional Return to Joel destination button. Earlier hints, completed disclosure omission, authored evidence/interpretation and saved fields retain their outputs. The existing travel path still requires explicit boarding/docking and proximity; beside Joel it can reopen his context without choosing an ending. The preserved first proposal's boat-specific sentence was rejected because this same evidence also appears beside Joel; the accepted neutral sentence works in both contexts. The hint reducer still accepts old arrived requests below three: only its UI increment changes.
+
+Existing **130 tests / three Lake/connection/exploration files** pass in **4.69 seconds**, **5.393 seconds** owner; types/build pass in **10.166 seconds**. No new literal-copy assertion or harness is added. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. During preparation, git apply rejected the proposed hunk before execution; exact matching of its sole old/new source line permits adoption, with only Prettier's coalescing parentheses added. Actual arrived Journal/Joel reading, word fit and CTA interaction remain unobserved; the earlier full pipeline is not rerun for this correction.
+
 ## Explicit Work framing retires released camera motion · 2026-10-03
 
 Frame the work now clears preceding button rotation and released native orbit/zoom motion when Work is active, then requests its original next-tick frame. Active-Work Reset delegates to that same path. The command preserves the immediate displayed pose, original ordinary bookmark and existing frame geometry; inactive or missing Work retains its ordinary turn/return policy. New gestures after framing and same-target Work refresh remain usable. Held input, automatic resize framing and close-time button queues remain separate policies.
