@@ -1391,7 +1391,7 @@ export class Interface {
       this.panelShell(
         'Find your own pace',
         'A LITTLE GUIDANCE',
-        `<p class="panel-lead">Speak with Simon by the boats to begin. Follow the chapter card, or wander and discover the village. There is no combat or timer. If a route doesn't match the clues, your observations stay in the journal and you can try again.</p><dl class="controls-list">${rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="content-note">Progress is stored in this browser. Export a save from Settings before clearing browser data or changing devices.</p>`,
+        `<p class="panel-lead">Follow the chapter card to continue your current story, or wander and explore at your own pace. There is no combat or timer. If a route doesn't match the clues, your observations stay in the journal and you can try again.</p><dl class="controls-list">${rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="content-note">Progress is stored in this browser. Export a save from Settings before clearing browser data or changing devices.</p>`,
       ),
     );
   }

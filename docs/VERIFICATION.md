@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Help for the current journey · 2026-10-03
+
+Help now directs the player to the current chapter card instead of sending every saved journey to Simon, who leaves the active scene after the opening story. The first-journey toast retains its opening instruction. Controls, save advice and story state are unchanged.
+
+Typecheck and production build pass in **11.918 seconds** under the original 120-second owner. All **571 guards** agree before, after and at review; final log caps and the exact process group are independently verified. No new cases were added. Direct browser review resumes the completed northern landing at the normal **512×740** viewport: the complete new lead and land keyboard row fit in the original Help screenshot, and Escape restores the actual controls opener. Other layouts, screen-reader delivery and full exported-state equality are outside this spot check.
+
 ## Articulated villager feet and reproducible stance · 2026-10-03
 
 The shipped villager now uses the reviewed **16-bone stance** asset, **316,684 bytes**, SHA-256 `e19ff2fef2b53803c29f9f41e0c3ae0c1ee7da76c500aa209a1f7b34eed42f76`. Both support collectors retain the complete **648 calf/foot vertices**, including **576 foot vertices** and both source-derived **16-point soles**. Stationary support restores the child feet after their parents. The paired rigid hierarchy is validated before support uses it; legacy actors retain their original path. Geometry, topology, palette and unrelated clips retain the reviewed packed contracts. All **97 other models** are unchanged.
