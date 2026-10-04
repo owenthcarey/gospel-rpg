@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Returned pouch guidance names the remaining memory · 2026-10-03
+
+After the pouch is returned, its Journal evidence now acknowledges Ruth has it and directs the remaining memory choice to **Return to Ruth**. The returned-only condition aligns the existing travel button with Life's current goal and both ending actions. Earlier comparison guidance, clue words/destinations and the completed shore revisit retain their outputs. Progress, actions, saved fields and focus policy are unchanged.
+
+Existing **112 Life/exploration/connection tests / three files** pass in **1.71 seconds**, **2.123 seconds** owner; types/build pass in **6.523 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact groups are independently verified. No cases, assertions or deadlines change; proposed literal-render assertions remain unapplied and unrun. The original source-count gate first catches a patch-created `.orig` backup before either child command starts. That backup is verified byte-for-byte against HEAD and moved into review artifacts; the gate and limits remain unchanged. The old returned mismatch is source-established through the genuine return reducer, Ruth ending guards and goal, without an executed failing baseline or native returned Journal reading. Other layouts, full save equality and screen-reader delivery remain unobserved. The earlier full pipeline is not rerun for this wording/destination change.
+
 ## Final practical hints retain their reading owner · 2026-10-03
 
 When the final spring or landing hint removes its own action button, a refresh that dropped that button's focus now selects the surviving help summary. Earlier hint buttons retain their original restoration. The existing same-surface/lost-focus guards preserve later focused controls; missing disclosures and unrelated actions keep the original fallback. No hint words, progression, timer, Tab stop or modal policy changes.
