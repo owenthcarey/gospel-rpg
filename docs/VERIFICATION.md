@@ -2,6 +2,10 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Fresh full checkpoint at cd67ef4 · 2026-10-03
+
+At clean **cd67ef430af3ce3671b43490626e4ce7cf6f6ccf**, a fresh complete check passes evidence validation, types, lint, **1,743 tests / 100 files** and build. Vitest takes **48.01 seconds**, the full owner **72.193 seconds**; subsequent formatting passes in **14.513 seconds**. Root reads both complete logs, verifies all **571 guards** before/after/current, clean Git identity and fresh exact-group cleanup. Original **120-second** owner, **three-second** cleanup, **1 MiB** per-log cap, **four-worker** limit and default test/hook deadlines remain. This owner has no failure or retry; earlier retained timeout outcomes stay separate. The output is **index-BgMe6FK4.js**. The last exact-head hosted snapshot below predates this commit and remains queued; no current hosted success is established.
+
 ## Journal Places describes travel across paths and water · 2026-10-03
 
 The Places lead now mentions paths and lake crossings; its directory command reads **Travel to this place**. Legal boarding records the water region, whose existing directory destination already calls for steering. The former universal walking promise did not describe that route. Only two strings change; authored descriptions, destination IDs, ordering, route selection and explicit boarding/docking retain their behavior.
