@@ -88,12 +88,11 @@ export function posedVertices(root: TransformNode, joint?: string): Vector3[] {
   return root.getChildMeshes().flatMap((mesh) => {
     mesh.skeleton?.prepare(true);
     const data = mesh.getPositionData(Boolean(mesh.skeleton)) ?? [];
-    const joints = mesh.getVerticesData('matricesIndices');
+    const joints = mesh.getVerticesData('matricesIndices'),
+      world = mesh.computeWorldMatrix(true);
     return Array.from({ length: data.length / 3 }, (_, i) => i)
       .filter((i) => !joint || (joints && mesh.skeleton?.bones[joints[i * 4]!]!.name === joint))
-      .map((i) =>
-        Vector3.TransformCoordinates(Vector3.FromArray(data, i * 3), mesh.computeWorldMatrix(true)),
-      );
+      .map((i) => Vector3.TransformCoordinates(Vector3.FromArray(data, i * 3), world));
   });
 }
 /** Bake a review-only copy of visible Babylon geometry in Blender's Z-up coordinates. */

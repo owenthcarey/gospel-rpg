@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Full imported-geometry checkpoint after atmosphere · 2026-10-03
+
+The first clean **f372bde4a77f8ac457fbe68c39201ce28d53514c** full run passes evidence, types, lint and **1,768 tests**, but the two new Lake cases exceed their original **five-second** deadlines. Units take **64.12 seconds**, owner **80.897 seconds**; the later build and format stages are not reached. That failure remains retained.
+
+The shared test reader now computes each mesh's world matrix once after skeleton preparation and CPU skin retrieval, then transforms every selected vertex with the same arithmetic and correspondence. Root/descendant preparation, complete domains, joint filtering, **3 µm Euclidean** limits, hooks and deadlines remain. Forced matrix notifications occur less often; current source has no dependent transform subscriber. This is a verification-reader change, with production unchanged; no exclusive cause or measured speedup claim follows.
+
+With that exact reader refinement over **f372bde**, fresh evidence/types/lint/unit/build checks pass **1,770 tests / 100 files**, units **57.60 seconds**, owner **80.522 seconds**. Subsequent full formatting passes in **11.798 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current and fresh empty groups. Original **120-second** owner, **three-second** cleanup, **1 MiB** per-log cap, four workers and default test/hook deadlines remain. The output stays **index-B4_LrrMT.js**. The run precedes the commit containing this reader and record; no fresh hosted result is established.
+
 ## Atmospheric life survives Reduce motion toggles · 2026-10-03
 
 Ambient particles and oven smoke now clear when Reduce motion is enabled, then restart emission on the actual return to normal motion. Healthy normal quality changes retain their existing particles and phase. Rates, capacities, scene ownership, paused speed, dust, flock and progress retain their policies.
