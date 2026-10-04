@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Lane patrols resume from their reduced-motion hold · 2026-10-03
+
+Neighborhood's private ambient clock now advances only with normal motion. Reduced Settings already hold the three street neighbors in Idle0; previously their hidden patrol phase kept advancing and reassigned their roots when motion resumed. The next normal callback now takes its ordinary small step from the held phase. Amos's separate physical escort branch still receives its original dt, path, latch and checkpoint policy; no saved clock is added.
+
+Against unchanged production, both imported outbound/return histories fail on the first resumed placement/headings against an independently completed normal reference: **two failures / three skipped**, **0.561 seconds**, **1.154 seconds** owner. Outbound's first neighbor resumes at **z -6.033333333333331** instead of **-7.3**. Two new default-deadline cases protect exact three-actor roots/headings through a genuine **two-second** reduced hold, first/second resumed reference placements, positive sub-0.05-metre travel and actual imported stride cadence. The intended Idle-to-Walk pose change remains separate from placement equality. Root's sole source-format delta wraps distance arguments; no executable logic changes.
+
+After correction, **68 tests / four activity-motion/full-NPC/reduced-clearance/companion files** pass in **25.02 seconds**, **25.675 seconds** owner; types/build pass in **15.588 seconds**, lint in **4.616 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. Existing complete lower-envelope thresholds, default hook/case deadlines and reduced Amos/Neri physical travel tests remain unchanged. Native jump/cadence visibility, submitted GPU geometry, other layouts and serialized save equality remain unobserved; the preceding full checkpoint predates this change.
+
 ## Roof's Low crowd gathers on both sides · 2026-10-03
 
 Low quality now keeps two existing neighbors per side of the narrated room instead of all four on its left. One enable predicate selects IDs 0/1/4/5, preserving four neighbors and the two Sit / two Idle-or-Gesture mix. High retains all eight. Principal/bearer transforms, sampling/clocks, mat/ropes, camera, adopted earthen floor, assets and progress retain their behavior; no new draw layer is added.

@@ -152,6 +152,112 @@ it('keeps lane neighbors and the water tender strides at their actual unhurried 
   everyday.dispose();
 });
 
+it.each([
+  ['outbound', 20, 1],
+  ['return', 80, -1],
+] as const)('resumes the %s lane patrol from its reduced-motion hold', (_leg, steps, direction) => {
+  const rate = framePerMetre(),
+    state = newGame(),
+    saved = structuredClone(state),
+    dt = 0.05;
+  state.region = 'capernaum-lanes';
+  saved.region = state.region;
+  const make = () => {
+    const activity = new NeighborhoodActivity(
+      library,
+      new Map(),
+      () => new WalkGrid(),
+      () => {},
+      state.region,
+    );
+    const crowd = (activity as unknown as { crowd: { actor: Actor }[] }).crowd;
+    try {
+      activity.update(state);
+      activity.settings(DEFAULT_SETTINGS);
+    } catch (error) {
+      crowd.forEach(({ actor }) => actor.dispose());
+      activity.dispose();
+      throw error;
+    }
+    return {
+      activity,
+      crowd,
+      tick: () => activity.tick(dt, state.position),
+      placement: () =>
+        crowd.map(({ actor }) => ({
+          position: actor.root.position.asArray(),
+          heading: actor.root.rotation.y,
+        })),
+      dispose() {
+        crowd.forEach(({ actor }) => actor.dispose());
+        activity.dispose();
+      },
+    };
+  };
+
+  // Finish the independent uninterrupted reference before constructing the actual activity.
+  // Its expected arrays/scalars own no live transform or global clock.
+  const reference = make();
+  let held: ReturnType<typeof reference.placement>,
+    first: ReturnType<typeof reference.placement>,
+    second: ReturnType<typeof reference.placement>;
+  try {
+    for (let i = 0; i < steps; i++) reference.tick();
+    held = reference.placement();
+    reference.tick();
+    first = reference.placement();
+    reference.tick();
+    second = reference.placement();
+  } finally {
+    reference.dispose();
+  }
+
+  const actual = make();
+  try {
+    expect(actual.crowd).toHaveLength(3);
+    for (let i = 0; i < steps; i++) actual.tick();
+    expect(actual.placement()).toEqual(held);
+    actual.activity.settings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+    expect(actual.placement()).toEqual(held);
+    for (let i = 0; i < 40; i++) {
+      actual.tick();
+      expect(actual.placement()).toEqual(held);
+      for (const { actor } of actual.crowd)
+        expect(actor.playback).toMatchObject({ clip: 'Idle', frame: 0 });
+    }
+    actual.activity.settings(DEFAULT_SETTINGS);
+    expect(actual.placement()).toEqual(held);
+    actual.tick();
+    expect(actual.placement()).toEqual(first);
+    const started = actual.crowd.map(({ actor }) => ({
+      frame: actor.playback.frame,
+      position: actor.root.position.clone(),
+    }));
+    for (const [i, { actor }] of actual.crowd.entries()) {
+      const moved = distance(
+        { x: held[i]!.position[0]!, z: held[i]!.position[2]! },
+        actor.root.position,
+      );
+      expect(moved).toBeGreaterThan(0);
+      expect(moved).toBeLessThan(0.05);
+      expect(actor.playback.clip).toBe('Walk');
+    }
+    // The first neighbor is genuinely on the selected outbound or return leg.
+    expect((first[0]!.position[2]! - held[0]!.position[2]!) * direction).toBeGreaterThan(0);
+    actual.tick();
+    expect(actual.placement()).toEqual(second);
+    for (const [i, { actor }] of actual.crowd.entries()) {
+      const moved = distance(started[i]!.position, actor.root.position);
+      expect(moved).toBeGreaterThan(0);
+      expect(moved).toBeLessThan(0.05);
+      expect(actor.playback.frame - started[i]!.frame).toBeCloseTo(moved * rate, 5);
+    }
+    expect(state).toEqual(saved);
+  } finally {
+    actual.dispose();
+  }
+});
+
 it('preserves companion travel with reduced motion while holding a stable animation frame', () => {
   const state = newGame();
   state.region = 'capernaum-lanes';

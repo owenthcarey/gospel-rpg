@@ -128,7 +128,7 @@ export class NeighborhoodActivity {
     return this.state.campaign.carrying ? 'Carry' : moving ? 'Walk' : 'Idle';
   }
   tick(dt: number, player: Point): void {
-    this.time += dt;
+    if (!this.still) this.time += dt;
     for (const c of this.crowd) {
       const before = { x: c.actor.root.position.x, z: c.actor.root.position.z };
       const phase = (this.time % c.period) / c.period;
