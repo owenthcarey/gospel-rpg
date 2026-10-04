@@ -2,6 +2,10 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Journal travel native follow-up while afloat · 2026-10-03
+
+At **index-BGVToVPF.js**, the real existing Journey 1 completed-road save reaches the lake through Journal travel, both explicit return gateways and **Board the boat**. Native **512 × 740 / Low / reduced motion / Standard** uses a temporary viewport override. Afloat land and scrolled lake directory rows show the complete travel command and footer in individually read inline images. The lake row reaches the actual split-rock reading; selecting Capernaum afloat requests its landing course, then retains **Dock and step ashore**. The resulting Capernaum walk canvas and shore reading/HUD confirm the actual ashore return. No manual slot is overwritten. This later candidate-only follow-up does not add an original afloat comparison, Large afloat/other-layout acceptance, pixel/contact/GPU measurements, exact save equality or native focus-race reproduction; the original adoption review below retains its historical scope.
+
 ## Scripted crowd arrival samples the distance actually walked · 2026-10-03
 
 The generic Actor route consumer now sums its consumed segment lengths and slows only a positive final callback with unused movement budget. Its existing Walk phase follows actual travel instead of advancing a full nominal step after reaching the endpoint. Full-budget requests, exact coincident handling, roots/headings/routes, reduced endpoint settlement, next-callback Idle and finite gesture timing retain their policies. The genuine shore gathering installs these scripted routes; corner distance uses the path length rather than the endpoint chord.
