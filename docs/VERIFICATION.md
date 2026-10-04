@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Choose Option dismissal keeps a visible world focus owner · 2026-10-03
+
+Restoring dismissal now hides Choose Option before reusing its existing resize focus chooser. The exposed former label remains first choice; an unavailable label falls back to an eligible canvas. Selected action callbacks still run afterward and retain their new focus, while outside-pointer, pause, blur, hidden and disposal cancellation keep their original policy. The world can keep publishing projected labels while the option menu is open; connectivity alone previously admitted a label that had become hidden.
+
+Against unchanged production, both added Escape/Cancel controls restore the connected hidden label rather than the visible canvas in the existing DOM/Scene boundary. The selected cases fail in **0.471 seconds**, **0.947 seconds** owner, with **61** others skipped. Four added default-deadline controls also protect removal of the menu's own occlusion before label hit-testing and later action-callback focus ownership. Existing resize visibility and cancellation gates remain unchanged.
+
+After correction, **83 tests / three interaction/scene-input/classic-camera files** pass in **0.646 seconds**, **1.036 seconds** owner; types/build pass in **15.070 seconds**, lint in **11.285 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. Native review explicitly reloads **index-NNO6QOjo.js** and continues the authentic gathering-house journey at normal **512 × 740 / Low** with reduced motion. Native Shift+F10 opens Choose Option on the visible threshold label; Escape restores that label's AX focus, and its original inline screenshot is visually read. Reopening and pressing J closes the option menu and gives Journal its own focus. A genuinely disappearing native label, Cancel, the complete canonical Simon scenario, other layouts and serialized save equality remain unobserved; the earlier full pipeline is not rerun. Journal is left paused.
+
 ## Reduced Roof holds its carrying tableau · 2026-10-03
 
 Roof now advances its cosmetic clock only when unpaused and normal motion is enabled, matching the other narrated presenters. Its existing reduced rise composition holds MatCarry frame zero with the rolled mat; previously the running clock still translated that frozen rig toward the doorway. The one-line guard preserves the retained clock on settings changes, normal Rise/Idle/MatCarry handoffs, actor sampling, camera, props and gameplay.

@@ -406,9 +406,23 @@ export class InteractionFeedback {
     }, 260);
   }
   private close(restore: boolean) {
-    if (!this.menu.hidden && restore && this.returnFocus?.isConnected)
-      this.returnFocus.focus({ preventScroll: true });
+    const returnToWorld = !this.menu.hidden && restore;
+    // Remove the menu before checking whether its former label is exposed.
     this.menu.hidden = true;
+    if (returnToWorld) this.restoreWorldFocus();
+  }
+  private restoreWorldFocus() {
+    const target = [this.returnFocus, this.input.canvas].find((node): node is HTMLElement => {
+      if (!node?.isConnected || node.hasAttribute('disabled') || node.closest('[hidden], [inert]'))
+        return false;
+      const css = getComputedStyle(node);
+      if (css.visibility !== 'visible' || Number(css.opacity) === 0) return false;
+      const rect = node.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return false;
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return !!hit && (hit === node || node.contains(hit));
+    });
+    target?.focus({ preventScroll: true });
   }
   private clear = () => {
     this.cancelHold();
@@ -431,17 +445,7 @@ export class InteractionFeedback {
     this.clear();
     if (!restore) return;
     // A resized label can disappear. Keep keyboard control on the visible world.
-    const target = [this.returnFocus, this.input.canvas].find((node): node is HTMLElement => {
-      if (!node?.isConnected || node.hasAttribute('disabled') || node.closest('[hidden], [inert]'))
-        return false;
-      const css = getComputedStyle(node);
-      if (css.visibility !== 'visible' || Number(css.opacity) === 0) return false;
-      const rect = node.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return false;
-      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-      return !!hit && (hit === node || node.contains(hit));
-    });
-    target?.focus({ preventScroll: true });
+    this.restoreWorldFocus();
   };
   private clearHover = () => {
     this.hoverView = undefined;

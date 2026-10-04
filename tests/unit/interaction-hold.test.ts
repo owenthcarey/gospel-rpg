@@ -329,6 +329,61 @@ describe('Choose Option resize focus', () => {
     expect(state.document.activeElement).toBe(outside);
   });
 
+  it.each(['Escape', 'Cancel'])(
+    'dismisses with %s to the canvas when the former connected label becomes hidden',
+    (dismissal) => {
+      const state = openMenu();
+      state.label.hidden = true;
+      if (dismissal === 'Cancel') state.cancel.dispatchEvent(new Event('click'));
+      else {
+        const key = new Event('keydown', { cancelable: true });
+        Object.defineProperties(key, {
+          target: { value: state.cancel },
+          key: { value: 'Escape' },
+        });
+        state.document.dispatchEvent(key);
+        expect(key.defaultPrevented).toBe(true);
+      }
+      expect(state.menu.hidden).toBe(true);
+      expect(state.document.activeElement).toBe(state.canvas);
+      expect(state.navigate).not.toHaveBeenCalled();
+      expect(state.walk).not.toHaveBeenCalled();
+      expect(state.notice).not.toHaveBeenCalled();
+    },
+  );
+
+  it('removes the option menu before testing the exposed former label', () => {
+    const state = openMenu();
+    // The real fixed menu is stacked above labels. Its removal exposes the same point.
+    state.menu.bounds = { ...state.label.bounds };
+    state.document.body.replaceChildren(
+      ...state.document.body.children.filter((node) => node !== state.menu),
+      state.menu,
+    );
+    expect(state.document.elementFromPoint(340, 124)).toBe(state.menu);
+    state.cancel.dispatchEvent(new Event('click'));
+    expect(state.menu.hidden).toBe(true);
+    expect(state.document.elementFromPoint(340, 124)).toBe(state.label);
+    expect(state.document.activeElement).toBe(state.label);
+  });
+
+  it('leaves the selected action in control of focus after returning from a hidden label', () => {
+    const state = openMenu();
+    state.label.hidden = true;
+    const conversation = new ElementBoundary();
+    state.navigate.mockImplementation(() => {
+      expect(state.menu.hidden).toBe(true);
+      expect(state.document.activeElement).toBe(state.canvas);
+      state.document.body.append(conversation);
+      conversation.focus();
+    });
+    state.menu.children[1]!.dispatchEvent(new Event('click'));
+    expect(state.navigate).toHaveBeenCalledExactlyOnceWith('boat', undefined);
+    expect(state.document.activeElement).toBe(conversation);
+    expect(state.walk).not.toHaveBeenCalled();
+    expect(state.notice).not.toHaveBeenCalled();
+  });
+
   it('does not focus an unavailable canvas when the label disappears', () => {
     const state = openMenu();
     state.label.hidden = true;
