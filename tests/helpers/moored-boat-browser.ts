@@ -17,6 +17,563 @@ import type { Berth } from '../../src/game/lake/types';
 
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 
+export interface MooredButtonTarget {
+  selector: string;
+  text?: string;
+  aria?: string;
+  optional?: boolean;
+  pointerType?: 'mouse' | 'touch';
+}
+
+interface MooredAdmission {
+  scroll: false;
+  point: { x: number; y: number };
+  rect: number[];
+  count: number;
+  enabled: boolean;
+  rendered: boolean;
+  exposed: boolean;
+  inViewport: boolean;
+  stableFrames: number;
+  ancestors: {
+    tag: string;
+    id: string;
+    bounds: number[];
+    paddingBox: number[];
+    clipBox: number[];
+    clipSource: string;
+    overflowX: string;
+    overflowY: string;
+  }[];
+  viewportOverflow: Record<string, string | boolean | null>;
+}
+interface MooredAttempt {
+  index: number;
+  target: MooredButtonTarget;
+  startedAt: number;
+  budgetMs: number;
+  admission?: null | { scroll: true } | MooredAdmission;
+  skipped?: boolean;
+  completedAt?: number;
+  failure?: string;
+}
+
+/** One case-owned passive observer for ordinary controls; application objects are never read. */
+export async function nativeMooredButtons(
+  page: Page,
+  touch: boolean,
+  info: TestInfo,
+  budgetMs: number,
+) {
+  if (!Number.isFinite(budgetMs) || budgetMs <= 0 || budgetMs > 60_000)
+    throw new Error('Native moored controls require the unchanged action budget');
+  const observer = await page.evaluateHandle((touch) => {
+    const normalized = (text: string | null) => (text ?? '').replace(/\s+/g, ' ').trim();
+    const matches = (target: MooredButtonTarget) =>
+      [...document.querySelectorAll<HTMLButtonElement>(target.selector)].filter(
+        (node) =>
+          (target.text === undefined || normalized(node.textContent) === target.text) &&
+          (target.aria === undefined || node.getAttribute('aria-label') === target.aria),
+      );
+    const measure = (target: MooredButtonTarget, contact?: { x: number; y: number }) => {
+      const nodes = matches(target),
+        node = nodes.length === 1 ? nodes[0] : undefined;
+      const box = node?.getBoundingClientRect(),
+        style = node && getComputedStyle(node);
+      const rect = box ? [box.x, box.y, box.width, box.height] : [NaN, NaN, NaN, NaN];
+      const point = contact ?? { x: rect[0]! + rect[2]! / 2, y: rect[1]! + rect[3]! / 2 };
+      const hit = [point.x, point.y].every(Number.isFinite)
+        ? document.elementFromPoint(point.x, point.y)
+        : null;
+      const visible =
+        !!node?.isConnected &&
+        rect.every(Number.isFinite) &&
+        rect[2]! > 0 &&
+        rect[3]! > 0 &&
+        style?.display !== 'none' &&
+        style?.visibility === 'visible';
+      let rendered =
+        visible && Number(style?.opacity) > 0 && !node?.closest('[hidden],[aria-hidden="true"]');
+      const root = document.documentElement,
+        body = document.body;
+      const rootCSS = getComputedStyle(root),
+        bodyCSS = body ? getComputedStyle(body) : null;
+      const firstBody = [...root.children].find(
+        (child) =>
+          child.tagName === 'BODY' && child.namespaceURI === 'http://www.w3.org/1999/xhtml',
+      );
+      const viewportOverflow = {
+        standardsMode: document.compatMode === 'CSS1Compat',
+        rootIsDocumentElement: root === document.documentElement,
+        rootTag: root.tagName,
+        rootNamespace: root.namespaceURI,
+        rootDisplay: rootCSS.display,
+        rootOverflowX: rootCSS.overflowX,
+        rootOverflowY: rootCSS.overflowY,
+        rootContain: rootCSS.contain,
+        rootContentVisibility: rootCSS.contentVisibility,
+        bodyTag: body?.tagName ?? null,
+        bodyNamespace: body?.namespaceURI ?? null,
+        bodyDisplay: bodyCSS?.display ?? null,
+        bodyContain: bodyCSS?.contain ?? null,
+        bodyContentVisibility: bodyCSS?.contentVisibility ?? null,
+        bodyIsDirectFirstHTMLChild:
+          body !== null && body.parentElement === root && firstBody === body,
+      };
+      const facts = viewportOverflow;
+      const propagated =
+        facts.standardsMode &&
+        facts.rootIsDocumentElement &&
+        facts.rootTag === 'HTML' &&
+        facts.rootNamespace === 'http://www.w3.org/1999/xhtml' &&
+        facts.rootDisplay.length > 0 &&
+        facts.rootDisplay !== 'none' &&
+        facts.rootOverflowX === 'visible' &&
+        facts.rootOverflowY === 'visible' &&
+        facts.rootContain === 'none' &&
+        facts.rootContentVisibility === 'visible' &&
+        facts.bodyTag === 'BODY' &&
+        facts.bodyNamespace === 'http://www.w3.org/1999/xhtml' &&
+        facts.bodyIsDirectFirstHTMLChild &&
+        typeof facts.bodyDisplay === 'string' &&
+        facts.bodyDisplay.length > 0 &&
+        facts.bodyDisplay !== 'none' &&
+        facts.bodyContain === 'none' &&
+        facts.bodyContentVisibility === 'visible';
+      const ancestors: MooredAdmission['ancestors'] = [];
+      let clipped = false;
+      for (let ancestor = node?.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        const css = getComputedStyle(ancestor),
+          bounds = ancestor.getBoundingClientRect();
+        if (css.visibility !== 'visible' || Number(css.opacity) <= 0) rendered = false;
+        const raw = [bounds.left, bounds.top, bounds.right, bounds.bottom];
+        const paddingBox = [
+          bounds.left + ancestor.clientLeft,
+          bounds.top + ancestor.clientTop,
+          bounds.left + ancestor.clientLeft + ancestor.clientWidth,
+          bounds.top + ancestor.clientTop + ancestor.clientHeight,
+        ];
+        const viewportClip = ancestor === body && propagated;
+        const clipBox = viewportClip ? [0, 0, innerWidth, innerHeight] : paddingBox;
+        if (![...raw, ...paddingBox, ...clipBox].every(Number.isFinite))
+          throw new Error('Native moored control has nonfinite ancestor geometry');
+        ancestors.push({
+          tag: ancestor.tagName,
+          id: ancestor.id,
+          bounds: raw,
+          paddingBox,
+          clipBox,
+          clipSource: viewportClip
+            ? 'HTML_BODY_OVERFLOW_PROPAGATED_TO_VIEWPORT'
+            : 'ACTUAL_ANCESTOR_PADDING_BOX',
+          overflowX: css.overflowX,
+          overflowY: css.overflowY,
+        });
+        if (
+          (/(auto|scroll|hidden|clip)/.test(css.overflowX) &&
+            (point.x < clipBox[0]! || point.x > clipBox[2]!)) ||
+          (/(auto|scroll|hidden|clip)/.test(css.overflowY) &&
+            (point.y < clipBox[1]! || point.y > clipBox[3]!))
+        )
+          clipped = true;
+      }
+      return {
+        node,
+        rect,
+        point,
+        ancestors,
+        viewportOverflow,
+        count: nodes.length,
+        visible,
+        rendered,
+        clipped,
+        enabled:
+          !!node &&
+          !node.disabled &&
+          node.getAttribute('aria-disabled') !== 'true' &&
+          !node.closest('[inert]'),
+        exposed: !!node && (hit === node || (!!hit && node.contains(hit))),
+        inViewport: point.x > 0 && point.x < innerWidth && point.y > 0 && point.y < innerHeight,
+      };
+    };
+    const equal = (a: number[], b: number[]) => a.every((value, index) => value === b[index]);
+    type Owner = ReturnType<typeof measure>;
+    let pending:
+      { index: number; target: MooredButtonTarget; owner: Owner; deadline: number } | undefined;
+    let deliveryInvalid = false;
+    let cancelPreparation: (() => void) | undefined;
+    const events: {
+      index: number;
+      type: string;
+      trusted: boolean;
+      pointerType: string;
+      x: number;
+      y: number;
+      at: number;
+      receivedAt: number;
+      deadline: number;
+      withinDeadline: boolean;
+      rect: number[];
+      ancestors: Owner['ancestors'];
+      viewportOverflow: Owner['viewportOverflow'];
+      target: {
+        tag: string | null;
+        action: string | null;
+        value: string | null;
+        aria: string | null;
+        text: string;
+      };
+      owner: {
+        count: number;
+        enabled: boolean;
+        rendered: boolean;
+        exposed: boolean;
+        inViewport: boolean;
+        clipped: boolean;
+        sameNode: boolean;
+        stable: boolean;
+      };
+    }[] = [];
+    const listener = (event: PointerEvent) => {
+      if (!pending) return;
+      const measured = measure(pending.target, { x: event.clientX, y: event.clientY });
+      const actual = event.target instanceof Element ? event.target.closest('button') : null;
+      const receivedAt = Date.now(),
+        withinDeadline = receivedAt < pending.deadline;
+      const expectedPointer = pending.target.pointerType ?? (touch ? 'touch' : 'mouse');
+      if (
+        !event.isTrusted ||
+        event.pointerType !== expectedPointer ||
+        measured.count !== 1 ||
+        !measured.enabled ||
+        !measured.rendered ||
+        !measured.exposed ||
+        !measured.inViewport ||
+        measured.clipped ||
+        actual !== pending.owner.node ||
+        measured.node !== pending.owner.node ||
+        !equal(measured.rect, pending.owner.rect) ||
+        !withinDeadline ||
+        Math.abs(event.clientX - pending.owner.point.x) >= 1 ||
+        Math.abs(event.clientY - pending.owner.point.y) >= 1
+      )
+        deliveryInvalid = true;
+      events.push({
+        index: pending.index,
+        type: event.type,
+        trusted: event.isTrusted,
+        pointerType: event.pointerType,
+        x: event.clientX,
+        y: event.clientY,
+        at: event.timeStamp,
+        receivedAt,
+        deadline: pending.deadline,
+        withinDeadline,
+        rect: measured.rect,
+        ancestors: measured.ancestors,
+        viewportOverflow: measured.viewportOverflow,
+        target: {
+          tag: actual?.tagName ?? null,
+          action: actual?.getAttribute('data-action') ?? null,
+          value: actual?.getAttribute('data-value') ?? null,
+          aria: actual?.getAttribute('aria-label') ?? null,
+          text: normalized(actual?.textContent ?? null),
+        },
+        owner: {
+          count: measured.count,
+          enabled: measured.enabled,
+          rendered: measured.rendered,
+          exposed: measured.exposed,
+          inViewport: measured.inViewport,
+          clipped: measured.clipped,
+          sameNode: actual === pending.owner.node && measured.node === pending.owner.node,
+          stable: equal(measured.rect, pending.owner.rect),
+        },
+      });
+      if (event.type === 'click') pending = undefined;
+    };
+    for (const type of ['pointerdown', 'pointerup', 'click'] as const)
+      window.addEventListener(type, listener, { capture: true, passive: true });
+    return {
+      prepare: (target: MooredButtonTarget, index: number, deadline: number, scrolled: boolean) =>
+        new Promise<null | { scroll: true } | MooredAdmission>((resolve, reject) => {
+          if (deliveryInvalid) {
+            reject(new Error('A prior native moored delivery is invalid'));
+            return;
+          }
+          if (pending || cancelPreparation) {
+            reject(new Error('A native moored control is still pending'));
+            return;
+          }
+          let frame = 0,
+            previous: Owner | undefined,
+            stableFrames = 0,
+            finished = false;
+          const end = () => {
+            finished = true;
+            cancelAnimationFrame(frame);
+            if (timer !== undefined) clearTimeout(timer);
+            cancelPreparation = undefined;
+          };
+          const fail = (reason: string) => {
+            end();
+            reject(new Error(reason));
+          };
+          cancelPreparation = () => fail('Native moored control preparation disposed');
+          const sample = () => {
+            if (finished) return;
+            try {
+              if (Date.now() >= deadline) {
+                fail('Native moored control action budget exceeded');
+                return;
+              }
+              const owner = measure(target);
+              if (owner.count > 1) {
+                fail('Native moored control is not unique: ' + target.selector);
+                return;
+              }
+              if (target.optional && (owner.count === 0 || !owner.visible)) {
+                end();
+                resolve(null);
+                return;
+              }
+              if (
+                owner.count === 1 &&
+                owner.rendered &&
+                owner.enabled &&
+                !scrolled &&
+                (!owner.inViewport || owner.clipped)
+              ) {
+                end();
+                resolve({ scroll: true });
+                return;
+              }
+              if (
+                owner.count === 1 &&
+                owner.enabled &&
+                owner.rendered &&
+                owner.exposed &&
+                owner.inViewport &&
+                !owner.clipped
+              ) {
+                stableFrames =
+                  previous !== undefined &&
+                  previous.node === owner.node &&
+                  equal(previous.rect, owner.rect)
+                    ? stableFrames + 1
+                    : 0;
+                if (stableFrames >= 2) {
+                  pending = { index, target, owner, deadline };
+                  end();
+                  resolve({
+                    scroll: false,
+                    point: owner.point,
+                    rect: owner.rect,
+                    ancestors: owner.ancestors,
+                    viewportOverflow: owner.viewportOverflow,
+                    count: owner.count,
+                    enabled: owner.enabled,
+                    rendered: owner.rendered,
+                    exposed: owner.exposed,
+                    inViewport: owner.inViewport,
+                    stableFrames,
+                  });
+                  return;
+                }
+              } else stableFrames = 0;
+              previous = owner;
+              frame = requestAnimationFrame(sample);
+            } catch (error) {
+              end();
+              reject(error);
+            }
+          };
+          const timer = window.setTimeout(
+            () => fail('Native moored control action budget exceeded'),
+            Math.max(0, deadline - Date.now()),
+          );
+          sample();
+        }),
+      finish: () => {
+        cancelPreparation?.();
+        for (const type of ['pointerdown', 'pointerup', 'click'] as const)
+          window.removeEventListener(type, listener, true);
+        return { events, pendingIndex: pending?.index ?? null, deliveryInvalid };
+      },
+    };
+  }, touch);
+  const attempts: MooredAttempt[] = [];
+  const bounded = async <T>(deadline: number, action: () => Promise<T>): Promise<T> => {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) throw new Error('Native moored control action budget exceeded');
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        action(),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(
+            () => reject(new Error('Native moored control action budget exceeded')),
+            remaining,
+          );
+        }),
+      ]);
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+    }
+  };
+  return {
+    press: async (target: MooredButtonTarget) => {
+      const index = attempts.length,
+        startedAt = Date.now(),
+        deadline = startedAt + budgetMs;
+      const attempt: MooredAttempt = { index, target, startedAt, budgetMs };
+      attempts.push(attempt);
+      try {
+        let admission = await bounded(deadline, () =>
+          observer.evaluate(
+            (value, args) => value.prepare(args.target, args.index, args.deadline, false),
+            { target, index, deadline },
+          ),
+        );
+        if (admission?.scroll) {
+          // Retain the existing locator's scrolling only when the measured center is clipped.
+          let locator = page.locator(target.selector);
+          if (target.text !== undefined) {
+            const escaped = target.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            locator = locator.filter({ hasText: new RegExp('^\\s*' + escaped + '\\s*$') });
+          }
+          if (target.aria !== undefined)
+            locator = locator.and(
+              page.getByRole('button', {
+                name: target.aria,
+                exact: true,
+              }),
+            );
+          await bounded(deadline, () => locator.scrollIntoViewIfNeeded());
+          admission = await bounded(deadline, () =>
+            observer.evaluate(
+              (value, args) => value.prepare(args.target, args.index, args.deadline, true),
+              { target, index, deadline },
+            ),
+          );
+        }
+        attempt.admission = admission;
+        if (admission === null) {
+          attempt.skipped = true;
+          return false;
+        }
+        if (admission.scroll) throw new Error('Native moored control has no final admission');
+        const admitted = admission;
+        expect(admitted).toMatchObject({
+          count: 1,
+          enabled: true,
+          rendered: true,
+          exposed: true,
+          inViewport: true,
+          stableFrames: 2,
+        });
+        const pointerType = target.pointerType ?? (touch ? 'touch' : 'mouse');
+        await bounded(deadline, () =>
+          pointerType === 'touch'
+            ? page.touchscreen.tap(admitted.point.x, admitted.point.y)
+            : page.mouse.click(admitted.point.x, admitted.point.y),
+        );
+        attempt.completedAt = Date.now();
+        if (attempt.completedAt >= deadline)
+          throw new Error('Native moored control action budget exceeded');
+        return true;
+      } catch (error) {
+        attempt.failure = String(error);
+        throw error;
+      }
+    },
+    finish: async () => {
+      let observed: unknown;
+      const failures: string[] = [];
+      try {
+        const packet = await observer.evaluate((value) => value.finish());
+        observed = packet;
+        expect(packet.pendingIndex).toBeNull();
+        expect(packet.deliveryInvalid).toBe(false);
+        const active = attempts.filter((attempt) => !attempt.skipped);
+        expect(packet.events.map((event) => event.index)).toEqual(
+          active.flatMap((attempt) => [attempt.index, attempt.index, attempt.index]),
+        );
+        for (const attempt of attempts) {
+          const delivered = packet.events.filter((event) => event.index === attempt.index);
+          expect(attempt.failure).toBeUndefined();
+          if (attempt.skipped) {
+            expect(attempt.target.optional).toBe(true);
+            expect(attempt.admission).toBeNull();
+            expect(delivered).toEqual([]);
+            continue;
+          }
+          const admission = attempt.admission;
+          if (!admission || admission.scroll) throw new Error('Missing completed native admission');
+          expect(attempt.completedAt).toBeDefined();
+          expect(attempt.completedAt!).toBeLessThan(attempt.startedAt + attempt.budgetMs);
+          expect(delivered.map((event) => event.type)).toEqual([
+            'pointerdown',
+            'pointerup',
+            'click',
+          ]);
+          for (const event of delivered) {
+            expect(event.trusted).toBe(true);
+            expect(event.pointerType).toBe(
+              attempt.target.pointerType ?? (touch ? 'touch' : 'mouse'),
+            );
+            expect(event.owner).toEqual({
+              count: 1,
+              enabled: true,
+              rendered: true,
+              exposed: true,
+              inViewport: true,
+              clipped: false,
+              sameNode: true,
+              stable: true,
+            });
+            expect(event.rect).toEqual(admission.rect);
+            expect(Math.abs(event.x - admission.point.x)).toBeLessThan(1);
+            expect(Math.abs(event.y - admission.point.y)).toBeLessThan(1);
+            expect(event.deadline).toBe(attempt.startedAt + attempt.budgetMs);
+            expect(event.withinDeadline).toBe(true);
+            expect(event.receivedAt).toBeGreaterThanOrEqual(attempt.startedAt);
+            expect(event.receivedAt).toBeLessThan(event.deadline);
+          }
+        }
+      } catch (error) {
+        failures.push('retention/removal/delivery: ' + String(error));
+      }
+      try {
+        await observer.dispose();
+      } catch (error) {
+        failures.push('handle disposal: ' + String(error));
+      }
+      try {
+        await writeFile(
+          info.outputPath('moored-button-native-actions.json'),
+          JSON.stringify(
+            {
+              touch,
+              budgetMs,
+              attempts,
+              observed,
+              cleanupErrors: failures,
+            },
+            null,
+            2,
+          ),
+        );
+      } catch (error) {
+        failures.push('publication: ' + String(error));
+      }
+      if (failures.length) throw new Error(failures.join('\n'));
+    },
+  };
+}
+
+export type NativeMooredButtons = Awaited<ReturnType<typeof nativeMooredButtons>>;
+
 export interface NativeCameraControl {
   name: string;
   count: number;

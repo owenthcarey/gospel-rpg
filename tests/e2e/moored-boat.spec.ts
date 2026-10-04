@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { parseSave } from '../../src/persistence/schema';
@@ -9,7 +9,7 @@ import { lakeGateways } from '../../src/content/lake/places';
 import { examineText } from '../../src/content/examine';
 import type { GameState, Point } from '../../src/game/types';
 import type { Berth } from '../../src/game/lake/types';
-import { dismiss, exported, settled } from '../helpers/connection-browser';
+import { settled } from '../helpers/connection-browser';
 import { observeRadarWalk } from '../helpers/navigation-walk-browser';
 import {
   hullFaces,
@@ -18,13 +18,45 @@ import {
   nativeHullCamera,
   observeHullProjection,
   observeHullOptions,
+  nativeMooredButtons,
+  type NativeMooredButtons,
 } from '../helpers/moored-boat-browser';
 
 const earned = (state: GameState) =>
   Object.fromEntries(
     Object.entries(state).filter(([key]) => key !== 'position' && key !== 'playTime'),
   );
-const activate = (target: Locator, touch: boolean) => (touch ? target.tap() : target.click());
+const dismiss = (buttons: NativeMooredButtons) =>
+  buttons.press({
+    selector: '#overlay button[aria-label="Close menu"]',
+    aria: 'Close menu',
+    optional: true,
+    pointerType: 'mouse',
+  });
+
+/** The same genuine download and parser, with ordinary controls owned at native delivery. */
+async function exported(page: Page, buttons: NativeMooredButtons) {
+  await dismiss(buttons);
+  await buttons.press({
+    selector: '.toolbar button[data-action="settings"]',
+    aria: 'Settings and saves',
+    pointerType: 'mouse',
+  });
+  const download = page.waitForEvent('download');
+  await buttons.press({
+    selector: '#overlay button[data-action="export"]',
+    text: 'Export',
+    pointerType: 'mouse',
+  });
+  return parseSave(JSON.parse(await readFile((await (await download).path())!, 'utf8'))).state;
+}
+
+function nativeActionBudget(info: TestInfo): number {
+  const budget = info.project.use.actionTimeout ?? (process.env.CI ? 60_000 : 20_000);
+  if (typeof budget !== 'number' || !Number.isFinite(budget) || budget <= 0 || budget > 60_000)
+    throw new Error('Moored controls require the unchanged explicit native action budget');
+  return budget;
+}
 
 async function tapRadar(
   page: Page,
@@ -32,9 +64,13 @@ async function tapRadar(
   bounds: { min: number; max: number },
   touch: boolean,
 ) {
-  const screen = await page.locator('.minimap svg').evaluate(
-    (node, { target, bounds }) => {
-      const svg = node as SVGSVGElement,
+  const screen = await page.evaluate(
+    ({ target, bounds }) => {
+      const maps = document.querySelectorAll('.minimap svg'),
+        node = maps[0];
+      if (maps.length !== 1 || !(node instanceof SVGSVGElement) || !node.isConnected)
+        throw new Error('Expected one connected actual minimap SVG for native radar input');
+      const svg = node,
         point = svg.createSVGPoint(),
         scale = 192 / (bounds.max - bounds.min);
       point.x = (target.x - bounds.min) * scale;
@@ -49,7 +85,12 @@ async function tapRadar(
 }
 
 /** Compare every field with the real reducers, using only observed sailing position/heading/time. */
-async function dockNative(page: Page, before: GameState, berth: Berth, touch: boolean) {
+async function dockNative(
+  page: Page,
+  before: GameState,
+  berth: Berth,
+  buttons: NativeMooredButtons,
+) {
   const id = 'dock-' + berth,
     radarPoint = async (): Promise<Point> => {
       const transform = (await page.locator('#minimap-player').getAttribute('transform'))!,
@@ -61,8 +102,8 @@ async function dockNative(page: Page, before: GameState, berth: Berth, touch: bo
   expect(distance(start, before.position)).toBeLessThan(0.05);
   // An already-reached landing opens its context immediately; only a genuine route has a flag.
   const walk = needsRoute ? await observeRadarWalk(page, { min: -25, max: 25 }) : undefined;
-  await activate(page.locator('.toolbar [data-action="map"]'), touch);
-  await activate(page.locator(`.map-destinations [data-value="${id}"]`), touch);
+  await buttons.press({ selector: '.toolbar button[data-action="map"]' });
+  await buttons.press({ selector: `.map-destinations button[data-value="${id}"]` });
   const sailed = walk ? await walk.completed : undefined;
   await expect(
     page.getByRole('heading', { name: LANDINGS[berth].title, exact: true }),
@@ -97,10 +138,10 @@ async function dockNative(page: Page, before: GameState, berth: Berth, touch: bo
   const observedHeading = Number(headingText);
   expect(Number.isFinite(observedHeading)).toBe(true);
   await expect(dock).toBeEnabled();
-  await activate(dock, touch);
+  await buttons.press({ selector: `#overlay button[data-action="journey"][data-value="${id}"]` });
   await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', berth);
   await settled(page);
-  const after = await exported(page);
+  const after = await exported(page, buttons);
   let expected = transition(before, { type: 'route-select', target: id });
   expected.position = { ...arrived };
   expected.lake.boat.position = { ...arrived };
@@ -210,6 +251,8 @@ for (const data of [
       errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     let cleanup: (() => Promise<void>) | undefined;
+    let buttons: NativeMooredButtons | undefined;
+    let buttonCleanupError: unknown;
     const touch = isMobile ? await page.context().newCDPSession(page) : undefined;
     try {
       if (touch)
@@ -218,32 +261,36 @@ for (const data of [
           maxTouchPoints: 5,
         });
       await page.goto('/');
-      await activate(page.getByRole('button', { name: 'Saves & settings', exact: true }), isMobile);
+      buttons = await nativeMooredButtons(page, isMobile, info, nativeActionBudget(info));
+      await buttons.press({
+        selector: 'button.welcome-saves[data-action="settings"]',
+        text: 'Saves & settings',
+      });
       await page.locator('[data-setting="quality"]').selectOption(data.quality);
       await page.locator('[data-setting="reducedMotion"]').setChecked(data.reducedMotion);
       await page.locator('#import-save').setInputFiles(path);
       await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', original.region);
       await settled(page);
-      const imported = await exported(page);
+      const imported = await exported(page, buttons);
       expect(earned(imported)).toEqual(earned(original));
       expect(imported.position).toEqual(original.position);
-      await dismiss(page);
+      await dismiss(buttons);
       const initialDock =
         data.berth === 'reed-landing'
-          ? await dockNative(page, imported, data.berth, isMobile)
+          ? await dockNative(page, imported, data.berth, buttons)
           : undefined;
       let baseline = initialDock?.after ?? imported;
-      await dismiss(page);
+      await dismiss(buttons);
       if (data.berth === 'capernaum') {
         // Bring the real hull into the portrait camera using a legal native shore walk.
         const walk = await observeRadarWalk(page, { min: -24, max: 24 });
         await tapRadar(page, { x: 7, z: -4 }, { min: -24, max: 24 }, isMobile);
         const approach = await walk.completed;
         expect(distance(approach.arrived, { x: 7, z: -4 })).toBeLessThan(0.05);
-        const approached = await exported(page);
+        const approached = await exported(page, buttons);
         expect(earned(approached)).toEqual(earned(baseline));
         baseline = approached;
-        await dismiss(page);
+        await dismiss(buttons);
       }
       expect(baseline.lake.boat).toMatchObject({ mode: 'ashore', berth: data.berth });
       const audit = await page.evaluateHandle(() => {
@@ -350,10 +397,10 @@ for (const data of [
         path: info.outputPath('moored-hull-visit-examine-options.png'),
         scale: 'css',
       });
-      await activate(
-        menu.getByRole('menuitem', { name: 'Examine ' + boatName, exact: true }),
-        isMobile,
-      );
+      await buttons.press({
+        selector: '[role="menu"][aria-label="Choose Option"] button[role="menuitem"]',
+        text: 'Examine ' + boatName,
+      });
       const examineNotice = examineText(lakeGateways.find((p) => p.id === gate)!);
       await expect
         .poll(() =>
@@ -388,9 +435,9 @@ for (const data of [
           noticeCount: 1,
           noticeText: expect.stringContaining(examineNotice),
         });
-      const examined = await exported(page);
+      const examined = await exported(page, buttons);
       expect(examined).toEqual({ ...baseline, playTime: examined.playTime });
-      await dismiss(page);
+      await dismiss(buttons);
       const defaultContact = await visibleHull(
         page,
         data.berth,
@@ -418,14 +465,14 @@ for (const data of [
         page.getByRole('heading', { name: 'An ordinary crossing', exact: true }),
       ).toBeVisible();
       await settled(page);
-      const defaultVisit = await exported(page);
+      const defaultVisit = await exported(page, buttons);
       let expected = transition(examined, { type: 'route-select', target: gate });
       expected.position = { ...defaultVisit.position };
       expected = transition(expected, { type: 'route-arrive', target: gate });
       expected.playTime = defaultVisit.playTime;
       expect(defaultVisit).toEqual(expected);
       expect(defaultVisit.lake.boat.mode).toBe('ashore');
-      await dismiss(page);
+      await dismiss(buttons);
       const visitContact = await visibleHull(
         page,
         data.berth,
@@ -435,15 +482,15 @@ for (const data of [
         'visit-options-camera',
       );
       await openHullOptions('visit-options', visitContact.point);
-      await activate(
-        menu.getByRole('menuitem', { name: 'Visit ' + boatName, exact: true }),
-        isMobile,
-      );
+      await buttons.press({
+        selector: '[role="menu"][aria-label="Choose Option"] button[role="menuitem"]',
+        text: 'Visit ' + boatName,
+      });
       await expect(
         page.getByRole('heading', { name: 'An ordinary crossing', exact: true }),
       ).toBeVisible();
       await settled(page);
-      const visited = await exported(page);
+      const visited = await exported(page, buttons);
       expected = transition(defaultVisit, { type: 'route-select', target: gate });
       expected.position = { ...visited.position };
       expected = transition(expected, { type: 'route-arrive', target: gate });
@@ -451,7 +498,7 @@ for (const data of [
       expect(visited).toEqual(expected);
       expect(visited.lake.boat.mode).toBe('ashore');
       // Export opens settings; return through the same actual model before explicitly boarding.
-      await dismiss(page);
+      await dismiss(buttons);
       const boardContact = await visibleHull(
         page,
         data.berth,
@@ -482,20 +529,19 @@ for (const data of [
         type: 'route-arrive',
         target: gate,
       });
-      await activate(
-        page.locator(`#overlay [data-action="journey"][data-value="${gate}"]`),
-        isMobile,
-      );
+      await buttons.press({
+        selector: `#overlay button[data-action="journey"][data-value="${gate}"]`,
+      });
       await expect(page.locator('#game-canvas')).toHaveAttribute('data-region', 'galilee-water');
       await settled(page);
-      const boarded = await exported(page),
+      const boarded = await exported(page, buttons),
         expectedBoarded = transition(beforeBoard, { type: 'journey', gateway: gate });
       expectedBoarded.playTime = boarded.playTime;
       expect(boarded).toEqual(expectedBoarded);
       expect(boarded.lake.boat.mode).toBe('afloat');
       expect(boarded.position).toEqual(LANDINGS[data.berth].water);
-      await dismiss(page);
-      const returned = await dockNative(page, boarded, data.berth, isMobile);
+      await dismiss(buttons);
+      const returned = await dockNative(page, boarded, data.berth, buttons);
       expect(returned.after.lake.boat).toMatchObject({ mode: 'ashore', berth: data.berth });
       const controls = await audit.evaluate((value) => value.events);
       expect(hullContacts.map((contact) => contact.name)).toEqual([
@@ -541,8 +587,14 @@ for (const data of [
         ),
       );
     } finally {
+      try {
+        await buttons?.finish();
+      } catch (error) {
+        buttonCleanupError = error;
+      }
       await cleanup?.().catch(() => {});
       await touch?.detach().catch(() => {});
     }
+    if (buttonCleanupError) throw buttonCleanupError;
   });
 }
