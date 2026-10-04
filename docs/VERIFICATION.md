@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Quiet earth variation beneath the Roof scene · 2026-10-03
+
+The narrated Roof house now reuses the muted lane-earth palette on its existing flat floor. Eight subdivisions supply interior color samples on the same 16×20 mesh and single material; default non-mosaic painting adds opaque vertex colors without another layer. Floor bounds/heights, shadows, pickability, actors, mat, ropes, shots and progress retain their behavior. Expected 81 vertices / 128 triangles come from the installed builder's source, not a live draw measurement.
+
+Existing **84 tests / four imported presence/motion/campaign/lighting files** pass in **3.13 seconds**, **3.468 seconds** owner; types/build pass in **6.452 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. No new tests or deadline changes are introduced.
+
+Native comparison resumes genuine Rise at normal **512 × 740 / Low / reduced motion** on **index-NNO6QOjo.js**, then explicitly reloads **index-C7o8kwiC.js** and continues the actual autosaved checkpoint. Both original inline images are visually read: the candidate's quieter, darker earth variation retains clear figures, room edges and complete footer, with no obvious added layer or z-fighting in that view. Pixel/color magnitude, fine mat/hand/floor contact, submitted draw cost, High/other shots/layouts and full serialized save equality remain unmeasured. No manual slot is overwritten; the preceding full checkpoint predates this change.
+
 ## Neri waits for the traveler to catch up · 2026-10-03
 
 Road Neri now retains a physical waiting interval after the original five-metre outer stop, resuming below 4.5 metres. Ordinary current-position snapshots, Settings and explicit approach preserve the interval; genuine relocation and route/stage/step/region boundaries reset it. Authored targets, 1.65 m/s speed, 0.15 m stop radius, path/checkpoint admission, completed Sit, assets and saved progress retain their policies.

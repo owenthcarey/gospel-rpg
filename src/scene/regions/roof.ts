@@ -146,11 +146,17 @@ export class RoofRegion implements RegionView {
       size: 150,
       style: 'village',
     });
-    const floor = CreateGround('house-floor', { width: 16, height: 20 }, this.scene);
+    const floor = CreateGround(
+      'house-floor',
+      { width: 16, height: 20, subdivisions: 8 },
+      this.scene,
+    );
     const material = new StandardMaterial('earthen-floor', this.scene);
-    material.diffuseColor = Color3.FromHexString('#a39478');
+    material.diffuseColor = Color3.White();
     material.specularColor = Color3.Black();
     floor.material = material;
+    // Quiet earth variation on this one flat floor, without an added paint mesh.
+    paintGround(floor, 'lane');
     floor.receiveShadows = true;
     floor.isPickable = false;
     const ropeMaterial = new StandardMaterial('lowering-cords', this.scene);
