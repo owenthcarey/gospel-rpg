@@ -1218,23 +1218,20 @@ export class Interface {
     });
   }
   focusCrossing(mode: 'review' | 'feedback' | 'hint'): void {
-    // Replacing a reading panel must keep the relevant clue/control in view.
-    // Run after show()'s initial focus so keyboard users can keep reading.
-    requestAnimationFrame(() => {
-      if (this.panel !== 'journal' && this.panel !== 'context') return;
-      const target = this.overlay.querySelector<HTMLElement>(
-        mode === 'review'
-          ? '.crossing-evidence h3'
-          : mode === 'feedback'
-            ? '.crossing-feedback'
-            : '.crossing-hints summary',
-      );
-      if (!target) return;
-      if (mode !== 'hint') target.tabIndex = -1;
-      target.focus({ preventScroll: true });
-      const reading = mode === 'hint' ? target.closest('.crossing-hints')! : target;
-      reading.scrollIntoView({ block: mode === 'review' ? 'start' : 'nearest' });
-    });
+    // Own the newly mounted reading target now; show() respects focus in this surface.
+    if (this.panel !== 'journal' && this.panel !== 'context') return;
+    const target = this.overlay.querySelector<HTMLElement>(
+      mode === 'review'
+        ? '.crossing-evidence h3'
+        : mode === 'feedback'
+          ? '.crossing-feedback'
+          : '.crossing-hints summary',
+    );
+    if (!target) return;
+    if (mode !== 'hint') target.tabIndex = -1;
+    target.focus({ preventScroll: true });
+    const reading = mode === 'hint' ? target.closest('.crossing-hints')! : target;
+    reading.scrollIntoView({ block: mode === 'review' ? 'start' : 'nearest' });
   }
   inventory(state: GameState): void {
     const inspected = state.inventory[0];
