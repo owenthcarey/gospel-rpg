@@ -2,6 +2,22 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Atmospheric life survives Reduce motion toggles · 2026-10-03
+
+Ambient particles and oven smoke now clear when Reduce motion is enabled, then restart emission on the actual return to normal motion. Healthy normal quality changes retain their existing particles and phase. Rates, capacities, scene ownership, paused speed, dust, flock and progress retain their policies.
+
+The initial unchanged-production run is retained as **five original five-second readiness timeouts / ten skipped**, units **25.25 seconds**, owner **26.122 seconds**; it did not establish a toggle failure. NullEngine's raw-texture factory leaves its returned texture unready. Only the six new particle controls opt into an instance-local adapter that forwards the authored 16×16 RGBA sprite bytes/options to the original factory and supplies its missing public completion flag. Actual particle/shader/Scene readiness, emission and update remain exercised; this fixture does not certify GPU upload or appearance. Nine original cases retain their original fixture path and deadlines.
+
+The fresh unchanged-production baseline reaches the real lifecycle gates and fails all five selected expansions: **five failures / ten skipped / fifteen cases**, units **0.802 seconds**, owner **1.144 seconds**. Road/Nain-gate/gathering-house retain **16/17/27** live particles instead of zero. Both bakehouse resume histories fail the first motes fresh-identity gate; their later smoke assertion is not independently reached in that baseline. The candidate exercises fresh, positively aged particles in both motes and smoke, reduced disappearance, normal quality phase and ordinary pause values/identities. All original bird geometry budgets remain.
+
+Fresh atmosphere/stage/world/presence checks pass **74 tests / four files**, units **10.94 seconds**, owner **11.270 seconds**; types/build **9.378 seconds**, lint **7.693 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact groups. Scoped formatting and whitespace checks pass. The output is **index-B4_LrrMT.js**. Native toggle follow-up is separate; GPU submission, exact save equality and other layouts remain unmeasured. The full 3b04652 checkpoint predates Lake and this change.
+
+Genuine Journal travel reaches the bakehouse through two gateways. Original **BVk / default 512 × 740 / Low / Standard** Settings toggles leave small pale room specks under Reduce, then none obvious after normal return. Explicitly reloaded **B4** continues the real autosave. Its initial viewport is 0×0; a temporary 512×740 override and native Reset camera recover the room, then native rotation exposes the oven. Candidate specks disappear under Reduce and appear again after normal return. Inline images are visually read, with faint smoke acceptance inconclusive and no count, identity, timing or matched-pixel claim. Reduce is restored, the override cleared and normal 512×740 observed; manual slots remain untouched. The zero-size camera hazard is a separate follow-up.
+
+## Crossing hint refresh native follow-up · 2026-10-03
+
+At **index-BVkVPOYe.js / normal default 512 × 740 / Low / reduced motion / Standard**, actual Journey 1 loading, Find Joel, two return gateways and his recollection reach Journal Stories. Three genuine Show more activations reveal hints 1–3. Root visually reads the complete first/final paragraphs and footer, observes summary focus and native Tab to Show more / Read all memories. First-hint body/target geometry agrees with the original observation. Final target bounds also agree, but its scroll offset and story context differ: the candidate has no studied landmarks or exposed feedback. No matched final-state/pixel claim follows. No viewport override or manual-slot overwrite occurs. Deferred-race/replacement and first-paint timing remain unobserved; this page predates Lake's clock change.
+
 ## Lake motion resumes from the pause boundary · 2026-10-03
 
 Lake now records the current timestamp in its pause setter, matching Roof, Nain and Storm. An ordinary same-document resume measures its actual running interval instead of including time since the last paused draw. The original .1-second cap, entrance, reduced tableau, cadence, actor/prop order and progress retain their policies.
