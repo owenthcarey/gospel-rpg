@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Portrait quest controls leave more of the world visible · 2026-10-03
+
+Collapsed ordinary Standard cards at **480–699 px**, tall portrait, place their existing primary action, story selector and toggle in one row. Complete objectives and labels retain their fonts and natural sizing. Large, expanded, short/narrow, landscape and desktop retain their layout policies. The direct expanded story selector separately gains a **44 px** minimum on tall portrait phones; content, actions, DOM order and scroll reservations remain.
+
+Existing HUD/quest/input checks pass **38 tests / three files**, units **0.881 seconds**, owner **1.609 seconds**; types/build **19.919 seconds**, lint **14.816 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh empty groups. No new mirrored CSS tests or deadlines are introduced. The full 1,770-test checkpoint below predates these and the zero-canvas changes.
+
+Original and explicitly reloaded **index-a3BmiM9R.js / index-DbDZ6V4Y.css** native reviews use real story selection in the bakehouse. At **480/512 × 740 / Low / Reduce / Standard**, the complete Follow/Memory cards lose one **44 px** row: crossing and completed landing **201→157 px**, final Road hint **222→178 px**. Full words and three 44 px controls remain exposed; scroll/client widths agree. Expanded Road and Crossing selectors measure 44 px; center/corner hit probes and actual Tab/Shift+Tab/Enter retain Stories and Memories actions. The absolute selector extends upward without growing Crossing's card. Large collapsed reading retains two rows, and its expanded selector is fully exposed. The 479×640 spotcheck retains its existing compact policy. Inline images are visually read; Review the clues, other layouts/devices and notice interruption remain unobserved. Standard, original Crossing tracking and collapsed mode are restored, viewport override cleared and manual slots untouched; no matched-pixel or exact-save claim follows.
+
 ## Camera retains its last fit while the canvas is undisplayed · 2026-10-03
 
 Ordinary fitting now defers nonpositive or nonfinite canvas extents before changing zoom, limits or conversation return endpoints. The next displayed frame uses the original positive aspect math and selected zoom. Work, Conversation, hidden-tab and skipped-frame ownership guards remain; no Reset is required for recovery.

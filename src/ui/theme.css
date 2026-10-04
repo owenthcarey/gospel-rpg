@@ -1752,6 +1752,11 @@
     padding: 0;
   }
 }
+@media (max-width: 699px) and (min-height: 641px) and (orientation: portrait) {
+  :root #ui:not(.scene-mode):not(.working) .quest-card.objective-expanded > .quest-story-selector {
+    min-height: 44px;
+  }
+}
 /* Short portrait exploration keeps one row of quest actions above the world. */
 @media (max-width: 479px) and (max-height: 640px) and (orientation: portrait) {
   :root
@@ -1988,5 +1993,31 @@
   }
   :root .control-hints > span {
     display: none;
+  }
+}
+/* Wider Standard portraits keep the complete quest beside one row of actions. */
+@media (min-width: 480px) and (max-width: 699px) and (min-height: 641px) and (orientation: portrait) {
+  :root[data-text-size='standard']
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):has(> .quest-story-selector) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+  :root[data-text-size='standard']
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):has(> .quest-story-selector)
+    > .secondary-button {
+    grid-column: 1;
+  }
+  :root[data-text-size='standard']
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):has(> .quest-story-selector)
+    > .quest-story-selector {
+    grid-column: 2;
+  }
+  :root[data-text-size='standard']
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):has(> .quest-story-selector)
+    > .objective-toggle {
+    grid-column: 3;
   }
 }
