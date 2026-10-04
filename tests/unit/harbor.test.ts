@@ -86,7 +86,7 @@ describe('working landing', () => {
     let s = harborAction(newGame(), 'accept');
     s = harborAction(s, 'observe-passage');
     s = harborAction(s, 'observe-water');
-    s.position = { ...harborPlace('harbor-plank')! };
+    s.position = { ...harborPlace('harbor-plank', s.harbor)! };
     const event = {
       type: 'harbor-action' as const,
       id: 'turn',
@@ -98,7 +98,7 @@ describe('working landing', () => {
     expect(transition(changed, event)).toBe(changed);
     s.position = { x: -15, z: 10 };
     expect(transition(s, event)).toBe(s);
-    s.position = { ...harborPlace('harbor-plank')! };
+    s.position = { ...harborPlace('harbor-plank', s.harbor)! };
     s.episode.carrying = 'empty-basket';
     expect(harborBlocker(s, 'turn')).toContain('Put down');
     expect(transition(newGame(), event).harbor).toEqual(newHarbor());

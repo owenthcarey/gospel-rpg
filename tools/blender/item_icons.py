@@ -20,14 +20,15 @@ OUT = Path(os.environ.get('GOSPEL_ITEM_OUTPUT') or ROOT / 'public/assets/items')
 REPORT = ROOT / 'artifacts/rfc011'
 SIZE = 64
 
-# Canonical sprite name, existing game model, view direction. Carry aliases such
-# as empty-jug, water-jug and rest-water share the same physical jug silhouette.
+# Canonical sprite name, existing game model, view direction. Jug states keep
+# the same physical silhouette; the filled icon adds water inside its dark rim.
 SPRITES = [
     ('net', 'net_folded', (1.4, -2.0, 4.5)),
     ('bread', 'bread_bundle', (1.5, -3.0, 3.7)),
     ('empty-basket', 'basket_empty', (2.0, -3.0, 2.6)),
     ('bread-basket', 'bread_basket', (2.0, -3.0, 2.6)),
     ('jug', 'jug', (1.2, -4.0, 2.0)),
+    ('water-jug', 'jug', (1.2, -4.0, 2.0)),
     ('cart-handle', 'cart_handle', (1.5, -2.0, 4.2)),
     ('sewing-pouch', 'sewing_pouch', (1.4, -3.8, 2.5)),
     ('lashing-cord', 'lashing_cord', (1.4, -2.0, 4.3)),
@@ -54,6 +55,30 @@ def enum_value(owner, property_name, preferred):
     if preferred not in identifiers:
         raise RuntimeError(f'{property_name}: {preferred} is unavailable in Blender {bpy.app.version_string}')
     return preferred
+
+
+def filled_jug_surface(meshes):
+    """Use the mouth's existing flat cap as matte water in the icon copy only."""
+    points = [obj.matrix_world @ vertex.co for obj in meshes for vertex in obj.data.vertices]
+    top = max(point.z for point in points)
+    material = bpy.data.materials.new('Item water matte blue')
+    material.use_nodes = True
+    shader = next(node for node in material.node_tree.nodes if node.type == 'BSDF_PRINCIPLED')
+    shader.inputs['Base Color'].default_value = (.11, .32, .4, 1)
+    shader.inputs['Roughness'].default_value = 1
+    material.diffuse_color = (.11, .32, .4, 1)
+    faces = 0
+    for obj in meshes:
+        slot = len(obj.data.materials)
+        obj.data.materials.append(material)
+        for face in obj.data.polygons:
+            if all(abs((obj.matrix_world @ obj.data.vertices[i].co).z - top) < .0001
+                   for i in face.vertices):
+                face.material_index = slot
+                faces += 1
+    if not faces:
+        raise RuntimeError('The imported jug needs a flat mouth for its filled icon')
+    return material
 
 
 def run(names=None):
@@ -115,6 +140,7 @@ def run(names=None):
             bpy.ops.import_scene.gltf(filepath=str(source))
             imported = set(scene.objects) - before
             meshes = [obj for obj in imported if obj.type == 'MESH']
+            water = filled_jug_surface(meshes) if name == 'water-jug' else None
             points = [obj.matrix_world @ vertex.co for obj in meshes for vertex in obj.data.vertices]
             minimum = Vector(tuple(min(point[i] for point in points) for i in range(3)))
             maximum = Vector(tuple(max(point[i] for point in points) for i in range(3)))
@@ -141,6 +167,15 @@ def run(names=None):
             for obj in meshes:
                 rim = obj.copy()
                 rim.data = obj.data.copy()
+                if water:
+                    # The enlarged silhouette's closed cap would cover the
+                    # water. Keep its side rim while opening only that cap.
+                    vertices = [tuple(v.co) for v in obj.data.vertices]
+                    faces = [tuple(p.vertices) for p in obj.data.polygons
+                             if obj.data.materials[p.material_index] != water]
+                    rim.data.clear_geometry()
+                    rim.data.from_pydata(vertices, [], faces)
+                    rim.data.update()
                 rim.name = name + ' silhouette edge'
                 scene.collection.objects.link(rim)
                 rim.parent = None

@@ -51,9 +51,10 @@ export class LifeActivity {
       prop('cord-basket', 'basket_empty', 1, 0, 3, 'cord-basket').root.scaling.setAll(0.7);
       prop('cord', 'lashing_cord', 1, 0.32, 3, 'cord-basket');
       this.resting = new Actor(library.instantiate('villager', 'life-resting-neighbor'), true);
-      this.resting.root.position.set(3.45, 0.08, 7);
+      this.resting.root.position.set(3.45, 0.14, 7);
       this.resting.root.rotation.y = Math.PI;
-      this.resting.pose('Sit');
+      this.resting.pose('BenchSit');
+      this.resting.sampleAt('BenchSit', 0);
     }
     if (region === 'capernaum-lanes') {
       prop('pouch', 'sewing_pouch', 6.75, 0.06, 5.3);
@@ -67,8 +68,10 @@ export class LifeActivity {
       for (let i = 0; i < 2; i++) {
         const actor = new Actor(library.instantiate('villager', 'life-table-neighbor-' + i), true);
         const outdoor = region === 'capernaum-lanes';
-        actor.root.position.set((outdoor ? 6 : 0) + (i ? 0.5 : -0.5), 0.08, outdoor ? 1.7 : 0.6);
-        actor.pose('Sit');
+        actor.root.position.set((outdoor ? 6 : 0) + (i ? 0.5 : -0.5), 0.14, outdoor ? 1.7 : 0.6);
+        actor.face({ x: actor.root.position.x, z: outdoor ? 3 : 2 });
+        actor.pose('BenchSit');
+        actor.sampleAt('BenchSit', 0);
         this.company.push(actor);
       }
     }
@@ -116,7 +119,7 @@ export class LifeActivity {
     this.still = s.reducedMotion;
   }
   tick(dt: number): void {
-    this.resting?.sample('Sit', dt, this.still);
-    for (const actor of this.company) actor.sample('Sit', dt, this.still);
+    this.resting?.sample('BenchSit', dt, this.still);
+    for (const actor of this.company) actor.sample('BenchSit', dt, this.still);
   }
 }

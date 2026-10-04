@@ -4,8 +4,9 @@ import { journeyOverview, workSurface } from './views/exploration';
 import { workTarget, type ScreenPreview } from '../content/exploration/work';
 import { requiresWorldView, requiresWorldEvent } from '../game/commands';
 import { trapFocus, restoreFocus, focusLost } from './focus';
+import { layoutDialogueReading } from './dialogue-reading';
 import type { WorkRect } from '../scene/work';
-import { isPresenting, presentationState } from '../game/connection/accounts';
+import { accounts, isPresenting, presentationState } from '../game/connection/accounts';
 import { routePlan, type RoutePlan } from '../game/connection/routes';
 import {
   statusToolbar,
@@ -42,7 +43,7 @@ import {
 } from './views/episode';
 import { regions } from '../content/regions';
 import type { Diagnostics } from '../scene/runtime';
-import { allInteractables, activeInteractables, buildings, shoreline } from '../content/region';
+import { allInteractables, activeInteractables, shoreline } from '../content/region';
 import { items, type Dialogue } from '../content/story';
 import { nearbyActions } from './views/actions';
 import { arrangeLabels, measureLabels } from './labels';
@@ -71,8 +72,9 @@ import { logoLockup } from './logo';
 import { itemArtwork } from './item-art';
 import {
   HintFade,
+  LABEL_NEAR,
   labelExpanded,
-  labelPriority,
+  labelPlacementPriority,
   toastKind,
   TOAST_ICONS,
   type LabelState,
@@ -81,6 +83,7 @@ import {
 import './fonts.css';
 import './theme.css';
 import { MinimapControls, mapPoint } from './minimap';
+import { capernaumMapScenery } from './map-scenery';
 import './satchel-map.css';
 import './classic-reading.css';
 import { MessageHistory } from './messages';
@@ -120,12 +123,66 @@ export class Interface {
   private readonly hudReservations: { node: HTMLElement; lower: boolean }[];
   private readonly toastNode: HTMLElement;
   private readonly noticeActions: HTMLElement;
+  private readonly routeGuidance: HTMLElement;
+  private readonly routeScrollCue: HTMLElement;
+  private routeCueFrame?: number;
   private readonly actionScrollCue: HTMLElement;
   private readonly actionScrollObserver: ResizeObserver;
-  private readonly onActionScroll = () => this.updateActionScrollCue();
+  private readonly onActionScroll = () => {
+    this.updateActionScrollCue();
+    this.updateRouteScrollCue();
+    this.onPausedNoticeLayout();
+  };
+  private readonly onRouteScroll = () => this.updateRouteScrollCue();
+  private readonly onRouteKey = (event: KeyboardEvent) => {
+    if (
+      event.target instanceof HTMLElement &&
+      event.target.closest('.travel-guidance') &&
+      [
+        'w',
+        'a',
+        's',
+        'd',
+        'arrowup',
+        'arrowdown',
+        'arrowleft',
+        'arrowright',
+        'q',
+        'e',
+        'r',
+        'pageup',
+        'pagedown',
+        'home',
+        'end',
+        ' ',
+      ].includes(event.key.toLowerCase())
+    )
+      // Let the native reading area scroll without passing movement to the world.
+      event.stopPropagation();
+  };
   private readonly shortLandscape: MediaQueryList;
+  private readonly shortPortrait: MediaQueryList;
+  private cameraControls: HTMLElement;
+  private cameraCommands: HTMLElement;
+  private cameraToggle: HTMLButtonElement;
+  private cameraExpanded = false;
   private readonly onNoticeLayout = () => this.placeNotice(true);
+  private readonly onPausedNoticeLayout = () => {
+    if (this.graphicsPaused) this.placeNotice(true);
+  };
   private readonly onMenuResize = () => {
+    this.renderCameraDisclosure();
+    // Publish the new panel bounds before the next render, including paused conversations.
+    this.measureWork();
+    const active = document.activeElement;
+    if (
+      this.panel === 'dialogue' &&
+      active instanceof HTMLButtonElement &&
+      this.overlay.contains(active) &&
+      active.closest('.dialogue-box[data-conversation-person] .dialogue-main')
+    )
+      active.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+    this.onPausedNoticeLayout();
     if (this.panel === 'welcome') {
       const active = document.activeElement;
       if (active instanceof HTMLElement && this.overlay.contains(active))
@@ -136,6 +193,7 @@ export class Interface {
   };
   private labels: HTMLElement;
   private quest: HTMLElement;
+  private pendingQuestReveal?: HTMLElement;
   private toastTimer?: ReturnType<typeof setTimeout>;
   private heldNotice?: { message: string; kind: ToastKind };
   private hints = new HintFade();
@@ -148,6 +206,7 @@ export class Interface {
   private active = false;
   private currentState?: GameState;
   private travelPlan?: RoutePlan;
+  private activeWalkTarget?: Point;
   private scenePaused = false;
   private sceneControls: HTMLElement;
   private lastNearest: string | null = null;
@@ -182,8 +241,8 @@ export class Interface {
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
         <div id="world-labels" class="world-labels" aria-label="People and places"></div>
         <div class="traveler-card"><div class="traveler-seal">${icon('person')}</div><div><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
-        <div class="bottom-center"><div class="hud-actions"><div id="travel-status" class="travel-status" role="status" hidden><span></span><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
-        <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="7" font-family="Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><div class="camera-controls" role="group" aria-label="Camera"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div>
+        <div class="bottom-center"><div class="hud-actions"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" aria-describedby="unread-message-description" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span><span id="unread-message-description" class="sr-only">No unread game messages</span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
+        <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="7" font-family="Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
       </div>
       <section id="scene-controls" class="scene-controls" aria-labelledby="scene-title" hidden></section><div id="overlay"></div><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
       <div id="announcer" class="sr-only" aria-live="polite"></div>`;
@@ -192,14 +251,31 @@ export class Interface {
     this.hud = root.querySelector('#hud')!;
     this.toastNode = root.querySelector('#toast')!;
     this.noticeActions = this.hud.querySelector('.hud-actions')!;
+    this.routeGuidance = this.hud.querySelector('.travel-guidance')!;
+    this.routeScrollCue = this.hud.querySelector('.route-scroll-cue')!;
     this.shortLandscape = window.matchMedia('(min-width: 480px) and (max-height: 420px)');
+    this.shortPortrait = window.matchMedia(
+      '(max-width: 479px) and (max-height: 640px) and (orientation: portrait)',
+    );
+    this.cameraControls = this.hud.querySelector('.camera-controls')!;
+    this.cameraCommands = this.hud.querySelector('.camera-command-buttons')!;
+    this.cameraToggle = this.hud.querySelector('.camera-disclosure')!;
     this.shortLandscape.addEventListener('change', this.onNoticeLayout);
     window.addEventListener('resize', this.onMenuResize);
     this.actionScrollCue = this.hud.querySelector('.action-scroll-cue')!;
     this.actionScrollObserver = new ResizeObserver(this.onActionScroll);
-    for (const node of [this.noticeActions, this.toastNode, ...this.noticeActions.children])
+    for (const node of [
+      this.noticeActions,
+      this.toastNode,
+      this.routeGuidance,
+      this.hud.querySelector<HTMLElement>('#travel-status')!,
+      ...this.noticeActions.children,
+    ])
       this.actionScrollObserver.observe(node);
+    this.routeGuidance.addEventListener('scroll', this.onRouteScroll, { passive: true });
+    root.addEventListener('keydown', this.onRouteKey);
     this.noticeActions.addEventListener('scroll', this.onActionScroll, { passive: true });
+    this.toastNode.addEventListener('animationend', this.onPausedNoticeLayout);
     this.hudReservations = [
       ...this.hud.querySelectorAll<HTMLElement>(
         '.topbar,.quest-card,.minimap-wrap,.minimap-compass,.minimap-open,.bottom-center,.traveler-card',
@@ -236,6 +312,10 @@ export class Interface {
     }
     this.onClick = (e) => {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+      if (button?.dataset.action === 'camera-toggle') {
+        if (!button.hasAttribute('disabled')) this.toggleCameraDisclosure();
+        return;
+      }
       if (button?.dataset.action === 'conversation-pause') {
         this.conversationPaused = !this.conversationPaused;
         button.setAttribute('aria-pressed', String(this.conversationPaused));
@@ -274,6 +354,20 @@ export class Interface {
     };
     this.onKey = (e) => {
       this.completeReveal();
+      if (
+        e.key === 'Escape' &&
+        !this.panel &&
+        this.cameraControls.classList.contains('camera-compact') &&
+        this.cameraExpanded &&
+        e.target instanceof Node &&
+        this.cameraControls.contains(e.target) &&
+        !this.cameraControls.inert &&
+        !this.root.inert
+      ) {
+        e.preventDefault();
+        this.toggleCameraDisclosure();
+        return;
+      }
       if (this.panel && this.panel !== 'work') {
         trapFocus(e, this.overlay);
         if (e.key === 'Tab') this.revealReadingFocus();
@@ -295,12 +389,14 @@ export class Interface {
     this.hud.hidden = false;
     this.close();
   }
-  update(state: GameState): void {
+  update(state: GameState, trackingRefresh = false): void {
     this.currentState = structuredClone(state);
     this.travelPlan = routePlan(state);
+    if (this.graphicsPaused) this.renderTravelStatus();
     const inScene = isPresenting(state);
     const view = presentationState(state);
     this.root.classList.toggle('scene-mode', inScene);
+    this.renderCameraDisclosure();
     this.placeNotice();
     this.sceneControls.hidden = !inScene || !this.active;
     const sceneKey = inScene ? view.region + ':' + this.sceneCheckpoint(view) : '';
@@ -324,14 +420,50 @@ export class Interface {
         openingGuidance(state) ??
           (state.region === 'galilee-water' ? 'Click to steer' : 'Click to walk'),
       );
+    this.root.querySelector('.control-hints > span:nth-child(2)')!.lastChild!.textContent =
+      state.region === 'galilee-water' ? ' Steer' : ' Move';
+
     const quest = questView(state);
     if (this.quest.dataset.content !== quest) {
+      const active = document.activeElement;
+      const restore = active instanceof HTMLElement && this.quest.contains(active);
+      const action = restore ? active.dataset.action : undefined;
+      const value = restore ? active.dataset.value : undefined;
+      const shortcut = restore && active.matches('.village-shortcut');
+      const scroll = this.quest.scrollTop;
       this.quest.dataset.content = quest;
       this.quest.innerHTML =
         quest +
         '<button class="objective-toggle text-button" data-action="objective-toggle" aria-expanded="false">Show steps</button>';
       this.renderObjective();
+      if (restore) {
+        this.quest.scrollTop = scroll;
+        const surface = this.quest.firstElementChild;
+        requestAnimationFrame(() => {
+          if (
+            this.quest.firstElementChild !== surface ||
+            !this.quest.isConnected ||
+            this.hud.hidden ||
+            this.hud.inert ||
+            this.root.inert ||
+            !focusLost()
+          )
+            return;
+          // Story toggles change their value while retaining the same place in the card.
+          const inverse = shortcut
+            ? this.quest.querySelector<HTMLButtonElement>('.village-shortcut:not(:disabled)')
+            : null;
+          restoreFocus(this.quest, action, inverse?.dataset.value ?? value);
+          const focused = document.activeElement;
+          if (focused instanceof HTMLElement && this.quest.contains(focused))
+            focused.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+        });
+      }
     }
+    this.pendingQuestReveal =
+      trackingRefresh && this.objectiveExpanded && !this.panel
+        ? (this.quest.querySelector<HTMLElement>('.village-shortcut') ?? undefined)
+        : undefined;
     this.root.querySelector('.time-of-day span')!.textContent =
       this.atmosphere ??
       (state.region === 'capernaum'
@@ -341,6 +473,19 @@ export class Interface {
           : 'Some days later');
     const minimap = this.root.querySelector('.minimap')!;
     minimap.innerHTML = this.mapSvg(false, state.position, state);
+    const sailing = state.region === 'galilee-water';
+    minimap.setAttribute(
+      'aria-label',
+      sailing
+        ? 'Steer using minimap; press Enter to open local map'
+        : 'Walk using minimap; press Enter to open local map',
+    );
+    minimap.setAttribute(
+      'title',
+      sailing
+        ? 'Click to steer. Enter opens the local map.'
+        : 'Click to walk. Enter opens the local map.',
+    );
     const region = regions[view.region];
     const regionTitle = this.root.querySelector('.region-title')!;
     regionTitle.innerHTML =
@@ -371,7 +516,92 @@ export class Interface {
       marker.classList.toggle('map-target', id === objectiveTarget(state) && !finished);
     }
     const announcer = this.root.querySelector('#announcer')!;
-    announcer.textContent = objective(state);
+    const nextObjective = objective(state);
+    if (announcer.textContent !== nextObjective) announcer.textContent = nextObjective;
+  }
+  private renderCameraDisclosure(): void {
+    const compact =
+      this.shortPortrait.matches &&
+      this.active &&
+      !this.panel &&
+      !this.root.classList.contains('scene-mode') &&
+      !this.worldPaused &&
+      !this.graphicsPaused;
+    const active = document.activeElement;
+    // Keep an existing camera selection available when the viewport becomes compact.
+    if (compact && active instanceof Node && this.cameraCommands.contains(active))
+      this.cameraExpanded = true;
+    // The ordinary layout has no disclosure; retain a live camera focus destination.
+    if (
+      !compact &&
+      active === this.cameraToggle &&
+      !this.panel &&
+      !this.worldPaused &&
+      !this.graphicsPaused &&
+      !this.root.inert
+    )
+      this.cameraCommands
+        .querySelector<HTMLButtonElement>('[data-action="reset-camera"]')
+        ?.focus({ preventScroll: true });
+    this.cameraControls.classList.toggle('camera-compact', compact);
+    this.cameraControls.classList.toggle('camera-expanded', compact && this.cameraExpanded);
+    this.cameraToggle.hidden = !compact;
+    this.cameraToggle.textContent = this.cameraExpanded ? 'Hide' : 'Camera';
+    this.cameraToggle.setAttribute(
+      'aria-label',
+      this.cameraExpanded ? 'Hide camera controls' : 'Show camera controls',
+    );
+    this.cameraToggle.setAttribute('aria-expanded', String(compact && this.cameraExpanded));
+  }
+  private toggleCameraDisclosure(): void {
+    if (this.cameraToggle.hidden || this.cameraToggle.disabled || this.cameraControls.inert) return;
+    this.cameraExpanded = !this.cameraExpanded;
+    if (
+      !this.cameraExpanded &&
+      document.activeElement instanceof Node &&
+      this.cameraCommands.contains(document.activeElement)
+    )
+      this.cameraToggle.focus({ preventScroll: true });
+    this.renderCameraDisclosure();
+    this.noteInteraction();
+    this.placeNotice(true);
+  }
+  private renderTravelStatus(destination?: string): void {
+    const travel = this.root.querySelector<HTMLElement>('#travel-status')!;
+    const selected = allInteractables.find((p) => p.id === destination);
+    const plan = this.travelPlan;
+    const walking = !!this.activeWalkTarget && !this.worldPaused && !this.graphicsPaused;
+    const cancel = travel.querySelector<HTMLButtonElement>('[data-action="cancel-navigation"]')!;
+    const cancelText =
+      this.currentState?.region === 'galilee-water' ? 'Cancel course' : 'Cancel walk';
+    if (cancel.textContent !== cancelText) cancel.textContent = cancelText;
+    travel.hidden = !selected && !plan && !walking;
+    const currentTravel = selected
+      ? 'Approaching ' + selected.name
+      : walking
+        ? this.currentState?.region === 'galilee-water'
+          ? 'Steering to chosen point'
+          : 'Walking to chosen point'
+        : undefined;
+    const travelText = plan
+      ? plan.title + ' · ' + (currentTravel ?? plan.message)
+      : (currentTravel ?? '');
+    const resume = travel.querySelector<HTMLButtonElement>('[data-action="route-resume"]')!;
+    resume.hidden = !plan || !!destination;
+    if (resume.dataset.pauseDisabled !== undefined) {
+      resume.dataset.pauseDisabled = String(!plan?.available);
+      resume.disabled = true;
+    } else resume.disabled = !plan?.available;
+    if (this.routeGuidance.textContent !== travelText) {
+      this.routeGuidance.textContent = travelText;
+      this.routeGuidance.title = travelText;
+      this.routeGuidance.scrollTop = 0;
+      if (this.routeCueFrame === undefined)
+        this.routeCueFrame = requestAnimationFrame(() => {
+          this.routeCueFrame = undefined;
+          this.updateRouteScrollCue();
+        });
+    }
   }
   frame(
     position: Point,
@@ -381,22 +611,8 @@ export class Interface {
     destination?: string,
     walkTarget?: Point,
   ): void {
-    const travel = this.root.querySelector<HTMLElement>('#travel-status')!;
-    const selected = allInteractables.find((p) => p.id === destination);
-    const plan = this.travelPlan;
-    travel.hidden = !selected && !plan;
-    const travelText = plan
-      ? plan.title + ' · ' + (selected ? 'Approaching ' + selected.name : plan.message)
-      : selected
-        ? 'Approaching ' + selected.name
-        : '';
-    const resume = travel.querySelector<HTMLButtonElement>('[data-action="route-resume"]')!;
-    resume.hidden = !plan || !!destination;
-    resume.disabled = !plan?.available;
-    if (travel.querySelector('span')!.textContent !== travelText) {
-      travel.querySelector('span')!.textContent = travelText;
-      travel.querySelector('span')!.title = travelText;
-    }
+    this.activeWalkTarget = this.worldPaused || this.graphicsPaused ? undefined : walkTarget;
+    this.renderTravelStatus(destination);
     if (this.lastPosition)
       this.setHintsFaded(
         this.hints.move(
@@ -426,19 +642,56 @@ export class Interface {
     // Notice clearance and world names share the same current HUD measurements.
     const hudBounds = this.hudReservations
       .filter(({ node }) => node.offsetHeight > 0)
-      .map(({ node, lower }) => ({ lower, rect: node.getBoundingClientRect() }));
+      .map(({ node, lower }) => ({ node, lower, rect: node.getBoundingClientRect() }));
     this.setNoticeClearance(height, hudBounds);
+    const noticeBounds =
+      !this.toastNode.hidden && this.toastNode.offsetHeight > 0
+        ? this.toastNode.getBoundingClientRect()
+        : undefined;
+    this.reserveQuestNoticeSpace(
+      hudBounds.find(({ node }) => node === this.quest)?.rect,
+      noticeBounds,
+    );
+    const arrival = this.root.querySelector<HTMLElement>('.chapter-card');
+    const arrivalBounds =
+      arrival && getComputedStyle(arrival).visibility !== 'hidden'
+        ? arrival.querySelector('.chapter-card-inner')?.getBoundingClientRect()
+        : undefined;
     const reserved = [
       ...hudBounds.map(({ rect }) => rect),
-      ...[...this.root.querySelectorAll<HTMLElement>('#toast:not([hidden])')]
-        .filter((node) => node.offsetHeight > 0)
-        .map((node) => node.getBoundingClientRect()),
+      ...(noticeBounds ? [noticeBounds] : []),
+      ...(arrivalBounds ? [arrivalBounds] : []),
     ];
+    const nearbyPeople = labels.flatMap(({ id, visible }) => {
+      const s = states.get(id),
+        point = this.activePoints.get(id);
+      // Walking companions move between state updates; their saved points can be stale.
+      const walkingCompanion =
+        (id === 'amos' && this.currentState?.campaign.walk.stage === 'walking') ||
+        (id === 'neri' && this.currentState?.road.company.stage === 'walking');
+      return this.currentState &&
+        !walkingCompanion &&
+        visible &&
+        s?.kind === 'person' &&
+        s.distance <= LABEL_NEAR.person &&
+        point
+        ? [point]
+        : [];
+    });
     const placed = arrangeLabels(
       measureLabels(
         labels.map((label) => {
-          const s = states.get(label.id);
-          return { ...label, priority: s ? labelPriority(s) : 0 };
+          const s = states.get(label.id),
+            point = this.activePoints.get(label.id);
+          const personSharesPoint =
+            this.labelNodes.get(label.id)?.classList.contains('place') &&
+            !!point &&
+            nearbyPeople.some((person) => person.x === point.x && person.z === point.z);
+          return {
+            ...label,
+            priority: s ? labelPlacementPriority(s, !!personSharesPoint) : 0,
+            focused: s?.focused ?? false,
+          };
         }),
         this.labelNodes,
       ),
@@ -519,17 +772,22 @@ export class Interface {
     if (this.toastNode.dataset.held === 'true') return;
     this.toastTimer = setTimeout(() => {
       if (this.heldNotice) this.renderNotice(this.heldNotice.message, this.heldNotice.kind);
-      else this.toastNode.hidden = true;
+      else {
+        this.toastNode.hidden = true;
+        this.clearQuestNoticeSpace();
+      }
     }, 4800);
   }
   /** Keep an unresolved system condition explained; ordinary feedback can still appear. */
   holdNotice(message?: string, kind: ToastKind = 'warning'): void {
     this.heldNotice = message ? { message, kind } : undefined;
     if (message) this.toast(message, kind);
-    else if (this.toastNode.dataset.held === 'true') this.toastNode.hidden = true;
+    else if (this.toastNode.dataset.held === 'true') {
+      this.toastNode.hidden = true;
+      this.clearQuestNoticeSpace();
+    }
   }
   private renderNotice(message: string, kind: ToastKind): void {
-    this.placeNotice(true);
     const toast = this.toastNode;
     const held = this.heldNotice?.message === message && this.heldNotice.kind === kind;
     toast.dataset.held = String(held);
@@ -540,11 +798,11 @@ export class Interface {
     void toast.offsetWidth;
     // Reading menus retain their full space; returning to the world reveals the condition.
     toast.hidden = held && this.panel !== null && this.panel !== 'work';
+    this.placeNotice(true);
     if (!toast.hidden) this.revealReadingFocus();
     if (toast.parentElement === this.noticeActions) this.noticeActions.scrollTop = 0;
   }
-  private revealReadingFocus(): void {
-    const active = document.activeElement;
+  private revealReadingFocus(active = document.activeElement): void {
     if (
       active instanceof HTMLElement &&
       this.overlay.contains(active) &&
@@ -587,10 +845,63 @@ export class Interface {
           .map(({ node, lower }) => ({ lower, rect: node.getBoundingClientRect() })),
       );
     }
+    if (
+      parent !== this.root ||
+      !this.active ||
+      this.panel ||
+      this.shortLandscape.matches ||
+      this.root.classList.contains('scene-mode')
+    )
+      this.clearQuestNoticeSpace();
+    else if (this.graphicsPaused) {
+      // Context loss stops world frames; DOM events still keep held feedback clear.
+      this.reserveQuestNoticeSpace(
+        this.quest.offsetHeight > 0 ? this.quest.getBoundingClientRect() : undefined,
+        !this.toastNode.hidden && this.toastNode.offsetHeight > 0
+          ? this.toastNode.getBoundingClientRect()
+          : undefined,
+      );
+    }
+  }
+  private clearQuestNoticeSpace(): void {
+    this.root.style.removeProperty('--quest-notice-max-height');
+    this.pendingQuestReveal = undefined;
+  }
+  private reserveQuestNoticeSpace(quest?: DOMRect, notice?: DOMRect): void {
+    const chosen = this.pendingQuestReveal;
+    this.pendingQuestReveal = undefined;
+    const floating =
+      this.active &&
+      !this.panel &&
+      !this.hud.hidden &&
+      !this.hud.inert &&
+      !this.root.inert &&
+      !this.shortLandscape.matches &&
+      !this.root.classList.contains('scene-mode') &&
+      this.toastNode.parentElement === this.root &&
+      !this.toastNode.hidden;
+    const space =
+      floating && quest && notice && quest.left < notice.right && quest.right > notice.left
+        ? Math.max(0, Math.floor(notice.top - quest.top - 12)) + 'px'
+        : '';
+    const changed = this.root.style.getPropertyValue('--quest-notice-max-height') !== space;
+    if (changed) {
+      if (space) this.root.style.setProperty('--quest-notice-max-height', space);
+      else this.root.style.removeProperty('--quest-notice-max-height');
+    }
+    if (!floating) return;
+    const active = document.activeElement;
+    const reveal =
+      chosen?.isConnected && this.quest.contains(chosen) && (focusLost() || active === chosen)
+        ? chosen
+        : changed && active instanceof HTMLElement && this.quest.contains(active)
+          ? active
+          : undefined;
+    reveal?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
   }
   private setNoticeClearance(height: number, bounds: { lower: boolean; rect: DOMRect }[]): void {
     const lower = bounds.filter(
-      ({ lower, rect }) => lower && rect.height > 0 && rect.top > height / 2,
+      ({ lower, rect }) => lower && rect.height > 0 && rect.bottom > height / 2,
     );
     if (lower.length)
       this.root.style.setProperty(
@@ -605,20 +916,46 @@ export class Interface {
       this.active &&
       !this.panel &&
       !this.root.classList.contains('scene-mode');
+    // A notice can scroll its own text, but its frame must fit the action scrollport.
+    const style = enabled && actions.clientHeight > 0 ? getComputedStyle(actions) : null;
+    const noticeHeight = style
+      ? Math.floor(
+          actions.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom),
+        )
+      : 0;
+    const noticeSpace = noticeHeight > 0 ? `${noticeHeight}px` : '';
+    if (actions.style.getPropertyValue('--hud-action-notice-height') !== noticeSpace) {
+      if (noticeSpace) actions.style.setProperty('--hud-action-notice-height', noticeSpace);
+      else actions.style.removeProperty('--hud-action-notice-height');
+    }
     const above = enabled && actions.scrollTop > 1;
     const below = enabled && actions.scrollTop + actions.clientHeight < actions.scrollHeight - 1;
     this.actionScrollCue.hidden = !above && !below;
     const text = above && below ? 'More ↑ ↓' : above ? 'More above ↑' : 'More below ↓';
     if (this.actionScrollCue.textContent !== text) this.actionScrollCue.textContent = text;
   }
+  private updateRouteScrollCue(): void {
+    const guidance = this.routeGuidance;
+    const overflow = guidance.clientHeight > 0 && guidance.scrollHeight > guidance.clientHeight + 1;
+    guidance.tabIndex = overflow ? 0 : -1;
+    this.routeScrollCue.hidden = !overflow;
+    const above = guidance.scrollTop > 1;
+    const below = guidance.scrollTop + guidance.clientHeight < guidance.scrollHeight - 1;
+    const text = above && below ? 'More ↑ ↓' : above ? 'More above ↑' : 'More below ↓';
+    if (this.routeScrollCue.textContent !== text) this.routeScrollCue.textContent = text;
+  }
   private updateMessageCount(): void {
     const count = this.root.querySelector<HTMLElement>('.message-count')!;
     count.hidden = this.unreadMessages === 0;
     count.textContent = String(this.unreadMessages);
+    this.root.querySelector('#unread-message-description')!.textContent = this.unreadMessages
+      ? `${this.unreadMessages} unread game message${this.unreadMessages === 1 ? '' : 's'}`
+      : 'No unread game messages';
   }
   messages(): void {
     clearTimeout(this.toastTimer);
     this.toastNode.hidden = true;
+    this.clearQuestNoticeSpace();
     this.unreadMessages = 0;
     this.updateMessageCount();
     this.show(
@@ -703,8 +1040,16 @@ export class Interface {
         if (
           this.overlay.firstElementChild === surface &&
           !this.overlay.contains(document.activeElement)
-        )
-          this.overlay.querySelector<HTMLElement>('button:not([disabled]),[tabindex="0"]')?.focus();
+        ) {
+          const answer =
+            panel === 'dialogue'
+              ? this.overlay.querySelector<HTMLElement>('[data-action="choice"]:not([disabled])')
+              : undefined;
+          (
+            answer ??
+            this.overlay.querySelector<HTMLElement>('button:not([disabled]),[tabindex="0"]')
+          )?.focus();
+        }
       });
   }
   close(): void {
@@ -761,18 +1106,35 @@ export class Interface {
     category = this.journalCategory,
     filter = this.journalFilter,
     status = this.journalStatus,
+    trackingRefresh = false,
   ): void {
     const active =
       this.panel === 'journal' && this.overlay.contains(document.activeElement)
         ? document.activeElement
         : null;
-    const focusCategory =
-      active instanceof HTMLElement && active.dataset.action === 'journal-category'
-        ? active.dataset.value
-        : undefined;
+    const action = active instanceof HTMLElement ? active.dataset.action : undefined;
+    const value = active instanceof HTMLElement ? active.dataset.value : undefined;
     const focusFilter =
       active instanceof HTMLSelectElement && active.hasAttribute('data-journal-filter');
-    const restore = focusCategory !== undefined || focusFilter;
+    // Native pointer activation may leave BODY focused, so refresh intent owns the scroll bookmark.
+    const sameReading =
+      trackingRefresh &&
+      this.panel === 'journal' &&
+      category === this.journalCategory &&
+      filter === this.journalFilter &&
+      status === this.journalStatus;
+    const scroll = sameReading ? (this.overlay.querySelector('.panel-body')?.scrollTop ?? 0) : 0;
+    const matchingActions = () =>
+      [...this.overlay.querySelectorAll<HTMLElement>('[data-action]')].filter(
+        (node) => node.dataset.action === action && node.dataset.value === value,
+      );
+    const actionIndex =
+      sameReading && active instanceof HTMLElement ? matchingActions().indexOf(active) : -1;
+    const restore =
+      focusFilter ||
+      action === 'journal-category' ||
+      action === 'journal-status' ||
+      (sameReading && action !== undefined);
     this.journalStatus = status;
     this.journalCategory = category;
     this.journalFilter = filter;
@@ -798,19 +1160,34 @@ export class Interface {
         true,
         'journal-reading',
       ),
-      !restore,
+      !restore && !sameReading,
     );
-    if (restore) {
+    if (sameReading) {
+      const body = this.overlay.querySelector('.panel-body');
+      if (body) body.scrollTop = scroll;
+    }
+    if (restore || sameReading) {
       const surface = this.overlay.firstElementChild;
       requestAnimationFrame(() => {
         // Restore the control the refresh removed, without taking later focus or a newer panel.
         if (this.panel !== 'journal' || this.overlay.firstElementChild !== surface || !focusLost())
           return;
-        if (focusFilter) {
+        if (!restore) {
+          // Native touch can leave BODY focused; expose its tracked row without taking focus.
+          const tracked = this.overlay.querySelector<HTMLElement>(
+            `[data-action="track-story"][data-value="${state.tracking}"]`,
+          );
+          this.revealReadingFocus(tracked);
+        } else if (focusFilter) {
           const filter = this.overlay.querySelector<HTMLSelectElement>('[data-journal-filter]');
           if (filter) filter.focus({ preventScroll: true });
           else restoreFocus(this.overlay);
-        } else restoreFocus(this.overlay, 'journal-category', focusCategory);
+        } else {
+          const control = sameReading ? matchingActions()[actionIndex] : undefined;
+          if (control) control.focus({ preventScroll: true });
+          else restoreFocus(this.overlay, action, value);
+        }
+        if (sameReading && restore) this.revealReadingFocus();
       });
     }
   }
@@ -835,6 +1212,8 @@ export class Interface {
   }
   inventory(state: GameState): void {
     const inspected = state.inventory[0];
+    const carrying = state.campaign.carrying || state.episode.carrying;
+    const carriedOnly = !inspected && !!carrying;
     const inspection = (id: (typeof state.inventory)[number]): string =>
       `<div class="satchel-inspection-art">${itemArtwork(id, items[id].icon)}</div><div><span class="eyebrow">EXAMINE · QUEST ITEM</span><strong>${esc(items[id].name)}</strong><p>${esc(items[id].description)}</p></div>`;
     const slots = Array.from({ length: 4 }, (_, index) => {
@@ -848,7 +1227,7 @@ export class Interface {
       this.panelShell(
         'Your satchel',
         'A FEW THINGS FOR THE ROAD',
-        `<section class="satchel-surface" aria-label="Satchel contents"><div class="satchel-capacity">${icon('bag')}<span>${state.inventory.length} / 4 spaces used</span><span class="satchel-help">Select an item to examine it</span></div><div class="satchel-slots" role="list" aria-label="Satchel spaces">${slots}</div><section id="satchel-inspection" class="satchel-inspection" aria-label="Item inspection" aria-live="polite">${inspected ? inspection(inspected) : `<div class="satchel-inspection-art">${icon('bag')}</div><div><strong>Your satchel is light.</strong><p>The people of Capernaum may have something for you to carry.</p></div>`}</section>${state.inventory.length ? '<div class="satchel-return"><p>Bring these supplies to Simon by the boats.</p><button class="secondary-button" data-action="travel" data-value="simon">Find Simon ' + icon('arrow') + '</button></div>' : ''}<div class="satchel-carried">${carriedView(state)}</div>${state.episode.carrying ? `<article class="satchel-carried carried-object"><span class="item-art">${itemArtwork('empty-basket')}</span><div><span class="eyebrow">IN YOUR HANDS</span><h3>Empty basket</h3><p>Carry it to the landing beside Simon’s boats. It does not use a satchel space.</p><button class="secondary-button" data-action="travel" data-value="landing">Walk to the landing</button></div></article>` : ''}</section>`,
+        `<section class="satchel-surface${carriedOnly ? ' satchel-carried-only' : ''}" aria-label="Satchel contents"><div class="satchel-capacity">${icon('bag')}<span>${state.inventory.length} / 4 spaces used</span><span class="satchel-help">${inspected ? 'Select an item to examine it' : carrying ? 'Carried supplies appear below' : 'Four spaces for small quest items'}</span></div><div class="satchel-slots" role="list" aria-label="Satchel spaces">${slots}</div>${carriedOnly ? '' : `<section id="satchel-inspection" class="satchel-inspection" aria-label="Item inspection" aria-live="polite">${inspected ? inspection(inspected) : `<div class="satchel-inspection-art">${icon('bag')}</div><div><strong>Your satchel is light.</strong><p>The people of Capernaum may have something for you to carry.</p></div>`}</section>`}${state.inventory.length ? '<div class="satchel-return"><p>Bring these supplies to Simon by the boats.</p><button class="secondary-button" data-action="travel" data-value="simon">Find Simon ' + icon('arrow') + '</button></div>' : ''}<div class="satchel-carried">${carriedView(state)}</div>${state.episode.carrying ? `<article class="satchel-carried carried-object"><span class="item-art">${itemArtwork('empty-basket')}</span><div><span class="eyebrow">IN YOUR HANDS</span><h3>Empty basket</h3><p>Carry it to the landing beside Simon’s boats. It does not use a satchel space.</p><button class="secondary-button" data-action="travel" data-value="landing">Walk to the landing</button></div></article>` : ''}</section>`,
       ),
     );
     // Inspecting supplies changes this reading surface only; it never dispatches a game event.
@@ -880,9 +1259,28 @@ export class Interface {
     }
   }
   map(state: GameState, regional = false): void {
+    const active = document.activeElement;
+    const action =
+      this.panel === 'map' &&
+      active instanceof HTMLElement &&
+      this.overlay.contains(active) &&
+      active.closest('.map-tabs')
+        ? active.dataset.action
+        : undefined;
+    const restore = action === 'local-map' || action === 'journey-map';
+    const showMap = (content: string): void => {
+      this.show('map', content, !restore);
+      if (!restore) return;
+      const surface = this.overlay.firstElementChild;
+      requestAnimationFrame(() => {
+        if (this.panel !== 'map' || this.overlay.firstElementChild !== surface || !focusLost())
+          return;
+        restoreFocus(this.overlay, action);
+        this.revealReadingFocus();
+      });
+    };
     if (regional) {
-      this.show(
-        'map',
+      showMap(
         this.panelShell(
           'Your journey through Galilee',
           'CONNECTED PLACES',
@@ -893,8 +1291,7 @@ export class Interface {
       return;
     }
     if (regions[state.region].mode === 'presentation') {
-      this.show(
-        'map',
+      showMap(
         this.panelShell(
           regions[state.region].title,
           'A NARRATED GOSPEL ACCOUNT',
@@ -903,8 +1300,7 @@ export class Interface {
       );
       return;
     }
-    this.show(
-      'map',
+    showMap(
       this.panelShell(
         regions[state.region].title,
         'LOCAL PEOPLE AND PLACES',
@@ -913,37 +1309,82 @@ export class Interface {
         )
           .map(
             (p) =>
-              `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${state.discoveries.some((id) => id === p.id) ? 'Remembered in your journal' : p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'Next stop' : p.role}</small></span>${icon('arrow')}</button>`,
+              `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${state.discoveries.some((id) => id === p.id) ? 'Remembered in your journal' : p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'Next stop' : p.role}</small></span>${icon('arrow')}</button>`,
           )
           .join(
             '',
-          )}</div></div><div class="map-legend"><span><i class="legend-player"></i> You are here</span><span><i class="legend-place"></i> People & places</span><span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
+          )}</div></div><div class="map-legend"><span><i class="legend-player" aria-hidden="true"></i> You are here</span><span><i class="legend-person" aria-hidden="true"></i> People</span><span><i class="legend-place" aria-hidden="true"></i> Places</span><span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
         true,
       ),
     );
   }
   settings(settings: Settings, slots: SlotSummary[], persistent: boolean, started: boolean): void {
+    const wasSettings = this.panel === 'settings';
+    const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const restore = wasSettings && !!active && this.overlay.contains(active);
+    const action = active?.dataset.action;
+    const value = active?.dataset.value;
+    const setting = active?.dataset.setting;
+    const id = active?.id;
+    const scroll = this.overlay.querySelector('.panel-body')?.scrollTop ?? 0;
     this.show(
       'settings',
       this.panelShell(
         'A moment of rest',
         'SETTINGS & SAVED JOURNEYS',
-        `<div class="settings-grid"><div>${audioSettings(settings, this.currentState)}<h3>Your experience</h3><label class="setting-row"><span>Visual quality<small>Lower quality saves battery</small></span><select data-setting="quality"><option value="high" ${settings.quality === 'high' ? 'selected' : ''}>High</option><option value="low" ${settings.quality === 'low' ? 'selected' : ''}>Low</option></select></label><label class="setting-row"><span>Reduce motion<small>Still water and immediate camera follow</small></span><input type="checkbox" data-setting="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}></label><label class="setting-row"><span>Exploration guidance<small>Full labels and routes, or nearby labels with quieter paths. Maps remain available.</small></span><select data-setting="guidance"><option value="full" ${settings.guidance !== 'explore' ? 'selected' : ''}>Full guidance</option><option value="explore" ${settings.guidance === 'explore' ? 'selected' : ''}>Explore with fewer markers</option></select></label><label class="setting-row"><span>Reading size<small>Dialogue, scripture and journal text</small></span><select data-setting="textSize"><option value="standard" ${settings.textSize === 'standard' ? 'selected' : ''}>Standard</option><option value="large" ${settings.textSize === 'large' ? 'selected' : ''}>Large</option></select></label><button class="secondary-button full-width" data-action="help">${icon('help')} Controls &amp; how to play</button><button class="secondary-button full-width" data-action="replay-opening">${icon('dawn')} Watch the opening again</button></div><div><h3>Saved journeys</h3><p class="settings-note">${persistent ? 'Progress autosaves as you explore. Manual slots keep a moment you can return to.' : 'Browser storage is unavailable. These slots last only this session. Export a file to keep your journey.'}</p><div class="save-slots">${slots.map((slot) => `<div class="save-slot"><span class="slot-icon">${icon('save')}</span><div><strong>${slot.id === 'auto' ? 'Autosave' : `Journey ${slot.id.at(-1)}`}</strong><small>${slot.error ? 'Unreadable save' : slot.save ? `${regions[slot.save.state.region].title + (slot.save.state.lake.chapter.stage === 'complete' ? ' · Chapter IV complete' : slot.save.state.lake.chapter.checkpoint ? ' · ' + slot.save.state.lake.chapter.checkpoint : slot.save.state.road.chapter.stage === 'complete' ? ' · Chapter III complete' : slot.save.state.road.chapter.checkpoint ? ' · ' + slot.save.state.road.chapter.checkpoint : slot.save.state.campaign.roof.stage === 'complete' ? ' · Chapter II complete' : slot.save.state.campaign.roof.checkpoint ? ' · ' + slot.save.state.campaign.roof.checkpoint : '')} · ${esc(new Date(slot.save.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))}` : 'Empty slot'}</small></div>${slot.id !== 'auto' ? `<button class="small-button" data-action="save-slot" data-value="${slot.id}" ${started ? '' : 'disabled'}>Save</button>` : ''}<button class="small-button" data-action="load-slot" data-value="${slot.id}" ${slot.save ? '' : 'disabled'}>Load</button></div>`).join('')}</div><div class="save-actions"><button class="secondary-button" data-action="export" ${started ? '' : 'disabled'}>${icon('download')} Export</button><label class="secondary-button import-button">${icon('upload')} Import<input type="file" id="import-save" accept=".json,application/json" aria-label="Import a journey save"></label></div></div></div>${started ? '<button class="text-button new-journey" data-action="new-journey">Start a new journey…</button>' : ''}`,
+        `<div class="settings-grid"><div>${audioSettings(settings, this.currentState)}<h3>Your experience</h3><label class="setting-row"><span>Visual quality<small>Lower quality saves battery</small></span><select data-setting="quality"><option value="high" ${settings.quality === 'high' ? 'selected' : ''}>High</option><option value="low" ${settings.quality === 'low' ? 'selected' : ''}>Low</option></select></label><label class="setting-row"><span>Reduce motion<small>Still water and immediate camera follow</small></span><input type="checkbox" data-setting="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}></label><label class="setting-row"><span>Exploration guidance<small>Full labels and routes, or nearby labels with quieter paths. Maps remain available.</small></span><select data-setting="guidance"><option value="full" ${settings.guidance !== 'explore' ? 'selected' : ''}>Full guidance</option><option value="explore" ${settings.guidance === 'explore' ? 'selected' : ''}>Explore with fewer markers</option></select></label><label class="setting-row"><span>Reading size<small>Dialogue, scripture and journal text</small></span><select data-setting="textSize"><option value="standard" ${settings.textSize === 'standard' ? 'selected' : ''}>Standard</option><option value="large" ${settings.textSize === 'large' ? 'selected' : ''}>Large</option></select></label><button class="secondary-button full-width" data-action="help">${icon('help')} Controls &amp; how to play</button><button class="secondary-button full-width" data-action="replay-opening">${icon('dawn')} Watch the opening again</button></div><div><h3>Saved journeys</h3><p class="settings-note">${persistent ? 'Progress autosaves as you explore. Manual slots keep a moment you can return to.' : 'Browser storage is unavailable. These slots last only this session. Export a file to keep your journey.'}</p><div class="save-slots">${slots.map((slot) => `<div class="save-slot"><span class="slot-icon">${icon('save')}</span><div><strong>${slot.id === 'auto' ? 'Autosave' : `Journey ${slot.id.at(-1)}`}</strong><small>${slot.error ? 'Unreadable save' : slot.save ? `${regions[slot.save.state.region].title + (slot.save.state.lake.chapter.stage === 'complete' ? ' · Chapter IV complete' : slot.save.state.lake.chapter.checkpoint ? ' · ' + esc(accounts.storm.scenes.find((scene) => scene.id === slot.save?.state.lake.chapter.checkpoint)!.title) : slot.save.state.road.chapter.stage === 'complete' ? ' · Chapter III complete' : slot.save.state.road.chapter.checkpoint ? ' · ' + esc(accounts.nain.scenes.find((scene) => scene.id === slot.save?.state.road.chapter.checkpoint)!.title) : slot.save.state.campaign.roof.stage === 'complete' ? ' · Chapter II complete' : slot.save.state.campaign.roof.checkpoint ? ' · ' + esc(accounts.roof.scenes.find((scene) => scene.id === slot.save?.state.campaign.roof.checkpoint)!.title) : '')} · ${esc(new Date(slot.save.savedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }))}` : 'Empty slot'}</small></div>${slot.id !== 'auto' ? `<button class="small-button" data-action="save-slot" data-value="${slot.id}" ${started ? '' : 'disabled'}>Save</button>` : ''}<button class="small-button" data-action="load-slot" data-value="${slot.id}" ${slot.save ? '' : 'disabled'}>Load</button></div>`).join('')}</div><div class="save-actions"><button class="secondary-button" data-action="export" ${started ? '' : 'disabled'}>${icon('download')} Export</button><label class="secondary-button import-button">${icon('upload')} Import<input type="file" id="import-save" accept=".json,application/json" aria-label="Import a journey save"></label></div></div></div>${started ? '<button class="text-button new-journey" data-action="new-journey">Start a new journey…</button>' : ''}`,
         true,
       ),
+      !wasSettings,
     );
+    if (!wasSettings) return;
+    const body = this.overlay.querySelector('.panel-body');
+    if (body) body.scrollTop = scroll;
+    const surface = this.overlay.firstElementChild;
+    requestAnimationFrame(() => {
+      // A save refresh must keep the selected slot, while respecting any newer focus or menu.
+      if (this.panel !== 'settings' || this.overlay.firstElementChild !== surface || !focusLost())
+        return;
+      if (restore) {
+        const control = [...this.overlay.querySelectorAll<HTMLElement>('[data-setting],[id]')].find(
+          (node) => (setting && node.dataset.setting === setting) || (id && node.id === id),
+        );
+        if (control) control.focus({ preventScroll: true });
+        else restoreFocus(this.overlay, action, value);
+        this.revealReadingFocus();
+      }
+    });
   }
   help(): void {
     this.hints.reset();
     this.setHintsFaded(false);
+    const sailing = this.currentState?.region === 'galilee-water';
     const rows = [
-      ['Click / tap the ground', 'Walk to a place'],
-      ['Click / tap the minimap', 'Walk to that point; the flag clears when you arrive'],
+      [
+        sailing ? 'Click / tap open water' : 'Click / tap the ground',
+        sailing ? 'Steer to a point' : 'Walk to a place',
+      ],
+      [
+        'Click / tap the minimap',
+        sailing
+          ? 'Steer to that point; the flag clears when you arrive'
+          : 'Walk to that point; the flag clears when you arrive',
+      ],
       ['Compass / LOCAL MAP', 'Face north / open local destinations'],
-      ['Click a name or use the map', 'Walk over and interact'],
+      [
+        'Click / tap a person or object',
+        'Walk over and interact; names and map destinations work too',
+      ],
       ['Right-click / hold a world target', 'Choose an action'],
-      ['W A S D / arrow keys', 'Move relative to the camera'],
-      ['E', 'Speak or examine nearby'],
+      [
+        'World name: Shift+F10 / Menu key',
+        'Open Choose Option; ↑ / ↓ selects, Enter confirms, Escape cancels',
+      ],
+      [
+        'W A S D / arrow keys',
+        sailing ? 'Steer relative to the camera' : 'Move relative to the camera',
+      ],
+      ['E', 'Interact with a nearby person or place'],
       ['Middle or right mouse drag / two fingers', 'Rotate the camera'],
       ['Mouse wheel / pinch / zoom buttons', 'Zoom in or out'],
       ['Q / rotate buttons', 'Rotate the view'],
@@ -956,11 +1397,12 @@ export class Interface {
       this.panelShell(
         'Find your own pace',
         'A LITTLE GUIDANCE',
-        `<p class="panel-lead">Speak with Simon by the boats to begin. Follow the chapter card, or wander and discover the village. There is no combat or timer. An unsupported route interpretation explains the mismatch and lets you try again without losing evidence.</p><dl class="controls-list">${rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="content-note">Progress is stored in this browser. Export a save from Settings before clearing browser data or changing devices.</p>`,
+        `<p class="panel-lead">Follow the chapter card to continue your current story, or wander and explore at your own pace. There is no combat or timer. If a route doesn't match the clues, your observations stay in the journal and you can try again.</p><dl class="controls-list">${rows.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><p class="content-note">Progress is stored in this browser. Export a save from Settings before clearing browser data or changing devices.</p>`,
       ),
     );
   }
   private measureWork(): void {
+    layoutDialogueReading(this.overlay);
     const reading = this.sceneControls.hidden
       ? undefined
       : this.sceneControls.getBoundingClientRect();
@@ -1012,6 +1454,9 @@ export class Interface {
   toggleObjective(): void {
     this.objectiveExpanded = !this.objectiveExpanded;
     this.renderObjective();
+    this.pendingQuestReveal =
+      this.quest.querySelector<HTMLElement>('.objective-toggle') ?? undefined;
+    this.placeNotice(true);
   }
   private renderObjective(): void {
     this.quest.classList.toggle('objective-expanded', this.objectiveExpanded);
@@ -1035,6 +1480,11 @@ export class Interface {
     const open = [...this.overlay.querySelectorAll<HTMLDetailsElement>('details[open]')].map(
       (node) => node.className,
     );
+    const previous = this.overlay.querySelector<HTMLElement>('.work-panel');
+    const newFeedback =
+      !!feedback.trim() &&
+      (previous?.dataset.workTarget !== target ||
+        previous?.querySelector('.work-result')?.textContent?.trim() !== feedback.trim());
     const scroll = this.overlay.querySelector('.work-body')?.scrollTop ?? 0;
     // Mount an empty live region before updating its text, so feedback is announced
     // even when an action also replaces the list of available controls.
@@ -1047,13 +1497,32 @@ export class Interface {
       const body = this.overlay.querySelector('.work-body');
       if (body) body.scrollTop = scroll;
     }
+    const body = this.overlay.querySelector<HTMLElement>('.work-body');
+    const readingTop = body?.scrollTop;
+    const focusOwner = document.activeElement;
     requestAnimationFrame(() => {
       if (this.overlay.firstElementChild !== surface) return;
       this.measureWork();
+      const focusTaken = wasWork && document.activeElement !== focusOwner && !focusLost();
       // Restore only focus the re-render dropped; a control focused since then keeps it.
       if (restore && focusLost()) restoreFocus(this.overlay, action, value, active?.dataset.workId);
       const result = this.overlay.querySelector('.work-result');
-      if (result) result.textContent = feedback;
+      if (!result) return;
+      const readingUnchanged = body?.scrollTop === readingTop;
+      result.textContent = feedback;
+      if (!body || focusTaken || !readingUnchanged) return;
+      // The temporary empty live region can clamp scrolling or move a browser anchor.
+      // Restore the owned position after its text has regained its actual height.
+      if (wasWork && body.scrollTop !== scroll) body.scrollTop = scroll;
+      if (!newFeedback) return;
+      // Reveal only a new result, without moving focus or any outer reading surface.
+      const viewport = body.getBoundingClientRect();
+      const top = viewport.top + body.clientTop;
+      const bottom = top + body.clientHeight;
+      const message = result.getBoundingClientRect();
+      if (message.height > body.clientHeight || message.top < top)
+        body.scrollTop += message.top - top;
+      else if (message.bottom > bottom) body.scrollTop += message.bottom - bottom;
     });
     return true;
   }
@@ -1088,11 +1557,21 @@ export class Interface {
   setGraphicsPaused(paused: boolean): void {
     this.graphicsPaused = paused;
     this.root.dataset.graphicsPaused = String(paused);
+    if (paused) {
+      this.activeWalkTarget = undefined;
+      this.renderTravelStatus();
+    }
     this.pauseWorldControls();
   }
   setWorldPaused(paused: boolean): void {
     this.worldPaused = paused;
     this.minimap.setPaused(paused);
+    // World.setPaused stops its path; reflect that handoff even without a render frame.
+    if (paused) {
+      this.activeWalkTarget = undefined;
+      this.minimap.clearDestination();
+      this.renderTravelStatus();
+    }
     this.labels.inert = paused;
     for (const control of this.hud.querySelectorAll<HTMLElement>(
       '#action-tray, #nearby-action, .camera-controls',
@@ -1135,12 +1614,18 @@ export class Interface {
       if (header) header.after(message);
       else body?.prepend(message);
     }
+    this.renderCameraDisclosure();
     if (
       this.pausedWorldFocus &&
       !this.graphicsPaused &&
-      (this.panel !== 'work' || !this.worldPaused)
+      (this.panel !== 'work' || !this.worldPaused) &&
+      // Context restoration precedes syncPause; wait until the disclosure is live.
+      (this.pausedWorldFocus !== this.cameraToggle || !this.worldPaused)
     ) {
-      const button = this.pausedWorldFocus;
+      const button =
+        this.pausedWorldFocus === this.cameraToggle && this.cameraToggle.hidden
+          ? this.cameraCommands.querySelector<HTMLButtonElement>('[data-action="reset-camera"]')!
+          : this.pausedWorldFocus;
       this.pausedWorldFocus = undefined;
       if (button.isConnected && !button.disabled && focusLost())
         button.focus({ preventScroll: true });
@@ -1269,9 +1754,6 @@ export class Interface {
     this.startReveal();
     this.noteInteraction();
     if (dialogue.provenance !== 'Original narration') this.decorateConversation(dialogue.speaker);
-    requestAnimationFrame(() =>
-      this.overlay.querySelector<HTMLElement>('[data-action="choice"]:not([disabled])')?.focus(),
-    );
   }
   confirmNew(): void {
     this.show(
@@ -1320,12 +1802,17 @@ export class Interface {
       .map((p) => `L${p}`)
       .join(
         ' ',
-      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/><path d="m80 192 4-100 12-92M16 100h110M36 64h60" stroke="#dace9f" fill="none" stroke-width="7"/>${buildings.map((p) => `<rect x="${(p.x + 24) * 4 - 7}" y="${(24 - p.z) * 4 - 6}" width="14" height="12" fill="#81765a" stroke="#e1cf9c" stroke-width="1"/>`).join('')}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !(state.quest === 'complete' && state.villageStory === 'complete') ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
+      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/>${capernaumMapScenery()}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
   }
   dispose(): void {
+    this.clearQuestNoticeSpace();
     this.shortLandscape.removeEventListener('change', this.onNoticeLayout);
     window.removeEventListener('resize', this.onMenuResize);
     this.noticeActions.removeEventListener('scroll', this.onActionScroll);
+    this.routeGuidance.removeEventListener('scroll', this.onRouteScroll);
+    this.root.removeEventListener('keydown', this.onRouteKey);
+    if (this.routeCueFrame !== undefined) cancelAnimationFrame(this.routeCueFrame);
+    this.toastNode.removeEventListener('animationend', this.onPausedNoticeLayout);
     this.actionScrollObserver.disconnect();
     this.minimap.dispose();
     this.workObserver?.disconnect();

@@ -8,17 +8,19 @@ async function phoneControls(page: Page) {
       '.toolbar button, .camera-controls button, .minimap-compass, .minimap-open, .control-hints button',
     )
     .evaluateAll((elements) =>
-      elements.map((element) => {
-        const { x, y, width, height } = element.getBoundingClientRect();
-        return {
-          name: element.getAttribute('aria-label') ?? element.getAttribute('title'),
-          x,
-          y,
-          width,
-          height,
-          viewport: { width: innerWidth, height: innerHeight },
-        };
-      }),
+      elements
+        .filter((element) => element.getClientRects().length > 0)
+        .map((element) => {
+          const { x, y, width, height } = element.getBoundingClientRect();
+          return {
+            name: element.getAttribute('aria-label') ?? element.getAttribute('title'),
+            x,
+            y,
+            width,
+            height,
+            viewport: { width: innerWidth, height: innerHeight },
+          };
+        }),
     );
   for (const control of controls) {
     expect(control.width).toBeGreaterThanOrEqual(44);
@@ -256,72 +258,226 @@ test('saved routes keep touch controls and nearby work reachable in compact land
   await expect(resume).toBeEnabled();
   const touch =
     info.project.name === 'mobile-chromium' ? await page.context().newCDPSession(page) : undefined;
-  for (const size of [
-    { width: 480, height: 320 },
-    { width: 520, height: 300 },
-    { width: 568, height: 320 },
-    { width: 844, height: 390 },
-    { width: 390, height: 844 },
-  ]) {
-    await page.setViewportSize(size);
-    const saved = await exported(page);
-    expect(saved.connection.route).toEqual(state.connection.route);
-    expect(saved.galilee).toEqual(state.galilee);
-    expect(saved.position).toEqual(state.position);
-    await dismiss(page);
-    await expect(page.locator('#toast')).toBeVisible();
-    await phoneControls(page);
-    const column = page.locator('.bottom-center');
-    const box = (await column.boundingBox())!;
-    expect(box.y).toBeGreaterThanOrEqual(0);
-    expect(box.y + box.height).toBeLessThanOrEqual(size.height);
-    const actions = page.locator('.hud-actions');
-    const cue = page.locator('.action-scroll-cue');
-    await actions.evaluate((element) => (element.scrollTop = 0));
-    if (size.height <= 420) {
-      await expect(cue).toBeVisible();
-      await expect(cue).toContainText('↓');
-      await readableContrast(page, '.action-scroll-cue');
-    } else await expect(cue).toBeHidden();
-    if (touch && size.width === 480) {
-      const surface = (await actions.boundingBox())!;
-      const point = {
-        id: 1,
-        x: surface.x + surface.width / 2,
-        y: surface.y + surface.height * 0.85,
-      };
-      await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
-      for (let step = 1; step <= 8; step++) {
-        await touch.send('Input.dispatchTouchEvent', {
-          type: 'touchMove',
-          touchPoints: [{ ...point, y: point.y - step * surface.height * 0.06 }],
-        });
-        await page.waitForTimeout(20);
+  try {
+    for (const size of [
+      { width: 480, height: 320 },
+      { width: 520, height: 300 },
+      { width: 568, height: 320 },
+      { width: 844, height: 390 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(size);
+      const saved = await exported(page);
+      expect(saved.connection.route).toEqual(state.connection.route);
+      expect(saved.galilee).toEqual(state.galilee);
+      expect(saved.position).toEqual(state.position);
+      await dismiss(page);
+      await expect(page.locator('#toast')).toBeVisible();
+      await phoneControls(page);
+      const column = page.locator('.bottom-center');
+      const box = (await column.boundingBox())!;
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height).toBeLessThanOrEqual(size.height);
+      const actions = page.locator('.hud-actions');
+      const cue = page.locator('.action-scroll-cue');
+      await actions.evaluate((element) => (element.scrollTop = 0));
+      if (size.height <= 420) {
+        await expect(cue).toBeVisible();
+        await expect(cue).toContainText('↓');
+        await readableContrast(page, '.action-scroll-cue');
+      } else await expect(cue).toBeHidden();
+      if (touch && size.width === 480) {
+        const surface = (await actions.boundingBox())!;
+        const point = {
+          id: 1,
+          x: surface.x + surface.width / 2,
+          y: surface.y + surface.height * 0.85,
+        };
+        const observation = await actions.evaluateHandle((element, origin) => {
+          const rect = (node: Element) => {
+            const { x, y, width, height } = node.getBoundingClientRect();
+            return { x, y, width, height };
+          };
+          const measure = () => {
+            const toast = document.getElementById('toast')!;
+            const style = getComputedStyle(toast);
+            return {
+              at: performance.now(),
+              viewport: { width: innerWidth, height: innerHeight, dpr: devicePixelRatio },
+              actions: {
+                rect: rect(element),
+                scrollTop: element.scrollTop,
+                scrollHeight: element.scrollHeight,
+                clientHeight: element.clientHeight,
+              },
+              toast: {
+                hidden: toast.hidden,
+                visible: !toast.hidden && style.display !== 'none' && style.visibility !== 'hidden',
+                text: toast.textContent,
+                rect: rect(toast),
+              },
+            };
+          };
+          const target = (node: EventTarget | null) => {
+            const element = node instanceof Element ? node : null;
+            return element
+              ? { tag: element.tagName, id: element.id, className: element.getAttribute('class') }
+              : null;
+          };
+          const initial = {
+            ...measure(),
+            origin,
+            originSurface: target(document.elementFromPoint(origin.x, origin.y)),
+          };
+          const nativeEvents: {
+            type: string;
+            isTrusted: boolean;
+            insideActions: boolean;
+            target: ReturnType<typeof target>;
+            points: { x: number; y: number; id: number }[];
+            geometry: ReturnType<typeof measure>;
+          }[] = [];
+          const scrolls: ReturnType<typeof measure>[] = [];
+          const noticeChanges: ReturnType<typeof measure>[] = [];
+          let gestureStartedAt: number | null = null;
+          let maxNativeScrollTop = 0;
+          const onNative = (event: Event) => {
+            const insideActions = event.target instanceof Node && element.contains(event.target);
+            const geometry = measure();
+            if (event.type === 'touchstart' && event.isTrusted && insideActions)
+              gestureStartedAt = geometry.at;
+            const points =
+              event instanceof TouchEvent
+                ? [...event.changedTouches].map((touch) => ({
+                    x: touch.clientX,
+                    y: touch.clientY,
+                    id: touch.identifier,
+                  }))
+                : event instanceof PointerEvent
+                  ? [{ x: event.clientX, y: event.clientY, id: event.pointerId }]
+                  : [];
+            nativeEvents.push({
+              type: event.type,
+              isTrusted: event.isTrusted,
+              insideActions,
+              target: target(event.target),
+              points,
+              geometry,
+            });
+          };
+          const onScroll = () => {
+            const geometry = measure();
+            scrolls.push(geometry);
+            if (gestureStartedAt !== null)
+              maxNativeScrollTop = Math.max(maxNativeScrollTop, geometry.actions.scrollTop);
+          };
+          const types = [
+            'touchstart',
+            'touchmove',
+            'touchend',
+            'touchcancel',
+            'pointerdown',
+            'pointermove',
+            'pointerup',
+            'pointercancel',
+          ];
+          for (const type of types)
+            document.addEventListener(type, onNative, { capture: true, passive: true });
+          element.addEventListener('scroll', onScroll, { passive: true });
+          const notice = new MutationObserver(() => noticeChanges.push(measure()));
+          notice.observe(document.getElementById('toast')!, {
+            attributes: true,
+            attributeFilter: ['hidden', 'class', 'style'],
+          });
+          return {
+            snapshot: () => ({
+              initial,
+              nativeEvents,
+              scrolls,
+              noticeChanges,
+              gestureStartedAt,
+              maxNativeScrollTop,
+              final: measure(),
+            }),
+            dispose: () => {
+              for (const type of types) document.removeEventListener(type, onNative, true);
+              element.removeEventListener('scroll', onScroll);
+              notice.disconnect();
+            },
+          };
+        }, point);
+        const collect = () => observation.evaluate((observer) => observer.snapshot());
+        let touchActive = false;
+        let evidence: Awaited<ReturnType<typeof collect>> | undefined;
+        try {
+          touchActive = true;
+          await touch.send('Input.dispatchTouchEvent', {
+            type: 'touchStart',
+            touchPoints: [point],
+          });
+          for (let step = 1; step <= 8; step++) {
+            await touch.send('Input.dispatchTouchEvent', {
+              type: 'touchMove',
+              touchPoints: [{ ...point, y: point.y - step * surface.height * 0.06 }],
+            });
+            await page.waitForTimeout(20);
+          }
+          // A deliberate scroll ends at rest, rather than flinging through the next inspection.
+          await page.waitForTimeout(80);
+          await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          touchActive = false;
+        } finally {
+          try {
+            if (touchActive)
+              await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          } finally {
+            try {
+              evidence = await collect();
+              await info.attach('native-compact-landscape-scroll', {
+                body: JSON.stringify(evidence, null, 2),
+                contentType: 'application/json',
+              });
+            } finally {
+              try {
+                await observation.evaluate((observer) => observer.dispose());
+              } finally {
+                await observation.dispose();
+              }
+            }
+          }
+        }
+        if (!evidence) throw new Error('Missing retained native scroll observation.');
+        expect(evidence.maxNativeScrollTop).toBeGreaterThan(0);
+        expect(
+          evidence.nativeEvents.some(
+            (event) => event.type === 'touchstart' && event.isTrusted && event.insideActions,
+          ),
+        ).toBe(true);
+        await expect(page.getByRole('dialog')).toBeHidden();
+        await expect(resume).toBeEnabled();
       }
-      // A deliberate scroll ends at rest, rather than flinging through the next inspection.
-      await page.waitForTimeout(80);
-      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-      await expect.poll(() => actions.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-      await expect(page.getByRole('dialog')).toBeHidden();
-      await expect(resume).toBeEnabled();
+      const candidates = page.locator('#travel-status button:not([hidden]), #action-tray button');
+      for (const button of await candidates.all()) {
+        await button.scrollIntoViewIfNeeded();
+        const target = (await button.boundingBox())!;
+        expect(target.width).toBeGreaterThanOrEqual(44);
+        expect(target.height).toBeGreaterThanOrEqual(44);
+        await expect(button).toBeInViewport({ ratio: 1 });
+      }
+      if (size.height <= 420) await expect(cue).toContainText('↑');
+      await actions.evaluate((element) => (element.scrollTop = 0));
+      await page.screenshot({
+        path: info.outputPath(`saved-route-${size.width}.png`),
+        scale: 'css',
+      });
+      await page.getByRole('button', { name: 'Recent game messages', exact: true }).click();
+      await expect(page.locator('.message-list')).toContainText('Journey exported');
+      await dismiss(page);
+      await expect(page.locator('#toast')).toBeHidden();
+      await resume.scrollIntoViewIfNeeded();
+      await expect(resume).toBeInViewport({ ratio: 1 });
     }
-    const candidates = page.locator('#travel-status button:not([hidden]), #action-tray button');
-    for (const button of await candidates.all()) {
-      await button.scrollIntoViewIfNeeded();
-      const target = (await button.boundingBox())!;
-      expect(target.width).toBeGreaterThanOrEqual(44);
-      expect(target.height).toBeGreaterThanOrEqual(44);
-      await expect(button).toBeInViewport({ ratio: 1 });
-    }
-    if (size.height <= 420) await expect(cue).toContainText('↑');
-    await actions.evaluate((element) => (element.scrollTop = 0));
-    await page.screenshot({ path: info.outputPath(`saved-route-${size.width}.png`), scale: 'css' });
-    await page.getByRole('button', { name: 'Recent game messages', exact: true }).click();
-    await expect(page.locator('.message-list')).toContainText('Journey exported');
-    await dismiss(page);
-    await expect(page.locator('#toast')).toBeHidden();
-    await resume.scrollIntoViewIfNeeded();
-    await expect(resume).toBeInViewport({ ratio: 1 });
+  } finally {
+    await touch?.detach();
   }
-  await touch?.detach();
 });

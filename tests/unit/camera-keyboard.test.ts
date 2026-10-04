@@ -201,6 +201,88 @@ function nativeGestures(camera: ArcRotateCamera, enabled: () => boolean) {
   };
 }
 
+describe('command camera timing', () => {
+  it('settles Face north on a slow visible frame while keeping simulation catch-up capped', () => {
+    const { camera, fixture, world, render } = studio();
+    world.faceNorth();
+    render(700);
+    const bearing = Math.abs(((camera.alpha + Math.PI / 2) * 180) / Math.PI);
+    expect(bearing).toBeLessThan(0.04);
+    expect(fixture.time).toBeCloseTo(0.25, 12);
+  });
+
+  it('gives a button turn the same progress across one slow frame or normal frames', () => {
+    const slow = studio();
+    slow.world.rotate(1);
+    slow.render(500);
+    const alpha = slow.camera.alpha,
+      pending = slow.fixture.pendingRotation;
+
+    const normal = studio();
+    normal.world.rotate(1);
+    for (let i = 0; i < 5; i++) normal.render();
+    expect(normal.camera.alpha).toBeCloseTo(alpha, 12);
+    expect(normal.fixture.pendingRotation).toBeCloseTo(pending, 12);
+  });
+
+  it('finishes a conversation camera return after its visible 700ms duration', () => {
+    const { camera, fixture, render, returning } = studio();
+    returning();
+    const to = fixture.cameraReturn.to;
+    render(700);
+    expect(fixture.cameraReturn).toBeUndefined();
+    expect(camera.alpha).toBe(to.alpha);
+    expect(camera.beta).toBe(to.beta);
+    expect(camera.radius).toBe(to.radius);
+    expect(camera.target).toEqual(to.target);
+  });
+
+  it('gives a camera return the same progress across one slow frame or normal frames', () => {
+    const slow = studio();
+    slow.returning();
+    slow.render(500);
+    const pose = slow.pose(),
+      progress = slow.fixture.cameraReturn.t;
+
+    const normal = studio();
+    normal.returning();
+    for (let i = 0; i < 5; i++) normal.render();
+    expect(normal.camera.alpha).toBeCloseTo(pose.alpha, 12);
+    expect(normal.camera.beta).toBeCloseTo(pose.beta, 12);
+    expect(normal.camera.radius).toBeCloseTo(pose.radius, 12);
+    expect(normal.fixture.cameraReturn.t).toBeCloseTo(progress, 12);
+  });
+
+  it('discards suspension time before continuing a queued compass turn', () => {
+    const { camera, fixture, world, render } = studio();
+    world.faceNorth();
+    const alpha = camera.alpha,
+      pending = fixture.pendingRotation;
+    world.refreshFrame();
+    render(60_000);
+    expect(camera.alpha).toBe(alpha);
+    expect(fixture.pendingRotation).toBe(pending);
+    expect(fixture.time).toBe(0);
+    render(700);
+    expect(Math.abs(((camera.alpha + Math.PI / 2) * 180) / Math.PI)).toBeLessThan(0.04);
+  });
+
+  it('discards suspension time before continuing a conversation camera return', () => {
+    const { fixture, world, render, returning, pose } = studio();
+    returning();
+    const held = pose(),
+      bookmark = fixture.cameraReturn;
+    world.refreshFrame();
+    render(60_000);
+    expect(pose()).toEqual(held);
+    expect(fixture.cameraReturn).toBe(bookmark);
+    expect(bookmark.t).toBe(0);
+    expect(fixture.time).toBe(0);
+    render(700);
+    expect(fixture.cameraReturn).toBeUndefined();
+  });
+});
+
 describe('keyboard camera ownership', () => {
   it('keeps active motion through resize but discards suspension time on foreground return', () => {
     const { camera, world, key, render } = studio();

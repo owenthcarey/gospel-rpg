@@ -1,8 +1,11 @@
 import type { Scene } from '@babylonjs/core/scene';
+import { TargetCamera } from '@babylonjs/core/Cameras/targetCamera';
 import type { Point } from '../game/types';
 import type { Interactable } from '../content/region';
+import { examineText } from '../content/examine';
 import type { ScreenClick } from './input';
 import { TapGesture } from '../game/gestures';
+import { HoldView } from './hold-view';
 import '../ui/interaction.css';
 
 export const interactionVerb = (kind: Interactable['kind']) =>
@@ -23,6 +26,9 @@ interface InteractionOptions {
   place: (id: string) => Interactable | undefined;
   navigate: (id: string, click?: ScreenClick) => void;
   walk: (point: Point, click?: ScreenClick) => void;
+  movementLabel?: 'Walk here' | 'Steer here';
+  examine?: (place: Interactable) => string;
+  notice: (message: string) => void;
   cancelTap: () => void;
 }
 
@@ -38,14 +44,19 @@ export class InteractionFeedback {
   private touches = new Map<number, ScreenClick>();
   private touchRejected = false;
   private suppressClick = false;
-  private hold?: { id: number; click: ScreenClick; target: HTMLElement };
+  private hold?: { id: number; click: ScreenClick; target: HTMLElement; view?: HoldView };
   private holdTimer?: ReturnType<typeof setTimeout>;
+  private hoverView?: HoldView;
   private disposed = false;
   private lastPick = 0;
   private returnFocus?: HTMLElement;
   private timer?: ReturnType<typeof setTimeout>;
   private releaseView?: () => void;
+  private readonly previousCursorHandling: boolean;
   constructor(private input: InteractionOptions) {
+    // Feedback owns the cursor; Babylon otherwise resets it after each native move.
+    this.previousCursorHandling = input.scene.doNotHandleCursors;
+    input.scene.doNotHandleCursors = true;
     this.hint.className = 'world-action-hint';
     this.hint.hidden = true;
     this.hint.setAttribute('aria-hidden', 'true');
@@ -66,11 +77,15 @@ export class InteractionFeedback {
     document.addEventListener('contextmenu', this.context);
     document.addEventListener('keydown', this.key, true);
     window.addEventListener('blur', this.loseFocus);
-    window.addEventListener('resize', this.clear);
+    window.addEventListener('resize', this.resize);
     const camera = input.scene.activeCamera;
     if (camera) {
       const observer = camera.onViewMatrixChangedObservable.add(this.viewChanged);
-      this.releaseView = () => camera.onViewMatrixChangedObservable.remove(observer);
+      const projection = camera.onProjectionMatrixChangedObservable.add(this.viewChanged);
+      this.releaseView = () => {
+        camera.onViewMatrixChangedObservable.remove(observer);
+        camera.onProjectionMatrixChangedObservable.remove(projection);
+      };
     }
   }
   private label(target: EventTarget | null) {
@@ -108,7 +123,8 @@ export class InteractionFeedback {
     if (e.pointerType === 'touch' && e.button === 0 && !this.touchRejected) {
       const target = label ?? this.input.canvas;
       if (target.hasAttribute('disabled')) return;
-      this.hold = { id: e.pointerId, click: { x: e.clientX, y: e.clientY }, target };
+      const view = this.captureView();
+      this.hold = { id: e.pointerId, click: { x: e.clientX, y: e.clientY }, target, view };
       this.holdTimer = setTimeout(this.openHold, 500);
     }
   };
@@ -168,11 +184,13 @@ export class InteractionFeedback {
     const id =
       label?.dataset.value ?? this.pick(e.clientX, e.clientY)?.pickedMesh?.metadata?.interactionId;
     const place = typeof id === 'string' ? this.input.place(id) : undefined;
-    this.input.canvas.style.cursor = place ? 'pointer' : '';
     if (!place) {
-      this.hint.hidden = true;
+      this.clearHover();
       return;
     }
+    // A new native pointer pick owns the baseline; camera notifications never refresh it.
+    this.hoverView = this.captureView();
+    this.input.canvas.style.cursor = 'pointer';
     this.describe(this.hint, place);
     this.hint.hidden = false;
     this.position(this.hint, e.clientX + 16, e.clientY + 18);
@@ -242,9 +260,38 @@ export class InteractionFeedback {
     // Blur clears canonical input; hidden documents also pause the world and clear it.
     this.touches.clear();
   };
+  private captureView() {
+    const camera = this.input.scene.activeCamera;
+    if (!(camera instanceof TargetCamera)) return undefined;
+    // Synchronize before assigning a hold or hover: observers cannot reject its new baseline.
+    camera.getViewMatrix();
+    camera.getProjectionMatrix();
+    const rect = this.input.canvas.getBoundingClientRect();
+    return HoldView.capture(
+      camera.getTransformationMatrix(),
+      camera.getTarget(),
+      camera.viewport.toGlobal(rect.width, rect.height),
+      rect,
+    );
+  }
+  private changedView(view?: HoldView) {
+    const camera = this.input.scene.activeCamera;
+    const rect = this.input.canvas.getBoundingClientRect();
+    // Observables fire after the new matrix is computed. Use cached view/projection
+    // matrices, avoiding reentrant getViewMatrix and stale scene transforms.
+    return (
+      !camera ||
+      !view ||
+      view.changed(
+        camera.getTransformationMatrix(),
+        camera.viewport.toGlobal(rect.width, rect.height),
+        rect,
+      )
+    );
+  }
   private viewChanged = () => {
-    if (this.hold) this.rejectTouches();
-    this.clearHover();
+    if (this.hold && this.changedView(this.hold.view)) this.rejectTouches();
+    if (!this.hint.hidden && this.changedView(this.hoverView)) this.clearHover();
   };
   private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
     const label = this.label(target);
@@ -263,25 +310,34 @@ export class InteractionFeedback {
     this.menu.append(heading);
     this.returnFocus = label ?? this.input.canvas;
     if (place) this.option(place, () => this.input.navigate(place.id, click));
-    if (ground || place) this.option('Walk here', () => this.input.walk(ground ?? place!, click));
+    if (ground || place)
+      this.option(this.input.movementLabel ?? 'Walk here', () =>
+        this.input.walk(ground ?? place!, click),
+      );
+    if (place)
+      this.option(
+        place,
+        () => this.input.notice(this.input.examine?.(place) ?? examineText(place)),
+        'Examine',
+      );
     this.option('Cancel', () => {});
     this.menu.hidden = false;
-    this.hint.hidden = true;
+    this.clearHover();
     this.position(this.menu, x, y);
     this.menu.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
   }
-  private describe(node: HTMLElement, place: Interactable) {
+  private describe(node: HTMLElement, place: Interactable, verb = interactionVerb(place.kind)) {
     const name = document.createElement('span');
     name.className = 'world-option-name ' + (place.kind === 'person' ? 'is-person' : 'is-object');
     name.textContent = place.name;
-    node.replaceChildren(document.createTextNode(interactionVerb(place.kind) + ' '), name);
+    node.replaceChildren(document.createTextNode(verb + ' '), name);
   }
-  private option(label: string | Interactable, action: () => void) {
+  private option(label: string | Interactable, action: () => void, verb?: string) {
     const button = document.createElement('button');
     button.type = 'button';
     button.setAttribute('role', 'menuitem');
     if (typeof label === 'string') button.textContent = label;
-    else this.describe(button, label);
+    else this.describe(button, label, verb);
     button.addEventListener('click', () => {
       this.close(true);
       if (!this.input.paused()) action();
@@ -365,7 +421,30 @@ export class InteractionFeedback {
     this.clearHover();
     this.flash.hidden = true;
   };
+  private resize = () => {
+    const restore =
+      !this.disposed &&
+      !this.input.paused() &&
+      !document.hidden &&
+      !this.menu.hidden &&
+      this.menu.contains(document.activeElement);
+    this.clear();
+    if (!restore) return;
+    // A resized label can disappear. Keep keyboard control on the visible world.
+    const target = [this.returnFocus, this.input.canvas].find((node): node is HTMLElement => {
+      if (!node?.isConnected || node.hasAttribute('disabled') || node.closest('[hidden], [inert]'))
+        return false;
+      const css = getComputedStyle(node);
+      if (css.visibility !== 'visible' || Number(css.opacity) === 0) return false;
+      const rect = node.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return false;
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return !!hit && (hit === node || node.contains(hit));
+    });
+    target?.focus({ preventScroll: true });
+  };
   private clearHover = () => {
+    this.hoverView = undefined;
     this.hint.hidden = true;
     this.input.canvas.style.cursor = '';
   };
@@ -374,6 +453,7 @@ export class InteractionFeedback {
     if (paused) this.clear();
   }
   dispose() {
+    if (this.disposed) return;
     this.clear();
     this.disposed = true;
     this.touches.clear();
@@ -388,9 +468,10 @@ export class InteractionFeedback {
     document.removeEventListener('contextmenu', this.context);
     document.removeEventListener('keydown', this.key, true);
     window.removeEventListener('blur', this.loseFocus);
-    window.removeEventListener('resize', this.clear);
+    window.removeEventListener('resize', this.resize);
     this.hint.remove();
     this.menu.remove();
     this.flash.remove();
+    this.input.scene.doNotHandleCursors = this.previousCursorHandling;
   }
 }

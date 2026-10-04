@@ -1,4 +1,5 @@
-import type { Point } from '../types';
+import type { GameState, Point } from '../types';
+import type { Obstacle } from '../pathfinding';
 import type { HarborRoute, HarborState } from './types';
 
 export const HARBOR_CENTER: Point = { x: 3.8, z: -13.1 };
@@ -21,6 +22,15 @@ export function cargoPosition(h: HarborState, cargo: 'nets' | 'jars'): Point {
     cargo === 'nets' ? { x: 0, z: h.cargo.nets ? 3.1 : 2 } : { x: 2, z: h.cargo.jars ? -1.1 : 0 },
   );
 }
+// Enclose the shipped amphora at its existing .7 scale. The landing already
+// covers the un-stored jar; low net cords and traversable planks stay unchanged.
+const storedJarSize = Object.freeze({ width: 0.44, depth: 0.44 });
+export function storedJarObstacles(state: GameState): Obstacle[] {
+  return state.region === 'capernaum' && state.harbor.cargo.jars
+    ? [Object.freeze({ ...cargoPosition(state.harbor, 'jars'), ...storedJarSize })]
+    : [];
+}
+
 export function plankPosition(h: HarborState): Point {
   return harborPosition({
     x: h.plank === 'rack' ? -1.1 : 1,

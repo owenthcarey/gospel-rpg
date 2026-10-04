@@ -37,6 +37,21 @@ export function labelPriority(s: LabelState): number {
   return s.kind === 'person' ? 1 : 0;
 }
 
+/** Let a nearby person keep its space beside an ordinary co-located nearest place. */
+export function labelPlacementPriority(s: LabelState, nearbyPersonSharesPoint: boolean): number {
+  if (
+    s.kind === 'place' &&
+    s.nearest &&
+    nearbyPersonSharesPoint &&
+    !s.hovered &&
+    !s.focused &&
+    !s.selected &&
+    !s.target
+  )
+    return 1.5;
+  return labelPriority(s);
+}
+
 /**
  * Control hints recede once the traveler has walked a little and acted a few times.
  * Session-only; Help brings them back.
@@ -91,6 +106,12 @@ export function toastKind(message: string): ToastKind {
     return 'warning';
   if (/\bsaved?\b|export|import/.test(text)) return 'save';
   if (/journal|memory|memories|remembered|reflection|observation/.test(text)) return 'memory';
+  if (
+    /^(?:fill the jug|jug filled|bread placed|water placed|handle in hand|the jug is back|the handle is back)\b/.test(
+      text,
+    )
+  )
+    return 'item';
   if (/satchel|delivered|basket|supplies|in your hands|carry|carrying/.test(text)) return 'item';
   if (/arrived|welcome to|landing|dock|shore|steer|route|walk|approach/.test(text)) return 'place';
   return 'story';

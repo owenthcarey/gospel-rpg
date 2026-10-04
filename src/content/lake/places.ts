@@ -7,7 +7,7 @@ import { BERTHS, isLakeRegion, type LakeRegion } from '../../game/lake/types';
 export const lakeGateways: readonly Gateway[] = BERTHS.flatMap((berth) => [
   {
     id: 'board-' + berth,
-    name: 'Board for the lake',
+    name: 'Lake boat',
     role: 'Board · Steer or choose a map destination',
     kind: 'place' as const,
     ...LANDINGS[berth].land,

@@ -23,6 +23,8 @@ import { groundHeight } from '../../src/content/campaign/layouts';
 import { WalkGrid, distance, findPath } from '../../src/game/pathfinding';
 import { approachPath } from '../../src/game/navigation';
 import { localTarget } from '../../src/game/campaign/objectives';
+import { trailHint, trailTarget } from '../../src/game/road/objectives';
+import { roadSummary, trailEvidenceView } from '../../src/ui/views/road';
 
 describe('Road unlock and durable investigation', () => {
   it('migrates every v1–v6 fixture without changing any existing state field or earned memory', () => {
@@ -55,35 +57,84 @@ describe('Road unlock and durable investigation', () => {
     ['terrace', 'spring'],
   ] as const)
     for (const ending of TRAIL_ENDINGS)
-      it(`remembers evidence in ${order.join('/')} order and the ${ending} ending`, () => {
-        let s = roadAction(roadStart(), 'trail-accept');
-        expect(transition(s, { type: 'road-interpret', id: 'shelter' })).toBe(s);
-        for (const id of order) {
-          s = transition(roadAt(s, 'road-' + id), { type: 'road-evidence', id });
-          s = makeSave(s).state;
-          const atMarker = roadAt(s, 'road-' + id);
-          expect(transition(atMarker, { type: 'road-evidence', id })).toBe(atMarker);
-        }
-        for (const id of ['ridge', 'spring'] as const) {
-          s = transition(roadAt(s, 'tamar'), { type: 'road-interpret', id });
-          expect(s.road.trail.stage).toBe('exploring');
-          expect(makeSave(s).state.road.trail.evidence).toEqual([...order]);
-        }
-        for (let i = 1; i <= 3; i++) {
-          s = transition(s, { type: 'road-hint' });
-          expect(s.road.trail.hint).toBe(i);
-        }
-        expect(transition(s, { type: 'road-hint' })).toBe(s);
-        s = transition(s, { type: 'road-interpret', id: 'shelter' });
-        s = gateway(s, 'to-farm');
-        s = roadAction(s, 'trail-arrive');
-        s = gateway(s, 'farm-exit');
-        s = transition(roadAt(s, 'tamar'), { type: 'road-ending', id: ending });
-        expect(s.road.trail.stage).toBe('complete');
-        expect(makeSave(s).state.road.trail.ending).toBe(ending);
-        expect(s.road.chapter.stage).toBe('exploring');
-        expect(s.journal).toContain('trail-ending-' + ending);
-      });
+      it.each([0, 3] as const)(
+        `remembers evidence in ${order.join('/')} order and the ${ending} ending with %i hints`,
+        (hints) => {
+          let s = roadAction(roadStart(), 'trail-accept');
+          const beforeInitialRead = structuredClone(s);
+          expect(trailEvidenceView(s)).toContain('<h4>Guidance · A direction</h4>');
+          expect(s).toEqual(beforeInitialRead);
+          expect(transition(s, { type: 'road-interpret', id: 'shelter' })).toBe(s);
+          for (const id of order) {
+            s = transition(roadAt(s, 'road-' + id), { type: 'road-evidence', id });
+            s = makeSave(s).state;
+            const atMarker = roadAt(s, 'road-' + id);
+            expect(transition(atMarker, { type: 'road-evidence', id })).toBe(atMarker);
+          }
+          for (const id of ['ridge', 'spring'] as const) {
+            s = transition(roadAt(s, 'tamar'), { type: 'road-interpret', id });
+            expect(s.road.trail.stage).toBe('exploring');
+            expect(makeSave(s).state.road.trail.evidence).toEqual([...order]);
+          }
+          for (let i = 1; i <= hints; i++) {
+            s = transition(s, { type: 'road-hint' });
+            expect(s.road.trail.hint).toBe(i);
+            const beforeHintRead = structuredClone(s);
+            expect(trailEvidenceView(s)).toContain(`<h4>Guidance · Hint ${i} of 3</h4>`);
+            expect(s).toEqual(beforeHintRead);
+          }
+          expect(s.road.trail.hint).toBe(hints);
+          if (hints === 3) expect(transition(s, { type: 'road-hint' })).toBe(s);
+          s = transition(s, { type: 'road-interpret', id: 'shelter' });
+          s = gateway(s, 'to-farm');
+          s = roadAction(s, 'trail-arrive');
+          s = gateway(s, 'farm-exit');
+          s = roadAt(s, 'tamar');
+          expect(s.road.trail.stage).toBe('arrived');
+          const beforeEndingRead = structuredClone(s);
+          const arrivedEvidence = trailEvidenceView(s);
+          expect(arrivedEvidence).toContain(
+            hints === 0 ? '<h4>Guidance · A direction</h4>' : '<h4>Guidance · Hint 3 of 3</h4>',
+          );
+          expect(arrivedEvidence).not.toContain('<h4>Story remembered</h4>');
+          expect(trailHint(s)).toBe(
+            'Tamar is waiting beside the southern part of the Galilean road. Return to share your memory.',
+          );
+          expect(arrivedEvidence).toContain('Return to share your memory.');
+          expect(arrivedEvidence).not.toContain('Visit Tamar again');
+          expect(
+            [...arrivedEvidence.matchAll(/data-action="travel" data-value="([^"]*)">([^<]*)/g)].map(
+              ([, target, label]) => [target, label!.trim()],
+            ),
+          ).toEqual([['tamar', 'Find the next detail']]);
+          expect(trailTarget(s)).toBe('tamar');
+          expect(roadSummary(s, 'trail')).toContain(arrivedEvidence);
+          expect(s).toEqual(beforeEndingRead);
+          s = transition(s, { type: 'road-ending', id: ending });
+          expect(s.road.trail.stage).toBe('complete');
+          expect(makeSave(s).state.road.trail.ending).toBe(ending);
+          expect(s.road.chapter.stage).toBe('exploring');
+          expect(s.journal).toContain('trail-ending-' + ending);
+          const beforeCompletedRead = structuredClone(s);
+          const completedEvidence = trailEvidenceView(s);
+          expect(completedEvidence).toContain('<h4>Story remembered</h4>');
+          expect(completedEvidence).not.toContain('<h4>Guidance ·');
+          const remembered =
+            'Tamar’s resting place is found. Your chosen memory is in the journal.';
+          expect(trailHint(s)).toBe(remembered);
+          expect(completedEvidence).toContain(remembered);
+          expect(completedEvidence).not.toContain('Return to share your memory.');
+          expect(completedEvidence).not.toContain('Find the next detail');
+          expect(
+            [
+              ...completedEvidence.matchAll(/data-action="travel" data-value="([^"]*)">([^<]*)/g),
+            ].map(([, target, label]) => [target, label!.trim()]),
+          ).toEqual([['tamar', 'Visit Tamar again']]);
+          expect(trailTarget(s)).toBe('tamar');
+          expect(roadSummary(s, 'trail')).toContain(completedEvidence);
+          expect(s).toEqual(beforeCompletedRead);
+        },
+      );
   it('rejects remote actions and unknown event IDs', () => {
     const s = roadStart();
     expect(transition(s, { type: 'road-action', id: 'trail-accept' })).toBe(s);

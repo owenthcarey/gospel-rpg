@@ -56,6 +56,13 @@ describe('A familiar thread', () => {
     for (const ending of ['route', 'welcome']) {
       it(`accepts ${order.join(' then ')} and remembers ${ending} through every interruption`, () => {
         let s = step(district(), 'life-thread-accept');
+        const searchingBefore = structuredClone(s),
+          searching = threadEvidence(s);
+        expect(searching).toContain('Compare both details before claiming the pouch.');
+        expect(searching).toContain(
+          'data-action="travel" data-value="sewing-rest">Find the shore resting place</button>',
+        );
+        expect(s).toEqual(searchingBefore);
         for (const clue of order) {
           const before = at(s, 'sewing-rest');
           expect(transition(before, { type: 'campaign-action', id: 'life-identify' })).toBe(before);
@@ -76,6 +83,24 @@ describe('A familiar thread', () => {
         expect(s.life.thread.stage).toBe('returned');
         expect(s.campaign.carrying).toBeNull();
         s = step(s, 'life-ending-' + ending);
+        const completedBefore = structuredClone(s),
+          evidence = threadEvidence(s);
+        expect(evidence).toContain(
+          'Ruth’s pouch is beside her. Your chosen memory remains in the journal.',
+        );
+        expect(evidence).not.toContain('Compare both details before claiming the pouch.');
+        expect(evidence).not.toContain('Find the shore resting place');
+        expect(evidence).toContain(
+          'data-action="travel" data-value="sewing-rest">Visit the shore resting place again</button>',
+        );
+        expect(evidence).toContain(lifeJournal['thread-clue-water']!.text);
+        expect(evidence).toContain(lifeJournal['thread-clue-cloth']!.text);
+        expect(evidence.match(/data-action="travel" data-value="[^"]+"/g)).toEqual([
+          'data-action="travel" data-value="thread-clue"',
+          'data-action="travel" data-value="cloth-clue"',
+          'data-action="travel" data-value="sewing-rest"',
+        ]);
+        expect(s).toEqual(completedBefore);
         expect(s.life.thread.ending).toBe(ending);
         expect(lifePresentation(s).pouchWithRuth).toBe(true);
         expect(lifePresentation(s).pouchAtShore).toBe(false);

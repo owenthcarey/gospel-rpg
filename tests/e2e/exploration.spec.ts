@@ -148,7 +148,7 @@ test('journal categories and story filters keep keyboard focus without taking la
   await expect(close).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.locator('#game-canvas')).toBeFocused();
+  await expect(page.locator('.toolbar [data-action="journal"]')).toBeFocused();
   const after = await exported(page);
   expect(after.playTime).toBeGreaterThanOrEqual(before.playTime);
   expect({ ...after, playTime: before.playTime }).toEqual(before);

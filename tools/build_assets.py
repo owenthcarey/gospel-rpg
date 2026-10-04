@@ -1,4 +1,5 @@
 """Rebuild the GLB kit and item sprites with a local Blender executable."""
+import json
 import os
 import pathlib
 import shutil
@@ -13,16 +14,18 @@ if not blender and sys.platform == "darwin":
 if not blender or not pathlib.Path(blender).exists():
     sys.exit("Set BLENDER_BIN to your Blender 4.2+ executable.")
 env = dict(os.environ, GOSPEL_RPG_ROOT=str(root))
-def finalize(models):
-    """Pure-Python passes over the whole catalog: palette packing, rest-channel pruning, sharing."""
+def finalize(models, villager_membership):
+    """Pack/prune/share first; apply authored villager channels exactly once last."""
     sys.path.insert(0, str(root / 'tools/blender'))
     from pack_palette import pack_palette
     from prune_channels import prune_channels
     from compact_glb import compact_kit
+    from villager_stance import finalize_villager
     for path in sorted(models.glob('*.glb')):
         pack_palette(path)
         prune_channels(path)
     compact_kit(str(models))
+    finalize_villager(models / 'villager.glb', villager_membership)
 
 
 scripts = {
@@ -52,13 +55,21 @@ with tempfile.TemporaryDirectory(prefix='the-way-lake-review-') as output:
         subprocess.run([blender, "--background", "--python", str(root / "tools/blender" / script)], env=env, check=True)
 
 if not sys.argv[1:] or sys.argv[1] == '--rfc011':
-    # Order matters: later passes replace earlier exports with the same name.
-    for recipe in ['capernaum.py', 'presence.py', 'characters.py', 'vegetation.py', 'architecture.py']:
-        if sys.argv[1:] and recipe == 'capernaum.py':
-            continue
-        subprocess.run([blender, '--background', '--python', str(root / 'tools/blender' / recipe)],
-                       env=dict(env, GOSPEL_RUN_CHARACTERS='1'), check=True)
-    finalize(root / 'public/assets/models')
-    # Sprites render the final exported models, never the temporary workshop parts.
-    subprocess.run([blender, '--background', '--python', str(root / 'tools/blender/item_icons.py')],
-                   env=env, check=True)
+    # The membership file is generated in this invocation, never a cached ledger.
+    with tempfile.TemporaryDirectory(prefix='the-way-villager-source-') as output:
+        membership_path = pathlib.Path(output) / 'villager-membership.json'
+        # Order matters: later passes replace earlier exports with the same name.
+        for recipe in ['capernaum.py', 'presence.py', 'characters.py', 'vegetation.py', 'architecture.py']:
+            if sys.argv[1:] and recipe == 'capernaum.py':
+                continue
+            recipe_env = dict(env, GOSPEL_RUN_CHARACTERS='1')
+            if recipe == 'characters.py':
+                recipe_env.update(GOSPEL_DEFER_VILLAGER_STANCE='1',
+                                  GOSPEL_VILLAGER_MEMBER_OUTPUT=str(membership_path))
+            subprocess.run([blender, '--background', '--python', str(root / 'tools/blender' / recipe)],
+                           env=recipe_env, check=True)
+        membership = json.loads(membership_path.read_text())
+        finalize(root / 'public/assets/models', membership)
+        # Sprites render the final exported models, never temporary workshop parts.
+        subprocess.run([blender, '--background', '--python', str(root / 'tools/blender/item_icons.py')],
+                       env=env, check=True)

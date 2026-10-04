@@ -180,7 +180,12 @@ test('reading menus retain selected controls, complete volume values and focus r
   const after = await exported(page);
   expect({ ...after, playTime: before.playTime }).toEqual(before);
   await dismiss(page);
-  await expect(page.locator('#game-canvas')).toBeFocused();
+  const opener = page.getByRole('button', { name: 'Settings and saves', exact: true });
+  await expect(opener).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Close menu', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(opener).toBeFocused();
   expect(errors).toEqual([]);
   await writeFile(info.outputPath('reading-rotation.json'), JSON.stringify(report, null, 2));
 });

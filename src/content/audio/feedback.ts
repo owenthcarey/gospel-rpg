@@ -4,6 +4,7 @@ import type { SoundEffect } from '../../audio/types';
 export function feedbackForEvent(event: GameEvent): SoundEffect | undefined {
   if (
     event.type.endsWith('reflect') ||
+    (event.type === 'campaign-action' && event.id === 'table-finish') ||
     ['lake-ending', 'road-ending', 'finish-village-story', 'listen', 'remember-village'].includes(
       event.type,
     )

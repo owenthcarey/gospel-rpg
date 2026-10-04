@@ -7,6 +7,7 @@ import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { Color3, Vector3 } from '@babylonjs/core/Maths/math';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import type { Scene } from '@babylonjs/core/scene';
+import type { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { AssetId } from '../content/assets';
 import { capernaumScenery, villagePatches } from '../content/harbor/scenery';
 import {
@@ -27,14 +28,20 @@ function matte(scene: Scene, name: string, color: string): StandardMaterial {
   m.specularColor = Color3.Black();
   return m;
 }
-export function dressVillage(scene: Scene, library: AssetLibrary, region: string): void {
+/** Return independently placed awnings so the world can clear only the blocking canopy. */
+export function dressVillage(scene: Scene, library: AssetLibrary, region: string): TransformNode[] {
   if (region === 'gathering-house' || region === 'bakehouse') interiorTextiles(scene, region);
   const batches = new Map<AssetId, Model[]>();
+  const awnings: TransformNode[] = [];
   for (const p of capernaumScenery[region] ?? []) {
     const model = library.instantiate(p.asset, 'village-detail:' + p.asset);
     model.root.position.set(p.x, p.y ?? 0, p.z);
     model.root.rotation.y = p.rotation ?? 0;
     model.root.scaling.setAll(p.scale ?? 1);
+    if (p.asset === 'door_awning') {
+      awnings.push(model.root);
+      continue;
+    }
     const group = batches.get(p.asset) ?? [];
     group.push(model);
     batches.set(p.asset, group);
@@ -46,6 +53,7 @@ export function dressVillage(scene: Scene, library: AssetLibrary, region: string
       villagePatches[region]!,
       region === 'gathering-house' || region === 'bakehouse',
     );
+  return awnings;
 }
 
 /** The same coordinates power the solver, readable plan, geometry and storage bays. */

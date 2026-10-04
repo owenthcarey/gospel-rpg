@@ -1,12 +1,14 @@
 import { villageObstacles } from '../harbor/scenery';
-import { lakeLayouts } from '../lake/layouts';
+import { lakeLayouts, reedRockFootprints } from '../lake/layouts';
 import { supplyPosition, REST_LAYOUTS } from '../../game/galilee/arrangement';
 import type { Point, GameState } from '../../game/types';
 import type { Obstacle } from '../../game/pathfinding';
 import type { AssetId } from '../assets';
 import { roadLayouts } from '../road/layouts';
+import { crateFootprints } from '../crate-footprints';
 export interface Decor extends Point {
   asset: AssetId;
+  interactionId?: string;
   y?: number;
   rotation?: number;
   scale?: number;
@@ -87,8 +89,8 @@ export const districtLayout: ExplorationLayout = {
     { asset: 'olive', x: -3, z: 9, scale: 1.4 },
     { asset: 'cypress', x: 13, z: 11 },
     { asset: 'olive', x: -13, z: -10 },
-    { asset: 'well', x: -11, z: -3, scale: 0.85 },
-    { asset: 'worktable', x: 6, z: 3 },
+    { asset: 'well', x: -11, z: -3, scale: 0.85, interactionId: 'water-point' },
+    { asset: 'worktable', x: 6, z: 3, interactionId: 'courtyard-table' },
     { asset: 'bench', x: 6, z: 1.7 },
     { asset: 'bench', x: 6, z: 4.3 },
     { asset: 'amphora', x: -6, z: 6 },
@@ -152,8 +154,8 @@ export const bakehouseLayout: ExplorationLayout = {
   ],
   decor: [
     ...roomDecor(),
-    { asset: 'oven', x: -3, z: 4.7 },
-    { asset: 'worktable', x: 0, z: 2 },
+    { asset: 'oven', x: -3, z: 4.7, rotation: Math.PI },
+    { asset: 'worktable', x: 0, z: 2, interactionId: 'bakehouse-table' },
     { asset: 'bench', x: 0, z: 0.6 },
     { asset: 'shelf', x: -4.7, z: 0, rotation: Math.PI / 2 },
     { asset: 'shelf', x: 4.7, z: 1, rotation: -Math.PI / 2 },
@@ -182,6 +184,8 @@ export function layoutObstacles(s: GameState): Obstacle[] {
   if (!layout) return [];
   return [
     ...layout.obstacles,
+    ...crateFootprints(layout.decor),
+    ...(s.region === 'reed-landing' ? reedRockFootprints() : []),
     ...(villageObstacles[s.region] ?? []),
     // New furniture is resolved by the runtime grid; the historical save terrain stays valid.
     ...(s.region === 'galilean-road'
@@ -199,6 +203,8 @@ export function layoutObstacles(s: GameState): Obstacle[] {
           return [wall(p.x, p.z, r.screen % 2 ? 0.6 : 1.7, r.screen % 2 ? 1.7 : 0.6)];
         })()
       : []),
-    ...(s.region === 'capernaum-lanes' && !s.campaign.walk.gateOpen ? [wall(0, 0, 3.4, 1)] : []),
+    ...(s.region === 'capernaum-lanes'
+      ? [s.campaign.walk.gateOpen ? wall(2.4, -2, 2, 1.8) : wall(0, 0, 3.4, 1)]
+      : []),
   ];
 }

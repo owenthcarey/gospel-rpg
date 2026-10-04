@@ -54,7 +54,7 @@ export function lakeContext(id: string, s: GameState): { title: string; body: st
     const boarding = gate.to === 'galilee-water';
     return {
       title: boarding ? 'An ordinary crossing' : gate.name,
-      body: `<p class="caption-source">Original traveler journey · Compressed, imagined geography</p><p class="panel-lead">${boarding ? 'Steer with WASD or arrow keys, or click/tap clear water. Choose a named destination on the map to follow a safe route around rocks. At a landing, approach and choose Dock and step ashore. You can always return to Capernaum.' : 'The boat rests beside the landing. Step ashore to explore; your boat will wait here for your return.'}</p><p>Menus pause the crossing. Cancel walk also stops the boat. Nothing is lost by taking another route. ${s.campaign.carrying ? 'Your carried supply stays with you, stowed aboard while you row.' : 'There is no timer or damage.'}</p>${lakeGateAllowed(s, gate) ? button(boarding ? 'Board the boat' : 'Dock and step ashore', 'journey', gate.id, true) : '<p class="held-notice">Approach this landing with your boat before continuing.</p>'}${button('See connected places', 'journey-map')}`,
+      body: `<p class="caption-source">Original traveler journey · Compressed, imagined geography</p><p class="panel-lead">${boarding ? 'Steer with WASD or arrow keys, or click/tap clear water. Choose a named destination on the map to follow a safe route around rocks. At a landing, approach and choose Dock and step ashore. You can always return to Capernaum.' : 'The boat rests beside the landing. Step ashore to explore; your boat will wait here for your return.'}</p><p>Menus pause the crossing. Cancel course also stops the boat. Nothing is lost by taking another route. ${s.campaign.carrying ? 'Your carried supply stays with you, stowed aboard while you row.' : 'There is no timer or damage.'}</p>${lakeGateAllowed(s, gate) ? button(boarding ? 'Board the boat' : 'Dock and step ashore', 'journey', gate.id, true) : '<p class="held-notice">Approach this landing with your boat before continuing.</p>'}${button('See connected places', 'journey-map')}`,
     };
   }
   const p = localLakePlaces(s).find((p) => p.id === id);
@@ -67,7 +67,9 @@ export function lakeContext(id: string, s: GameState): { title: string; body: st
         ? t.ending === 'attention'
           ? '“You took time to look. The same water can seem a different place when its landmarks become familiar.”'
           : '“I am glad there was a welcome at the far landing. You are welcome here again, too.”'
-        : '“There is a boat you may use at the landing. Two shores lie across this stretch of water. I remember a sheltered place beyond the stone headland. Would you look for it?”',
+        : t.stage === 'arrived'
+          ? '“You found the sheltered landing beyond the headland. What will you remember of the crossing?”'
+          : '“There is a boat you may use at the landing. Two shores lie across this stretch of water. I remember a sheltered place beyond the stone headland. Would you look for it?”',
     'lake-reeds': lakeEvidence.reeds.text,
     'lake-split-rock': lakeEvidence['split-rock'].text,
     'reed-shore':

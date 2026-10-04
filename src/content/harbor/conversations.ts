@@ -12,10 +12,14 @@ export function harborText(id: string, s: GameState): string {
   if (id === 'harbor-water')
     return 'Water marks darken the middle strip. The north and south edges both have dry stone on either side. The plank must span the gap east–west, with its ends supported.';
   if (id === 'harbor-entrance')
-    return 'The working passage runs from this western entrance to the landing on the east. A loose rope, a wet strip and cargo at the corners interrupt it. Either northern or southern crossing can make a useful route.';
+    return `The working passage runs from this western entrance to the landing on the east. ${h.cleared ? 'The rope is coiled beside the work, leaving the western entrance clear.' : 'A loose rope crosses the western entrance.'} Either northern or southern crossing can make a useful route.`;
   if (id === 'harbor-plank')
     return 'A stout plank rests on a low rack when not in use. It can span the north or south gap. Turn it so both ends rest on dry stone; placing it along the water leaves the crossing unsupported.';
-  return id === 'harbor-nets'
-    ? 'The bundled nets occupy the northern approach. A marked storage bay just beyond them keeps the cargo within reach while opening the corner.'
+  if (id === 'harbor-nets')
+    return h.cargo.nets
+      ? 'The bundled nets rest in their marked storage bay. The northern approach is open, and the cargo stays within reach.'
+      : 'The bundled nets occupy the northern approach. A marked storage bay just beyond them keeps the cargo within reach while opening the corner.';
+  return h.cargo.jars
+    ? 'The jars rest in their storage bay. The southern approach is open, with the cargo still beside the landing.'
     : 'The jars stand at the southern approach. Their storage bay leaves room beside the plank without taking the cargo away from the landing.';
 }

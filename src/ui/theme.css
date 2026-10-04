@@ -170,10 +170,10 @@
     var(--bevel-raised),
     2px 3px #17120b80;
   backdrop-filter: none;
-  max-height: calc(100dvh - 165px);
+  max-height: min(calc(100dvh - 165px), var(--quest-notice-max-height, calc(100dvh - 165px)));
 }
 :root .quest-card.objective-expanded {
-  max-height: calc(100dvh - 165px);
+  max-height: min(calc(100dvh - 165px), var(--quest-notice-max-height, calc(100dvh - 165px)));
 }
 :root .quest-card h1,
 :root .quest-card:not(.objective-expanded) h1 {
@@ -331,6 +331,14 @@
 }
 :root .world-label.selected-destination .label-name {
   box-shadow: 0 0 0 1px #dfc364;
+}
+@media (pointer: coarse) {
+  :root .world-label {
+    min-width: 44px;
+    min-height: 44px;
+    /* Keep the glyph at its projected foot while enlarging the clear area above it. */
+    justify-content: flex-end;
+  }
 }
 
 /* Navigation controls use the same carved frame. The circular map remains a compass. */
@@ -524,16 +532,24 @@
 :root .panel > .panel-body {
   scroll-padding: 8px;
 }
-:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions) {
+:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions, .quest-card) {
   scrollbar-width: auto;
   scrollbar-color: #584027 #a99066;
 }
 @supports selector(::-webkit-scrollbar) {
-  :root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions) {
+  :root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions, .quest-card) {
     scrollbar-color: auto;
   }
 }
-:root :is(.panel-body, .scene-reading, .work-body, .welcome-card, .hud-actions)::-webkit-scrollbar {
+:root
+  :is(
+    .panel-body,
+    .scene-reading,
+    .work-body,
+    .welcome-card,
+    .hud-actions,
+    .quest-card
+  )::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
@@ -543,7 +559,8 @@
     .scene-reading,
     .work-body,
     .welcome-card,
-    .hud-actions
+    .hud-actions,
+    .quest-card
   )::-webkit-scrollbar-track {
   background: #a99066;
   box-shadow: inset 1px 0 #755b38;
@@ -554,7 +571,8 @@
     .scene-reading,
     .work-body,
     .welcome-card,
-    .hud-actions
+    .hud-actions,
+    .quest-card
   )::-webkit-scrollbar-thumb {
   background: #584027;
   border: 2px solid #a99066;
@@ -564,7 +582,7 @@
 }
 
 /* Scroll shadows remain visible on phones whose native scrollbars fade away. */
-:root :is(.scene-reading, .work-body) {
+:root :is(.panel > .panel-body, .scene-reading, .work-body) {
   background-image:
     linear-gradient(var(--scroll-cover) 30%, transparent),
     linear-gradient(transparent, var(--scroll-cover) 70%),
@@ -579,6 +597,7 @@
     100% 12px;
   background-attachment: local, local, scroll, scroll;
 }
+:root .panel > .panel-body,
 :root .scene-reading {
   --scroll-cover: var(--parch-100);
   --scroll-edge: #493a2775;
@@ -586,6 +605,37 @@
 :root .work-body {
   --scroll-cover: var(--ink-800);
   --scroll-edge: #0e0b0799;
+}
+/* Keep the quest tablet's stone finish beneath its persistent scroll edges. */
+:root .quest-card,
+:root .quest-card:not(.objective-expanded) {
+  scrollbar-width: thin;
+  scrollbar-color: #584027 #a99066;
+  --scroll-cover: #342d23;
+  --scroll-edge: #0e0b0799;
+  background-image:
+    linear-gradient(var(--scroll-cover) 30%, transparent),
+    linear-gradient(transparent, var(--scroll-cover) 70%),
+    radial-gradient(farthest-side at 50% 0, var(--scroll-edge), transparent),
+    radial-gradient(farthest-side at 50% 100%, var(--scroll-edge), transparent), var(--stone-grain);
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  background-position:
+    top,
+    bottom,
+    top,
+    bottom,
+    top left;
+  background-size:
+    100% 32px,
+    100% 32px,
+    100% 12px,
+    100% 12px,
+    auto;
+  background-attachment: local, local, scroll, scroll, scroll;
+}
+:root .quest-card::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 :root .panel-body p,
 :root .panel-lead {
@@ -1335,7 +1385,7 @@
     line-height: 1.5;
   }
   :root .quest-card.objective-expanded {
-    max-height: 50dvh;
+    max-height: min(50dvh, var(--quest-notice-max-height, 50dvh));
   }
   :root .time-of-day {
     display: none;
@@ -1355,6 +1405,7 @@
   :root .bottom-center {
     left: 12px;
     bottom: 18px;
+    width: calc(100vw - 180px);
     max-width: calc(100vw - 180px);
     transform: none;
     align-items: flex-start;
@@ -1375,12 +1426,37 @@
     padding: 8px 10px;
   }
   :root .travel-status {
-    flex-wrap: wrap;
+    display: grid;
+    align-self: stretch;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 8px;
     gap: 6px;
   }
-  :root .travel-status span {
-    flex-basis: 100%;
+  :root .travel-status .travel-guidance {
+    grid-column: 1 / -1;
+    min-width: 0;
+    max-height: 3lh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    touch-action: pan-y;
+    pointer-events: auto;
+  }
+  :root .route-scroll-cue {
+    grid-column: 1 / -1;
+    font-size: 11px;
+    line-height: 1;
+    color: #ffe07a;
+  }
+  :root #travel-status button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px 2px;
+    line-height: 1.25;
+  }
+  :root #travel-status button[hidden] + button {
+    grid-column: 1 / -1;
   }
   :root .toast,
   :root #ui:not(.scene-mode):not(.working):not(.conversing) .toast {
@@ -1434,7 +1510,7 @@
     left: 8px;
     bottom: max(8px, env(safe-area-inset-bottom));
     width: auto;
-    height: 44dvh;
+    height: var(--compact-work-height, 44dvh);
   }
   :root .work-header {
     padding: 10px 13px 8px;
@@ -1447,7 +1523,7 @@
     padding: 0 13px 10px;
   }
   :root #ui.working:not(.scene-mode) .toast {
-    bottom: calc(44dvh + 18px);
+    bottom: calc(var(--compact-work-height, 44dvh) + 18px);
   }
   :root .scene-heading {
     padding: 13px 15px 10px;
@@ -1485,6 +1561,12 @@
     display: none;
   }
 }
+@media (max-width: 360px) and (orientation: portrait) {
+  :root[data-text-size='large'] #ui {
+    /* Two-line chrome still leaves room to read a complete supply status. */
+    --compact-work-height: clamp(44dvh, 312px, 56dvh);
+  }
+}
 @media (max-width: 359px) {
   :root .logo-hud .logo-word {
     display: none;
@@ -1500,7 +1582,7 @@
   :root .quest-card,
   :root .quest-card:not(.objective-expanded) {
     top: 74px;
-    max-height: calc(100dvh - 120px);
+    max-height: min(calc(100dvh - 120px), var(--quest-notice-max-height, calc(100dvh - 120px)));
   }
   :root .welcome-card,
   :root .welcome-overlay .welcome-card {
@@ -1636,6 +1718,74 @@
     min-height: 44px;
   }
 }
+:root .camera-command-buttons {
+  display: contents;
+}
+:root .camera-controls .camera-disclosure {
+  display: none;
+}
+/* Retain focus until the resize handler hands it to the ordinary Reset control. */
+:root .camera-controls .camera-disclosure:focus:not([hidden]) {
+  display: grid;
+}
+/* Short portrait exploration folds optional camera commands into the existing dock. */
+@media (max-width: 479px) and (max-height: 640px) and (orientation: portrait) {
+  :root #ui:not(.scene-mode):not(.working) .camera-controls.camera-compact .camera-disclosure {
+    display: grid;
+    grid-column: 1 / -1;
+    width: auto;
+    padding-inline: 6px;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .camera-controls.camera-compact:not(.camera-expanded):not(:has(.camera-command-buttons :focus))
+    .camera-command-buttons {
+    display: none;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .camera-controls.camera-compact.camera-expanded
+    .camera-disclosure {
+    grid-column: 3;
+    grid-row: 2;
+    width: 44px;
+    padding: 0;
+  }
+}
+/* Short portrait exploration keeps one row of quest actions above the world. */
+@media (max-width: 479px) and (max-height: 640px) and (orientation: portrait) {
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):has(> .quest-story-selector):not(
+      :has(> .quest-story-selector:focus)
+    )
+    > .secondary-button {
+    grid-column: 1;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .quest-card:not(.objective-expanded):not(:has(> .quest-story-selector:focus))
+    > .quest-story-selector {
+    display: none;
+  }
+  :root #ui:not(.scene-mode):not(.working) .quest-card.objective-expanded {
+    max-height: min(
+      50dvh,
+      calc(100dvh - 74px - var(--notice-bottom, 250px)),
+      var(--quest-notice-max-height, 50dvh)
+    );
+  }
+  :root #ui:not(.scene-mode):not(.working) .quest-card.objective-expanded > .quest-story-selector {
+    position: static;
+    margin-inline-start: 8px;
+  }
+  :root
+    #ui:not(.scene-mode):not(.working)
+    .quest-card.objective-expanded
+    > :is(.quest-story-selector, .objective-toggle) {
+    min-height: 44px;
+  }
+}
 @media (min-width: 480px) and (max-width: 699px) and (max-height: 420px) {
   :root #ui {
     --quest-column: clamp(170px, calc((100vw - 176px) * 0.55), 276px);
@@ -1648,6 +1798,7 @@
   }
   :root .bottom-center {
     left: calc(var(--quest-column) + 24px);
+    width: calc(100vw - var(--quest-column) - 194px);
     max-width: calc(100vw - var(--quest-column) - 194px);
     align-items: stretch;
   }
@@ -1664,8 +1815,20 @@
   :root .quest-card:not(.objective-expanded) > .secondary-button > .icon:last-child {
     display: none;
   }
+  :root .action-tray {
+    padding-inline: 4px;
+  }
+  :root .nearby-more-actions button {
+    padding-block: 2px;
+  }
+  :root .nearby-more-actions button .icon {
+    display: none;
+  }
 }
 @media (min-width: 480px) and (max-height: 420px) {
+  :root .travel-status .travel-guidance {
+    overscroll-behavior: auto;
+  }
   :root .panel > .panel-header {
     padding-block: 8px;
   }
@@ -1682,8 +1845,9 @@
     animation: toast-in 200ms var(--ease-out) both;
     width: 100%;
     max-width: 100%;
-    max-height: calc(100dvh - 220px);
+    max-height: min(calc(100dvh - 220px), var(--hud-action-notice-height, calc(100dvh - 220px)));
     overflow-y: auto;
+    align-items: flex-start;
     pointer-events: auto;
     gap: 0;
     padding: 6px 8px;
@@ -1691,6 +1855,18 @@
   }
   :root .hud-actions > .toast .toast-icon {
     display: none;
+  }
+  :root .hud-actions > .toast[data-kind='item'],
+  :root
+    #ui:not(.scene-mode):not(.working):not(.conversing)
+    .hud-actions
+    > .toast[data-kind='item'] {
+    gap: 6px;
+  }
+  :root .hud-actions > .toast[data-kind='item'] > .toast-icon {
+    display: grid;
+    width: 17px;
+    height: 17px;
   }
   :root .quest-card,
   :root .quest-card:not(.objective-expanded) {
@@ -1713,7 +1889,7 @@
   }
   :root .bottom-center {
     max-height: calc(100dvh - 92px);
-    gap: 6px;
+    gap: 4px;
   }
   :root .hud-actions {
     display: flex;
@@ -1745,7 +1921,7 @@
     font-size: 10px;
     line-height: 12px;
     text-align: right;
-    padding: 2px 4px;
+    padding: 0 4px;
   }
   :root .action-tray {
     flex: 0 0 auto;
@@ -1757,11 +1933,11 @@
   :root #travel-status {
     flex-shrink: 0;
   }
-  :root .travel-status {
+  :root #travel-status {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px;
-    padding: 4px;
+    gap: 3px;
+    padding: 2px;
     align-self: stretch;
     font-size: 11px;
     line-height: 1.25;
@@ -1782,6 +1958,17 @@
   :root .control-hints > span {
     display: none;
   }
+  :root .control-hints {
+    padding-block: 0;
+    /* Keep five pixels between the fixed route ribbon and its neighboring hints. */
+    margin-top: 1px;
+  }
+}
+@media (min-width: 480px) and (max-width: 699px) and (max-height: 420px) {
+  :root .hud-actions > .toast,
+  :root #ui:not(.scene-mode):not(.working):not(.conversing) .hud-actions > .toast {
+    padding-inline: 4px;
+  }
 }
 @media (min-width: 700px) and (max-height: 420px) {
   :root .minimap-wrap,
@@ -1794,6 +1981,7 @@
   :root .bottom-center {
     left: 308px;
     bottom: 18px;
+    width: calc(100vw - 570px);
     max-width: calc(100vw - 570px);
     transform: none;
     align-items: flex-start;

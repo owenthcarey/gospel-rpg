@@ -5,6 +5,7 @@ import { stepPath } from '../../game/navigation';
 import type { ActorClip } from '../../content/assets';
 import type { AssetLibrary, Model } from '../assets';
 import { Actor } from './actor';
+import type { ActorGround } from './locomotion-clearance';
 
 /** Narrative progress stays in the reducer; this class owns only visible movement. */
 export class NeighborhoodActivity {
@@ -19,20 +20,22 @@ export class NeighborhoodActivity {
   private time = 0;
   private still = false;
   private requested = false;
+  private waitingForPlayer = false;
   constructor(
     library: AssetLibrary,
     private actors: Map<string, Actor>,
     private grid: () => WalkGrid,
     private checkpoint: () => void,
     region: string,
+    ground?: ActorGround,
   ) {
     if (region === 'bakehouse') {
-      for (const [id, asset, x, z] of [
-        ['bread', 'bread_basket', -4.7, 0],
-        ['jug', 'jug', 4.7, 1],
-        ['handle', 'cart_handle', 4, -2],
+      for (const [id, asset, x, z, target] of [
+        ['bread', 'bread_basket', -4.7, 0, 'bread-shelf'],
+        ['jug', 'jug', 4.7, 1, 'jug-shelf'],
+        ['handle', 'cart_handle', 4, -2, 'tool-shelf'],
       ] as const) {
-        const model = library.instantiate(asset, 'shelf-' + id);
+        const model = library.instantiate(asset, 'shelf-' + id, target);
         model.root.position.set(x, id === 'handle' ? 0.12 : 1.53, z);
         model.root.scaling.setAll(0.72);
         this.shelves.set(id, model);
@@ -44,7 +47,11 @@ export class NeighborhoodActivity {
         [1, 12, 7],
         [2, 8, 7],
       ] as const) {
-        const actor = new Actor(library.instantiate('villager', 'street-neighbor-' + i), true);
+        const actor = new Actor(
+          library.instantiate('villager', 'street-neighbor-' + i),
+          true,
+          ground ? { locomotionClearance: { ground } } : {},
+        );
         actor.root.position.set(x, 0, z);
         this.crowd.push({ actor, a: { x, z }, b: { x, z: z + 2 }, period: 12 + i * 4 });
       }
@@ -86,15 +93,31 @@ export class NeighborhoodActivity {
     this.cart?.root.position.set(walk.gateOpen ? 2.4 : 0, 0, walk.gateOpen ? -2 : 0);
     const amos = this.actors.get('amos');
     if (amos) {
+      // Ordinary reducer snapshots already contain the current visible position.
+      // A restored/relocated position starts a new physical escort interval.
+      if (
+        !old ||
+        old.region !== state.region ||
+        old.campaign.walk.step !== walk.step ||
+        old.campaign.walk.stage !== walk.stage ||
+        old.campaign.walk.route !== walk.route ||
+        amos.root.position.x !== walk.position.x ||
+        amos.root.position.z !== walk.position.z
+      )
+        this.waitingForPlayer = false;
+      amos.clearLocomotionPresentation();
       amos.root.position.set(walk.position.x, 0, walk.position.z);
       if (!old || old.campaign.walk.step !== walk.step || old.campaign.walk.stage !== walk.stage) {
         this.path = [];
         this.requested = false;
       }
+      amos.refreshLocomotionPresentation();
     }
   }
   settings(s: Settings): void {
     this.still = s.reducedMotion;
+    this.actors.get('amos')?.setLocomotionReducedMotion(s.reducedMotion);
+    this.crowd.forEach((c) => c.actor.setLocomotionReducedMotion(s.reducedMotion));
     this.crowd.forEach((c, i) => c.actor.root.setEnabled(i < (s.quality === 'low' ? 2 : 3)));
   }
   position(): Point | undefined {
@@ -107,6 +130,7 @@ export class NeighborhoodActivity {
   tick(dt: number, player: Point): void {
     this.time += dt;
     for (const c of this.crowd) {
+      const before = { x: c.actor.root.position.x, z: c.actor.root.position.z };
       const phase = (this.time % c.period) / c.period;
       const moving = !this.still && phase < 0.5;
       if (moving) {
@@ -116,24 +140,41 @@ export class NeighborhoodActivity {
         const toward = phase < 0.25 ? c.b : c.a;
         c.actor.turnTo({ x: c.actor.root.position.x, z: toward.z }, this.still ? 10 : dt, 7);
       }
+      c.actor.setStrideSpeed(dt > 0 ? distance(before, c.actor.root.position) / dt : 0);
       c.actor.sample(moving ? 'Walk' : 'Idle', dt, this.still);
     }
     const amos = this.actors.get('amos');
     const walk = this.state.campaign.walk;
     const position = this.position();
-    if (!amos || !position || walk.stage !== 'walking' || !walk.route) return;
+    if (!amos || !position) return;
+    if (walk.stage !== 'walking' || !walk.route) {
+      amos.setStrideSpeed(0);
+      amos.sample('Idle', dt, this.still);
+      return;
+    }
     const target = WALK_ROUTES[walk.route][walk.step];
     if (!target) return;
     // Physical escort movement is identical with reduced motion. Only clip sampling differs.
-    const together = distance(player, position) < 5;
+    const gap = distance(player, position);
+    // Keep the existing outer stop limit. Wait for a little room before restarting
+    // so the faster companion does not change clips at every threshold crossing.
+    if (dt > 0) {
+      if (gap >= 5) this.waitingForPlayer = true;
+      else if (gap < 4.5) this.waitingForPlayer = false;
+    }
+    const together = !this.waitingForPlayer && gap < 5;
     if (together && distance(position, target) > 0.25) {
       if (!this.path.length) this.path = findPath(this.grid(), position, target);
       const step = stepPath(position, this.path, dt * 0.52);
       this.path = step.path;
       amos.root.position.set(step.position.x, 0, step.position.z);
       if (step.facing) amos.turnTo(step.facing, this.still ? 10 : dt, 9);
-      amos.sample('Walk', dt, this.still);
-    } else amos.sample('Idle', dt, this.still);
+      amos.setStrideSpeed(dt > 0 ? distance(position, step.position) / dt : 0);
+      amos.sample(step.moving ? 'Walk' : 'Idle', dt, this.still);
+    } else {
+      amos.setStrideSpeed(0);
+      amos.sample('Idle', dt, this.still);
+    }
     if (
       !this.requested &&
       distance(this.position()!, target) <= 1.2 &&

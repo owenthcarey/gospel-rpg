@@ -263,4 +263,28 @@ describe('v10 validation and journey surfaces', () => {
     expect(recap(s)).toContain('Room on the road');
     expect(recap(s, true)).not.toContain('data-action=');
   });
+  it.each([
+    ['simon', false],
+    ['home-farm', true],
+  ] as const)(
+    'offers only available saved-route actions after restoring %s',
+    (target, available) => {
+      const saved = completedJourney();
+      saved.connection.route = { target };
+      const restored = roundTrip(saved);
+      const plan = routePlan(restored)!;
+      expect(plan.available).toBe(available);
+      const view = recap(restored);
+      expect(view).toContain(plan.title);
+      expect(view).toContain(plan.message);
+      const resume = view.match(/<button[^>]*data-action="route-resume"[^>]*>/)![0];
+      const cancel = view.match(/<button[^>]*data-action="cancel-navigation"[^>]*>/)![0];
+      expect(resume.includes(' disabled')).toBe(!available);
+      expect(cancel).not.toContain(' disabled');
+      const welcome = recap(restored, true);
+      expect(welcome).not.toContain('data-action=');
+      expect(welcome).toContain(available ? 'Resume it after continuing.' : plan.message);
+      if (!available) expect(welcome).not.toContain('Resume it after continuing.');
+    },
+  );
 });

@@ -33,7 +33,7 @@ export function harborBlocker(s: GameState, id: string): string | undefined {
     return h.stage === 'not-started' || h.stage === 'complete' || h.hint === 3
       ? 'No further hint is needed.'
       : undefined;
-  const target = harborPlace(harborActionTarget(id) ?? '');
+  const target = harborPlace(harborActionTarget(id) ?? '', h);
   if (!target) return 'This action is not available.';
   if (distance(s.position, target) >= 2.8) return 'Approach this part of the landing to act.';
   if (id === 'accept')

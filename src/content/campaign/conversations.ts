@@ -11,7 +11,9 @@ export function neighborhoodText(id: string, s: GameState): string {
     if (c.walk.stage === 'walking')
       return 'Amos looks toward the next turn. “I am with you. Let us meet just ahead.” He will pause if you leave the lane or move too far away.';
     if (c.walk.route === 'passage')
-      return '“The passage is shorter,” Amos says, “but that handcart is across it. Hannah keeps its removable handle on the tool shelf. We can move it aside without rushing anyone.”';
+      return c.walk.gateOpen
+        ? '“The passage is clear now,” Amos says. “We can take that way when you are ready.” The handcart stands beside the wall.'
+        : '“The passage is shorter,” Amos says, “but that handcart is across it. Hannah keeps its removable handle on the tool shelf. We can move it aside without rushing anyone.”';
     if (c.walk.route === 'outer')
       return '“The outer lane is a little longer. There is room for two to walk there.” Amos waits until you are ready.';
     return '“I was going to sit in the courtyard,” Amos says. “Would you walk with me? We can take the narrow passage, or go around by the outer lane.” Neither route is a better answer.';

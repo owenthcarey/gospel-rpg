@@ -95,6 +95,74 @@ test('expanded world labels remain steady beside reserved HUD edges', async ({ p
   }
 });
 
+test('coarse-pointer world labels keep useful touch areas clear of menus and other labels', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name !== 'mobile-chromium', 'Measures physical touch targets.');
+  await ready(page);
+  await expect(page.locator('.chapter-card')).toHaveCount(0);
+  await expect(page.locator('#toast')).toBeHidden();
+  let measuredCollapsedLabel = false;
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 320, height: 568 },
+    { width: 667, height: 375 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    const measurement = () =>
+      page.evaluate(() => {
+        const labels = Array.from(
+          document.querySelectorAll<HTMLElement>('.world-label:not([hidden])'),
+        ).map((node) => ({ node, rect: node.getBoundingClientRect() }));
+        const reserved = Array.from(
+          document.querySelectorAll<HTMLElement>(
+            '.topbar,.quest-card,.minimap-wrap,.minimap-compass,.bottom-center,.traveler-card,#toast:not([hidden])',
+          ),
+        )
+          .filter((node) => node.offsetHeight > 0)
+          .map((node) => ({ node, rect: node.getBoundingClientRect() }));
+        const overlap = (a: DOMRect, b: DOMRect) =>
+          a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        const problems: string[] = [];
+        for (const [index, { node, rect }] of labels.entries()) {
+          const name = node.getAttribute('aria-label');
+          const style = getComputedStyle(node);
+          if (parseFloat(style.minWidth) < 44 || parseFloat(style.minHeight) < 44)
+            problems.push(`${name}: small computed touch minimum`);
+          // Projected translations can report a 44px box a few millionths below 44.
+          if (rect.width < 43.99 || rect.height < 43.99) problems.push(`${name}: small touch area`);
+          // The transparent part of a collapsed label must also receive the finger tap.
+          for (const x of [rect.left + 3, rect.right - 3])
+            for (const y of [rect.top + 3, rect.bottom - 3])
+              if (document.elementFromPoint(x, y)?.closest('.world-label') !== node)
+                problems.push(`${name}: touch area is covered`);
+          for (const other of [...reserved, ...labels.slice(index + 1)])
+            if (overlap(rect, other.rect)) problems.push(`${name}: overlaps another surface`);
+        }
+        return {
+          count: labels.length,
+          collapsed: labels.filter(({ node }) => !node.classList.contains('expanded')).length,
+          problems,
+        };
+      });
+    await expect
+      .poll(async () => {
+        const report = await measurement();
+        return report.count > 0 ? report.problems : ['No visible world labels'];
+      })
+      .toEqual([]);
+    measuredCollapsedLabel ||= (await measurement()).collapsed > 0;
+    await page.screenshot({
+      path: info.outputPath(`touch-labels-${viewport.width}x${viewport.height}.png`),
+      scale: 'css',
+    });
+  }
+  expect(measuredCollapsedLabel, 'compact landmark glyphs retain their enlarged touch areas').toBe(
+    true,
+  );
+});
+
 test('temporary import notices clear world names and release their space when they expire', async ({
   page,
 }) => {
@@ -174,7 +242,7 @@ test('temporary import notices clear world names and release their space when th
     await page.locator('.toolbar [data-action="map"]').click();
     await expect(page.locator('.map-destinations [data-value="simon"]')).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(canvas).toBeFocused();
+    await expect(page.locator('.toolbar [data-action="map"]')).toBeFocused();
     await expect(notice).toBeHidden();
     await expect(simon).toBeVisible();
     await expect

@@ -1,6 +1,6 @@
 # Asset production
 
-The 98 checked-in GLBs, fifteen matching WebP portraits and twelve transparent item sprites are ready to use. RFC-011 rebuilt the whole catalog through Blender MCP with baked shading, new people and vegetation; see [A World in Light](#a-world-in-light-rfc-011) below. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
+The 98 checked-in GLBs, fifteen matching WebP portraits and thirteen transparent item sprites are ready to use. RFC-011 rebuilt the whole catalog through Blender MCP with baked shading, new people and vegetation; see [A World in Light](#a-world-in-light-rfc-011) below. Blender is needed only for rebuilding. The chapter kits were produced and inspected through Blender MCP with **Blender 5.2.1 LTS**. The Road to Nain workshop and eleven affected exports were recreated through MCP after restoring its addon connection; see the [rebuild record](verification/road-to-nain-mcp.json). No external models, textures or generation services are required.
 
 `tools/blender/generate_kit.py` creates a separate workshop scene, preserves unrelated scenes, and writes only the workshop and its dependencies to `assets/source/galilee-kit.blend`. `rigging.py` supplies character skeletons and clips. Geometry uses meters, flat shading and matte materials, applied mesh transforms, selected-object export, and glTF Y-up coordinates.
 
@@ -14,7 +14,7 @@ BLENDER_BIN=/path/to/blender npm run assets:build
 
 The recipe uses Blender 4.2+ APIs; the checked-in exports were verified with 5.2.1. Rebuilding with another version requires the asset tests and visual checks below.
 
-`npm run assets:build` runs, in order, `generate_kit.py`, `capernaum.py`, `presence.py`, `characters.py`, `vegetation.py` and `architecture.py` headlessly, then the pure-Python finalize: `pack_palette.py`, `prune_channels.py` and `compact_glb.py` over every model. `item_icons.py` renders the finalized props afterward. Later recipes replace earlier exports with the same name. `npm run assets:build -- --rfc011` reruns only the RFC-011 recipes, the finalize and the item sprites.
+`npm run assets:build` runs, in order, `generate_kit.py`, `capernaum.py`, `presence.py`, `characters.py`, `vegetation.py` and `architecture.py` headlessly, then the pure-Python finalize: `pack_palette.py`, `prune_channels.py` and `compact_glb.py` over every model, followed by `villager_stance.py` on the villager only. Fresh source-part membership and the actual exported socket name are transferred from the character build through one temporary file. The stance pass runs exactly once after compaction. `item_icons.py` renders the finalized props afterward. Later recipes replace earlier exports with the same name. `npm run assets:build -- --rfc011` reruns only the RFC-011 recipes, the finalize and the item sprites.
 
 Via Blender MCP's Python execution tool (the RFC-011 production path), run each recipe in the live session; every recipe creates its own workshop scene and restores the scene that was open:
 
@@ -22,18 +22,53 @@ Via Blender MCP's Python execution tool (the RFC-011 production path), run each 
 import os, sys, runpy
 root = '/absolute/path/to/gospel-rpg'
 os.environ['GOSPEL_RPG_ROOT'] = root
-for name in ['kit_common', 'shading', 'rigging', 'characters']:
+sys.path.insert(0, os.path.join(root, 'tools/blender'))
+for name in ['kit_common', 'shading', 'rigging', 'villager_stance', 'characters']:
     sys.modules.pop(name, None)  # Pick up recipe edits in an already-running session.
+source = {}
 for recipe in ['generate_kit.py', 'capernaum.py', 'presence.py', 'characters.py', 'vegetation.py']:
-    runpy.run_path(os.path.join(root, 'tools/blender', recipe), run_name='__main__')
+    if recipe == 'characters.py':
+        import characters
+        characters.build(report=source)  # Export the base rig and fresh membership.
+    else:
+        runpy.run_path(os.path.join(root, 'tools/blender', recipe), run_name='__main__')
+from pathlib import Path
+from pack_palette import pack_palette
+from prune_channels import prune_channels
+from compact_glb import compact_kit
+from villager_stance import finalize_villager
+models = Path(root) / 'public/assets/models'
+for path in sorted(models.glob('*.glb')):
+    pack_palette(path)
+    prune_channels(path)
+compact_kit(models)
+finalize_villager(models / 'villager.glb', source['villager'])
+characters.portraits()
 ```
 
-Long recipes can outlast the MCP request timeout while Blender keeps working; wait for `assets/source/people-kit.blend` or the model timestamps before finalizing. Then run the finalize from the repository with `python3 -c` (see `finalize()` in `tools/build_assets.py`) and render portraits with `characters.portraits()` through MCP.
+Long recipes can outlast the MCP request timeout while Blender keeps working. Keep the fresh `source` report from this invocation until the pure passes finish; do not substitute a cached membership ledger. The complete example above finalizes before rendering portraits. `characters.run()` handles its own pack/prune, villager compaction and stance pass for standalone use; do not finalize that result again.
+
+For a selective character rebuild, collect the same report and finalize only the returned exports:
+
+```python
+source = {}
+built = characters.build(['villager'], report=source)
+for name in built:
+    path = characters.OUT / (name + '.glb')
+    pack_palette(path)
+    prune_channels(path)
+    from compact_glb import compact
+    compact(path)
+if 'villager' in built:
+    finalize_villager(characters.OUT / 'villager.glb', source['villager'])
+```
+
+This recreates the complete fifteen-actor base workshop while exporting only the selected GLBs. Unselected shipped models remain untouched. Set `GOSPEL_MODEL_OUTPUT` to a fresh staging directory before importing or reloading `characters`; its output paths are fixed at import. The build also writes `assets/source/people-kit.blend` under `GOSPEL_RPG_ROOT`. To confine that workshop too, set `GOSPEL_RPG_ROOT` to a staged root containing the copied recipe and its dependencies before import or reload. Install only the fully validated final file. The new pass accepts only the original fourteen-joint villager; an already processed stance16 input is rejected. Run no additional palette/prune/compaction passes afterward on the exact serialized reproduction path.
 
 ## Model contracts
 
 - Fifteen skinned actors: traveler, Simon, Miriam, Jesus, village neighbor, James, John, Hannah, Amos, Ruth, a bearer, the healed man, a widow, a young man and Leah. Ezra uses the neighbor model; Tamar, Neri and Adina reuse Ruth, Amos and Hannah.
-- Shared twelve-bone rig, with rigid per-part weights that preserve the chunky silhouettes. Named clips: `Idle`, `Walk`, `Carry`, `Gesture`, `Sit`, `Row`, `Haul`, `Kneel`, `Recline`, `Rise`, `MatCarry`, `Use`, `PickUp`, `PutDown`, `Repair`, `SitDown`, `Greet`, `Listen`, `Respond`. Blender NLA tracks export each clip; Babylon samples them independently per actor. This is skeletal animation with deliberately restrained deformation, not cloth simulation.
+- Shared twelve-bone base rig, with rigid per-part weights that preserve the chunky silhouettes. Named clips: `Idle`, `Walk`, `Carry`, `Gesture`, `Sit`, `Row`, `Haul`, `Kneel`, `Recline`, `Rise`, `MatCarry`, `Use`, `PickUp`, `PutDown`, `Repair`, `SitDown`, `Greet`, `Listen`, `Respond`. Traveler and villager add two rigid cloth/accessory joints and the specialized `BenchSit` clip. The final villager export adds two child foot joints after packing: only the three moving clips gain the authored stance datum, with matching carry-socket translation; every other clip retains its finite root values and explicit neutral foot/socket resets. `people-kit.blend` remains the original fourteen-joint villager workshop; `villager_stance.py` is the canonical source for its final exported articulation. Blender NLA tracks export each clip; Babylon samples them independently per actor. This is skeletal animation with deliberately restrained deformation, not cloth simulation.
 - Every actor exports `carry_socket`; the traveler uses it for baskets, jugs, tools and the sewing pouch. The boat exports `seat_front`, `seat_middle`, `seat_back`, `net_socket`, `oar_left`, and `oar_right` attachment transforms.
 - Separate oar, empty/full basket, folded/cast/full net, bread bundle, mooring coil and landing mat models support persistent interactions and staged scenes.
 - The original houses, market, three tree types, boat, net rack, crate, amphora, reeds, rock and well remain in the kit.
@@ -52,11 +87,13 @@ Inspect the Blender viewport and the actual Babylon view. Check front direction,
 
 Keep geometry near the origin and update collision footprints with changed environment dimensions. Commit the recipe, source `.blend`, and derived GLBs together. Workshop object numbering can vary with other open scenes; reproducibility means the same asset contracts and geometry, not byte-identical Blender metadata. Record external licenses in `CREDITS.md` before adding external assets.
 
+`tests/fixtures/villager-foot-membership.json` pins the approved packed villager's exact bytes, SHA-256 and ordered lower-leg, foot and sole vertex identities. `tests/unit/npc-locomotion-clearance.test.ts` rejects a different artifact before its geometry checks, including a rebuild with only metadata changes. Keep that strict pin. Before promoting a fresh villager, independently review its final packed geometry and validate or rederive the ordered membership from its fresh source components and bottom polygons. Update the fixture's artifact identity, membership and provenance together with the reviewed GLB; retain proven unchanged vertex identities.
+
 ## Inventory item sprites
 
 `tools/blender/item_icons.py` imports the shipped quest and carry props into an isolated Blender workshop and renders **64 × 64** transparent WebP sprites. Oblique orthographic views, the existing vertex palette and a small dark silhouette edge keep the objects readable in compact satchel slots. All geometry is original; the renders use the existing props without modifying models, animations, item identifiers or saved ownership. `assets/source/items-kit.blend` preserves the imported meshes, lighting and camera setup.
 
-The twelve files in `public/assets/items/` total **27,198 bytes**. `src/ui/item-art.ts` maps the two satchel items, the episode basket and all eleven carry identifiers onto these sprites. Empty, filled and resting-place jug identifiers share the jug image. Asset URLs respect the deployment base, and sprites are requested only when an item is displayed.
+The thirteen files in `public/assets/items/` total **29,156 bytes**. `src/ui/item-art.ts` maps the two satchel items, the episode basket and all eleven carry identifiers onto these sprites. The empty jug keeps its dark interior; filled and resting-place water jugs share a separate sprite with a matte blue surface inside the mouth. Both retain the same prop silhouette and orthographic framing. The water material exists only in the icon workshop; the shipped game model stays unchanged. Asset URLs respect the deployment base, and sprites are requested only when an item is displayed.
 
 Rebuild just the sprites with `npm run assets:build -- --items`, or execute `item_icons.py` through Blender MCP using the root and `runpy` pattern above. The recipe restores the previous open scene in `finally`; it writes only its own workshop to the source file. `GOSPEL_ITEM_OUTPUT` can redirect the rendered images, and generation reports stay in ignored `artifacts/rfc011/`.
 
@@ -222,3 +259,7 @@ The resulting **94 models total 6,706,812 bytes (6.40 MiB)** against the explici
 **Byte recovery.** `prune_channels.py` removes animation channels whose values equal the node's rest transform in every clip (so switching clips can never leave a stale pose) and collects unreferenced accessors. Animation outputs remain float, geometry and moving channels are untouched, and every imported-geometry contact test passes. `KHR_mesh_quantization` is registered in the loader but was not needed. The 98-model catalog is **5,467,552 bytes** (previously 6,706,812 for 94 models) against the unchanged 7.5 MiB cap; portraits total about 100 KB against 384 KiB.
 
 **Sources.** `assets/source/people-kit.blend` and `assets/source/vegetation-kit.blend` join the existing workshops. Build reports are written to ignored `artifacts/rfc011/`.
+
+**Supported bench poses.** Only traveler and villager gain `BenchSit` and a revised `SitDown`: the robe folds across the lap and drapes over the knees, accessories clear the plank, and the finite transition bakes sandal grounding. Life bench/table guests start directly in `BenchSit`; the player approaches around the bench and settles backward using a cosmetic offset that preserves the navigation root. Standing geometry, palette colors and all eighteen control clips, including `Sit` and `Row`, remain unchanged. `tests/unit/bench-support.test.ts` checks the final packed skins against finite bench/table geometry and the neighbor, including zero-time guest startup, dense transition phases and eight approach/retreat routes; `tests/unit/clip-motion.test.ts` covers pause, cancellation, reset and reduced motion.
+
+After this selective seating rebuild, the current **98 GLBs total 5,796,864 bytes (5.53 MiB)** against the unchanged 7.5 MiB cap. Traveler is 245,768 bytes and villager is 250,580 bytes; the other 96 models retain their preceding bytes.

@@ -332,7 +332,7 @@ async function apply(event: GameEvent): Promise<void> {
   if (displayRegion(next) !== displayRegion(state)) await changeRegion(next);
   state = next;
   world?.update(state);
-  ui.update(state);
+  ui.update(state, event.type === 'track-story');
   audio.update(state);
   presentArrival();
   const feedback = feedbackForEvent(event);
@@ -375,7 +375,7 @@ async function showSettings(): Promise<void> {
   const slots = await saves.list();
   if (request === menuRequest && !disposed) ui.settings(settings, slots, saves.persistent, started);
 }
-async function close(): Promise<void> {
+async function close(restoreOpener = false): Promise<void> {
   const returnTo = inspectionWork;
   inspectionWork = undefined;
   if (returnTo && openWork(returnTo)) return;
@@ -391,7 +391,7 @@ async function close(): Promise<void> {
   ui.close();
   syncPause();
   if (isPresenting(state)) ui.focusScene();
-  else canvas.focus();
+  else if (!restoreOpener || focusLost()) canvas.focus();
 }
 async function begin(saved?: GameState): Promise<void> {
   await saveQueue.catch(() => {});
@@ -671,13 +671,6 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'journal-status':
       if (ui.panel === 'journal' && STORY_STATUSES.some((id) => id === value)) {
         ui.journal(snapshot(), 'stories', undefined, value as StoryStatusFilter);
-        requestAnimationFrame(() =>
-          document
-            .querySelector<HTMLElement>(
-              '[data-action="journal-status"][data-value="' + value + '"]',
-            )
-            ?.focus(),
-        );
       }
       break;
     case 'begin':
@@ -698,7 +691,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       await begin();
       break;
     case 'close':
-      await close();
+      await close(true);
       break;
     case 'transcript':
     case 'journal':
@@ -707,7 +700,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'help':
     case 'messages':
       if (ui.panel === name) {
-        await close();
+        await close(true);
         break;
       }
       pause();
@@ -725,7 +718,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (name === 'messages') ui.messages();
       break;
     case 'settings':
-      if (ui.panel === 'settings' && value === 'toggle') await close();
+      if (ui.panel === 'settings' && value === 'toggle') await close(true);
       else await showSettings();
       break;
     case 'replay-opening':
@@ -967,7 +960,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       if (STORY_TRACKS.some((id) => id === value)) {
         const wasJournal = ui.panel === 'journal';
         await apply({ type: 'track-story', story: value as (typeof STORY_TRACKS)[number] });
-        if (wasJournal) ui.journal(state);
+        if (wasJournal) ui.journal(state, undefined, undefined, undefined, true);
       }
       break;
     case 'scene-next':
@@ -1061,7 +1054,7 @@ const keydown = (event: KeyboardEvent) => {
       return;
     }
     event.preventDefault();
-    runAction(() => (ui.panel ? close() : showSettings()));
+    runAction(() => (ui.panel ? close(true) : showSettings()));
     return;
   }
   if (

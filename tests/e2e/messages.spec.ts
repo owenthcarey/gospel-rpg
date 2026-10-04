@@ -31,7 +31,7 @@ test('game messages remain readable after toasts fade and leave the traveler unc
   await page.keyboard.press('Escape');
   await settled(page);
   await expect(messages).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('#game-canvas')).toBeFocused();
+  await expect(messages).toBeFocused();
   await expect(player).toHaveAttribute('transform', position!);
   await expect(page.locator('.message-count')).toBeHidden();
   await page.locator('#game-canvas').press('e');
