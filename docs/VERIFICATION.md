@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Prepared table inspection guidance · 2026-10-03
+
+After bread and water are delivered to the chosen courtyard or bakehouse table, its inactive inspection directs the player to Hannah. Once the story is complete, it acknowledges the food left for neighbors. Partial and unchosen tables retain their existing instructions; held items, actions and progress are unchanged.
+
+The existing **34 campaign/item-status tests / two files** pass in **10.51 seconds**, **14.993 seconds** owner. Typecheck and production build pass in **107.321 seconds** under the original 120-second owner. Both **563-guard** before/after/current comparisons, final log caps and exact process groups are independently verified. No new cases were added. This is a source and existing-flow checkpoint; native table reading remains unobserved.
+
 ## Completed landing Journal visit · 2026-10-03
 
 The completed **A clear way to the water** story offers **Visit Eliab again**, retaining its existing destination and travel action. Unfinished cards still say **Find the next stop**. The existing **13 harbor tests** pass in **6.78 seconds**, **8.593 seconds** owner; typecheck and production build pass in **38.449 seconds**. Both **565-guard** before/after/current comparisons and exact process groups are independently verified. No new cases were added.

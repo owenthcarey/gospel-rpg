@@ -86,11 +86,19 @@ export function contextView(id: string, s: GameState): { title: string; body: st
     ((id === 'cord-basket' && s.life.bench.method === 'lashing') ||
       (id === 'brace-shelf' && s.life.bench.method === 'brace')) &&
     ['fitted', 'complete'].includes(s.life.bench.stage);
-  const actionNote = settledMaterialSource
-    ? s.life.bench.stage === 'fitted'
-      ? 'The repair is in place. Return to the landing bench to sit and check the seat.'
-      : 'The repair is complete. A neighbor has a steady place to rest beside the landing.'
-    : actions[0]?.requirement;
+  const preparedTable =
+    id === s.campaign.table.location + '-table' &&
+    ['preparing', 'complete'].includes(s.campaign.table.stage) &&
+    s.campaign.table.delivered.length === 2;
+  const actionNote = preparedTable
+    ? s.campaign.table.stage === 'complete'
+      ? 'The table is ready. Bread and water remain here for the neighbors.'
+      : 'The bread and water are in place. Tell Hannah the table is ready.'
+    : settledMaterialSource
+      ? s.life.bench.stage === 'fitted'
+        ? 'The repair is in place. Return to the landing bench to sit and check the seat.'
+        : 'The repair is complete. A neighbor has a steady place to rest beside the landing.'
+      : actions[0]?.requirement;
   return {
     title: place.name,
     body: `<p class="eyebrow">ORIGINAL ${place.kind === 'person' ? 'CONVERSATION' : 'NARRATION'}</p><p class="panel-lead">${esc(prose)} ${esc(galileeAcknowledgement(id, s))}</p>${s.campaign.carrying ? `<p class="held-notice">In your hands: ${esc(heldItems[s.campaign.carrying].name)}</p>` : ''}<div class="context-actions">${available.map((a) => button(a.label, 'campaign-action', a.id, true)).join('')}${reflection ? ROOF_REFLECTIONS.map((id) => button(roofReflections[id].title, 'roof-reflect', id, true)).join('') : ''}</div>${blocked.map((a) => `<p class="action-blocker"><strong>${esc(a.label)}</strong><br>${esc(actionBlocker(a, s) ?? a.requirement)}</p>`).join('')}${noteText ? `<article class="context-note"><h3>${esc(noteText.title)}</h3><p>${esc(noteText.text)}</p>${noteText.reference ? `<p class="reference-tag">${esc(noteText.reference)}</p>` : ''}${s.campaign.notes.includes(note!) ? '<p>Remembered in your journal.</p>' : button('Remember this place', 'neighbor-note', note)}</article>` : ''}${!available.length && !reflection && actionNote ? `<p class="content-note">${esc(actionNote)}</p>` : ''}`,
