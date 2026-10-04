@@ -2,6 +2,18 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Neri waits for the traveler to catch up · 2026-10-03
+
+Road Neri now retains a physical waiting interval after the original five-metre outer stop, resuming below 4.5 metres. Ordinary current-position snapshots, Settings and explicit approach preserve the interval; genuine relocation and route/stage/step/region boundaries reset it. Authored targets, 1.65 m/s speed, 0.15 m stop radius, path/checkpoint admission, completed Sit, assets and saved progress retain their policies.
+
+Against unchanged production, the normal and reduced imported controls both reach actual root movement on the first 4.99 m callback after the exact five-metre wait: **two failures / 33 skipped**, **0.835 seconds**, **1.256 seconds** owner. Source02's impossible exact-zero arrival setup is preserved unrun; source03 uses the original natural stop radius and actual checkpoint callback, then asserts the genuine reducer's step and meeting-position result. Eleven new default-deadline imported cases retain complete CPU skin/floor bounds, paired raw/supported navigation, state and checkpoints. One existing companion case intentionally changes its immediate restart contract while retaining outer-stop, positive movement and explicit-approach gates.
+
+After correction, **81 tests / three imported locomotion/companion/road files** pass in **10.77 seconds**, **11.109 seconds** owner; types/build pass in **6.895 seconds**, lint in **5.389 seconds**. Root reads complete logs and independently verifies all **571 guards** before/after/current, original caps and fresh exact-group cleanup. Native cadence, clip readability, GPU geometry, other layouts and serialized save equality remain unobserved. The preceding full checkpoint below is separate and predates this change.
+
+## Fresh full checkpoint at ab1f856 · 2026-10-03
+
+At clean **ab1f856d6bc5fa3d353100cb0d4e7a7b37f8ea39**, a fresh complete check passes evidence validation, types, lint, **1,720 tests / 100 files** and build. Vitest takes **38.30 seconds**, the single full owner **52.537 seconds**; subsequent formatting passes in **6.226 seconds**. Root reads both complete logs, verifies all **571 guards** before/after/current, clean Git identity and fresh exact-group cleanup. Original **120-second** owner, **three-second** cleanup, **1 MiB** per-log cap and **four-worker** limit remain. This owner has no failure or retry, and is separate from the earlier retained full-run timeout history. The output is **index-NNO6QOjo.js**. One exact-head hosted snapshot remains queued; these local results do not establish hosted runner checkout or success.
+
 ## Choose Option dismissal keeps a visible world focus owner · 2026-10-03
 
 Restoring dismissal now hides Choose Option before reusing its existing resize focus chooser. The exposed former label remains first choice; an unavailable label falls back to an eligible canvas. Selected action callbacks still run afterward and retain their new focus, while outside-pointer, pause, blur, hidden and disposal cancellation keep their original policy. The world can keep publishing projected labels while the option menu is open; connectivity alone previously admitted a label that had become hidden.

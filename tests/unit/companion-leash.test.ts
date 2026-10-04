@@ -350,7 +350,7 @@ it('never revives movement from nonfinite player coordinates or crosses a stage 
   }
 });
 
-it('leaves Road Neri’s existing range and explicit approach stop unchanged', () => {
+it('keeps Road Neri’s outer limit, restart band and explicit approach stop', () => {
   const state = roadAction(
     transition(roadAction(gateway(roadStart(), 'to-farm'), 'company-accept'), {
       type: 'road-route',
@@ -378,6 +378,9 @@ it('leaves Road Neri’s existing range and explicit approach stop unchanged', (
     road.tick(0.05, { x: before.x + 5, z: before.z });
     expect(road.position()).toEqual(before);
     road.tick(0.05, { x: before.x + 4.99, z: before.z });
+    expect(road.position()).toEqual(before);
+    expect(actor.playback.clip).toBe('Idle');
+    road.tick(0.05, { x: before.x + 4.49, z: before.z });
     expect(distance(road.position()!, before)).toBeGreaterThan(0);
     const after = road.position()!;
     road.tick(0.05, after, true);

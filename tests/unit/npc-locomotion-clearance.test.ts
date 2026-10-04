@@ -680,6 +680,300 @@ it.each(
   },
 );
 
+function neriEscort(route: 'shade' | 'terrace' = 'terrace', walking = true) {
+  let state = roadAction(gateway(roadStart(), 'to-farm'), 'company-accept');
+  state = transition(state, { type: 'road-route', id: route });
+  if (walking) state = roadAction(state, 'company-start');
+  expect(state.road.company).toMatchObject({
+    stage: walking ? 'walking' : 'invited',
+    route,
+    step: 0,
+    region: 'roadside-farm',
+  });
+  return state;
+}
+/** Real imported controller samples; dt is the sole animation clock and no global clock is replaced. */
+function neriLeash(state: GameState, height: Height, reducedMotion: boolean) {
+  const navigation = grid(state),
+    checkpoints = [[], []] as number[][],
+    roads = [undefined, height].map(
+      (ground, i) =>
+        new RoadActivity(
+          library,
+          'roadside-farm',
+          () => navigation,
+          (step) => checkpoints[i]!.push(step),
+          ground,
+        ),
+    ),
+    p = { baseline: roads[0]!.conversationActor, actor: roads[1]!.conversationActor };
+  let input = state,
+    saved = structuredClone(state);
+  const update = (next: GameState) => {
+    const before = structuredClone(next);
+    roads.forEach((road) => road.update(next));
+    expect(next).toEqual(before);
+    input = next;
+    saved = before;
+    controllerEqual(roads[0], roads[1]);
+  };
+  update(state);
+  roads.forEach((road) => road.settings({ ...DEFAULT_SETTINGS, reducedMotion }));
+  return {
+    p,
+    checkpoints,
+    position: () => roads[1]!.position()!,
+    atGap(gap: number) {
+      const at = roads[1]!.position()!;
+      return { x: at.x + gap, z: at.z };
+    },
+    update,
+    settings(value: boolean) {
+      reducedMotion = value;
+      roads.forEach((road) => road.settings({ ...DEFAULT_SETTINGS, reducedMotion: value }));
+      expect(input).toEqual(saved);
+    },
+    snapshot() {
+      const snapshot = structuredClone(input);
+      snapshot.road.company.position = { ...roads[1]!.position()! };
+      return snapshot;
+    },
+    tick(player: { x: number; z: number }, dt = 0.05, approaching = false) {
+      scene.incrementRenderId();
+      roads.forEach((road) => road.tick(dt, player, approaching));
+      controllerEqual(roads[0], roads[1]);
+      expect(checkpoints[1]).toEqual(checkpoints[0]);
+      expect(input).toEqual(saved);
+      if (reducedMotion) captureReducedStatic(p, height, stats());
+      else capture(p, height, stats());
+    },
+    dispose: () => dispose(p),
+  };
+}
+type NeriLeash = ReturnType<typeof neriLeash>;
+function neriWait(f: NeriLeash, gap = 5) {
+  const root = f.p.actor.root.position.asArray();
+  f.tick(f.atGap(gap));
+  expect(f.p.actor.root.position.asArray()).toEqual(root);
+  expect(f.p.actor.playback.clip).toBe('Idle');
+  return root;
+}
+function neriMove(f: NeriLeash, gap: number) {
+  const before = f.position();
+  f.tick(f.atGap(gap));
+  expect(distance(before, f.position())).toBeGreaterThan(0);
+  expect(f.p.actor.playback.clip).toBe('Walk');
+}
+
+it.each([false, true])(
+  'holds Neri at the exact escort band and resumes the authored path with reduced %s',
+  (reducedMotion) => {
+    const state = neriEscort(),
+      saved = structuredClone(state),
+      ground = floor(state.region),
+      reference = neriLeash(state, ground.height, reducedMotion);
+    // Complete the independent direct movement first, before constructing the held history.
+    const expected = (() => {
+      try {
+        const values = [4.49, 4.99].map((gap) => {
+          neriMove(reference, gap);
+          return {
+            root: reference.p.actor.root.position.asArray(),
+            rotation: reference.p.actor.root.rotation.asArray(),
+          };
+        });
+        expect(reference.checkpoints).toEqual([[], []]);
+        return values;
+      } finally {
+        reference.dispose();
+      }
+    })();
+    const f = neriLeash(state, ground.height, reducedMotion);
+    try {
+      const root = neriWait(f),
+        pose = f.p.actor.snapshotPose(),
+        reduced = reducedMotion ? npcSkin(f.p.actor) : undefined;
+      for (const gap of [4.99, 4.75, 4.5])
+        for (let i = 0; i < 3; i++) {
+          f.tick(f.atGap(gap));
+          expect(f.p.actor.root.position.asArray()).toEqual(root);
+          expect(f.p.actor.playback.clip).toBe('Idle');
+          if (reduced) {
+            expect(f.p.actor.snapshotPose()).toEqual(pose);
+            expect(npcSkin(f.p.actor).coordinates).toEqual(reduced.coordinates);
+          } else expect(f.p.actor.snapshotPose().elapsed).toBeGreaterThan(pose.elapsed);
+        }
+      [4.49, 4.99].forEach((gap, i) => {
+        neriMove(f, gap);
+        expect(f.p.actor.root.position.asArray()).toEqual(expected[i]!.root);
+        expect(f.p.actor.root.rotation.asArray()).toEqual(expected[i]!.rotation);
+        if (reducedMotion) expect(f.p.actor.playback.frame).toBe(0);
+        else expect(f.p.actor.playback.frame).toBeGreaterThan(0);
+      });
+      const moving = f.position(),
+        stopped = f.p.actor.root.position.asArray();
+      // The first exact boundary was tested at the integer authored start; this later
+      // stop deliberately lies outside the limit without a fractional-gap rounding premise.
+      f.tick({ x: moving.x + 5.1, z: moving.z });
+      expect(f.p.actor.root.position.asArray()).toEqual(stopped);
+      expect(f.p.actor.playback.clip).toBe('Idle');
+      expect(f.checkpoints).toEqual([[], []]);
+      expect(state).toEqual(saved);
+    } finally {
+      f.dispose();
+      ground.mesh.dispose();
+    }
+  },
+);
+
+it.each([false, true])(
+  'retains Neri waiting through zero-time, settings, snapshots and approach with reduced %s',
+  (reducedMotion) => {
+    const state = neriEscort(),
+      ground = floor(state.region),
+      f = neriLeash(state, ground.height, reducedMotion);
+    try {
+      const held = neriWait(f),
+        pose = f.p.actor.snapshotPose(),
+        rig = npcSkin(f.p.actor);
+      f.tick(f.atGap(4.49), 0);
+      expect(f.p.actor.root.position.asArray()).toEqual(held);
+      expect(f.p.actor.snapshotPose()).toEqual(pose);
+      expect(npcSkin(f.p.actor).coordinates).toEqual(rig.coordinates);
+      f.tick(f.atGap(4.99));
+      expect(f.p.actor.root.position.asArray()).toEqual(held);
+      f.settings(!reducedMotion);
+      f.settings(reducedMotion);
+      f.tick(f.atGap(4.75));
+      expect(f.p.actor.root.position.asArray()).toEqual(held);
+      const current = f.snapshot(),
+        saved = structuredClone(current);
+      f.update(current);
+      f.tick(f.atGap(4.99));
+      expect(f.p.actor.root.position.asArray()).toEqual(held);
+      expect(current).toEqual(saved);
+      f.tick(f.atGap(4.49), 0.05, true);
+      expect(f.p.actor.root.position.asArray()).toEqual(held);
+      expect(f.p.actor.playback.clip).toBe('Idle');
+      f.tick(f.atGap(4.99));
+      expect(f.p.actor.root.position.asArray()).toEqual(held);
+      neriMove(f, 4.49);
+      expect(f.checkpoints).toEqual([[], []]);
+    } finally {
+      f.dispose();
+      ground.mesh.dispose();
+    }
+  },
+);
+
+it.each([false, true])(
+  'does not invent Neri waiting from a zero-time or explicit approach stop with reduced %s',
+  (reducedMotion) => {
+    const state = neriEscort(),
+      ground = floor(state.region),
+      f = neriLeash(state, ground.height, reducedMotion);
+    try {
+      const root = f.p.actor.root.position.asArray();
+      f.tick(f.atGap(5), 0);
+      expect(f.p.actor.root.position.asArray()).toEqual(root);
+      f.tick(f.atGap(5), 0.05, true);
+      expect(f.p.actor.root.position.asArray()).toEqual(root);
+      expect(f.p.actor.playback.clip).toBe('Idle');
+      neriMove(f, 4.99);
+      expect(f.checkpoints).toEqual([[], []]);
+    } finally {
+      f.dispose();
+      ground.mesh.dispose();
+    }
+  },
+);
+
+it.each(['position', 'route', 'step', 'stage', 'region'] as const)(
+  'starts a fresh Neri escort interval after an actual restored %s boundary',
+  (boundary) => {
+    const state = neriEscort(),
+      ground = floor(state.region),
+      f = neriLeash(state, ground.height, false);
+    try {
+      if (boundary === 'position') {
+        neriMove(f, 0);
+        neriWait(f, 5.1);
+        // Restore the earlier legally earned save position, rather than editing an Actor root.
+        f.update(state);
+      } else if (boundary === 'step') {
+        const meeting = companyMeeting(state.road.company)!;
+        let ticks = 0;
+        while (distance(f.position(), meeting) > 0.15 && ticks++ < 120) {
+          const before = f.position();
+          f.tick(before);
+          expect(distance(before, f.position())).toBeGreaterThan(0);
+          expect(f.p.actor.playback.clip).toBe('Walk');
+        }
+        expect(ticks).toBeLessThan(120);
+        expect(distance(f.position(), meeting)).toBeLessThanOrEqual(0.15);
+        expect(distance(f.position(), meeting)).toBeGreaterThan(0);
+        expect(f.checkpoints).toEqual([[0], [0]]);
+        const actual = f.position(),
+          current = f.snapshot();
+        current.position = { ...actual };
+        expect(current.road.company.position).toEqual(actual);
+        const next = transition(current, { type: 'road-step', step: 0 });
+        expect(next.road.company.step).toBe(1);
+        expect(next.road.company).toEqual({
+          ...current.road.company,
+          step: 1,
+          position: { x: meeting.x, z: meeting.z },
+        });
+        expect(current.road.company.position).toEqual(actual);
+        // The reducer legitimately records its meeting position; neither the Actor
+        // nor the input snapshot is forced to that point to isolate this boundary.
+        neriWait(f, 5.1);
+        f.update(next);
+      } else {
+        neriWait(f);
+        if (boundary === 'route') {
+          const restored = neriEscort('shade');
+          expect(restored.road.company.position).toEqual(f.position());
+          f.update(restored);
+        } else if (boundary === 'stage') {
+          const invited = neriEscort('terrace', false);
+          f.update(invited);
+          f.tick(f.atGap(4.99));
+          expect(f.position()).toEqual(state.road.company.position);
+          expect(f.p.actor.playback.clip).toBe('Idle');
+          f.update(state);
+        } else {
+          let restored = state;
+          let changes = 0;
+          while (restored.road.company.region === 'roadside-farm' && changes++ < 3) {
+            const meeting = companyMeeting(restored.road.company)!;
+            const step = restored.road.company.step;
+            restored = structuredClone(restored);
+            restored.position = { x: meeting.x, z: meeting.z };
+            restored.road.company.position = { ...restored.position };
+            restored = meeting.exit
+              ? gateway(restored, meeting.exit)
+              : transition(restored, { type: 'road-step', step });
+            expect(restored.road.company.step).toBe(step + 1);
+          }
+          expect(restored.region).toBe('galilean-road');
+          f.update(restored);
+          expect(f.p.actor.root.isEnabled()).toBe(false);
+          f.tick(restored.position);
+          f.update(state);
+          expect(f.p.actor.root.isEnabled()).toBe(true);
+        }
+      }
+      const checkpoints = structuredClone(f.checkpoints);
+      neriMove(f, 4.99);
+      expect(f.checkpoints).toEqual(checkpoints);
+    } finally {
+      f.dispose();
+      ground.mesh.dispose();
+    }
+  },
+);
+
 it('clears every exact/finite/reset sampling path, effective ancestor disable, and default actor controls', () => {
   const ground = floor('capernaum-lanes'),
     p = pair('amos', ground.height);
