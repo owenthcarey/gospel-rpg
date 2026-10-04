@@ -490,6 +490,141 @@ describe('Work camera motion ownership', () => {
   });
 });
 
+describe('explicit Work camera framing', () => {
+  for (const command of ['frameWork', 'resetCamera'] as const)
+    for (const gesture of ['orbit', 'pinch', 'button'] as const)
+      for (const phase of ['queued', 'coasting'] as const)
+        it(
+          command + ' retires ' + phase + ' ' + gesture + ' motion for the actual Work frame',
+          () => {
+            const control = workHandoffStudio();
+            let actualWork: WorkPresentation | undefined;
+            try {
+              // Reference completes before actual takes ownership of studio's global clock.
+              control.world.setWorkFocus(control.target);
+              control.render(0);
+              if (phase === 'coasting') control.render();
+              control.world[command]();
+              const expected: ReturnType<typeof control.framed>[] = [];
+              for (const dt of [0, 100, 300, 600]) {
+                control.render(dt);
+                expected.push(control.framed());
+              }
+
+              const actual = workHandoffStudio();
+              actualWork = actual.work;
+              const ordinary = actual.framed(),
+                state = structuredClone(actual.fixture.state),
+                nav = { ...actual.fixture.position },
+                player = actual.fixture.player.position.clone();
+              actual.world.setWorkFocus(actual.target);
+              actual.render(0);
+              const gestures = nativeGestures(actual.camera, () => !actual.fixture.paused),
+                initial = actual.pose();
+              if (gesture === 'button') {
+                actual.world.rotate(0.9);
+                expect(actual.fixture.pendingRotation).toBeGreaterThan(0);
+              } else {
+                gestures[gesture]();
+                expect(
+                  gesture === 'orbit'
+                    ? actual.camera.movement.rotationAccumulatedPixels.lengthSquared()
+                    : actual.camera.movement.zoomAccumulatedPixels,
+                ).toBeGreaterThan(0);
+              }
+              if (phase === 'coasting') {
+                actual.render();
+                expect(actual.pose()).not.toEqual(initial);
+              }
+              const before = actual.framed(),
+                time = actual.fixture.time;
+              actual.world[command]();
+              expect(actual.framed()).toEqual(before);
+              expect(actual.fixture.time).toBe(time);
+              for (const [i, dt] of [0, 100, 300, 600].entries()) {
+                actual.render(dt);
+                expect(actual.framed()).toEqual(expected[i]);
+                expect(actual.fixture.state).toEqual(state);
+                expect(actual.fixture.position).toEqual(nav);
+                expect(actual.fixture.player.position.equals(player)).toBe(true);
+              }
+              expect(actual.fixture.pendingRotation).toBe(0);
+              actual.world.setWorkFocus();
+              expect(actual.framed()).toEqual(ordinary);
+            } finally {
+              actualWork?.dispose();
+              control.work.dispose();
+            }
+          },
+        );
+
+  it.each(['frameWork', 'resetCamera'] as const)(
+    '%s keeps fresh Work input and same-target refresh usable after framing',
+    (command) => {
+      const actual = workHandoffStudio();
+      try {
+        actual.world.setWorkFocus(actual.target);
+        actual.render(0);
+        actual.world[command]();
+        actual.render(0);
+        const framed = actual.framed();
+        actual.world.rotate(0.9);
+        const pending = actual.fixture.pendingRotation;
+        actual.world.setWorkFocus(actual.target);
+        expect(actual.fixture.pendingRotation).toBe(pending);
+        actual.render(100);
+        expect(actual.camera.alpha).toBeGreaterThan(framed.alpha);
+        expect(actual.camera.beta).toBe(framed.beta);
+        expect(actual.camera.radius).toBe(framed.radius);
+        expect(actual.framed().viewport).toEqual(framed.viewport);
+
+        actual.fixture.reducedMotion = true;
+        actual.world[command]();
+        actual.render(0);
+        expect(actual.fixture.pendingRotation).toBe(0);
+        const reduced = actual.framed();
+        actual.world.rotate(0.9);
+        const direct = actual.framed();
+        expect(direct.alpha).toBeGreaterThan(reduced.alpha);
+        actual.world.setWorkFocus(actual.target);
+        actual.render(100);
+        expect(actual.framed()).toEqual(direct);
+      } finally {
+        actual.work.dispose();
+      }
+    },
+  );
+
+  it('leaves an ordinary return and turn untouched when Frame Work has no active target', () => {
+    const actual = workHandoffStudio();
+    try {
+      actual.world.rotate(0.9);
+      actual.returning();
+      const pending = actual.fixture.pendingRotation,
+        returning = actual.fixture.cameraReturn,
+        pose = actual.framed();
+      actual.world.frameWork();
+      expect(actual.framed()).toEqual(pose);
+      expect(actual.fixture.pendingRotation).toBe(pending);
+      expect(actual.fixture.cameraReturn).toBe(returning);
+      actual.render(100);
+      expect(actual.fixture.pendingRotation).toBeGreaterThan(0);
+      expect(actual.fixture.pendingRotation).toBeLessThan(pending);
+      expect(actual.fixture.cameraReturn).toBe(returning);
+      expect(returning.t).toBeGreaterThan(0);
+      actual.fixture.workView = undefined;
+      const withoutWork = actual.framed(),
+        remaining = actual.fixture.pendingRotation;
+      actual.world.frameWork();
+      expect(actual.framed()).toEqual(withoutWork);
+      expect(actual.fixture.pendingRotation).toBe(remaining);
+      expect(actual.fixture.cameraReturn).toBe(returning);
+    } finally {
+      actual.work.dispose();
+    }
+  });
+});
+
 describe('keyboard camera ownership', () => {
   it('keeps active motion through resize but discards suspension time on foreground return', () => {
     const { camera, world, key, render } = studio();

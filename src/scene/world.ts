@@ -1353,7 +1353,7 @@ export class World {
   }
   resetCamera(): void {
     if (this.workView?.active) {
-      this.workView.frame();
+      this.frameWork();
       return;
     }
     this.finishCameraTransition();
@@ -1804,6 +1804,7 @@ export class World {
     this.conversationView?.setPaused(paused);
   }
   frameWork(): void {
+    if (this.workView?.active) this.stopCameraMotion();
     this.workView?.frame();
   }
   getCompanionPosition(): Point | undefined {
