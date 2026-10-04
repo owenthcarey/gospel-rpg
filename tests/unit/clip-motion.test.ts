@@ -143,6 +143,110 @@ function actionWorld() {
   return { world, actor, dispose };
 }
 
+function skinDelta(before: readonly Vector3[], after: readonly Vector3[]): number {
+  expect(after.length).toBe(before.length);
+  return Math.max(...before.map((point, i) => Vector3.Distance(point, after[i]!)));
+}
+
+it.each([0.3, 0.55])(
+  'retains the displayed imported Repair pose when accepted work restarts at phase %s',
+  (phase) => {
+    const { world, actor, dispose } = actionWorld();
+    try {
+      const duration = actor.clipDuration('Repair');
+      const remaining = duration * phase - actor.snapshotPose().oneShot!.time;
+      expect(remaining).toBeGreaterThan(0.16);
+      // Natural simulation steps finish the initial blend before the next accepted turn.
+      for (let left = remaining; left > 0;) {
+        const dt = Math.min(0.02, left);
+        world.simulate(dt);
+        left -= dt;
+      }
+      expect(actor.playback.action).toBe('Repair');
+      expect(actor.playback.frame).toBeGreaterThan(0);
+      const displayed = posedVertices(actor.root),
+        nav = { ...world.position },
+        player = world.player.position.clone(),
+        saved = JSON.stringify(world.state),
+        time = world.time,
+        elapsed = actor.snapshotPose().elapsed;
+
+      // Actual accepted-work ordering: play the gesture, then Work's refresh stops
+      // navigation and asks for a zero-elapsed normal traveler presentation.
+      world.performInteraction('Repair');
+      world.stop();
+      expect(actor.playback).toEqual({ clip: 'Repair', frame: 0, action: 'Repair' });
+      expect(actor.snapshotPose().oneShot).toEqual({ name: 'Repair', time: 0 });
+      expect(actor.snapshotPose().elapsed).toBe(elapsed);
+      expect(skinDelta(displayed, posedVertices(actor.root))).toBeLessThan(0.000001);
+      expect(world.position).toEqual(nav);
+      expect(world.player.position.equals(player)).toBe(true);
+      expect(world.time).toBe(time);
+      expect(JSON.stringify(world.state)).toBe(saved);
+
+      // A real pause retains this unfinished transition; resuming spends its normal
+      // clock and eventually completes the new gesture rather than freezing it.
+      world.setPaused(true);
+      const paused = posedVertices(actor.root),
+        pausedPose = actor.snapshotPose();
+      world.simulate(0.1);
+      expect(actor.snapshotPose()).toEqual(pausedPose);
+      expect(skinDelta(paused, posedVertices(actor.root))).toBe(0);
+      world.setPaused(false);
+      world.simulate(0.04);
+      expect(actor.snapshotPose().oneShot!.time).toBe(0.04);
+      expect(skinDelta(paused, posedVertices(actor.root))).toBeGreaterThan(0.000001);
+      for (let left = duration; left > 0;) {
+        const dt = Math.min(0.02, left);
+        world.simulate(dt);
+        left -= dt;
+      }
+      expect(actor.performing).toBe(false);
+      expect(actor.playback.clip).toBe('Idle');
+      expect(world.position).toEqual(nav);
+      expect(JSON.stringify(world.state)).toBe(saved);
+    } finally {
+      dispose();
+    }
+  },
+);
+
+it('keeps exact, nonblending and reduced finite restart controls on their existing poses', () => {
+  const plain = new Actor(library.instantiate('traveler', 'restart-plain')),
+    exact = new Actor(library.instantiate('traveler', 'restart-exact'), true),
+    reference = new Actor(library.instantiate('traveler', 'restart-reference')),
+    current = actionWorld();
+  try {
+    reference.sampleAt('Repair', 0);
+    plain.playOnce('Repair');
+    plain.sample('Idle', plain.clipDuration('Repair') * 0.4);
+    plain.playOnce('Repair');
+    plain.sample('Idle', 0);
+    expect(skinDelta(posedVertices(plain.root), posedVertices(reference.root))).toBe(0);
+
+    // This current clip is exact, without an active finite clock to restart.
+    exact.sampleAt('Repair', 0.4);
+    exact.playOnce('Repair');
+    exact.sample('Idle', 0);
+    expect(skinDelta(posedVertices(exact.root), posedVertices(reference.root))).toBe(0);
+
+    current.world.simulate(0.3);
+    current.world.reducedMotion = true;
+    current.world.performInteraction('Repair');
+    const reduced = posedVertices(current.actor.root),
+      reducedPose = current.actor.snapshotPose();
+    expect(current.actor.playback).toEqual({ clip: 'Idle', frame: 0, action: '' });
+    current.world.simulate(0.2);
+    expect(current.actor.snapshotPose()).toEqual(reducedPose);
+    expect(skinDelta(reduced, posedVertices(current.actor.root))).toBe(0);
+  } finally {
+    plain.dispose();
+    exact.dispose();
+    reference.dispose();
+    current.dispose();
+  }
+});
+
 it.each(['keyboard', 'route', 'carrying'] as const)(
   'resumes the actual locomotion clip after %s movement interrupts a practical gesture',
   (mode) => {

@@ -97,20 +97,7 @@ export class Actor {
     this.stationaryFeet?.restoreSampledPose();
     if (!['Idle', 'Walk', 'Carry', 'MatCarry'].includes(name)) this.stationaryFeet?.reset();
     if (this.currentName === name) return;
-    if (this.blendTransitions && this.current) {
-      const nodes = new Set(
-        this.current.targetedAnimations
-          .map((a) => a.target)
-          .filter((node): node is TransformNode => node instanceof TransformNode),
-      );
-      this.previousPose = [...nodes].map((target) => ({
-        target,
-        position: target.position.clone(),
-        scaling: target.scaling.clone(),
-        rotation: target.rotationQuaternion?.clone() ?? null,
-      }));
-      this.blendTime = 0;
-    }
+    this.captureTransitionPose();
     // A genuine unfinished source blend remains paused, with its real runtime frame.
     if (this.current !== this.conversationPose?.group) this.current?.stop();
     this.current = this.clips.get(name);
@@ -120,6 +107,21 @@ export class Actor {
     this.current.start(true).pause();
     this.sampledFrame = this.current.from;
     this.current.goToFrame(this.sampledFrame);
+  }
+  private captureTransitionPose(): void {
+    if (!this.blendTransitions || !this.current) return;
+    const nodes = new Set(
+      this.current.targetedAnimations
+        .map((a) => a.target)
+        .filter((node): node is TransformNode => node instanceof TransformNode),
+    );
+    this.previousPose = [...nodes].map((target) => ({
+      target,
+      position: target.position.clone(),
+      scaling: target.scaling.clone(),
+      rotation: target.rotationQuaternion?.clone() ?? null,
+    }));
+    this.blendTime = 0;
   }
   sample(name: ActorClip, dt: number, still = false): void {
     this.releaseRetainedConversationPose();
@@ -213,6 +215,9 @@ export class Actor {
     this.ordinarySample = false;
     this.locomotionClearance?.reset();
     this.stationaryFeet?.reset();
+    // A new accepted gesture may restart the clip currently on screen. Blend
+    // from that displayed pose just as we do when changing to another clip.
+    if (this.oneShot?.name === name && this.currentName === name) this.captureTransitionPose();
     this.oneShot = { name, time: 0 };
     this.setClip(name);
   }
