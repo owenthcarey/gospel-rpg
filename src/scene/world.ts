@@ -166,6 +166,7 @@ export class World {
   private conversationView?: ConversationPresentation;
   private active = false;
   private travelerBoat?: TravelerBoat;
+  private boatMoving = false;
   private mooredBoat?: TransformNode;
   private lakeCompany?: Actor;
   private neighborhood?: NeighborhoodActivity;
@@ -685,9 +686,7 @@ export class World {
     const hulls = [
       ...this.boats.map((node) => ({ node, strength: 0.35 })),
       ...(this.mooredBoat?.isEnabled() ? [{ node: this.mooredBoat, strength: 0.3 }] : []),
-      ...(this.travelerBoat
-        ? [{ node: this.player, strength: this.path.length || this.keys.size ? 0.9 : 0.4 }]
-        : []),
+      ...(this.travelerBoat ? [{ node: this.player, strength: this.boatMoving ? 0.9 : 0.4 }] : []),
     ];
     return hulls.map(({ node, strength }) => {
       const at = node.getAbsolutePosition();
@@ -1175,6 +1174,7 @@ export class World {
   private poseTraveler(moving: boolean, dt: number, speed = 0): void {
     if (!this.playerModel) return;
     if (this.travelerBoat) {
+      this.boatMoving = moving;
       this.travelerBoat.pose(moving, dt, this.reducedMotion || this.paused);
       return;
     }
