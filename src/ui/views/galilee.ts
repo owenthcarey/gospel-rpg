@@ -103,7 +103,7 @@ export function galileeSummary(s: GameState, filter: JournalFilter): string {
     .map((id) => {
       const goal = galileeGoal({ ...s, tracking: id })!,
         c = chapters[id];
-      return `<article><p class="eyebrow">${esc(c.label)}</p><h3>${esc(c.title)}</h3><span class="status-pill">${storyStatus(s, id).replaceAll('-', ' ')}</span><p>${esc(goal.text)}</p>${c.available(s) ? button(s.tracking === id ? 'Tracked' : 'Track this story', 'track-story', id) + button('Find the next stop', 'travel', goal.target) : ''}</article>`;
+      return `<article><p class="eyebrow">${esc(c.label)}</p><h3>${esc(c.title)}</h3><span class="status-pill">${storyStatus(s, id).replaceAll('-', ' ')}</span><p>${esc(goal.text)}</p>${c.available(s) ? button(s.tracking === id ? 'Tracked' : 'Track this story', 'track-story', id) + button(goal.done ? (id === 'spring' ? 'Visit the spring again' : 'Visit Leah again') : 'Find the next stop', 'travel', goal.target) : ''}</article>`;
     })
     .join('')}</section>`;
 }

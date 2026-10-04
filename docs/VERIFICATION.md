@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Completed Galilee Journal revisits · 2026-10-03
+
+Completed spring and resting-place cards now offer **Visit the spring again** and **Visit Leah again**. Their original travel destinations and tracking controls remain intact; unfinished cards retain **Find the next stop**.
+
+The existing **74 Galilee/story-status tests / two files** pass in **4.44 seconds**, **4.879 seconds** owner. Typecheck and production build pass in **9.956 seconds**. Both **571-guard** before/after/current comparisons, final log caps and exact process groups are independently verified. No cases were added. The complete labels are source-reviewed; native completed-card reading remains unobserved.
+
 ## Sailing keyboard cues · 2026-10-03
 
 The mounted WASD cue and Help row now say **Steer** in the lake crossing and retain **Move** ashore, matching the existing click/minimap descriptions. The four key nodes and trailing text node remain mounted; input, routes and focus behavior are unchanged.
