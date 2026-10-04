@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Sailing target instructions in Help · 2026-10-03
+
+The person/object Help row now says **Steer over and interact** aboard the lake boat. It retains the exact **Walk over and interact** sentence on land, using the existing sailing flag. Named target routes still approach before opening their context; docking stays an explicit action. No input, state, row structure or layout behavior changes.
+
+Types/build pass in **16.860 seconds**, with **571** unchanged source guards, final log caps and an independently empty exact process group. Direct browser play resumes the saved road journey, traverses both deliberate return gateways and boards the boat. Original normal **512×740** land/afloat Help screenshots show each complete target row and the reachable footer; Escape restores the actual Help opener in both contexts. No new cases or assertions are added. Other layouts, full save equality and screen-reader delivery are outside this wording spot check.
+
 ## Carry restart from the displayed stop · 2026-10-03
 
 Ordinary stopped Carry now aligns its elapsed clock with the frame-zero pose it already displays. The next step advances from that pose instead of returning to an earlier moving phase. The reset requires requested/current Carry and no finite action; World limits it to normal stopped presentation. Paused and reduced-motion clocks, existing move-to-stop sampling, lower-foot settlement, navigation and all model bytes remain unchanged.

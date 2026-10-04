@@ -1375,7 +1375,9 @@ export class Interface {
       ['Compass / LOCAL MAP', 'Face north / open local destinations'],
       [
         'Click / tap a person or object',
-        'Walk over and interact; names and map destinations work too',
+        sailing
+          ? 'Steer over and interact; names and map destinations work too'
+          : 'Walk over and interact; names and map destinations work too',
       ],
       ['Right-click / hold a world target', 'Choose an action'],
       [
