@@ -47,7 +47,10 @@ export class TravelerBoat {
     }
   }
   pose(moving: boolean, dt: number, still: boolean): void {
-    if (moving && !still) this.time += dt;
+    // A displayed rest pose is Row0. Start its next stroke from that same
+    // authored pose, rather than returning to a hidden mid-stroke accumulator.
+    if (!moving || still) this.time = 0;
+    else this.time += dt;
     const phase = still || !moving ? 0 : (this.time % 1.2) / 1.2;
     this.actor.root.position.set(0, 0.19, -0.45);
     this.actor.root.rotation.set(0, 0, 0);

@@ -10,6 +10,7 @@ import '@babylonjs/loaders/glTF/2.0/Extensions/KHR_mesh_quantization';
 import { convertContainer } from './environment/matte';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import type { ContactShadows } from './environment/contact';
 
 export interface Model {
   root: TransformNode;
@@ -23,6 +24,7 @@ export class AssetLibrary {
   constructor(
     readonly scene: Scene,
     private shadow?: ShadowGenerator,
+    private contact?: ContactShadows,
   ) {}
   async load(
     names: readonly AssetId[],
@@ -94,6 +96,13 @@ export class AssetLibrary {
           metadata.renderedFrame = this.scene.getFrameId();
         });
       this.shadow?.addShadowCaster(mesh);
+    }
+    if (isActorAsset(id) && this.contact) {
+      // Exploration actors share one ground-contact batch, including scene-owned company.
+      // Register the placement root once, so carried props and individual skin meshes never
+      // create extra blobs. Its final parent, seat offset and visibility are read each frame.
+      this.contact.add(root);
+      root.onDisposeObservable.addOnce(() => this.contact?.remove(root));
     }
     return {
       root,

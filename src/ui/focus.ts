@@ -17,13 +17,27 @@ export function trapFocus(event: KeyboardEvent, root: HTMLElement): void {
     first = nodes[0],
     last = nodes.at(-1);
   if (!first) return;
-  const index = nodes.indexOf(document.activeElement as HTMLElement);
-  const next =
+  const active = document.activeElement;
+  const index = nodes.indexOf(active as HTMLElement);
+  let next =
     index < 0
       ? event.shiftKey
         ? last
         : first
       : nodes[(index + (event.shiftKey ? -1 : 1) + nodes.length) % nodes.length];
+  // A reading heading is focusable without being a Tab stop. Continue from its
+  // actual position in this panel instead of treating it as outside focus.
+  if (index < 0 && active && root.contains(active)) {
+    const direction = event.shiftKey
+      ? Node.DOCUMENT_POSITION_PRECEDING
+      : Node.DOCUMENT_POSITION_FOLLOWING;
+    const ordered = event.shiftKey ? [...nodes].reverse() : nodes;
+    next =
+      ordered.find((node) => {
+        const position = active.compareDocumentPosition(node);
+        return !(position & Node.DOCUMENT_POSITION_DISCONNECTED) && !!(position & direction);
+      }) ?? next;
+  }
   // Keep every visible control reachable even when Safari's native Tab preference skips buttons.
   event.preventDefault();
   next?.focus();

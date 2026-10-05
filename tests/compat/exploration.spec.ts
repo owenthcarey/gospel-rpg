@@ -104,6 +104,9 @@ test('the early landing loads its kit and preserves a keyboard arrangement', asy
   await north.focus();
   await north.press('Enter');
   await settled(page);
+  // The board moved beyond the old work point; approach its current north crossing.
+  await expect(page.locator('.work-panel')).toBeHidden();
+  await visit(page, 'harbor-plank');
   const turn = page.locator('[data-work-id="turn"]');
   await turn.focus();
   await turn.press('Enter');

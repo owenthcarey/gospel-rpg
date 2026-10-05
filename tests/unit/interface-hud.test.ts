@@ -12,6 +12,7 @@ import {
 import { coldOpenStep, type ColdOpenState } from '../../src/ui/cinematic';
 import { icon, iconNames } from '../../src/ui/icons';
 import { logoMark } from '../../src/ui/logo';
+import { worldAction } from '../../src/content/campaign/actions';
 
 const label = (over: Partial<LabelState> = {}): LabelState => ({
   kind: 'person',
@@ -87,6 +88,45 @@ describe('journal ribbons', () => {
     expect(toastKind('Supplies delivered · Jesus is waiting by the water.')).toBe('item');
     expect(toastKind('You have arrived together. Speak with Amos.')).toBe('place');
     expect(toastKind('Chapter begun · A place by the water')).toBe('story');
+  });
+  it('uses item feedback for authored jug, handle and table operations', () => {
+    for (const id of [
+      'take-jug',
+      'fill-jug',
+      'place-bread-courtyard',
+      'place-bread-bakehouse',
+      'place-water-courtyard',
+      'place-water-bakehouse',
+      'borrow-handle',
+      'return-jug',
+      'return-handle',
+      'take-bread',
+      'return-bread',
+    ]) {
+      const action = worldAction(id);
+      expect(action, id).toBeDefined();
+      expect(toastKind(action!.notice), id).toBe('item');
+    }
+  });
+  it('keeps warnings, saves and memories ahead of an item result', () => {
+    const notice = worldAction('fill-jug')!.notice;
+    expect(toastKind(notice + ' Progress could not be saved.')).toBe('warning');
+    expect(toastKind(notice + ' Export your journey from Settings.')).toBe('save');
+    expect(toastKind(notice + ' Remembered in your journal.')).toBe('memory');
+  });
+  it('keeps route and table instructions on their existing feedback path', () => {
+    for (const [id, kind] of [
+      ['walk-passage', 'story'],
+      ['open-passage', 'story'],
+      ['table-courtyard', 'story'],
+      ['table-bakehouse', 'story'],
+      ['walk-outer', 'place'],
+      ['table-finish', 'story'],
+    ] as const) {
+      const action = worldAction(id);
+      expect(action, id).toBeDefined();
+      expect(toastKind(action!.notice), id).toBe(kind);
+    }
   });
   it('maps every kind to an icon in the set', () => {
     for (const kind of TOAST_KINDS) expect(iconNames).toContain(TOAST_ICONS[kind]);

@@ -142,8 +142,11 @@ test('steering, cancelled routes and menus preserve actual afloat position, head
     JSON.parse(await readFile('tests/fixtures/saves/v9-afloat-with-supply.json', 'utf8')),
   );
   await ready(page, fixture.state);
+  const minimap = page.locator('.minimap');
   const before = await exported(page);
   await dismiss(page);
+  await expect(minimap).toHaveAccessibleName('Steer using minimap; press Enter to open local map');
+  await expect(minimap).toHaveAttribute('title', 'Click to steer. Enter opens the local map.');
   await page.locator('#game-canvas').focus();
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(1200);
@@ -157,7 +160,7 @@ test('steering, cancelled routes and menus preserve actual afloat position, head
   await page.locator('.toolbar [data-action="map"]').click();
   await page.locator('.map-destinations [data-value="dock-sheltered-cove"]').click();
   await expect(page.locator('#travel-status')).toBeVisible();
-  await page.getByRole('button', { name: 'Cancel walk' }).click();
+  await page.getByRole('button', { name: 'Cancel course' }).click();
   const stopped = await exported(page);
   await page.locator('[data-setting="reducedMotion"]').check();
   await page.waitForTimeout(400);
@@ -168,9 +171,50 @@ test('steering, cancelled routes and menus preserve actual afloat position, head
   const restored = await exported(page);
   expect(restored.state.lake.boat).toEqual(stopped.state.lake.boat);
   expect(restored.state.road.company).toEqual(fixture.state.road.company);
-  await passage(page, 'dock-capernaum', 'capernaum');
-  const returned = await exported(page);
-  expect(returned.state.campaign.carrying).toBe('rest-screen');
+  // Reload replaces the document. Retain this actual button only for the
+  // following afloat-to-ashore update, without assuming dock keeps its focus.
+  const minimapNode = (await minimap.elementHandle())!;
+  try {
+    await dismiss(page);
+    await expect(minimap).toHaveAccessibleName(
+      'Steer using minimap; press Enter to open local map',
+    );
+    await expect(minimap).toHaveAttribute('title', 'Click to steer. Enter opens the local map.');
+    await minimap.press('Enter');
+    await expect(page.getByRole('dialog')).toContainText('Local destinations');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#overlay')).toBeEmpty();
+    await expect(minimap).toBeFocused();
+    expect(
+      await minimapNode.evaluate(
+        (node) => node.isConnected && node === document.querySelector('.minimap'),
+      ),
+    ).toBe(true);
+
+    await passage(page, 'dock-capernaum', 'capernaum');
+    await dismiss(page);
+    await expect(minimap).toHaveAccessibleName('Walk using minimap; press Enter to open local map');
+    await expect(minimap).toHaveAttribute('title', 'Click to walk. Enter opens the local map.');
+    expect(
+      await minimapNode.evaluate(
+        (node) => node.isConnected && node === document.querySelector('.minimap'),
+      ),
+    ).toBe(true);
+    await minimap.press('Enter');
+    await expect(page.getByRole('dialog')).toContainText('Local destinations');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#overlay')).toBeEmpty();
+    await expect(minimap).toBeFocused();
+    expect(
+      await minimapNode.evaluate(
+        (node) => node.isConnected && node === document.querySelector('.minimap'),
+      ),
+    ).toBe(true);
+    const returned = await exported(page);
+    expect(returned.state.campaign.carrying).toBe('rest-screen');
+  } finally {
+    await minimapNode.dispose();
+  }
 });
 
 test('Peace, be still supports all seven scenes, descriptions, pause, leave, reload, transcript and reflection independently', async ({

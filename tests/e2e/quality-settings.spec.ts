@@ -101,7 +101,7 @@ test('cold quality changes keep native draws valid and preserve the journey afte
   await expect(page.locator('[data-setting="quality"]')).toHaveValue('high');
   await expect(page.locator('[data-setting="reducedMotion"]')).toBeChecked();
   await dismiss(page);
-  await expect(page.locator('#game-canvas')).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Settings and saves', exact: true })).toBeFocused();
   expect(errors).toEqual([]);
   expect(warnings).toEqual([]);
 });

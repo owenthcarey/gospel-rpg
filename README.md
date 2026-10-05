@@ -24,6 +24,16 @@ Chapter II, **Through the Roof**, continues some days later in an explorable Cap
 
 **Classic Galilee** restores the original classic RPG art direction: faceted people and foliage, broad earthy terrain colors, matte blue water, simple lighting, and compact brown beveled interfaces. Hovering previews existing actions; right-click opens **Choose Option**, and the middle mouse button rotates the camera. The rotating minimap supports click-to-walk and a north compass; the satchel uses original rendered props and an Examine pane. **Messages** keeps recent feedback available after notices fade. Keyboard movement follows walls, and phone camera controls remain usable in either orientation. This presentation pass adds no story content and keeps save v11 compatible.
 
+The minimap now shows the village’s actual houses, groves and paths, with readable symbols and an upright destination flag at every screen size. The full map shares its people, places and traveler colors and keeps the tracked chapter’s next destination highlighted while you read. **Choose Option → Examine** gives a short original observation without moving the traveler or advancing a story; Messages keeps it afterward. Walking, carrying and footstep accents follow the traveler’s actual pace, including slower companion walks. Exterior houses and fabric canopies yield when they hide the traveler, and compact phone markers retain 44 px touch areas. Recessed journal and map tabs clarify the selected page, and arrival titles yield to reading menus. Manual saves retain the selected settings control and reading position. Tracking a story keeps its Journal row visible above save feedback. Loaded save slots remain available for the session if the browser interrupts its storage connection.
+
+Exploration characters have soft contact shadows, and walking companions match their footsteps to their shared pace. Starting to walk blends practical gestures back into walking. Camera controls, focused world names and physical HUD commands retain letter-key movement. Compass turns and camera returns keep their timing on slow frames. Arrival plaques fit the available HUD space and yield on crowded screens. The satchel brings carried supplies forward, keeps their own next task visible when another story is tracked, and distinguishes a filled water jug from an empty one. Neighbors seated at earned tables face their company, and bench approaches face the direction of travel. The nearby tray opens the full work panel when more actions are available than its three quick slots can show.
+
+Ground and minimap travel show a Cancel control while a chosen-point route is active, including ordinary boat courses. Spring inspections describe the inlet, silt and scoop where they actually are, and completed work keeps its settled observation on later visits.
+
+Pouch observations follow the item into your hands and back to Ruth. New practical-work results stay readable in the work panel, while repeated feedback and previews preserve your reading place and keyboard focus.
+
+Bench material inspections describe the cord or brace in your hands and at the repaired seat. Channel turns and screen moves retain their actual outcome in Messages. The traveler walks around the bench before sitting, folds the robe across the lap, and retreats facing forward; neighbors at the landing and shared tables start in supported seated poses.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -45,7 +55,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | Click a name / choose a map destination | Approach and interact                    |
 | WASD / arrow keys                       | Move relative to the camera              |
 | E                                       | Interact nearby                          |
-| Right click                             | Choose an existing action                |
+| Right click / touch and hold            | Choose an action or Examine              |
 | Shift+F10 on a focused world control    | Open Choose Option with the keyboard     |
 | Middle/right-drag / two fingers         | Orbit                                    |
 | Scroll / pinch / zoom buttons           | Zoom                                     |
@@ -53,7 +63,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | R                                       | Reset camera                             |
 | J / I / M                               | Journal / satchel / map                  |
 | Escape                                  | Pause or close a menu                    |
-| Cancel walk                             | Clear the approach and saved destination |
+| Cancel walk / Cancel course             | Clear the approach and saved destination |
 | Resume route                            | Continue toward the saved destination    |
 
 ## Playable chapters
@@ -70,7 +80,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 - **Through the Roof:** eight narrated Gospel scenes, three aftermath visits and a chosen reflection; explorable lanes and two enterable buildings.
 - **Four independent neighborhood stories:** investigate Ruth’s missing sewing pouch, repair the landing bench with cord or a brace, choose a walking route with Amos, or a table location with Hannah; carry bread and water, clear a passage, and return to visible results.
 - **A complete catch-and-calling episode:** shoreline preparation, ten narrated lake scenes, return, aftermath conversations and three remembered reflections.
-- **98 original Blender assets** with baked ambient occlusion, fifteen individually built people on a shared skinned rig, nineteen shared clips and three specialized procession clips, including walking, carrying, sitting, rowing, hauling and kneeling, plus scattered grass, shrubs, flowers and pebbles. Passage markers and refined landing edges help identify deliberate crossings.
+- **98 original Blender assets** with baked ambient occlusion, fifteen individually built people on a shared skinned rig, nineteen shared clips, three specialized procession clips and a supported bench pose for traveler and villager, including walking, carrying, sitting, rowing, hauling and kneeling, plus scattered grass, shrubs, flowers and pebbles. Passage markers and refined landing edges help identify deliberate crossings.
 - A compact nearby-action tray for practical tasks, distinct pick-up/put-down/repair/sit motions, stationary holding, persistent repaired benches and seated table company.
 - A journal organized into **Stories, People, Places, and Memories**, with story/status filters, investigation evidence, destinations, a journey recap and a completed-account replay library.
 - A visible carried basket, placed supplies, mooring work, gathering neighbors, moving boats, staged nets and cargo, and a changed shore after the fishermen depart.

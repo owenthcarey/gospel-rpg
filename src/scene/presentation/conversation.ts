@@ -6,9 +6,25 @@ import { applyCameraPose, cameraPose, frameSubject, type CameraPose } from './fr
 
 interface Participant {
   actor: Actor;
+  pose: ReturnType<Actor['conversationPoseScope']>;
   heading: number;
   clip: ReturnType<Actor['snapshotPose']>;
+  supportedHold?: boolean;
+  settling?: ReturnType<Actor['footSupportContinuation']>;
+  locomotion?: ReturnType<Actor['bookmarkLocomotionPresentation']>;
 }
+
+/** Read a live participant's genuine current root, including changes within the same render. */
+export function conversationAnchor(actor: Actor): Readonly<Vector3> | undefined {
+  const root = actor.root;
+  if (root.isDisposed() || !root.isEnabled()) return;
+  // Babylon can reuse a same-render matrix before checking dirty local/parent transforms.
+  if (!root.isSynchronized()) root.computeWorldMatrix(true);
+  const at = root.getAbsolutePosition();
+  if (!Number.isFinite(at.x) || !Number.isFinite(at.y) || !Number.isFinite(at.z)) return;
+  return at;
+}
+
 /** Moves only the camera and rig poses; participant navigation roots never change position. */
 export class ConversationPresentation {
   private bookmark?: CameraPose & {
@@ -37,6 +53,14 @@ export class ConversationPresentation {
   get id(): string | undefined {
     return this.targetId;
   }
+  /** Current navigation anchors for the people framed together, including paused dialogue. */
+  get occlusionAnchors(): readonly [Readonly<Vector3>, Readonly<Vector3>] | undefined {
+    if (!this.speaker || !this.listener) return;
+    const a = conversationAnchor(this.speaker.actor),
+      b = conversationAnchor(this.listener.actor);
+    if (!a || !b) return;
+    return [a, b];
+  }
   select(id: string, speaker: Actor, listener: Actor, rect?: ScreenRect): void {
     if (JSON.stringify(this.panel) !== JSON.stringify(rect)) this.layoutChanged = true;
     this.panel = rect;
@@ -44,6 +68,12 @@ export class ConversationPresentation {
     this.clear();
     this.panel = rect;
     this.targetId = id;
+    const speakerLocomotion = speaker.bookmarkLocomotionPresentation(),
+      listenerLocomotion = listener.bookmarkLocomotionPresentation();
+    const speakerPose = speaker.conversationPoseScope(),
+      listenerPose = listener.conversationPoseScope();
+    speaker.suppressLocomotionPresentation(true);
+    listener.suppressLocomotionPresentation(true);
     this.bookmark = {
       ...cameraPose(this.camera),
       min: this.camera.lowerRadiusLimit,
@@ -53,14 +83,23 @@ export class ConversationPresentation {
     };
     this.speaker = {
       actor: speaker,
+      pose: speakerPose,
       heading: speaker.root.rotation.y,
       clip: speaker.snapshotPose(),
+      locomotion: speakerLocomotion,
     };
     this.listener = {
       actor: listener,
+      pose: listenerPose,
       heading: listener.root.rotation.y,
       clip: listener.snapshotPose(),
+      locomotion: listenerLocomotion,
+      supportedHold:
+        ['Carry', 'MatCarry'].includes(listener.playback.clip) &&
+        listener.hasFootSupport &&
+        !listener.performing,
     };
+    if (this.listener.supportedHold) this.listener.settling = listener.footSupportContinuation();
     this.camera.lowerRadiusLimit = 3;
     this.camera.upperRadiusLimit = 100;
     this.camera.lowerBetaLimit = 0.3;
@@ -80,9 +119,10 @@ export class ConversationPresentation {
       (this.paused && !this.layoutChanged)
     )
       return;
+    const anchors = this.occlusionAnchors;
+    if (!anchors) return;
     const time = this.clock.advance(dt, !this.paused, reduced);
-    const a = this.speaker.actor.root.getAbsolutePosition();
-    const b = this.listener.actor.root.getAbsolutePosition();
+    const [a, b] = anchors;
     // Keep the existing camera side to avoid a disorienting reverse shot on approach.
     const center = a
       .add(b)
@@ -98,7 +138,8 @@ export class ConversationPresentation {
       1.12,
       this.panel,
     );
-    const amount = reduced || this.paused ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 6);
+    const amount =
+      reduced || this.paused || this.layoutChanged ? 1 : 1 - Math.exp(-Math.min(dt, 0.1) * 6);
     this.camera.alpha = turnToward(this.camera.alpha, pose.alpha, reduced ? 10 : dt, 6);
     this.camera.beta += (pose.beta - this.camera.beta) * amount;
     this.camera.radius += (pose.radius - this.camera.radius) * amount;
@@ -110,14 +151,20 @@ export class ConversationPresentation {
     ] as const) {
       if (this.paused) break;
       const actor = person.actor;
+      if (!person.pose.active) continue;
+      // Keep the paused world's upper/held pose while its supported legs finish settling.
+      if (this.keepsSupportedHold(person)) {
+        person.settling?.step(dt, reduced);
+        continue;
+      }
       // Seated/working characters retain their supported base pose while acknowledging a visitor.
       if (['Sit', 'Row', 'Recline', 'Kneel', 'Carry', 'MatCarry'].includes(person.clip.clip)) {
-        actor.sample(person.clip.clip, dt, reduced || person.clip.clip === 'Carry');
+        person.pose.sample(person.clip.clip, dt, reduced || person.clip.clip === 'Carry');
         continue;
       }
       actor.turnTo(other, reduced ? 10 : dt, 8);
       actor.lookAt(other.add(new Vector3(0, 1.6, 0)));
-      actor.sample(
+      person.pose.sample(
         speaking && !reduced
           ? time < 1.4
             ? 'Greet'
@@ -132,12 +179,37 @@ export class ConversationPresentation {
     this.canvas.dataset.conversation = this.targetId;
     this.canvas.dataset.conversationTime = time.toFixed(2);
   }
+  private keepsSupportedHold(person: Participant): boolean {
+    return (
+      person === this.listener &&
+      Boolean(person.supportedHold) &&
+      person.actor.hasFootSupport &&
+      person.actor.playback.clip === person.clip.clip &&
+      !person.actor.performing
+    );
+  }
   clear(): void {
     for (const person of [this.speaker, this.listener]) {
       if (!person) continue;
-      person.actor.lookAt(null);
-      person.actor.root.rotation.y = person.heading;
-      person.actor.restorePose(person.clip);
+      if (person.actor.root.isDisposed()) {
+        person.pose.release();
+        person.locomotion?.release();
+        person.settling?.release();
+        continue;
+      }
+      const restored = person.pose.restore(person.heading, person.locomotion);
+      if (restored === undefined) {
+        person.actor.lookAt(null);
+        person.actor.root.rotation.y = person.heading;
+        // Arrival or a settings update may settle the same held pose after select.
+        // Keep that current support instead of restoring a stale animation frame.
+        if (!this.keepsSupportedHold(person))
+          person.actor.restorePose(person.clip, person.locomotion);
+      }
+      person.pose.release();
+      person.locomotion?.release();
+      person.settling?.release();
+      person.actor.suppressLocomotionPresentation(false);
     }
     if (this.bookmark) {
       applyCameraPose(this.camera, this.bookmark);

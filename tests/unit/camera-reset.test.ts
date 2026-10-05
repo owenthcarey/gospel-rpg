@@ -170,19 +170,20 @@ describe('ordinary camera reset', () => {
     expect(pose().radius).toBeLessThan(before.radius);
   });
 
-  it('delegates active work framing before changing the ordinary camera', () => {
-    const { world, fixture, gestures, pose, camera } = studio();
+  it('delegates active work framing at the current pose after retiring old motion', () => {
+    const { world, fixture, gestures, pose, camera, context } = studio();
     const frame = vi.fn();
     fixture.workView = { active: true, frame };
     gestures.orbit();
     gestures.pinch();
     const before = pose();
-    const rotation = camera.movement.rotationAccumulatedPixels.clone();
-    const zoom = camera.movement.zoomAccumulatedPixels;
+    const originalContext = context();
     world.resetCamera();
     expect(frame).toHaveBeenCalledOnce();
     expect(pose()).toEqual(before);
-    expect(camera.movement.rotationAccumulatedPixels).toEqual(rotation);
-    expect(camera.movement.zoomAccumulatedPixels).toBe(zoom);
+    expect(context()).toEqual(originalContext);
+    expect(camera.movement.rotationAccumulatedPixels).toEqual(Vector3.Zero());
+    expect(camera.movement.zoomAccumulatedPixels).toBe(0);
+    expect(fixture.pendingRotation).toBe(0);
   });
 });

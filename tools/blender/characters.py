@@ -1,4 +1,4 @@
-"""RFC-011 characters: individual people on the shared twelve-bone rig.
+"""RFC-011 characters: individual people on the shared base rig.
 
 Run through Blender MCP (with GOSPEL_RPG_ROOT set) or `npm run assets:build`. The
 recipe builds each actor from a declarative spec: build, face, hair, beard, head
@@ -29,7 +29,8 @@ sys.path.insert(0, str(ROOT / 'tools/blender'))
 import kit_common
 import rigging
 import shading
-for module in (kit_common, shading, rigging):
+import villager_stance
+for module in (kit_common, shading, rigging, villager_stance):
     importlib.reload(module)
 from kit_common import box, ico, beam, cone, lathe, smooth, drape, parts, M, finish, STATE
 
@@ -98,18 +99,22 @@ SPECS = [
 ]
 
 
-def person(spec, seed):
+def person(spec, seed, source_roles=None):
     """One person in the shared rest pose. Part names select their rig bone."""
     rng = random.Random(seed)
     skin, hair, robe, mantle = spec['skin'], spec['hair'], spec['robe'], spec['mantle']
     g, sw = spec['girth'], spec['shoulders']
     hx, hy, hz = spec['head']
     # Feet: shaped sandals with a toe line, same footprint and floor contact as before.
-    for x in [-.13, .13]:
-        box('sandals', (x, -.06, .03), (.19, .34, .05), 'wood', .02)
-        box('sandals_foot', (x, -.075, .085), (.14, .26, .07), skin, .025)
-        box('sandals_strap', (x, -.10, .1), (.15, .03, .03), 'wood', .006)
-        cone('lower_leg', (x, 0, .28), .07, .062, .36, skin, 6)
+    for side, x in [('left', -.13), ('right', .13)]:
+        foot_parts = [
+            ('sandals', box('sandals', (x, -.06, .03), (.19, .34, .05), 'wood', .02)),
+            ('sandals_foot', box('sandals_foot', (x, -.075, .085), (.14, .26, .07), skin, .025)),
+            ('sandals_strap', box('sandals_strap', (x, -.10, .1), (.15, .03, .03), 'wood', .006)),
+            ('lower_leg', cone('lower_leg', (x, 0, .28), .07, .062, .36, skin, 6)),
+        ]
+        if source_roles is not None:
+            source_roles.extend((name, side, obj) for name, obj in foot_parts)
     # Robe: a folded surface of revolution, flaring at the hem.
     folds = lambda a, r: (.018 * math.sin(a * 4 + seed) if r == 0 else .006 * math.sin(a * 4 + seed))
     # Near-circular like the original robe: reclining and seated supports rest on its back.
@@ -210,17 +215,27 @@ def person(spec, seed):
 
 
 def build(names=None, report=None):
+    """Keep a complete source workshop; names scopes only the exported GLBs."""
     prior = bpy.context.window.scene
     original = sorted(o.name for o in prior.objects)
     scene = kit_common.begin('The Way - RFC-011 people workshop')
     built = []
     try:
         for index, (name, spec) in enumerate(SPECS):
-            if names and name not in names:
-                continue
-            person(spec, index * 7 + 3)
-            rigging.export_character(name, parts, scene, str(OUT), index)
-            built.append(name)
+            selected = not names or name in names
+            source_roles = [] if name == 'villager' and selected and report is not None else None
+            person(spec, index * 7 + 3, source_roles)
+            membership = None
+            if source_roles is not None:
+                from villager_stance import capture_membership
+                bpy.context.view_layer.update()
+                membership = capture_membership(parts, source_roles, index * 7 + 3)
+            rigging.export_character(name, parts, scene, str(OUT), index,
+                                     export_file=selected, source_report=membership)
+            if membership is not None:
+                report['villager'] = membership
+            if selected:
+                built.append(name)
         bpy.data.libraries.write(str(ROOT / 'assets/source/people-kit.blend'), {scene},
                                  fake_user=True, compress=True)
     finally:
@@ -293,18 +308,32 @@ def portraits(names=None):
 
 
 def run(names=None):
-    built = build(names)
+    source_report = {}
+    built = build(names, source_report)
     from pack_palette import pack_palette
     from prune_channels import prune_channels
     for name in built:
         pack_palette(OUT / (name + '.glb'))
         prune_channels(OUT / (name + '.glb'))
+    stance = None
+    if 'villager' in built:
+        if os.environ.get('GOSPEL_DEFER_VILLAGER_STANCE') == '1':
+            # Full builds apply the same recipe after their final catalog compaction.
+            membership_path = Path(os.environ['GOSPEL_VILLAGER_MEMBER_OUTPUT'])
+            with membership_path.open('x') as output:
+                json.dump(source_report['villager'], output, allow_nan=False)
+        else:
+            from compact_glb import compact
+            from villager_stance import finalize_villager
+            compact(OUT / 'villager.glb')
+            stance = finalize_villager(OUT / 'villager.glb', source_report['villager'])
     rendered = portraits(names)
     report = {
         'blender': bpy.app.version_string,
         'exports': [{'id': n, 'bytes': (OUT / (n + '.glb')).stat().st_size,
                      'sha256': hashlib.sha256((OUT / (n + '.glb')).read_bytes()).hexdigest()} for n in built],
         'portraits': rendered,
+        'villagerStance': stance,
         'portraitBytes': sum(p.stat().st_size for p in PORTRAITS.glob('*.webp')),
     }
     (REPORT / 'people.json').write_text(json.dumps(report, indent=2) + '\n')

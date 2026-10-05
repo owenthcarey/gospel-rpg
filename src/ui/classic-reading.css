@@ -1,4 +1,58 @@
 /* Quest registers and blue answer rows share the existing authored reading surfaces. */
+/* Menu indexes sit in their own recessed rail, separate from journey actions. */
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) {
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid #6e5332;
+  background: var(--stone-grain), #76603f;
+  box-shadow: var(--bevel-sunken);
+}
+:root .journal-categories {
+  margin-bottom: 14px;
+}
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button {
+  flex: 1 1 auto;
+  min-height: 40px;
+  margin: 0;
+  padding: 8px 11px;
+  border: 1px solid #291d10;
+  color: #e9d8af;
+  background: var(--stone-grain), #493823;
+  box-shadow:
+    inset 1px 1px #9b8053,
+    inset -1px -1px #291d10;
+  font-size: 13px;
+  line-height: 1.35;
+  text-shadow: 1px 1px #1b130b;
+}
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button:hover {
+  color: #fff0ba;
+  background-color: #5d472c;
+}
+:root
+  :is(.journal-categories, .story-status-tabs, .map-tabs)
+  > .secondary-button[aria-pressed='true'],
+:root
+  :is(.journal-categories, .story-status-tabs, .map-tabs)
+  > .secondary-button[aria-pressed='true']:hover:not(:disabled) {
+  color: #ffe08a;
+  background: var(--stone-grain), #2c2115;
+  box-shadow:
+    inset 1px 1px #181109,
+    inset -1px -1px #9b8053,
+    inset 0 -3px #d2ae54;
+}
+:root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button:focus-visible {
+  outline: 2px solid #ffe08a;
+  outline-offset: -3px;
+}
+:root .journey-tools {
+  margin: 12px 0 17px;
+}
+:root .journey-tools > .secondary-button {
+  font-size: 13px;
+}
+
 :root .journey-overview .overview-intro {
   margin: 10px 0 15px;
 }
@@ -265,6 +319,12 @@
   font-size: 16px;
 }
 @media (max-width: 699px) {
+  :root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button {
+    min-height: 44px;
+    padding: 8px;
+    font-size: 14px;
+    white-space: normal;
+  }
   :root .journey-overview .opportunity {
     grid-template-columns: minmax(0, 1fr);
     gap: 9px;
@@ -305,5 +365,92 @@
     min-height: 44px;
     font-size: 15px;
     padding: 8px;
+  }
+}
+@media (max-width: 519px) {
+  :root .journal-categories > .secondary-button {
+    flex: 1 1 calc(33.333% - 4px);
+    min-width: 0;
+  }
+}
+
+/* Short conversations keep their first question and complete selected answer together. */
+@media (max-width: 699px) and (max-height: 420px) {
+  :root .conversation-overlay .dialogue-box.dialogue-compact-reading {
+    padding: 4px;
+    scroll-padding-block: 4px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-portrait {
+    top: 6px;
+    left: 6px;
+    width: 32px;
+    height: 40px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-main header {
+    min-height: 44px;
+    padding-left: 40px;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .conversation-overlay .dialogue-compact-reading .dialogue-main header > div {
+    min-width: 0;
+  }
+  .conversation-overlay .dialogue-compact-reading .conversation-motion {
+    flex-shrink: 0;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text {
+    max-height: var(--dialogue-question-height, none);
+    margin: 4px 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+    scrollbar-color: #584027 #a99066;
+    background-image:
+      linear-gradient(var(--parch-100) 30%, transparent),
+      linear-gradient(transparent, var(--parch-100) 70%),
+      radial-gradient(farthest-side at 50% 0, #493a2775, transparent),
+      radial-gradient(farthest-side at 50% 100%, #493a2775, transparent), var(--paper-grain);
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+    background-position:
+      top,
+      bottom,
+      top,
+      bottom,
+      top left;
+    background-size:
+      100% 24px,
+      100% 24px,
+      100% 9px,
+      100% 9px,
+      auto;
+    background-attachment: local, local, scroll, scroll, scroll;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text:focus-visible {
+    outline: 2px solid #102e56;
+    outline-offset: -2px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text::-webkit-scrollbar {
+    width: 6px;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text::-webkit-scrollbar-track {
+    background: #a99066;
+  }
+  :root .conversation-overlay .dialogue-compact-reading .dialogue-text::-webkit-scrollbar-thumb {
+    background: #584027;
+  }
+}
+
+/* Short wide touch layouts retain the same minimum physical answer target. */
+@media (min-width: 700px) and (max-height: 420px) and (pointer: coarse) {
+  :root .conversation-overlay .dialogue-choices button {
+    min-height: 44px;
+  }
+}
+
+/* Native focus keeps complete answers clear of the short reading frame. */
+@media (max-height: 420px) {
+  :root .conversation-overlay .dialogue-choices button {
+    scroll-margin-block: 2px;
   }
 }

@@ -45,8 +45,8 @@ export const roadLayouts: Record<RoadRegion, ExplorationLayout> = {
     ],
     decor: [
       ...trees,
-      { asset: 'spring_marker', x: -5, z: 1 },
-      { asset: 'terrace_marker', x: 7, z: 4 },
+      { asset: 'spring_marker', x: -5, z: 1, interactionId: 'road-spring' },
+      { asset: 'terrace_marker', x: 7, z: 4, interactionId: 'road-terrace' },
       { asset: 'terrace_wall', x: 8, z: 9 },
       { asset: 'terrace_wall', x: 10, z: -2, scaleX: 0.65 },
       { asset: 'rock', x: 11, z: 11, scale: 1.2 },

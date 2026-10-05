@@ -76,6 +76,54 @@ test('satchel examination supports keyboard selection without changing carried s
   expect(after.campaign).toEqual(before.campaign);
 });
 
+test('carried supplies keep their own next stop when another story is selected', async ({
+  page,
+}, info) => {
+  const state = parseSave(
+    JSON.parse(await readFile('tests/fixtures/saves/v8-supply-on-the-road.json', 'utf8')),
+  ).state;
+  state.tracking = 'roof';
+  await ready(page, state);
+  await page.getByRole('button', { name: 'Settings and saves' }).click();
+  await page.locator('[data-setting="textSize"]').selectOption('large');
+  await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  await page.locator('.toolbar [data-action="inventory"]').click();
+  const next = page.getByRole('button', { name: 'Find the next stop', exact: true });
+  await expect(page.locator('.satchel-help')).toHaveText('Carried supplies appear below');
+  await expect(page.locator('.satchel-inspection')).toHaveCount(0);
+  await expect(page.locator('.satchel-carried .item-art img')).toHaveAttribute(
+    'src',
+    /rest-screen\.webp$/,
+  );
+  await expect(page.locator('.carried-next-step')).toContainText('Room under the olives');
+  await expect(page.locator('.carried-next-step')).toContainText(
+    'Place what you carry at the chosen resting place.',
+  );
+  await expect(next).toHaveAttribute('data-value', 'rest-shade');
+  for (const layout of [
+    { width: 320, height: 568 },
+    { width: 568, height: 320 },
+  ]) {
+    await page.setViewportSize(layout);
+    await next.focus();
+    await expect(next).toBeInViewport({ ratio: 1 });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+    ).toBe(false);
+    const bounds = (await next.boundingBox())!;
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+  }
+  await readableContrast(page, '.carried-next-step p');
+  await page.screenshot({ path: info.outputPath('satchel-item-next-stop.png'), scale: 'css' });
+  await next.press('Enter');
+  await expect(page.locator('#travel-status')).toContainText('The olive shade');
+  const after = await exported(page);
+  expect(after.connection.route?.target).toBe('rest-shade');
+  expect(after.campaign.carrying).toBe('rest-screen');
+  expect(after.galilee).toEqual(state.galilee);
+  expect(after.tracking).toBe('roof');
+});
+
 test('a traveler completes the chapter, saves, reloads, and exports', async ({ page }, info) => {
   // Includes real-time walking, two restarts, and save round-trips on software WebGL.
   test.slow();

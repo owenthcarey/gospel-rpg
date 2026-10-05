@@ -78,7 +78,8 @@ export function heldReturn(s: GameState): { text: string; target: string } | und
   return item
     ? {
         text:
-          'To free your hands, return the ' +
+          'To free your hands, return ' +
+          (s.campaign.carrying === 'sewing-pouch' ? '' : 'the ') +
           item.name +
           ' to ' +
           item.place +

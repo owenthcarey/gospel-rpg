@@ -1,5 +1,6 @@
 import { ActionFeedback } from './presentation/action';
 import { InteractionFeedback } from './interaction';
+import { examineText } from '../content/examine';
 import { installClassicCameraInput } from './classic-camera-input';
 import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
@@ -14,10 +15,11 @@ import {
   floorHeight,
   type GroundStyle,
 } from './presentation/ground';
-import { ConversationPresentation } from './presentation/conversation';
+import { ConversationPresentation, conversationAnchor } from './presentation/conversation';
 import { applyCameraPose, cameraPose, type CameraPose } from './presentation/framing';
 import { turnToward, type ScreenRect } from '../game/presence';
 import { HarborPresentation, dressVillage } from './harbor';
+import { storedJarObstacles } from '../game/harbor/arrangement';
 import { EverydayActivity } from './actors/everyday';
 import { WorkPresentation, type WorkRect } from './work';
 import type { WorkTarget, ScreenPreview } from '../content/exploration/work';
@@ -36,9 +38,12 @@ import type { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGener
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { StageEnvironment } from './environment/stage';
 import { stylePlugin, WIND_SHAPES, type StylePlugin } from './environment/matte';
+import { ScenerySightline } from './environment/occlusion';
 import { GroundCover, type CoverOptions } from './environment/cover';
 import { environmentFor } from '../content/environment';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
+import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
+import type { GroundMesh } from '@babylonjs/core/Meshes/groundMesh';
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder';
 import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder';
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder';
@@ -48,6 +53,15 @@ import { VertexBuffer } from '@babylonjs/core/Buffers/buffer';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { AssetLibrary } from './assets';
 import { Actor } from './actors/actor';
+import {
+  benchMotion,
+  benchRoutePose,
+  benchSeatAmount,
+  BENCH_FRONT_CLEARANCE,
+  BENCH_TURN_TIME,
+  BENCH_WALK_SPEED,
+  type BenchMotion,
+} from './bench-motion';
 import { NeighborhoodActivity } from './actors/neighborhood';
 import { GalileeActivity } from './actors/galilee';
 import { localGalileePlaces } from '../content/galilee/places';
@@ -93,6 +107,7 @@ import {
 import { distance, findPath, WalkGrid } from '../game/pathfinding';
 import { newGame, type GameState, type Point, type Settings } from '../game/types';
 import { PausedCadence } from './presentation/cadence';
+import { VILLAGE_PATHS } from '../content/terrain';
 
 export interface WorldCallbacks {
   requestNavigate?: (id: string) => void;
@@ -123,13 +138,6 @@ export interface ScreenLabel {
   visible: boolean;
 }
 
-const VILLAGE_PATHS: [Point, Point, number][] = [
-  [{ x: -4, z: -26 }, { x: -3, z: 1 }, 2.6],
-  [{ x: -3, z: 1 }, { x: 0, z: 22 }, 2.8],
-  [{ x: -20, z: -1 }, { x: 8, z: -1 }, 2.5],
-  [{ x: -3, z: 8 }, { x: -16, z: 8 }, 1.8],
-  [{ x: 4, z: -10 }, { x: 6, z: 10 }, 1.5],
-];
 /** Distance from a point to the nearest path edge (negative on the path). */
 function pathDistance(p: Point, segments: readonly (readonly [Point, Point, number])[]): number {
   let best = Infinity;
@@ -158,13 +166,14 @@ export class World {
   private conversationView?: ConversationPresentation;
   private active = false;
   private travelerBoat?: TravelerBoat;
+  private boatMoving = false;
   private mooredBoat?: TransformNode;
   private lakeCompany?: Actor;
   private neighborhood?: NeighborhoodActivity;
   private road?: RoadActivity;
   private life!: LifeActivity;
   private connection!: ConnectionActivity;
-  private seatedAction?: { time: number; x: number; z: number; started: boolean };
+  private seatedAction?: BenchMotion;
   private cutaways: { node: TransformNode; kind: string }[] = [];
   readonly engine: Engine;
   readonly scene: Scene;
@@ -172,7 +181,11 @@ export class World {
   private shadow: ShadowGenerator;
   private stage: StageEnvironment;
   private cover?: GroundCover;
-  private floor?: Mesh;
+  private floor?: GroundMesh;
+  private actorGround = (x: number, z: number): number => this.renderedActorHeight(x, z);
+  private renderedActorHeight(x: number, z: number): number {
+    return this.floor?.getHeightAtCoordinates(x, z) ?? 0;
+  }
   private coverQuality?: 'high' | 'low';
   private arrival?: {
     t: number;
@@ -184,11 +197,11 @@ export class World {
   private actorPlayer!: Actor;
   private galilee?: GalileeActivity;
   private guidance: 'full' | 'explore' = 'full';
+  private scenerySightline = new ScenerySightline();
   private occluders: {
     node: TransformNode;
-    height: number;
-    x: number;
-    z: number;
+    kind: 'foliage' | 'solid';
+    meshes: AbstractMesh[];
     fade: StylePlugin[];
     amount: number;
   }[] = [];
@@ -200,6 +213,7 @@ export class World {
   private destinations: Interactable[] = activeInteractables(this.state);
   private player!: TransformNode;
   private playerModel!: TransformNode;
+  private playerRing?: Mesh;
   private marker: Mesh;
   private interactionFeedback?: InteractionFeedback;
   private explorationInput?: ExplorationInputBinding;
@@ -242,7 +256,7 @@ export class World {
           this.layout.bounds.min,
           this.layout.bounds.max,
         )
-      : new WalkGrid(obstacles, isLand);
+      : new WalkGrid([...obstacles, ...storedJarObstacles(initial)], isLand);
     this.engine = engine;
     this.scene = new Scene(this.engine);
     // Pointerdown still focuses the world; releasing into Choose Option keeps its menu focus.
@@ -289,7 +303,11 @@ export class World {
       ground: (x, z) => (region === 'galilee-water' ? -0.05 : groundHeight(region, { x, z })),
     });
     this.shadow = this.stage.shadow;
-    this.library = new AssetLibrary(this.scene, this.shadow);
+    this.library = new AssetLibrary(
+      this.scene,
+      this.shadow,
+      region === 'galilee-water' ? undefined : this.stage.contact,
+    );
     if (this.layout) {
       const inside = this.layout.inside;
       const shore = isLakeRegion(initial.region) && initial.region !== 'galilee-water';
@@ -431,7 +449,7 @@ export class World {
     );
     if (this.layout) {
       for (const p of this.layout.decor) {
-        const node = this.place(p);
+        const node = this.place(p, p.interactionId);
         node.position.y = groundHeight(this.state.region, p) + (p.y ?? 0);
         node.scaling.x *= p.scaleX ?? 1;
         if (p.cutaway) this.cutaways.push({ node, kind: p.cutaway });
@@ -476,14 +494,15 @@ export class World {
       if (i % 3 !== 0) shoreRocks.push(model);
     }
     this.library.batch('rock', shoreRocks);
-    dressVillage(this.scene, this.library, this.state.region);
+    for (const awning of dressVillage(this.scene, this.library, this.state.region))
+      this.registerOccluder('door_awning', awning);
     if (this.state.region === 'capernaum')
       this.harbor = new HarborPresentation(this.scene, this.library);
-    this.everyday = new EverydayActivity(this.library, this.actors, this.state);
+    this.everyday = new EverydayActivity(this.library, this.actors, this.state, this.actorGround);
     this.workView = new WorkPresentation(this.scene, this.camera, this.canvas);
     this.player = new TransformNode('player', this.scene);
     const playerModel = this.library.instantiate('traveler', 'traveler');
-    this.actorPlayer = new Actor(playerModel, true);
+    this.actorPlayer = new Actor(playerModel, true, { stationaryFeet: true });
     this.playerModel = playerModel.root;
     this.playerModel.parent = this.player;
     this.conversationView = new ConversationPresentation(this.camera, this.canvas);
@@ -493,6 +512,7 @@ export class World {
       { diameter: 0.92, thickness: 0.025, tessellation: 40 },
       this.scene,
     );
+    this.playerRing = ring;
     ring.material = this.material('player-ring-material', '#fff1c6', 0.65);
     ring.parent = this.player;
     ring.position.y = 0.045;
@@ -503,6 +523,7 @@ export class World {
         this.state.region,
         () => this.grid,
         this.callbacks.roadCheckpoint,
+        this.actorGround,
       );
     else if (this.layout && !isLakeRegion(this.state.region))
       this.neighborhood = new NeighborhoodActivity(
@@ -511,6 +532,7 @@ export class World {
         () => this.grid,
         this.callbacks.walkCheckpoint,
         this.state.region,
+        this.actorGround,
       );
     else if (!this.layout)
       this.activity = new VillageActivity(
@@ -537,7 +559,11 @@ export class World {
       this.player.rotation.y = this.state.lake.boat.heading;
       ring.scaling.setAll(2.2);
     } else if (isLakeRegion(this.state.region) || this.state.region === 'capernaum') {
-      this.mooredBoat = this.library.instantiate('boat', 'ordinary-moored-boat').root;
+      this.mooredBoat = this.library.instantiate(
+        'boat',
+        'ordinary-moored-boat',
+        'board-' + this.state.region,
+      ).root;
       this.mooredBoat.position.set(
         this.state.region === 'capernaum' ? 10 : 0,
         -0.03,
@@ -660,9 +686,7 @@ export class World {
     const hulls = [
       ...this.boats.map((node) => ({ node, strength: 0.35 })),
       ...(this.mooredBoat?.isEnabled() ? [{ node: this.mooredBoat, strength: 0.3 }] : []),
-      ...(this.travelerBoat
-        ? [{ node: this.player, strength: this.path.length || this.keys.size ? 0.9 : 0.4 }]
-        : []),
+      ...(this.travelerBoat ? [{ node: this.player, strength: this.boatMoving ? 0.9 : 0.4 }] : []),
     ];
     return hulls.map(({ node, strength }) => {
       const at = node.getAbsolutePosition();
@@ -744,7 +768,20 @@ export class World {
       interactionId,
     );
     const anchor = model.root;
-    if (isActorAsset(p.asset)) this.actors.set(interactionId ?? p.asset, new Actor(model, true));
+    if (isActorAsset(p.asset)) {
+      const laneAmos =
+        this.state.region === 'capernaum-lanes' &&
+        p.asset === 'amos' &&
+        (interactionId ?? p.asset) === 'amos';
+      this.actors.set(
+        interactionId ?? p.asset,
+        new Actor(
+          model,
+          true,
+          laneAmos ? { locomotionClearance: { ground: this.actorGround } } : {},
+        ),
+      );
+    }
     anchor.position.set(
       p.x,
       p.asset === 'boat' && p.x > shoreline(p.z) ? -0.25 : groundHeight(this.state.region, p),
@@ -754,9 +791,18 @@ export class World {
       (p.rotation ?? 0) + (!this.layout && p.asset.startsWith('house') ? Math.PI : 0);
     anchor.scaling.setAll(p.scale ?? 1);
     if (p.asset === 'boat' && p.x > shoreline(p.z)) this.boats.push(anchor);
-    if (['olive', 'cypress', 'palm'].includes(p.asset)) {
-      // Each view-blocking tree owns a material so it can dissolve on its own.
-      const fade = anchor.getChildMeshes().flatMap((mesh) => {
+    this.registerOccluder(p.asset, anchor);
+    return anchor;
+  }
+  private registerOccluder(asset: string, anchor: TransformNode): void {
+    const foliage = ['olive', 'cypress', 'palm'].includes(asset);
+    if (
+      foliage ||
+      ['house', 'house_large', 'market', 'farm_shelter', 'door_awning'].includes(asset)
+    ) {
+      // Each view-blocking placement owns a material so other scenery remains opaque.
+      const meshes = anchor.getChildMeshes();
+      const fade = meshes.flatMap((mesh) => {
         const source = mesh.material as StandardMaterial | null;
         if (!source) return [];
         const material = new StandardMaterial(
@@ -767,20 +813,18 @@ export class World {
         material.specularColor = Color3.Black();
         material.backFaceCulling = source.backFaceCulling;
         const plugin = stylePlugin(material);
-        plugin.configure(WIND_SHAPES[p.asset], true);
+        plugin.configure(WIND_SHAPES[asset], true);
         mesh.material = material;
         return [plugin];
       });
       this.occluders.push({
+        kind: foliage ? 'foliage' : 'solid',
         node: anchor,
-        height: 3.5 * (p.scale ?? 1),
-        x: p.x,
-        z: p.z,
+        meshes,
         fade,
         amount: 1,
       });
     }
-    return anchor;
   }
 
   /** Slope unwalkable floor down under the lake so the water meets a real bank. */
@@ -963,6 +1007,9 @@ export class World {
       place: (id) => this.destinations.find((p) => p.id === id),
       navigate,
       walk,
+      movementLabel: this.state.region === 'galilee-water' ? 'Steer here' : 'Walk here',
+      examine: (place) => examineText(place, this.state),
+      notice: this.callbacks.notice,
       cancelTap: () => this.explorationInput?.cancelTap(),
     });
     this.explorationInput = bindExplorationInput({
@@ -982,10 +1029,7 @@ export class World {
 
   walkTo(target: Point): boolean {
     if (this.paused) return false;
-    const cell = this.grid.nearest(target, 3);
-    const path = cell
-      ? smoothPath(this.grid, this.position, findPath(this.grid, this.position, cell))
-      : [];
+    const path = smoothPath(this.grid, this.position, findPath(this.grid, this.position, target));
     if (!path.length) {
       this.callbacks.notice(
         this.travelerBoat
@@ -994,9 +1038,11 @@ export class World {
       );
       return false;
     }
+    this.clearSeatedAction();
     this.path = path;
     this.destination = undefined;
-    this.marker.position.set(cell!.x, groundHeight(this.state.region, cell!) + 0.045, cell!.z);
+    const end = path.at(-1)!;
+    this.marker.position.set(end.x, groundHeight(this.state.region, end) + 0.045, end.z);
     this.marker.setEnabled(true);
     this.showRoute();
     return true;
@@ -1011,6 +1057,7 @@ export class World {
       this.interactionFeedback?.completeNavigate(id, false);
       return;
     }
+    this.clearSeatedAction();
     if (distance(this.position, target) < 2.35) {
       this.stop();
       this.face(target);
@@ -1055,7 +1102,33 @@ export class World {
       .filter((p) => distance(p, this.position) < 2.6)
       .sort((a, b) => distance(a, this.position) - distance(b, this.position))[0];
   }
-  stop(): void {
+  private clearSeatedAction(): void {
+    if (!this.seatedAction) return;
+    const heading = this.seatedAction.heading;
+    this.seatedAction = undefined;
+    this.actorPlayer.cancelAction();
+    this.actorPlayer.sampleAt('Idle', 0);
+    this.playerModel.position.set(0, 0, 0);
+    this.playerModel.rotation.set(0, heading, 0);
+    this.playerRing?.position.set(0, 0.045, 0);
+  }
+  /** Follow the displayed land actor without moving its navigation or camera anchor. */
+  private syncPlayerRing(): void {
+    if (!this.playerRing || this.travelerBoat) return;
+    this.playerModel.computeWorldMatrix(true);
+    const displayed = this.playerModel.getAbsolutePosition();
+    this.floor?.computeWorldMatrix(true);
+    const height = this.floor
+      ? this.floor.getHeightAtCoordinates(displayed.x, displayed.z)
+      : groundHeight(this.state.region, { x: displayed.x, z: displayed.z });
+    this.playerRing.position.set(
+      this.playerModel.position.x,
+      height - this.player.getAbsolutePosition().y + 0.045,
+      this.playerModel.position.z,
+    );
+  }
+  stop(cancelSeat = true): void {
+    if (cancelSeat) this.clearSeatedAction();
     this.walkRamp = 0;
     this.path = [];
     this.destination = undefined;
@@ -1098,43 +1171,71 @@ export class World {
     this.lastPace = this.walkRamp * Math.min(1, 0.4 + remaining / 1.4);
     return this.lastPace;
   }
-  private poseTraveler(moving: boolean, dt: number): void {
+  private poseTraveler(moving: boolean, dt: number, speed = 0): void {
     if (!this.playerModel) return;
     if (this.travelerBoat) {
+      this.boatMoving = moving;
       this.travelerBoat.pose(moving, dt, this.reducedMotion || this.paused);
       return;
     }
-    if (this.paused && this.actorPlayer.performing && !this.reducedMotion) return;
-    if (this.seatedAction && !this.reducedMotion) {
+    if (this.seatedAction && this.reducedMotion) this.clearSeatedAction();
+    if (this.paused && (this.seatedAction || this.actorPlayer.performing) && !this.reducedMotion)
+      return;
+    if (this.seatedAction) {
       const seat = this.seatedAction;
-      if (!this.paused) seat.time += dt;
-      const arriving = seat.time < 0.8,
-        sitting = seat.time >= 0.8 && seat.time < 3.3;
-      const amount = arriving
-        ? seat.time / 0.8
-        : sitting
-          ? 1
-          : Math.max(0, 1 - (seat.time - 3.3) / 0.8);
-      this.playerModel.position.set(seat.x * amount, 0, seat.z * amount);
-      this.playerModel.rotation.y = sitting
-        ? Math.PI
-        : Math.atan2(seat.x, seat.z) + (arriving ? 0 : Math.PI);
-      if (sitting && !seat.started) {
-        this.actorPlayer.playOnce('SitDown');
-        seat.started = true;
+      seat.time += dt;
+      const approachTime = seat.length / BENCH_WALK_SPEED;
+      const sittingStart = approachTime + BENCH_TURN_TIME;
+      const sittingEnd = sittingStart + this.actorPlayer.clipDuration('SitDown');
+      const retreating = seat.time >= sittingEnd;
+      this.playerModel.rotation.z = 0;
+      if (seat.time < approachTime || retreating) {
+        const traveled = Math.min(
+          seat.length,
+          (retreating ? seat.time - sittingEnd : seat.time) * BENCH_WALK_SPEED,
+        );
+        const pose = benchRoutePose(seat, traveled, retreating);
+        this.playerModel.position.set(pose.x, 0, pose.z);
+        this.playerModel.rotation.y = pose.heading;
+        const phase = (traveled / (BENCH_WALK_SPEED * this.actorPlayer.clipDuration('Walk'))) % 1;
+        this.actorPlayer.sampleAt('Walk', phase);
+        // This check is cosmetic: ground the sandals without changing authored navigation.
+        const ground = groundHeight(this.state.region, {
+          x: this.position.x + pose.x,
+          z: this.position.z + pose.z,
+        });
+        this.playerModel.position.y = Math.max(0, ground - this.actorPlayer.soleHeight());
+      } else if (seat.time < sittingStart) {
+        const front = seat.route.at(-1)!;
+        const initial = benchRoutePose(seat, seat.length).heading;
+        const turn = Math.atan2(Math.sin(Math.PI - initial), Math.cos(Math.PI - initial));
+        this.playerModel.position.set(front.x, 0, front.z);
+        this.playerModel.rotation.y =
+          initial + turn * ((seat.time - approachTime) / BENCH_TURN_TIME);
+        this.actorPlayer.sampleAt('Idle', 0);
+        this.playerModel.position.y = Math.max(
+          0,
+          groundHeight(this.state.region, this.position) - this.actorPlayer.soleHeight(),
+        );
+      } else {
+        const phase = (seat.time - sittingStart) / this.actorPlayer.clipDuration('SitDown');
+        this.playerModel.position.set(
+          seat.bench.x - 0.45,
+          0,
+          seat.bench.z + BENCH_FRONT_CLEARANCE * (1 - benchSeatAmount(phase)),
+        );
+        this.playerModel.rotation.y = Math.PI;
+        this.actorPlayer.sampleActionAt('SitDown', phase);
       }
-      if (!this.paused) this.actorPlayer.sample(sitting ? 'Idle' : 'Walk', dt);
-      if (seat.time < 4.1) return;
-      this.playerModel.position.set(0, 0, 0);
-      this.seatedAction = undefined;
-    }
-    if (this.seatedAction && this.reducedMotion) {
-      this.seatedAction = undefined;
-      this.playerModel.position.set(0, 0, 0);
+      this.syncPlayerRing();
+      if (seat.time < sittingEnd + approachTime) return;
+      this.clearSeatedAction();
     }
     if (moving && !this.reducedMotion) {
       const before = Math.floor(this.strideTime / 0.4);
-      this.strideTime += dt;
+      // Match the clip and ground accents to actual travel, including easing, wall sliding
+      // and companion pace. A slow walk must not keep a full-speed bounce or dust rhythm.
+      this.strideTime += (dt * speed) / 3.25;
       if (Math.floor(this.strideTime / 0.4) !== before)
         this.stage.atmosphere.footstep(this.player.position.add(new Vector3(0, 0.05, 0)));
     } else this.strideTime = 0;
@@ -1143,6 +1244,15 @@ export class World {
       : (this.neighborhood?.playerClip(moving) ??
         this.activity?.playerClip(moving, Boolean(this.state.episode.carrying)) ??
         (moving ? 'Walk' : 'Idle'));
+    this.actorPlayer.setStrideSpeed(speed);
+    if (
+      clip === 'Carry' &&
+      !moving &&
+      !this.paused &&
+      !this.reducedMotion &&
+      !this.actorPlayer.performing
+    )
+      this.actorPlayer.resetStoppedCarryPhase(clip);
     this.actorPlayer?.sample(
       clip,
       dt,
@@ -1150,20 +1260,41 @@ export class World {
         this.paused ||
         (clip === 'Carry' && !moving && !this.actorPlayer.performing),
     );
-    this.playerModel.position.y = this.reducedMotion
-      ? 0
-      : moving
-        ? Math.abs(Math.sin((this.strideTime * Math.PI * 2) / 0.8)) * 0.035
-        : Math.sin(this.time * 1.8) * 0.004;
+    // The displayed pose can still be a finite action while its requested base is Carry.
+    // Measure after sampling/blending and roll, without moving the navigation transform.
+    const grounded = ['Idle', 'Walk', 'Carry', 'MatCarry'].includes(this.actorPlayer.playback.clip);
+    this.playerModel.position.y =
+      grounded || this.reducedMotion
+        ? 0
+        : moving
+          ? Math.abs(Math.sin((this.strideTime * Math.PI * 2) / 0.8)) * 0.035
+          : Math.sin(this.time * 1.8) * 0.004;
     this.playerModel.rotation.z =
       moving && !this.reducedMotion ? Math.sin((this.strideTime * Math.PI * 2) / 0.8) * 0.016 : 0;
+    if (grounded) {
+      this.floor?.computeWorldMatrix(true);
+      const ground = this.floor;
+      const height = ground
+        ? (x: number, z: number) => ground.getHeightAtCoordinates(x, z)
+        : () => 0;
+      const feet = this.actorPlayer.footClearance(height);
+      this.playerModel.position.y = Math.max(0, -Math.min(feet.left, feet.right));
+      this.actorPlayer.supportFeet({
+        stationary: !moving || this.reducedMotion,
+        dt,
+        ground: height,
+        immediate: this.reducedMotion || dt === 0,
+        // Settings may deliberately resolve a static pose while the world remains paused.
+        frozen: this.paused && !this.reducedMotion,
+      });
+    }
   }
   setPaused(value: boolean): void {
     this.paused = value;
     this.interactionFeedback?.setPaused(value);
     if (value) {
       this.explorationInput?.clear();
-      this.stop();
+      this.stop(false);
       this.stopCameraMotion();
     }
   }
@@ -1183,13 +1314,21 @@ export class World {
     return { ...this.position };
   }
   private fitCamera(): void {
-    if (!this.layout || this.workView?.active || this.conversationView?.active) return;
-    const scale = Math.max(
-      1,
-      0.9 / (this.canvas.clientWidth / Math.max(1, this.canvas.clientHeight)),
-    );
+    if (!this.layout || this.workView?.active || this.conversationView?.active || document.hidden)
+      return;
+    const width = this.canvas.clientWidth,
+      height = this.canvas.clientHeight;
+    // Keep the last valid fit until the canvas has a displayed extent.
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return;
+    const scale = Math.max(1, 0.9 / (width / height));
     if (Math.abs(scale - this.cameraAspectScale) < 0.001) return;
-    this.camera.radius *= scale / this.cameraAspectScale;
+    const ratio = scale / this.cameraAspectScale;
+    this.camera.radius *= ratio;
+    // Resize the same return path, without restarting its visible duration.
+    if (this.cameraReturn) {
+      this.cameraReturn.from.radius *= ratio;
+      this.cameraReturn.to.radius *= ratio;
+    }
     this.camera.lowerRadiusLimit = this.layout.camera.min * scale;
     this.camera.upperRadiusLimit = this.layout.camera.max * scale;
     this.cameraAspectScale = scale;
@@ -1215,7 +1354,7 @@ export class World {
   }
   resetCamera(): void {
     if (this.workView?.active) {
-      this.workView.frame();
+      this.frameWork();
       return;
     }
     this.finishCameraTransition();
@@ -1322,6 +1461,7 @@ export class World {
       const dz =
         Number(this.keys.has('w') || this.keys.has('arrowup')) -
         Number(this.keys.has('s') || this.keys.has('arrowdown'));
+      const beforeMove = this.position;
       let moving = false;
       if ((dx || dz) && !this.seatedAction) {
         if (this.path.length) this.routeDots.forEach((dot) => dot.setEnabled(false));
@@ -1373,19 +1513,40 @@ export class World {
         groundHeight(this.state.region, this.position),
         this.position.z,
       );
-      this.actorPlayer.setStrideSpeed(
-        (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
-          ? 1.43
-          : 3.25) * (this.path.length ? Math.max(0.45, this.lastPace) : 1),
-      );
-      this.poseTraveler(moving && !this.paused, dt);
+      const travelSpeed = dt > 0 ? distance(beforeMove, this.position) / dt : 0;
+      // Accepted work is cosmetic: once the traveler actually leaves, resume their
+      // walk instead of carrying a stationary work pose along the route.
+      if (travelSpeed > 0 && !this.seatedAction && this.actorPlayer.performing)
+        this.actorPlayer.cancelAction();
+      this.poseTraveler(moving && !this.paused, dt, travelSpeed);
       const target = this.cameraTarget();
       if (this.reducedMotion) this.camera.target.copyFrom(target);
       else Vector3.LerpToRef(this.camera.target, target, 1 - Math.exp(-dt * 3), this.camera.target);
     }
   }
+  private updateOcclusion(elapsed: number): void {
+    // Dialogue frames both people; a crown can hide the speaker without hiding the traveler.
+    const cameraPoint = this.camera.position,
+      focus = this.player.position,
+      participants =
+        !this.travelerBoat && !this.workView?.active
+          ? this.conversationView?.occlusionAnchors
+          : undefined;
+    for (const o of this.occluders) {
+      const blocks = participants
+        ? participants.some((point) => this.scenerySightline.blocks(o.meshes, cameraPoint, point))
+        : this.scenerySightline.blocks(o.meshes, cameraPoint, focus);
+      // Live dialogue needs a clearer window through leaves to frame both people.
+      // Architecture and fabric retain their existing fade.
+      // Geometry, shadows and collision remain in place throughout the transition.
+      const target = blocks ? (o.kind === 'solid' ? 0.18 : participants ? 0.12 : 0.3) : 1;
+      o.amount = this.reducedMotion
+        ? target
+        : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
+      for (const plugin of o.fade) plugin.fade = o.amount;
+    }
+  }
   private render(): void {
-    this.fitCamera();
     const now = performance.now();
     // Menus and the welcome screen do not need a full-rate 3D render loop.
     if (
@@ -1395,6 +1556,7 @@ export class World {
         !this.cadence.due(now))
     )
       return;
+    this.fitCamera();
     const elapsed = this.lastRender ? (now - this.lastRender) / 1000 : 0;
     this.lastRender = now;
     this.cadence.rendered(now);
@@ -1404,9 +1566,11 @@ export class World {
       this.pendingRotation = 0;
     }
     if (!this.paused) this.tickArrival(Math.min(elapsed, 0.1));
+    // Camera commands keep their visible duration on slow frames. Foreground refreshes
+    // already discard suspension time; collision-safe simulation retains its own cap below.
     if (this.cameraReturn) {
       const r = this.cameraReturn;
-      r.t = Math.min(1, r.t + Math.min(elapsed, 0.1) / 0.7);
+      r.t = Math.min(1, r.t + elapsed / 0.7);
       const e = r.t * r.t * (3 - 2 * r.t);
       this.camera.alpha = r.from.alpha + (r.to.alpha - r.from.alpha) * e;
       this.camera.beta = r.from.beta + (r.to.beta - r.from.beta) * e;
@@ -1415,7 +1579,7 @@ export class World {
       if (r.t >= 1) this.cameraReturn = undefined;
     }
     if (Math.abs(this.pendingRotation) > 0.0005) {
-      const step = this.pendingRotation * (1 - Math.exp(-Math.min(elapsed, 0.1) * 10));
+      const step = this.pendingRotation * (1 - Math.exp(-elapsed * 10));
       this.camera.alpha += step;
       this.pendingRotation -= step;
     }
@@ -1455,28 +1619,10 @@ export class World {
             (target - node.scaling.y) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 9));
       }
     }
-    // Lower only foliage crossing the camera-to-traveler sightline; retain its trunk and collision.
-    const cameraPoint = this.camera.position,
-      focus = this.player.position;
-    const vx = cameraPoint.x - focus.x,
-      vz = cameraPoint.z - focus.z,
-      length = vx * vx + vz * vz;
-    for (const o of this.occluders) {
-      const t = length ? ((o.x - focus.x) * vx + (o.z - focus.z) * vz) / length : -1;
-      const separation = Math.hypot(o.x - focus.x - vx * t, o.z - focus.z - vz * t);
-      const rayHeight = focus.y + 1 + (cameraPoint.y - focus.y - 1) * t;
-      const blocks =
-        t > 0 &&
-        t < 1 &&
-        separation < 1.25 &&
-        groundHeight(this.state.region, o) + o.height > rayHeight;
-      // Dissolve rather than shrink: silhouette and collision stay put, the traveler shows through.
-      const target = blocks ? 0.3 : 1;
-      o.amount = this.reducedMotion
-        ? target
-        : o.amount + (target - o.amount) * (1 - Math.exp(-Math.min(elapsed, 0.1) * 8));
-      for (const plugin of o.fade) plugin.fade = o.amount;
-    }
+    // Orbit, camera returns and following may have changed the camera this frame.
+    // Resolve its position before probing, including instant reduced-motion turns.
+    this.camera.getViewMatrix();
+    this.updateOcclusion(elapsed);
     const companion = this.neighborhood?.position();
     if (companion)
       this.destinations = this.destinations.map((p) =>
@@ -1503,6 +1649,7 @@ export class World {
     this.setData('boatHeading', String(this.getBoatHeading() ?? ''));
     this.setData('actorPose', playback.clip);
     this.setData('actorFrame', playback.frame.toFixed(2));
+    this.setData('actorHeading', String(this.playerModel?.rotation.y ?? Number.NaN));
     this.setData('actionMotion', this.seatedAction ? 'SitDown' : playback.action);
     if (performance.now() - this.lastFrame > 45) {
       this.lastFrame = performance.now();
@@ -1510,11 +1657,24 @@ export class World {
         height = this.engine.getRenderHeight();
       const rect = this.canvas.getBoundingClientRect();
       const labels = this.destinations.map((p) => {
+        const hull =
+          p.id === 'board-' + this.state.region && this.mooredBoat?.isEnabled()
+            ? this.mooredBoat.getAbsolutePosition()
+            : undefined;
+        // Keep the standing name clearance above Neri's actual seated head attachment.
+        const seatedHead =
+          p.id === 'neri' &&
+          this.state.road.company.stage === 'complete' &&
+          this.road?.conversationActor.root.isEnabled()
+            ? this.road.conversationActor.model.socket('head').getAbsolutePosition()
+            : undefined;
+        const anchor = seatedHead ?? hull;
         const v = Vector3.Project(
           new Vector3(
-            p.x,
-            groundHeight(this.state.region, p) + (p.kind === 'person' ? 2.18 : 1.9),
-            p.z,
+            anchor?.x ?? p.x,
+            (anchor?.y ?? groundHeight(this.state.region, p)) +
+              (seatedHead ? 0.78 : p.kind === 'person' ? 2.18 : 1.9),
+            anchor?.z ?? p.z,
           ),
           Matrix.Identity(),
           this.scene.getTransformMatrix(),
@@ -1576,7 +1736,11 @@ export class World {
         this.layout.bounds.min,
         this.layout.bounds.max,
       );
-    if (!this.layout) this.grid = new WalkGrid([...obstacles, ...passageObstacles(state)], isLand);
+    if (!this.layout)
+      this.grid = new WalkGrid(
+        [...obstacles, ...storedJarObstacles(state), ...passageObstacles(state)],
+        isLand,
+      );
     for (const activity of this.activities())
       if (activity !== this.activity) activity.update?.(state);
     this.people.get('joel')?.setEnabled(state.road.chapter.stage === 'complete');
@@ -1596,6 +1760,15 @@ export class World {
   }
   setWorkFocus(target?: WorkTarget, preview?: ScreenPreview): void {
     if (target) this.conversationView?.clear();
+    if (target && this.cameraReturn) {
+      // Work owns the next frame; retain the ordinary destination for its bookmark.
+      applyCameraPose(this.camera, this.cameraReturn.to);
+      this.cameraReturn = undefined;
+    }
+    // A new Work frame replaces old camera motion; live same-target updates retain input.
+    if (target && target.id !== this.workView?.id) this.stopCameraMotion();
+    // Work close restores its bookmark; a step started inside Work ends at that handoff.
+    if (!target && this.workView?.active) this.stopCameraMotion();
     if (target) this.stop();
     this.workView?.select(target, this.state, preview);
     this.canvas.dataset.workTarget = target?.id ?? '';
@@ -1610,9 +1783,14 @@ export class World {
         // Restore the exact bookmark, then glide there from the conversation framing.
         const from = cameraPose(this.camera);
         this.conversationView.clear();
+        // Reading owns its viewport fit; restore the ordinary layout at its current size.
+        this.fitCamera();
         this.cameraReturn = { from, to: cameraPose(this.camera), t: 0 };
         applyCameraPose(this.camera, from);
-      } else this.conversationView?.clear();
+      } else {
+        this.conversationView?.clear();
+        this.fitCamera();
+      }
       return;
     }
     this.cameraReturn = undefined;
@@ -1620,11 +1798,8 @@ export class World {
       id === 'neri'
         ? this.road?.conversationActor
         : (this.actors.get(id) ?? this.activity?.conversationActor(id));
-    if (
-      !actor ||
-      !actor.root.isEnabled() ||
-      distance(this.position, actor.root.getAbsolutePosition()) > 4.5
-    ) {
+    const anchor = actor ? conversationAnchor(actor) : undefined;
+    if (!actor || !anchor || distance(this.position, anchor) > 4.5) {
       this.conversationView?.clear();
       return;
     }
@@ -1632,6 +1807,7 @@ export class World {
     this.conversationView?.setPaused(paused);
   }
   frameWork(): void {
+    if (this.workView?.active) this.stopCameraMotion();
     this.workView?.frame();
   }
   getCompanionPosition(): Point | undefined {
@@ -1641,18 +1817,15 @@ export class World {
     return this.road?.position();
   }
   performInteraction(motion?: ActionMotion, target?: string): void {
+    if (motion !== 'SitDown') this.clearSeatedAction();
     this.conversationView?.clear();
     if (!motion) this.activity?.perform();
     else {
       const place = this.destinations.find((p) => p.id === target);
       if (motion === 'SitDown' && place && !this.reducedMotion) {
         this.stop();
-        this.seatedAction = {
-          time: 0,
-          x: place.x - 0.45 - this.position.x,
-          z: place.z - this.position.z,
-          started: false,
-        };
+        this.actorPlayer.cancelAction();
+        this.seatedAction = benchMotion(this.position, place, this.playerModel.rotation.y);
         return;
       }
       if (place) {

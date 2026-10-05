@@ -17,6 +17,7 @@ interface JourneyDB extends DBSchema {
 export class SaveRepository {
   private db?: IDBPDatabase<JourneyDB>;
   private memory = new Map<SlotId, SaveFile>();
+  private unreadable = new Map<SlotId, unknown>();
   private settings: Settings = parseSettings(null);
   persistent = false;
   async init(name = 'the-way-journeys'): Promise<void> {
@@ -43,12 +44,32 @@ export class SaveRepository {
   async save(id: SlotId, state: GameState): Promise<SaveFile> {
     const save = makeSave(state);
     if (this.persistent && this.db) await this.db.put('saves', save, id);
-    this.memory.set(id, save);
+    this.memory.set(id, structuredClone(save));
+    this.unreadable.delete(id);
     return save;
   }
   async load(id: SlotId): Promise<SaveFile | null> {
+    if (!this.persistent && this.unreadable.has(id)) throw this.unreadable.get(id);
     const raw = this.persistent && this.db ? await this.db.get('saves', id) : this.memory.get(id);
-    return raw ? parseSave(raw) : null;
+    if (!raw) {
+      this.memory.delete(id);
+      this.unreadable.delete(id);
+      return null;
+    }
+    let save: SaveFile;
+    try {
+      save = parseSave(raw);
+    } catch (error) {
+      // An observed corrupt slot must remain unreadable after handoff, rather than look current.
+      this.memory.delete(id);
+      this.unreadable.set(id, error);
+      throw error;
+    }
+    // Previously read journeys stay available if this connection later becomes session-only.
+    // Keep a separate copy: callers can inspect or restore a save without editing that fallback.
+    this.memory.set(id, structuredClone(save));
+    this.unreadable.delete(id);
+    return save;
   }
   async list(): Promise<SlotSummary[]> {
     return Promise.all(

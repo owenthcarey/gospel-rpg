@@ -287,6 +287,8 @@ test('walking produces effects with music and ambience silenced', async ({ page 
   await slider(page, 'Effects volume', 1);
   await slider(page, 'Master volume', 1);
   await page.getByRole('button', { name: 'Close menu', exact: true }).click();
+  await page.locator('#game-canvas').focus();
+  await expect(page.locator('#game-canvas')).toBeFocused();
   await expect.poll(() => level(page)).toBeLessThan(0.0001);
   const peak = await capturePeak(page);
   try {

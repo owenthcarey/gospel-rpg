@@ -6,17 +6,19 @@ The armature supports independent elbows, hips, knees, head and body poses.
 import bpy
 import math
 import os
+from mathutils import Matrix, Vector
 from shading import bake_vertex_shading
 
 CLIPS = {
     "Idle": 90, "Walk": 24, "Carry": 24, "Gesture": 60,
-    "Sit": 60, "Row": 36, "Haul": 40, "Kneel": 60, "Recline": 60, "Rise": 60, "MatCarry": 24, "Use": 60,
+    "Sit": 60, "BenchSit": 60, "Row": 36, "Haul": 40, "Kneel": 60, "Recline": 60, "Rise": 60, "MatCarry": 24, "Use": 60,
     "PickUp": 36, "PutDown": 36, "Repair": 60, "SitDown": 72,
     "SitUp": 60, "FrameCarry": 60, "TouchFrame": 60,
     "Greet": 42, "Listen": 96, "Respond": 72,
 }
 
-def export_character(name, parts, scene, output, grid_index):
+def export_character(name, parts, scene, output, grid_index, export_file=True, source_report=None):
+    bench_actor = name in ("traveler", "villager")
     bpy.ops.object.select_all(action="DESELECT")
     arm_data = bpy.data.armatures.new(name + "_skeleton")
     rig = bpy.data.objects.new(name + "_rig", arm_data)
@@ -37,6 +39,13 @@ def export_character(name, parts, scene, output, grid_index):
             ("forearm_" + side, (sign*.31, 0, .98), (sign*.31, -.045, .75), "arm_" + side),
             ("thigh_" + side, (x, 0, .85), (x, 0, .43), "root"),
             ("leg_" + side, (x, 0, .43), (x, -.03, .08), "thigh_" + side),
+        ])
+    if bench_actor:
+        # Rigid cloth panels retain the standing silhouette, then fold across the
+        # lap and hang over the knees. Siblings avoid scaled-parent cloth shear.
+        bones.extend([
+            ("seat_hem", (0, 0, .55), (0, 0, .225), "body"),
+            ("seat_satchel", (0, 0, .85), (0, 0, 1.05), "body"),
         ])
     for bone_name, head, tail, parent in bones:
         bone = arm_data.edit_bones.new(bone_name)
@@ -66,11 +75,25 @@ def export_character(name, parts, scene, output, grid_index):
                            if ((obj.matrix_world @ v.co).z >= 1.42) == (group_name == "head")]
                 if indices:
                     obj.vertex_groups.new(name=group_name).add(indices, 1, "REPLACE")
+        elif bench_actor and obj.name.startswith(("satchel", "belt_tail")):
+            for group_name in ("body", "seat_satchel"):
+                def accessory_group(vertex):
+                    height = (obj.matrix_world @ vertex.co).z
+                    if obj.name.startswith("satchel_strap"):
+                        return "seat_satchel" if height < 1.04 else "body"
+                    if obj.name.startswith("belt_tail"):
+                        return "seat_satchel" if height < .84 else "body"
+                    return "seat_satchel"
+                indices = [v.index for v in obj.data.vertices if accessory_group(v) == group_name]
+                if indices:
+                    obj.vertex_groups.new(name=group_name).add(indices, 1, "REPLACE")
         elif obj.name.startswith(("robe", "draped_wrap", "apron", "mantle_back")):
             # The hem folds from the waist, keeping the upper tunic attached to the torso.
-            for group_name in ("body", "robe"):
-                indices = [v.index for v in obj.data.vertices
-                           if ((obj.matrix_world @ v.co).z >= .9) == (group_name == "body")]
+            for group_name in (("body", "robe", "seat_hem") if bench_actor else ("body", "robe")):
+                def cloth_group(vertex):
+                    height = (obj.matrix_world @ vertex.co).z
+                    return "body" if height >= .9 else "seat_hem" if bench_actor and height < .60 else "robe"
+                indices = [v.index for v in obj.data.vertices if cloth_group(v) == group_name]
                 if indices:
                     obj.vertex_groups.new(name=group_name).add(indices, 1, "REPLACE")
         else:
@@ -114,8 +137,18 @@ def export_character(name, parts, scene, output, grid_index):
     socket.parent = rig
     socket.location = (0, -.48, .80)
     socket.empty_display_size = .08
+    if source_report is not None:
+        source_report['socketName'] = socket.name
     for bone in rig.pose.bones:
         bone.rotation_mode = "XYZ"
+    foot_groups = {skin.vertex_groups[n].index for n in ("leg_left", "leg_right")}
+    foot_indices = [v.index for v in skin.data.vertices
+                    if any(g.group in foot_groups for g in v.groups)]
+
+    def follow_robe():
+        bpy.context.view_layer.update()
+        hem, robe = rig.pose.bones["seat_hem"], rig.pose.bones["robe"]
+        hem.matrix = robe.matrix @ robe.bone.matrix_local.inverted() @ hem.bone.matrix_local
 
     def pose(clip, phase):
         for bone in rig.pose.bones:
@@ -279,21 +312,62 @@ def export_character(name, parts, scene, output, grid_index):
                 p["thigh_" + side].rotation_euler.x = -1.25 * amount
                 p["leg_" + side].rotation_euler.x = 1.2 * amount
                 p["forearm_" + side].rotation_euler.x = -.45 * amount
+        if bench_actor:
+            if clip not in ("SitDown", "BenchSit"):
+                # Preserve every legacy clip, including Sit/Row, on the same mesh.
+                follow_robe()
+            else:
+                amount = 1 if clip == "BenchSit" else min(phase/.25, 1, (1-phase)/.25)
+                amount = amount*amount*(3-2*amount)
+                fold = 1 if clip == "BenchSit" else min(phase/.20, 1, (1-phase)/.20)
+                fold = fold*fold*(3-2*fold)
+                p["root"].location.y = (-.43 if clip == "BenchSit" else -.35) * amount
+                p["robe"].rotation_euler.x = -math.pi/2 * fold
+                p["robe"].scale.y = 1-.15*amount
+                p["robe"].scale.z = 1-.84*fold
+                for side in ("left", "right"):
+                    p["thigh_" + side].rotation_euler.x = -1.25*amount
+                    p["leg_" + side].rotation_euler.x = 1.2*amount
+                    p["arm_" + side].rotation_euler.x = -.45*amount
+                    p["forearm_" + side].rotation_euler.x = -.45*amount
+                p["seat_satchel"].location.y = .16*amount
+                bpy.context.view_layer.update()
+                if clip == "SitDown":
+                    evaluated = skin.evaluated_get(bpy.context.evaluated_depsgraph_get())
+                    mesh = evaluated.to_mesh()
+                    minimum = min((evaluated.matrix_world @ mesh.vertices[i].co).z for i in foot_indices)
+                    evaluated.to_mesh_clear()
+                    p["root"].location.y += max(0, -minimum)
+                    bpy.context.view_layer.update()
+                knee_y = (p["leg_left"].head.y+p["leg_right"].head.y)/2
+                hem = p["seat_hem"]
+                hem.matrix = Matrix.LocRotScale(
+                    Vector((0, knee_y*.45/(.42*math.sin(1.25)), .55+.35*amount+p["root"].location.y)),
+                    hem.bone.matrix_local.to_quaternion(), Vector((1, 1+.3*amount, 1-.65*amount)))
 
     scene.render.fps = 30
     for clip, duration in CLIPS.items():
         specialist = {"SitUp": "young_man", "FrameCarry": "bearer", "TouchFrame": "jesus"}
         if clip in specialist and name != specialist[clip]:
             continue
+        if clip == "BenchSit" and not bench_actor:
+            continue
         rig.animation_data_create()
         rig.animation_data.action = None
-        for step in range(9):
-            frame = 1 + duration*step/8
-            pose(clip, step/8)
+        for track in rig.animation_data.nla_tracks:
+            track.mute = True
+        steps = duration if bench_actor and clip == "SitDown" else 8
+        action = None
+        for step in range(steps+1):
+            frame = 1 + duration*step/steps
+            rig.animation_data.action = None
+            pose(clip, step/steps)
+            rig.animation_data.action = action
             for bone in rig.pose.bones:
                 bone.keyframe_insert("rotation_euler", frame=frame, group=bone.name)
                 bone.keyframe_insert("location", frame=frame, group=bone.name)
                 bone.keyframe_insert("scale", frame=frame, group=bone.name)
+            action = rig.animation_data.action
         action = rig.animation_data.action
         action.name = name + "_" + clip
         slot = getattr(rig.animation_data, "action_slot", None)
@@ -304,16 +378,19 @@ def export_character(name, parts, scene, output, grid_index):
             strip.action_slot = slot
         rig.animation_data.action = None
     pose("Idle", 0)
+    for track in rig.animation_data.nla_tracks:
+        track.mute = False
     scene.frame_set(1)
     bpy.ops.object.select_all(action="DESELECT")
     for obj in [rig, skin, socket]:
         obj.select_set(True)
     bpy.context.view_layer.objects.active = rig
-    bpy.ops.export_scene.gltf(
-        filepath=os.path.join(output, name + ".glb"), export_format="GLB",
-        use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False,
-        export_yup=True, export_animations=True, export_animation_mode="NLA_TRACKS",
-        export_force_sampling=True,
-    )
+    if export_file:
+        bpy.ops.export_scene.gltf(
+            filepath=os.path.join(output, name + ".glb"), export_format="GLB",
+            use_selection=True, use_active_scene=True, export_cameras=False, export_lights=False,
+            export_yup=True, export_animations=True, export_animation_mode="NLA_TRACKS",
+            export_force_sampling=True,
+        )
     rig.location = ((grid_index % 5)*7, (grid_index // 5)*7, 0)
     parts.clear()

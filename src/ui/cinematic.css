@@ -196,6 +196,10 @@
   opacity: 0;
   transition: opacity 900ms var(--ease-soft);
 }
+/* Arrival titles yield to reading menus so they cannot cover menu controls. */
+#ui:has(> #hud[inert]) > .chapter-card {
+  visibility: hidden;
+}
 .chapter-card-inner {
   display: flex;
   flex-direction: column;
@@ -454,6 +458,10 @@
   box-shadow:
     var(--bevel-raised),
     2px 3px #17120b80;
+  transform: none;
+}
+.chapter-card.is-crowded {
+  visibility: hidden;
 }
 .chapter-card-title {
   font-family: var(--font-sans);
@@ -468,6 +476,18 @@
   font-family: var(--font-sans);
   font-size: 13px;
   font-style: normal;
+}
+@media (max-width: 699px) {
+  .chapter-card-inner {
+    padding: 9px 16px;
+    gap: 5px;
+  }
+  .chapter-card-rule {
+    display: none;
+  }
+  .chapter-card-title {
+    font-size: 21px;
+  }
 }
 .veil {
   --veil-tint: #292116;

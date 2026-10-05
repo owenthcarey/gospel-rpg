@@ -107,6 +107,16 @@
 .rest-socket > span {
   font-size: 1.8rem;
 }
+:root .rest-plan .rest-socket > .rest-supply-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+}
+:root .rest-plan .rest-supply-art > .satchel-sprite {
+  width: 32px;
+  height: 32px;
+}
 .rest-socket.filled {
   border-style: solid;
   border-color: var(--moss);

@@ -418,18 +418,24 @@ export class Atmosphere {
     if (running && !this.reduced) this.time += dt;
   }
   applySettings(low: boolean, reduced: boolean): void {
+    // stop() leaves live systems started until their particles finish draining.
+    const resuming = this.reduced && !reduced;
     this.low = low;
     this.reduced = reduced;
     if (!this.built) return;
     for (const [kind, system] of this.ambient) {
       this.applyRate(kind, system);
-      if (reduced) system.stop();
-      else if (!system.isStarted()) system.start();
+      if (reduced) {
+        system.stop();
+        system.reset();
+      } else if (resuming || !system.isStarted()) system.start();
     }
     for (const s of this.smoke) {
       s.emitRate = low ? 2 : 4;
-      if (reduced) s.stop();
-      else if (!s.isStarted()) s.start();
+      if (reduced) {
+        s.stop();
+        s.reset();
+      } else if (resuming || !s.isStarted()) s.start();
     }
     if (reduced) this.dust.reset();
     this.flock?.mesh.setEnabled(!reduced);

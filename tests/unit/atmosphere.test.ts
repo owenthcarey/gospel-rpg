@@ -4,10 +4,11 @@ import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Viewport } from '@babylonjs/core/Maths/math.viewport';
+import { ParticleSystem } from '@babylonjs/core/Particles/particleSystem';
 import { Atmosphere } from '../../src/scene/environment/atmosphere';
 import { environmentFor } from '../../src/content/environment';
 
-function studio(width = 1280, height = 720) {
+function studio(width = 1280, height = 720, completeRawSprite = false) {
   const engine = new NullEngine({
     renderWidth: width,
     renderHeight: height,
@@ -15,6 +16,19 @@ function studio(width = 1280, height = 720) {
     deterministicLockstep: false,
     lockstepMaxSteps: 4,
   });
+  if (completeRawSprite) {
+    const createRawTexture = engine.createRawTexture.bind(engine);
+    engine.createRawTexture = (...args: Parameters<NullEngine['createRawTexture']>) => {
+      expect(args[0]).toBeInstanceOf(Uint8Array);
+      expect(args[0]?.byteLength).toBe(1024);
+      expect(args.slice(1, 5)).toEqual([16, 16, 5, false]);
+      const texture = createRawTexture(...args);
+      expect([texture.width, texture.height, texture.format]).toEqual([16, 16, 5]);
+      // NullEngine omits the raw upload completion recorded by the WebGL factory.
+      texture.isReady = true;
+      return texture;
+    };
+  }
   const scene = new Scene(engine);
   const camera = new ArcRotateCamera('flock-test', 0, 0.78, 33, Vector3.Zero(), scene);
   camera.fov = 0.7;
@@ -25,6 +39,58 @@ function studio(width = 1280, height = 720) {
   scene.render();
   const flock = scene.getMeshByName('flock-gulls')!;
   return { engine, scene, camera, atmosphere, flock };
+}
+
+async function withParticles(
+  region: 'galilean-road' | 'nain-gate' | 'gathering-house' | 'bakehouse',
+  smoke: boolean,
+  review: (view: {
+    scene: Scene;
+    atmosphere: Atmosphere;
+    systems: ParticleSystem[];
+    draw: (frames: number, running?: boolean) => void;
+  }) => void,
+) {
+  const { engine, scene, atmosphere } = studio(1280, 720, true);
+  try {
+    // This public Scene option fixes its animation ratio without changing particle state.
+    scene.useConstantAnimationDeltaTime = true;
+    atmosphere.setProfile(environmentFor(region));
+    if (smoke) atmosphere.addSmoke(new Vector3(-3, 1.25, 4.7), 0.7);
+    await scene.whenReadyAsync();
+    const systems = scene.particleSystems.filter(
+      (system): system is ParticleSystem =>
+        system instanceof ParticleSystem &&
+        (system.name.startsWith('ambient-') || system.name === 'hearth-smoke'),
+    );
+    expect(systems.map((system) => system.name).sort()).toEqual(
+      [
+        region === 'galilean-road' || region === 'nain-gate' ? 'ambient-insects' : 'ambient-motes',
+        ...(smoke ? ['hearth-smoke'] : []),
+      ].sort(),
+    );
+    const draw = (frames: number, running = true) => {
+      for (let frame = 0; frame < frames; frame++) {
+        atmosphere.tick(0.016, running);
+        scene.render();
+      }
+    };
+    draw(1);
+    for (const system of systems) {
+      expect(system.isReady()).toBe(true);
+      expect(
+        system.getActiveCount(),
+        system.name + ': real live particles before Settings',
+      ).toBeGreaterThan(0);
+    }
+    const owned = [...scene.particleSystems];
+    review({ scene, atmosphere, systems, draw });
+    expect(scene.particleSystems.length).toBe(owned.length);
+    expect(scene.particleSystems.every((system, i) => system === owned[i])).toBe(true);
+  } finally {
+    atmosphere.dispose();
+    engine.dispose();
+  }
 }
 
 describe('ambient bird silhouettes', () => {
@@ -227,5 +293,74 @@ describe('ambient bird silhouettes', () => {
       atmosphere.dispose();
       engine.dispose();
     }
+  });
+
+  it.each(['galilean-road', 'nain-gate', 'gathering-house'] as const)(
+    'removes already emitted %s particles when Reduce motion is enabled',
+    async (region) => {
+      await withParticles(region, false, ({ atmosphere, systems, draw }) => {
+        atmosphere.applySettings(false, true);
+        for (const system of systems) expect(system.getActiveCount(), system.name).toBe(0);
+        draw(12);
+        for (const system of systems) expect(system.getActiveCount(), system.name).toBe(0);
+      });
+    },
+  );
+
+  it.each([0, 12])(
+    'emits fresh motes and oven smoke after Reduce motion with %i intervening draws',
+    async (reducedDraws) => {
+      await withParticles('bakehouse', true, ({ atmosphere, systems, draw }) => {
+        const previous = systems.map((system) => new Set(system.particles));
+        atmosphere.applySettings(true, true);
+        draw(reducedDraws);
+        atmosphere.applySettings(true, false);
+        draw(80);
+        for (const [i, system] of systems.entries()) {
+          expect(system.getActiveCount(), system.name + ': live after resume').toBeGreaterThan(0);
+          expect(
+            system.particles.some((particle) => !previous[i]!.has(particle) && particle.age > 0),
+            system.name + ': naturally emitted and advanced fresh particle',
+          ).toBe(true);
+        }
+      });
+    },
+  );
+
+  it('preserves live particle phase on quality changes and freezes ordinary paused draws', async () => {
+    await withParticles('bakehouse', true, ({ atmosphere, systems, draw }) => {
+      const particles = systems.map((system) => [...system.particles]);
+      const values = () =>
+        systems.map((system) =>
+          system.particles.map((particle) => [particle.age, ...particle.position.asArray()]),
+        );
+      const original = values();
+      const rates = systems.map((system) => system.emitRate);
+      let restarted = 0;
+      for (const system of systems) system.onStartedObservable.add(() => restarted++);
+
+      atmosphere.applySettings(true, false);
+      expect(restarted).toBe(0);
+      expect(values()).toEqual(original);
+      for (const [i, system] of systems.entries()) {
+        expect(system.particles.length).toBe(particles[i]!.length);
+        expect(system.particles.every((particle, j) => particle === particles[i]![j])).toBe(true);
+        expect(system.emitRate).toBeLessThan(rates[i]!);
+      }
+      draw(12, false);
+      expect(values()).toEqual(original);
+      expect(restarted).toBe(0);
+
+      atmosphere.applySettings(false, false);
+      expect(values()).toEqual(original);
+      expect(restarted).toBe(0);
+      for (const [i, system] of systems.entries()) expect(system.emitRate).toBe(rates[i]);
+      draw(1);
+      for (const [i, system] of systems.entries()) {
+        expect(system.particles[0] === particles[i]![0]).toBe(true);
+        expect(system.particles[0]!.age).toBeGreaterThan(original[i]![0]![0]!);
+      }
+      expect(restarted).toBe(0);
+    });
   });
 });

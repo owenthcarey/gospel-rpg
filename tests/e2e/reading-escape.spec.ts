@@ -34,6 +34,7 @@ test('Escape returns from selected settings controls without changing preference
   await expect(page.locator('.chapter-card')).toHaveCount(0);
   const before = await exported(page);
   const original = await preferences(page);
+  const opener = page.getByRole('button', { name: 'Settings and saves', exact: true });
   const selectors = [
     '#audio-volume',
     '#audio-musicVolume',
@@ -68,7 +69,7 @@ test('Escape returns from selected settings controls without changing preference
       await page.keyboard.press('Escape');
       await settled(page);
       await expect(page.getByRole('dialog')).toHaveCount(0);
-      await expect(page.locator('#game-canvas')).toBeFocused();
+      await expect(opener).toBeFocused();
       report.push(selection);
       await page.keyboard.press('Escape');
       await settled(page);
@@ -80,7 +81,7 @@ test('Escape returns from selected settings controls without changing preference
   expect({ ...after, playTime: before.playTime }).toEqual(before);
   expect(await preferences(page)).toEqual(original);
   await dismiss(page);
-  await expect(page.locator('#game-canvas')).toBeFocused();
+  await expect(opener).toBeFocused();
   expect(errors).toEqual([]);
   await writeFile(info.outputPath('settings-escape.json'), JSON.stringify(report, null, 2));
 });
@@ -93,6 +94,7 @@ nativePickerTest(
     const before = await exported(page);
     await expect(page.locator('#toast')).toBeHidden({ timeout: 10_000 });
     const original = await preferences(page);
+    const opener = page.getByRole('button', { name: 'Settings and saves', exact: true });
     const quality = page.locator('[data-setting="quality"]');
     await expect(quality).toHaveValue('low');
     const native = (await quality.elementHandle())!;
@@ -148,7 +150,7 @@ nativePickerTest(
     await page.keyboard.press('Escape');
     await settled(page);
     await expect(page.getByRole('dialog')).toHaveCount(0);
-    await expect(page.locator('#game-canvas')).toBeFocused();
+    await expect(opener).toBeFocused();
     const after = await exported(page);
     expect({ ...after, playTime: before.playTime }).toEqual(before);
     expect(await preferences(page)).toEqual(original);

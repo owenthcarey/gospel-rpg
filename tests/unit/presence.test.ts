@@ -6,7 +6,7 @@ import { Scene } from '@babylonjs/core/scene';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { AssetLibrary } from '../../src/scene/assets';
+import { AssetLibrary, type Model } from '../../src/scene/assets';
 import { Actor } from '../../src/scene/actors/actor';
 import { ConversationPresentation } from '../../src/scene/presentation/conversation';
 import { applyCameraPose, frameSubject } from '../../src/scene/presentation/framing';
@@ -32,10 +32,13 @@ import { explorationAssets } from '../../src/content/inventories';
 import type { ExplorationRegion } from '../../src/game/campaign/types';
 import { posedVertices } from '../helpers/posed-geometry';
 import { LakeRegion } from '../../src/scene/regions/lake';
+import { RoofRegion } from '../../src/scene/regions/roof';
 import { onLake } from '../helpers/journey';
+import { action, district } from '../helpers/campaign';
 import { transition } from '../../src/game/quest';
 import { DEFAULT_SETTINGS } from '../../src/game/types';
 import { SCENE_IDS } from '../../src/game/episode/types';
+import { ROOF_SCENES } from '../../src/game/campaign/types';
 
 vi.mock('@babylonjs/core/Loading/sceneLoader', async (original) => {
   const actual = await original<typeof import('@babylonjs/core/Loading/sceneLoader')>();
@@ -191,6 +194,518 @@ describe('scene-owned presence', () => {
     expect(lake.scene.isDisposed).toBe(true);
     // Loads the complete lake presentation and inspects imported skins on the CPU.
   }, 15_000);
+  it('keeps the working net ropes attached to the Haul hands actually drawn', async () => {
+    const { canvas } = studio();
+    engine.getRenderingCanvas = () => canvas;
+    const visibility = { hidden: false };
+    let now = 1000;
+    vi.stubGlobal('document', visibility);
+    vi.stubGlobal('performance', { now: () => now });
+    let state = onLake();
+    const lake = new LakeRegion(engine, state);
+    try {
+      await lake.load(() => {});
+      lake.update(state);
+      lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+      lake.setPaused(false);
+      const initialized = lake.scene.getFrameId();
+      lake.renderFrame();
+      expect(lake.scene.getFrameId()).toBeGreaterThan(initialized);
+      const actors = (lake as unknown as { actors: Map<string, Actor> }).actors,
+        simon = actors.get('simon')!,
+        cords = lake.scene.getMeshByName('net-working-cords')!,
+        boat = lake.scene.getTransformNodeByName('lake-boat-0')!;
+      const originalIndices = Array.from(cords.getIndices()!);
+      const meshCount = lake.scene.meshes.length;
+      const draw = (milliseconds: number, rendered = true) => {
+        now += milliseconds;
+        const before = lake.scene.getFrameId();
+        lake.renderFrame();
+        if (rendered) expect(lake.scene.getFrameId()).toBeGreaterThan(before);
+        else expect(lake.scene.getFrameId()).toBe(before);
+      };
+      // Read the currently sampled exported tip directly, independently of handGrip.
+      const grips = () =>
+        (['left', 'right'] as const).map((side) =>
+          Vector3.TransformCoordinates(
+            new Vector3(0, 0.2, 0),
+            simon.model.socket('forearm_' + side).computeWorldMatrix(true),
+          ),
+        );
+      const localGrips = () => {
+        const inverse = Matrix.Invert(boat.computeWorldMatrix(true));
+        return grips().map((point) => Vector3.TransformCoordinates(point, inverse));
+      };
+      const attached = (id: (typeof SCENE_IDS)[number]) => {
+        expect(cords.isEnabled(), id).toBe(true);
+        expect(cords.parent).toBe(boat);
+        expect(lake.scene.getMeshByName('net-working-cords')).toBe(cords);
+        expect(lake.scene.meshes.length).toBe(meshCount);
+        expect(Array.from(cords.getIndices()!)).toEqual(originalIndices);
+        const data = cords.getVerticesData('position')!;
+        expect(data.length).toBe(18);
+        const cordWorld = cords.computeWorldMatrix(true),
+          boatWorld = boat.computeWorldMatrix(true),
+          hand = grips(),
+          net = lake.scene.getTransformNodeByName('lake-net-' + lakeCompositions[id].net)!;
+        for (const side of [0, 1]) {
+          const point = (n: number) =>
+            Vector3.TransformCoordinates(Vector3.FromArray(data, (side * 3 + n) * 3), cordWorld);
+          // The Float32 cord buffer must meet the same current world-space forearm tip.
+          expect(
+            Vector3.Distance(point(0), hand[side]!),
+            id + ': hand ' + side,
+          ).toBeLessThanOrEqual(0.000002);
+          expect(
+            Vector3.Distance(
+              point(1),
+              Vector3.TransformCoordinates(new Vector3(0.86, 0.66, side ? 0.65 : -0.25), boatWorld),
+            ),
+          ).toBeLessThanOrEqual(0.000002);
+          expect(
+            Vector3.Distance(
+              point(2),
+              Vector3.TransformCoordinates(
+                new Vector3(1.5, net.position.y + 0.08, side ? 0.8 : -0.1),
+                boatWorld,
+              ),
+            ),
+          ).toBeLessThanOrEqual(0.000002);
+        }
+      };
+      const held = () => ({
+        pose: simon.snapshotPose(),
+        rig: [simon.root, ...simon.root.getChildTransformNodes()].map((node) => ({
+          name: node.name,
+          position: node.position.asArray(),
+          rotation: node.rotation.asArray(),
+          quaternion: node.rotationQuaternion?.asArray(),
+          scaling: node.scaling.asArray(),
+        })),
+        cords: Array.from(cords.getVerticesData('position')!),
+        boat: {
+          position: boat.position.asArray(),
+          rotation: boat.rotation.asArray(),
+          scaling: boat.scaling.asArray(),
+        },
+        time: lake.scene.metadata.lake.time as number,
+        label: canvas.dataset.lakeTime,
+      });
+      const observed: string[] = [];
+      for (const id of SCENE_IDS) {
+        expect(state.episode.checkpoint).toBe(id);
+        const saved = structuredClone(state);
+        lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+        lake.update(state);
+        lake.setPaused(false);
+        draw(0);
+        if (!['lowering', 'abundance', 'partners'].includes(id)) {
+          expect(cords.isEnabled(), id).toBe(false);
+        } else {
+          observed.push(id);
+          expect(simon.playback.clip).toBe('Haul');
+          let previous = localGrips();
+          for (const milliseconds of [50, 70, 250]) {
+            const clock = simon.snapshotPose().elapsed,
+              time = lake.scene.metadata.lake.time as number;
+            draw(milliseconds);
+            expect(simon.snapshotPose().elapsed).toBeGreaterThan(clock);
+            expect(lake.scene.metadata.lake.time).toBeGreaterThan(time);
+            const current = localGrips();
+            expect(
+              Math.max(...current.map((point, i) => Vector3.Distance(point, previous[i]!))),
+              id + ': genuine changing Haul grip',
+            ).toBeGreaterThan(0.000002);
+            attached(id);
+            previous = current;
+          }
+
+          // Paused cadence first records render cost, then reaches its natural due frame.
+          const paused = held();
+          lake.setPaused(true);
+          draw(100, false);
+          draw(300);
+          attached(id);
+          expect(held()).toEqual(paused);
+
+          visibility.hidden = true;
+          draw(500, false);
+          expect(held()).toEqual(paused);
+          visibility.hidden = false;
+          // The real GameRuntime foreground path resets this clock before drawing again.
+          lake.refreshFrame();
+          draw(0);
+          attached(id);
+          expect(held()).toEqual(paused);
+
+          lake.setPaused(false);
+          draw(50);
+          attached(id);
+          expect(simon.snapshotPose().elapsed).toBeGreaterThan(paused.pose.elapsed);
+
+          // Reduced Settings legitimately changes Haul to frame0; capture that actual draw.
+          lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+          draw(50);
+          attached(id);
+          expect(simon.playback.frame).toBe(0);
+          const reduced = held();
+          draw(100);
+          attached(id);
+          expect(held()).toEqual(reduced);
+        }
+        expect(state).toEqual(saved);
+        expect(lake.getPosition()).toEqual(state.position);
+        state = transition(state, { type: 'advance-scene', checkpoint: id });
+      }
+      expect(observed).toEqual(['lowering', 'abundance', 'partners']);
+    } finally {
+      lake.dispose();
+    }
+  });
+  it.each(['invitation', 'lowering'] as const)(
+    'resumes ordinary Lake %s motion from the actual unpaused interval',
+    async (checkpoint) => {
+      const journey = async (pause: boolean) => {
+        let now = 1000;
+        vi.stubGlobal('performance', { now: () => now });
+        vi.stubGlobal('document', {
+          hidden: false,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+        });
+        const { canvas } = studio();
+        const ownedEngine = engine;
+        ownedEngine.getRenderingCanvas = () => canvas;
+        let state = onLake();
+        const lake = new LakeRegion(ownedEngine, state);
+        try {
+          await lake.load(() => {});
+          lake.update(state);
+          lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+          lake.setPaused(false);
+          const draw = (milliseconds: number, rendered = true) => {
+            now += milliseconds;
+            const before = lake.scene.getFrameId();
+            lake.renderFrame();
+            if (rendered) expect(lake.scene.getFrameId()).toBeGreaterThan(before);
+            else expect(lake.scene.getFrameId()).toBe(before);
+          };
+          // Establish genuine display/cover/flock before capturing any invariants.
+          draw(0);
+          for (const id of SCENE_IDS) {
+            if (id === checkpoint) break;
+            state = transition(state, { type: 'advance-scene', checkpoint: id });
+            lake.update(state);
+            draw(50);
+          }
+          expect(state.episode.checkpoint).toBe(checkpoint);
+          const saved = structuredClone(state);
+          const actors = (lake as unknown as { actors: Map<string, Actor> }).actors;
+          const simon = actors.get('simon')!;
+          const boats = [0, 1].map((id) => lake.scene.getTransformNodeByName('lake-boat-' + id)!);
+          const oars = [0, 1].flatMap((id) =>
+            ['left', 'right'].map((side) =>
+              lake.scene.getTransformNodeByName('boat-' + id + '-oar-' + side)!,
+            ),
+          );
+          const nets = ['folded', 'cast', 'full'].map((id) =>
+            lake.scene.getTransformNodeByName('lake-net-' + id)!,
+          );
+          const cords = lake.scene.getMeshByName('net-working-cords')!;
+          const locals = (root: Actor['root']) =>
+            [root, ...root.getChildTransformNodes()].map((node) => ({
+              name: node.name,
+              parent: node.parent?.name ?? null,
+              position: node.position.asArray(),
+              rotation: node.rotation.asArray(),
+              quaternion: node.rotationQuaternion?.asArray() ?? null,
+              scaling: node.scaling.asArray(),
+            }));
+          const capture = () => ({
+            time: lake.scene.metadata.lake.time as number,
+            entrance: lake.scene.metadata.lake.entrance as number,
+            camera: [
+              lake.camera.alpha,
+              lake.camera.beta,
+              lake.camera.radius,
+              ...lake.camera.target.asArray(),
+            ],
+            actors: [...actors].map(([id, actor]) => ({
+              id,
+              pose: actor.snapshotPose(),
+              rig: locals(actor.root),
+              geometry: posedVertices(actor.root).flatMap((point) => point.asArray()),
+            })),
+            props: [...boats, ...oars, ...nets].map((root) => ({
+              name: root.name,
+              enabled: root.isEnabled(),
+              rig: locals(root),
+              geometry: posedVertices(root).flatMap((point) => point.asArray()),
+            })),
+            cords: {
+              enabled: cords.isEnabled(),
+              parent: cords.parent?.name,
+              indices: Array.from(cords.getIndices()!),
+              positions: Array.from(cords.getVerticesData('position')!),
+            },
+            meshCount: lake.scene.meshes.length,
+          });
+          for (const milliseconds of [50, 70, 250]) draw(milliseconds);
+          expect(simon.playback.clip).toBe(checkpoint === 'invitation' ? 'Row' : 'Haul');
+          expect(simon.playback.frame).toBeGreaterThan(0);
+          const held = capture();
+          if (pause) {
+            now += 10;
+            lake.setPaused(true);
+            draw(16, false);
+            expect(capture()).toEqual(held);
+            draw(300);
+            expect(capture()).toEqual(held);
+            // A naturally skipped cadence callback leaves a gap after the last paused draw.
+            draw(96, false);
+            expect(capture()).toEqual(held);
+            lake.setPaused(false);
+          }
+          const samples = [];
+          for (const milliseconds of [1, 17, 250]) {
+            draw(milliseconds);
+            samples.push(capture());
+          }
+          const moving = samples[0]!;
+          const last = samples.at(-1)!;
+          expect(lake.scene.metadata.lake.time - samples[1]!.time).toBeCloseTo(0.1, 12);
+          expect(simon.playback.clip).toBe(
+            held.actors.find((actor) => actor.id === 'simon')!.pose.clip,
+          );
+
+          // Reduced Settings still owns its new frame0 tableau and retained clock.
+          lake.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+          draw(0);
+          expect(lake.scene.metadata.lake.time).toBe(last.time);
+          expect(simon.playback.frame).toBe(0);
+          const reduced = capture();
+          lake.setPaused(true);
+          draw(16, false);
+          draw(300);
+          expect(capture()).toEqual(reduced);
+          lake.setPaused(false);
+          draw(1);
+          expect(capture()).toEqual(reduced);
+          expect(state).toEqual(saved);
+          expect(lake.getPosition()).toEqual(saved.position);
+          return { held, moving, samples };
+        } finally {
+          lake.dispose();
+          ownedEngine.dispose();
+        }
+      };
+      // Complete/dispose the reference before another fixture owns performance.now.
+      const reference = await journey(false);
+      const actual = await journey(true);
+      const maximumVertexDistance = (before: number[], after: number[]) => {
+        expect(after.length).toBe(before.length);
+        expect(after.length).toBeGreaterThan(0);
+        expect(after.length % 3).toBe(0);
+        let maximum = 0;
+        for (let i = 0; i < after.length; i += 3)
+          maximum = Math.max(
+            maximum,
+            Math.hypot(
+              after[i]! - before[i]!,
+              after[i + 1]! - before[i + 1]!,
+              after[i + 2]! - before[i + 2]!,
+            ),
+          );
+        return maximum;
+      };
+      for (const [index, expected] of reference.samples.entries()) {
+        const observed = actual.samples[index]!;
+        for (const [i, actor] of expected.actors.entries()) {
+          expect(
+            maximumVertexDistance(actor.geometry, observed.actors[i]!.geometry),
+          ).toBeLessThanOrEqual(0.000003);
+          expect(observed.actors[i]!.rig).toEqual(actor.rig);
+          expect(observed.actors[i]!.pose).toEqual(actor.pose);
+        }
+        for (const [i, prop] of expected.props.entries()) {
+          expect(
+            maximumVertexDistance(prop.geometry, observed.props[i]!.geometry),
+          ).toBeLessThanOrEqual(0.000003);
+          expect(observed.props[i]!.rig).toEqual(prop.rig);
+          expect(observed.props[i]!.enabled).toBe(prop.enabled);
+        }
+        expect(observed.time).toBe(expected.time);
+        expect(observed.entrance).toBe(expected.entrance);
+        expect(observed.camera).toEqual(expected.camera);
+        expect(observed.cords).toEqual(expected.cords);
+        expect(observed.meshCount).toBe(expected.meshCount);
+      }
+      expect(actual.moving.time).toBe(actual.held.time + 0.001);
+      const before = actual.held.actors.find((actor) => actor.id === 'simon')!.pose;
+      const after = actual.moving.actors.find((actor) => actor.id === 'simon')!.pose;
+      expect(after.elapsed).toBe(before.elapsed + 0.001);
+      expect(after.frame).toBeGreaterThan(before.frame);
+    },
+  );
+  it.each(['from the checkpoint', 'after normal motion'] as const)(
+    'holds the reduced Roof rise tableau %s',
+    async (entry) => {
+      const { canvas } = studio();
+      engine.getRenderingCanvas = () => canvas;
+      const visibility = { hidden: false };
+      let now = 1000;
+      vi.stubGlobal('document', visibility);
+      vi.stubGlobal('performance', { now: () => now });
+      let state = action(district(), 'roof-enter');
+      for (const checkpoint of ROOF_SCENES) {
+        if (checkpoint === 'rise') break;
+        state = transition(state, { type: 'roof-next', checkpoint });
+      }
+      expect(state.region).toBe('roof-account');
+      expect(state.campaign.roof.checkpoint).toBe('rise');
+      const saved = structuredClone(state);
+      const roof = new RoofRegion(engine, state);
+      try {
+        await roof.load(() => {});
+        roof.update(state);
+        roof.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+        roof.setPaused(false);
+        const view = roof as unknown as {
+          actors: Map<string, Actor>;
+          mat: Model;
+          rolled: Model;
+          time: number;
+        };
+        const patient = view.actors.get('patient')!;
+        const draw = (milliseconds: number, rendered = true) => {
+          now += milliseconds;
+          const before = roof.scene.getFrameId();
+          roof.renderFrame();
+          if (rendered) expect(roof.scene.getFrameId()).toBeGreaterThan(before);
+          else expect(roof.scene.getFrameId()).toBe(before);
+        };
+        const locals = (root: Actor['root']) =>
+          [root, ...root.getChildTransformNodes()].map((node) => ({
+            name: node.name,
+            position: node.position.asArray(),
+            rotation: node.rotation.asArray(),
+            quaternion: node.rotationQuaternion?.asArray() ?? null,
+            scaling: node.scaling.asArray(),
+          }));
+        const held = () => ({
+          placement: patient.root.position.asArray(),
+          // Roof has no published tableau-time metadata: read its own backing clock.
+          time: view.time,
+          pose: patient.snapshotPose(),
+          rig: locals(patient.root),
+          geometry: posedVertices(patient.root).map((point) => point.asArray()),
+          carried: posedVertices(view.rolled.root).map((point) => point.asArray()),
+          flatEnabled: view.mat.root.isEnabled(),
+          rolledEnabled: view.rolled.root.isEnabled(),
+        });
+        draw(0);
+        expect(patient.playback.clip).toBe('Rise');
+        expect(patient.root.position.asArray()).toEqual([0, 0, 0]);
+        expect(view.mat.root.isEnabled()).toBe(true);
+        expect(view.rolled.root.isEnabled()).toBe(false);
+        expect(view.rolled.root.parent).toBe(patient.model.socket('carry_socket'));
+
+        if (entry === 'after normal motion') {
+          for (let frame = 0; frame < 13; frame++) draw(100);
+          expect(view.time).toBeLessThan(1.4);
+          expect(patient.playback.clip).toBe('Rise');
+          expect(patient.playback.frame).toBeGreaterThan(0);
+          draw(100);
+          draw(100);
+          expect(view.time).toBeGreaterThan(1.4);
+          expect(view.time).toBeLessThan(2.1);
+          expect(patient.playback.clip).toBe('Idle');
+          expect(patient.root.position.z).toBe(0);
+          expect(view.mat.root.isEnabled()).toBe(true);
+          expect(view.rolled.root.isEnabled()).toBe(false);
+          for (let frame = 0; frame < 8; frame++) draw(100);
+          expect(view.time).toBeGreaterThan(2.1);
+          expect(patient.playback.clip).toBe('MatCarry');
+          expect(patient.playback.frame).toBeGreaterThan(0);
+          expect(patient.root.position.z).toBeLessThan(0);
+          const moving = held();
+          draw(500);
+          expect(view.time - moving.time).toBeCloseTo(0.1, 12);
+          expect(patient.root.position.z).toBeLessThan(moving.placement[2]!);
+          expect(patient.snapshotPose().elapsed).toBeGreaterThan(moving.pose.elapsed);
+          const paused = held();
+          roof.setPaused(true);
+          draw(100, false);
+          expect(held()).toEqual(paused);
+          draw(300);
+          expect(held()).toEqual(paused);
+          visibility.hidden = true;
+          draw(500, false);
+          expect(held()).toEqual(paused);
+          visibility.hidden = false;
+          roof.refreshFrame();
+          draw(0);
+          expect(held()).toEqual(paused);
+          roof.setPaused(false);
+          draw(50);
+          expect(view.time).toBeGreaterThan(paused.time);
+          expect(patient.root.position.z).toBeLessThan(paused.placement[2]!);
+          expect(patient.snapshotPose().elapsed).toBeGreaterThan(paused.pose.elapsed);
+        }
+
+        // Settings may legitimately change the clip/rig; measure its actual reduced draw.
+        const clock = view.time;
+        const placement = patient.root.position.clone();
+        roof.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: true });
+        draw(0);
+        expect(view.time).toBe(clock);
+        expect(Vector3.Distance(patient.root.position, placement)).toBe(0);
+        expect(patient.playback.clip).toBe('MatCarry');
+        expect(patient.playback.frame).toBe(0);
+        const reduced = held();
+        expect(reduced.geometry.length).toBeGreaterThan(0);
+        expect(reduced.carried.length).toBeGreaterThan(0);
+        expect(reduced.flatEnabled).toBe(false);
+        expect(reduced.rolledEnabled).toBe(true);
+        // Each public callback is a real rendered frame; together they cross 2.1 seconds.
+        const started = now;
+        for (let frame = 0; frame < 30; frame++) draw(100);
+        expect(now - started).toBeGreaterThan(2100);
+        // Assert the visible root first, rather than stopping at a diagnostic clock mismatch.
+        expect(patient.root.position.asArray()).toEqual(reduced.placement);
+        expect(held()).toEqual(reduced);
+
+        roof.setPaused(true);
+        draw(100, false);
+        expect(held()).toEqual(reduced);
+        draw(300);
+        expect(held()).toEqual(reduced);
+        visibility.hidden = true;
+        draw(500, false);
+        expect(held()).toEqual(reduced);
+        visibility.hidden = false;
+        roof.refreshFrame();
+        draw(0);
+        expect(held()).toEqual(reduced);
+
+        // Removing reduced motion does not reset the retained cosmetic clock.
+        roof.setPaused(false);
+        roof.applySettings({ ...DEFAULT_SETTINGS, reducedMotion: false });
+        expect(view.time).toBe(reduced.time);
+        const resumed = patient.snapshotPose();
+        draw(100);
+        expect(view.time - reduced.time).toBeCloseTo(0.1, 12);
+        expect(patient.snapshotPose().elapsed).toBeGreaterThan(resumed.elapsed);
+        expect(patient.playback.clip).toBe(entry === 'after normal motion' ? 'MatCarry' : 'Rise');
+        if (entry === 'after normal motion')
+          expect(patient.root.position.z).toBeLessThan(reduced.placement[2]!);
+        expect(state).toEqual(saved);
+        expect(roof.getPosition()).toEqual(saved.position);
+      } finally {
+        roof.dispose();
+      }
+    },
+  );
   it('bounds cosmetic time and turns without crossing the long side of a heading wrap', () => {
     const clock = new PresentationClock();
     expect(clock.advance(10, true)).toBe(0.1);

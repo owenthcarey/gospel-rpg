@@ -19,7 +19,8 @@ export const ANIMATION_CLIPS = [
   'Listen',
   'Respond',
 ] as const;
-export type ActorClip = (typeof ANIMATION_CLIPS)[number] | 'SitUp' | 'FrameCarry' | 'TouchFrame';
+export type ActorClip =
+  (typeof ANIMATION_CLIPS)[number] | 'BenchSit' | 'SitUp' | 'FrameCarry' | 'TouchFrame';
 export const ACTOR_ASSETS = [
   'traveler',
   'simon',
@@ -140,6 +141,7 @@ export const assets: readonly AssetDefinition[] = [
     maxTriangles: 5000,
     clips: [
       ...ANIMATION_CLIPS,
+      ...(id === 'traveler' || id === 'villager' ? ['BenchSit' as const] : []),
       ...(id === 'young_man'
         ? ['SitUp' as const]
         : id === 'bearer'

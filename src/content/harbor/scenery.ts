@@ -63,6 +63,8 @@ export function villageAssets(region: string): AssetId[] {
 export const villageObstacles: Record<string, readonly Obstacle[]> = {
   capernaum: [{ x: 0.1, z: -9.05, width: 1.5, depth: 0.8 }],
   'capernaum-lanes': [
+    // The original upright lane amphora is solid; thresholds and low clutter stay traversable.
+    { x: -6, z: 6, width: 0.64, depth: 0.64 },
     { x: -11.5, z: 6.25, width: 1, depth: 0.8 },
     { x: 7.5, z: 10.65, width: 1, depth: 0.8 },
   ],

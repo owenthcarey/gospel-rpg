@@ -5,6 +5,11 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { World } from '../../src/scene/world';
+import { WorkPresentation } from '../../src/scene/work';
+import { workTarget } from '../../src/content/exploration/work';
+import { groundHeight } from '../../src/content/campaign/layouts';
+import { at } from '../helpers/campaign';
+import { preparedSpring } from '../helpers/galilee';
 import { bindExplorationInput } from '../../src/scene/input';
 import { PausedCadence } from '../../src/scene/presentation/cadence';
 import { newGame } from '../../src/game/types';
@@ -200,6 +205,544 @@ function nativeGestures(camera: ArcRotateCamera, enabled: () => boolean) {
     },
   };
 }
+
+function workHandoffStudio() {
+  const s = studio(),
+    state = at(preparedSpring(), 'channel-entry'),
+    target = workTarget(state, 'channel-entry')!;
+  Object.assign(s.fixture.canvas, { clientWidth: 1440, clientHeight: 900 });
+  s.fixture.state = state;
+  s.fixture.position = { ...state.position };
+  s.fixture.player.position.set(
+    state.position.x,
+    groundHeight(state.region, state.position),
+    state.position.z,
+  );
+  const work = new WorkPresentation(
+    s.camera.getScene(),
+    s.camera,
+    s.fixture.canvas as unknown as HTMLCanvasElement,
+  );
+  work.setBounds({ left: 1050, right: 1440, top: 80, bottom: 900 });
+  s.fixture.workView = work;
+  expect(target.near).toBe(true);
+  const framed = () => ({
+    ...s.pose(),
+    target: s.camera.target.asArray(),
+    limits: s.context().limits,
+    viewport: [
+      s.camera.viewport.x,
+      s.camera.viewport.y,
+      s.camera.viewport.width,
+      s.camera.viewport.height,
+    ],
+  });
+  return { ...s, work, target, framed };
+}
+
+describe('command camera timing', () => {
+  it.each([0, 300])(
+    'hands an unfinished dialogue return to actual Work after %s ms without losing its fit or bookmark',
+    (delay) => {
+      // A direct opening supplies the actual Work frame and close bookmark. This
+      // retains the same camera-return fixture used by the original timing cases.
+      const control = workHandoffStudio(),
+        ordinary = control.framed(),
+        expected: ReturnType<typeof control.framed>[] = [];
+      control.world.setWorkFocus(control.target);
+      for (const dt of [0, 100, 600, 100]) {
+        control.render(dt);
+        expected.push(control.framed());
+      }
+      control.world.setWorkFocus();
+      expect(control.framed()).toEqual(ordinary);
+
+      const actual = workHandoffStudio(),
+        saved = structuredClone(actual.fixture.state),
+        nav = { ...actual.fixture.position },
+        player = actual.fixture.player.position.clone();
+      try {
+        actual.returning();
+        if (delay) actual.render(delay);
+        expect(actual.fixture.cameraReturn).toBeDefined();
+        actual.world.setWorkFocus(actual.target);
+        for (const [i, dt] of [0, 100, 600, 100].entries()) {
+          actual.render(dt);
+          expect(actual.framed()).toEqual(expected[i]);
+          expect(actual.fixture.cameraReturn).toBeUndefined();
+        }
+        actual.world.setWorkFocus();
+        expect(actual.framed()).toEqual(ordinary);
+        expect(actual.fixture.state).toEqual(saved);
+        expect(actual.fixture.position).toEqual(nav);
+        expect(actual.fixture.player.position.equals(player)).toBe(true);
+      } finally {
+        actual.work.dispose();
+        control.work.dispose();
+      }
+    },
+  );
+
+  it('preserves an ordinary return on an empty Work publication and retains reduced Work ownership', () => {
+    const actual = workHandoffStudio();
+    try {
+      actual.returning();
+      const pending = actual.fixture.cameraReturn,
+        pose = actual.framed();
+      actual.world.setWorkFocus();
+      expect(actual.fixture.cameraReturn).toBe(pending);
+      expect(actual.framed()).toEqual(pose);
+      actual.world.zoom(0);
+      const ordinary = actual.framed();
+      expect(actual.fixture.cameraReturn).toBeUndefined();
+      actual.fixture.reducedMotion = true;
+      actual.world.setWorkFocus(actual.target);
+      actual.render(0);
+      const reduced = actual.framed();
+      expect(reduced.target).toEqual(actual.work.focusPoint!.asArray());
+      actual.render(100);
+      expect(actual.framed()).toEqual(reduced);
+      actual.world.setWorkFocus();
+      expect(actual.framed()).toEqual(ordinary);
+    } finally {
+      actual.work.dispose();
+    }
+  });
+
+  it('settles Face north on a slow visible frame while keeping simulation catch-up capped', () => {
+    const { camera, fixture, world, render } = studio();
+    world.faceNorth();
+    render(700);
+    const bearing = Math.abs(((camera.alpha + Math.PI / 2) * 180) / Math.PI);
+    expect(bearing).toBeLessThan(0.04);
+    expect(fixture.time).toBeCloseTo(0.25, 12);
+  });
+
+  it('gives a button turn the same progress across one slow frame or normal frames', () => {
+    const slow = studio();
+    slow.world.rotate(1);
+    slow.render(500);
+    const alpha = slow.camera.alpha,
+      pending = slow.fixture.pendingRotation;
+
+    const normal = studio();
+    normal.world.rotate(1);
+    for (let i = 0; i < 5; i++) normal.render();
+    expect(normal.camera.alpha).toBeCloseTo(alpha, 12);
+    expect(normal.fixture.pendingRotation).toBeCloseTo(pending, 12);
+  });
+
+  it('finishes a conversation camera return after its visible 700ms duration', () => {
+    const { camera, fixture, render, returning } = studio();
+    returning();
+    const to = fixture.cameraReturn.to;
+    render(700);
+    expect(fixture.cameraReturn).toBeUndefined();
+    expect(camera.alpha).toBe(to.alpha);
+    expect(camera.beta).toBe(to.beta);
+    expect(camera.radius).toBe(to.radius);
+    expect(camera.target).toEqual(to.target);
+  });
+
+  it('gives a camera return the same progress across one slow frame or normal frames', () => {
+    const slow = studio();
+    slow.returning();
+    slow.render(500);
+    const pose = slow.pose(),
+      progress = slow.fixture.cameraReturn.t;
+
+    const normal = studio();
+    normal.returning();
+    for (let i = 0; i < 5; i++) normal.render();
+    expect(normal.camera.alpha).toBeCloseTo(pose.alpha, 12);
+    expect(normal.camera.beta).toBeCloseTo(pose.beta, 12);
+    expect(normal.camera.radius).toBeCloseTo(pose.radius, 12);
+    expect(normal.fixture.cameraReturn.t).toBeCloseTo(progress, 12);
+  });
+
+  it('discards suspension time before continuing a queued compass turn', () => {
+    const { camera, fixture, world, render } = studio();
+    world.faceNorth();
+    const alpha = camera.alpha,
+      pending = fixture.pendingRotation;
+    world.refreshFrame();
+    render(60_000);
+    expect(camera.alpha).toBe(alpha);
+    expect(fixture.pendingRotation).toBe(pending);
+    expect(fixture.time).toBe(0);
+    render(700);
+    expect(Math.abs(((camera.alpha + Math.PI / 2) * 180) / Math.PI)).toBeLessThan(0.04);
+  });
+
+  it('discards suspension time before continuing a conversation camera return', () => {
+    const { fixture, world, render, returning, pose } = studio();
+    returning();
+    const held = pose(),
+      bookmark = fixture.cameraReturn;
+    world.refreshFrame();
+    render(60_000);
+    expect(pose()).toEqual(held);
+    expect(fixture.cameraReturn).toBe(bookmark);
+    expect(bookmark.t).toBe(0);
+    expect(fixture.time).toBe(0);
+    render(700);
+    expect(fixture.cameraReturn).toBeUndefined();
+  });
+});
+
+describe('Work camera motion ownership', () => {
+  for (const gesture of ['orbit', 'pinch', 'button'] as const)
+    for (const phase of ['queued', 'coasting'] as const)
+      it('retires old ' + phase + ' ' + gesture + ' motion when actual Work frames', () => {
+        const control = workHandoffStudio();
+        let actualWork: WorkPresentation | undefined;
+        try {
+          // studio installs one global clock: finish this reference before constructing actual.
+          if (phase === 'coasting') control.render();
+          control.world.setWorkFocus(control.target);
+          const expected: ReturnType<typeof control.framed>[] = [];
+          for (const dt of [0, 100, 300, 600]) {
+            control.render(dt);
+            expected.push(control.framed());
+          }
+          const actual = workHandoffStudio();
+          actualWork = actual.work;
+          const gestures = nativeGestures(actual.camera, () => !actual.fixture.paused),
+            initial = actual.framed();
+          if (gesture === 'button') {
+            actual.world.rotate(0.9);
+            expect(actual.fixture.pendingRotation).toBeGreaterThan(0);
+          } else {
+            gestures[gesture]();
+            expect(
+              gesture === 'orbit'
+                ? actual.camera.movement.rotationAccumulatedPixels.lengthSquared()
+                : actual.camera.movement.zoomAccumulatedPixels,
+            ).toBeGreaterThan(0);
+          }
+          if (phase === 'coasting') {
+            actual.render();
+            expect(actual.framed()).not.toEqual(initial);
+          }
+          const ordinary = actual.framed(),
+            state = structuredClone(actual.fixture.state),
+            position = { ...actual.fixture.position },
+            player = actual.fixture.player.position.clone(),
+            time = actual.fixture.time;
+
+          // Runtime.cancelNavigation delegates to this actual World stop before Work selection.
+          actual.world.stop();
+          actual.world.setWorkFocus(actual.target);
+          expect(actual.fixture.time).toBe(time);
+          for (const [i, dt] of [0, 100, 300, 600].entries()) {
+            actual.render(dt);
+            expect(actual.framed()).toEqual(expected[i]);
+            expect(actual.fixture.pendingRotation).toBe(0);
+            expect(actual.fixture.state).toEqual(state);
+            expect(actual.fixture.position).toEqual(position);
+            expect(actual.fixture.player.position.equals(player)).toBe(true);
+          }
+          actual.world.setWorkFocus();
+          expect(actual.framed()).toEqual(ordinary);
+        } finally {
+          actualWork?.dispose();
+          control.work.dispose();
+        }
+      });
+
+  it('retains fresh Work camera input on same-target refresh and reduced re-entry', () => {
+    const actual = workHandoffStudio();
+    try {
+      const ordinary = actual.framed();
+      actual.world.setWorkFocus(actual.target);
+      actual.render(0);
+      const framed = actual.framed();
+      actual.world.rotate(0.9);
+      const pending = actual.fixture.pendingRotation;
+      actual.world.setWorkFocus(actual.target);
+      expect(actual.fixture.pendingRotation).toBe(pending);
+      actual.render(100);
+      expect(actual.camera.alpha).toBeGreaterThan(framed.alpha);
+      expect(actual.camera.beta).toBe(framed.beta);
+      expect(actual.camera.radius).toBe(framed.radius);
+      expect(actual.framed().viewport).toEqual(framed.viewport);
+      const held = actual.framed(),
+        remaining = actual.fixture.pendingRotation;
+      actual.world.setWorkFocus(actual.target);
+      expect(actual.framed()).toEqual(held);
+      expect(actual.fixture.pendingRotation).toBe(remaining);
+      actual.world.setWorkFocus();
+      expect(actual.fixture.pendingRotation).toBe(0);
+      expect(actual.framed()).toEqual(ordinary);
+
+      actual.fixture.reducedMotion = true;
+      actual.world.setWorkFocus(actual.target);
+      actual.render(0);
+      expect(actual.fixture.pendingRotation).toBe(0);
+      const reduced = actual.framed();
+      actual.world.rotate(0.9);
+      const direct = actual.framed();
+      expect(direct.alpha).toBeGreaterThan(reduced.alpha);
+      actual.world.setWorkFocus(actual.target);
+      actual.render(100);
+      expect(actual.framed()).toEqual(direct);
+    } finally {
+      actual.work.dispose();
+    }
+  });
+});
+
+describe('explicit Work camera framing', () => {
+  for (const command of ['frameWork', 'resetCamera'] as const)
+    for (const gesture of ['orbit', 'pinch', 'button'] as const)
+      for (const phase of ['queued', 'coasting'] as const)
+        it(
+          command + ' retires ' + phase + ' ' + gesture + ' motion for the actual Work frame',
+          () => {
+            const control = workHandoffStudio();
+            let actualWork: WorkPresentation | undefined;
+            try {
+              // Reference completes before actual takes ownership of studio's global clock.
+              control.world.setWorkFocus(control.target);
+              control.render(0);
+              if (phase === 'coasting') control.render();
+              control.world[command]();
+              const expected: ReturnType<typeof control.framed>[] = [];
+              for (const dt of [0, 100, 300, 600]) {
+                control.render(dt);
+                expected.push(control.framed());
+              }
+
+              const actual = workHandoffStudio();
+              actualWork = actual.work;
+              const ordinary = actual.framed(),
+                state = structuredClone(actual.fixture.state),
+                nav = { ...actual.fixture.position },
+                player = actual.fixture.player.position.clone();
+              actual.world.setWorkFocus(actual.target);
+              actual.render(0);
+              const gestures = nativeGestures(actual.camera, () => !actual.fixture.paused),
+                initial = actual.pose();
+              if (gesture === 'button') {
+                actual.world.rotate(0.9);
+                expect(actual.fixture.pendingRotation).toBeGreaterThan(0);
+              } else {
+                gestures[gesture]();
+                expect(
+                  gesture === 'orbit'
+                    ? actual.camera.movement.rotationAccumulatedPixels.lengthSquared()
+                    : actual.camera.movement.zoomAccumulatedPixels,
+                ).toBeGreaterThan(0);
+              }
+              if (phase === 'coasting') {
+                actual.render();
+                expect(actual.pose()).not.toEqual(initial);
+              }
+              const before = actual.framed(),
+                time = actual.fixture.time;
+              actual.world[command]();
+              expect(actual.framed()).toEqual(before);
+              expect(actual.fixture.time).toBe(time);
+              for (const [i, dt] of [0, 100, 300, 600].entries()) {
+                actual.render(dt);
+                expect(actual.framed()).toEqual(expected[i]);
+                expect(actual.fixture.state).toEqual(state);
+                expect(actual.fixture.position).toEqual(nav);
+                expect(actual.fixture.player.position.equals(player)).toBe(true);
+              }
+              expect(actual.fixture.pendingRotation).toBe(0);
+              actual.world.setWorkFocus();
+              expect(actual.framed()).toEqual(ordinary);
+            } finally {
+              actualWork?.dispose();
+              control.work.dispose();
+            }
+          },
+        );
+
+  it.each(['frameWork', 'resetCamera'] as const)(
+    '%s keeps fresh Work input and same-target refresh usable after framing',
+    (command) => {
+      const actual = workHandoffStudio();
+      try {
+        actual.world.setWorkFocus(actual.target);
+        actual.render(0);
+        actual.world[command]();
+        actual.render(0);
+        const framed = actual.framed();
+        actual.world.rotate(0.9);
+        const pending = actual.fixture.pendingRotation;
+        actual.world.setWorkFocus(actual.target);
+        expect(actual.fixture.pendingRotation).toBe(pending);
+        actual.render(100);
+        expect(actual.camera.alpha).toBeGreaterThan(framed.alpha);
+        expect(actual.camera.beta).toBe(framed.beta);
+        expect(actual.camera.radius).toBe(framed.radius);
+        expect(actual.framed().viewport).toEqual(framed.viewport);
+
+        actual.fixture.reducedMotion = true;
+        actual.world[command]();
+        actual.render(0);
+        expect(actual.fixture.pendingRotation).toBe(0);
+        const reduced = actual.framed();
+        actual.world.rotate(0.9);
+        const direct = actual.framed();
+        expect(direct.alpha).toBeGreaterThan(reduced.alpha);
+        actual.world.setWorkFocus(actual.target);
+        actual.render(100);
+        expect(actual.framed()).toEqual(direct);
+      } finally {
+        actual.work.dispose();
+      }
+    },
+  );
+
+  it('leaves an ordinary return and turn untouched when Frame Work has no active target', () => {
+    const actual = workHandoffStudio();
+    try {
+      actual.world.rotate(0.9);
+      actual.returning();
+      const pending = actual.fixture.pendingRotation,
+        returning = actual.fixture.cameraReturn,
+        pose = actual.framed();
+      actual.world.frameWork();
+      expect(actual.framed()).toEqual(pose);
+      expect(actual.fixture.pendingRotation).toBe(pending);
+      expect(actual.fixture.cameraReturn).toBe(returning);
+      actual.render(100);
+      expect(actual.fixture.pendingRotation).toBeGreaterThan(0);
+      expect(actual.fixture.pendingRotation).toBeLessThan(pending);
+      expect(actual.fixture.cameraReturn).toBe(returning);
+      expect(returning.t).toBeGreaterThan(0);
+      actual.fixture.workView = undefined;
+      const withoutWork = actual.framed(),
+        remaining = actual.fixture.pendingRotation;
+      actual.world.frameWork();
+      expect(actual.framed()).toEqual(withoutWork);
+      expect(actual.fixture.pendingRotation).toBe(remaining);
+      expect(actual.fixture.cameraReturn).toBe(returning);
+    } finally {
+      actual.work.dispose();
+    }
+  });
+});
+
+describe('Work close camera motion ownership', () => {
+  for (const gesture of ['orbit', 'pinch', 'button'] as const)
+    for (const phase of ['queued', 'coasting'] as const)
+      it('restores the Work close bookmark after ' + phase + ' ' + gesture + ' motion', () => {
+        const control = workHandoffStudio();
+        let actualWork: WorkPresentation | undefined;
+        try {
+          // Finish the reference before actual replaces studio's global performance clock.
+          control.world.setWorkFocus(control.target);
+          control.render(0);
+          if (phase === 'coasting') control.render();
+          control.world.setWorkFocus();
+          const expected: ReturnType<typeof control.framed>[] = [];
+          for (const dt of [0, 100, 300, 600]) {
+            control.render(dt);
+            expected.push(control.framed());
+          }
+
+          const actual = workHandoffStudio();
+          actualWork = actual.work;
+          const ordinary = actual.framed(),
+            state = structuredClone(actual.fixture.state),
+            nav = { ...actual.fixture.position },
+            player = actual.fixture.player.position.clone();
+          actual.world.setWorkFocus(actual.target);
+          actual.render(0);
+          const gestures = nativeGestures(actual.camera, () => !actual.fixture.paused),
+            initial = actual.pose();
+          if (gesture === 'button') {
+            actual.world.rotate(0.9);
+            expect(actual.fixture.pendingRotation).toBeGreaterThan(0);
+          } else {
+            gestures[gesture]();
+            expect(
+              gesture === 'orbit'
+                ? actual.camera.movement.rotationAccumulatedPixels.lengthSquared()
+                : actual.camera.movement.zoomAccumulatedPixels,
+            ).toBeGreaterThan(0);
+          }
+          if (phase === 'coasting') {
+            actual.render();
+            expect(actual.pose()).not.toEqual(initial);
+          }
+          const time = actual.fixture.time;
+          actual.world.setWorkFocus();
+          expect(actual.framed()).toEqual(ordinary);
+          expect(actual.fixture.time).toBe(time);
+          for (const [i, dt] of [0, 100, 300, 600].entries()) {
+            actual.render(dt);
+            expect(actual.framed()).toEqual(expected[i]);
+            expect(actual.fixture.state).toEqual(state);
+            expect(actual.fixture.position).toEqual(nav);
+            expect(actual.fixture.player.position.equals(player)).toBe(true);
+          }
+          expect(actual.fixture.pendingRotation).toBe(0);
+        } finally {
+          actualWork?.dispose();
+          control.work.dispose();
+        }
+      });
+
+  it.each([false, true])(
+    'accepts a fresh ordinary camera step after Work closes with reduced motion %s',
+    (reduced) => {
+      const control = workHandoffStudio();
+      let actualWork: WorkPresentation | undefined;
+      try {
+        control.fixture.reducedMotion = reduced;
+        control.world.rotate(0.9);
+        control.render(100);
+        const expected = control.framed();
+
+        const actual = workHandoffStudio();
+        actualWork = actual.work;
+        actual.fixture.reducedMotion = reduced;
+        actual.world.setWorkFocus(actual.target);
+        actual.render(0);
+        actual.world.rotate(0.9);
+        actual.world.setWorkFocus(actual.target);
+        actual.world.setWorkFocus();
+        actual.world.rotate(0.9);
+        actual.render(100);
+        expect(actual.framed()).toEqual(expected);
+      } finally {
+        actualWork?.dispose();
+        control.work.dispose();
+      }
+    },
+  );
+
+  it.each(['inactive', 'absent'] as const)(
+    'preserves an ordinary return and turn on an empty %s Work publication',
+    (kind) => {
+      const actual = workHandoffStudio();
+      try {
+        if (kind === 'absent') actual.fixture.workView = undefined;
+        actual.world.rotate(0.9);
+        actual.returning();
+        const before = actual.framed(),
+          pending = actual.fixture.pendingRotation,
+          returning = actual.fixture.cameraReturn;
+        actual.world.setWorkFocus();
+        expect(actual.framed()).toEqual(before);
+        expect(actual.fixture.pendingRotation).toBe(pending);
+        expect(actual.fixture.cameraReturn).toBe(returning);
+        actual.render(100);
+        expect(actual.fixture.pendingRotation).toBeGreaterThan(0);
+        expect(actual.fixture.pendingRotation).toBeLessThan(pending);
+        expect(actual.fixture.cameraReturn).toBe(returning);
+        expect(returning.t).toBeGreaterThan(0);
+      } finally {
+        actual.work.dispose();
+      }
+    },
+  );
+});
 
 describe('keyboard camera ownership', () => {
   it('keeps active motion through resize but discards suspension time on foreground return', () => {

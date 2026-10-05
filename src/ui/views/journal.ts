@@ -51,7 +51,8 @@ export function memoryEntries(s: GameState, filter: JournalFilter = 'all', limit
 }
 export function threadEvidence(s: GameState): string {
   if (s.life.thread.stage === 'not-started') return '';
-  return `<section class="thread-evidence" aria-label="Investigation evidence"><h3>Ruth’s pouch · Evidence</h3><p>Ruth remembers blue edging and two short stitches together. Compare both details before claiming the pouch.</p>${(['water', 'cloth'] as const).map((id) => `<article><h4>${id === 'water' ? 'Color · Water point' : 'Stitch · Bakehouse cloth'}</h4><p>${s.life.thread.clues.includes(id) ? esc(lifeJournal['thread-clue-' + id]!.text) : 'Not yet examined.'}</p><button class="text-button" data-action="travel" data-value="${id === 'water' ? 'thread-clue' : 'cloth-clue'}">${s.life.thread.clues.includes(id) ? 'Return to' : 'Find'} this clue</button></article>`).join('')}<button class="secondary-button" data-action="travel" data-value="sewing-rest">Find the shore resting place</button></section>`;
+  const returned = s.life.thread.stage === 'returned';
+  return `<section class="thread-evidence" aria-label="Investigation evidence"><h3>Ruth’s pouch · Evidence</h3><p>Ruth remembers blue edging and two short stitches together. ${s.life.thread.stage === 'complete' ? 'Ruth’s pouch is beside her. Your chosen memory remains in the journal.' : returned ? 'Ruth has her pouch again. Return to her to choose what to remember.' : 'Compare both details before claiming the pouch.'}</p>${(['water', 'cloth'] as const).map((id) => `<article><h4>${id === 'water' ? 'Color · Water point' : 'Stitch · Bakehouse cloth'}</h4><p>${s.life.thread.clues.includes(id) ? esc(lifeJournal['thread-clue-' + id]!.text) : 'Not yet examined.'}</p><button class="text-button" data-action="travel" data-value="${id === 'water' ? 'thread-clue' : 'cloth-clue'}">${s.life.thread.clues.includes(id) ? 'Return to' : 'Find'} this clue</button></article>`).join('')}<button class="secondary-button" data-action="travel" data-value="${returned ? 'ruth' : 'sewing-rest'}">${s.life.thread.stage === 'complete' ? 'Visit the shore resting place again' : returned ? 'Return to Ruth' : 'Find the shore resting place'}</button></section>`;
 }
 export function journalPeople(s: GameState): string {
   const seen = new Set<string>();
@@ -78,12 +79,12 @@ export function journalPeople(s: GameState): string {
     .join('')}</div>`;
 }
 export function journalPlaces(s: GameState): string {
-  return `<p class="panel-lead">Places you have reached in this artistic interpretation of Galilee. Each destination offers a walk from your current region.</p><button class="secondary-button" data-action="journey-map">See the connected journey map</button><div class="journal-directory">${knownRegions(
+  return `<p class="panel-lead">Places you have reached in this artistic interpretation of Galilee. Follow paths and lake crossings to reach your destination.</p><button class="secondary-button" data-action="journey-map">See the connected journey map</button><div class="journal-directory">${knownRegions(
     s,
   )
     .map(
       (id) =>
-        `<article><div class="directory-entry-copy"><h3>${esc(regions[id].title)}</h3><p>${esc(journeyPlaces[id].description)}</p></div><button class="secondary-button" data-action="travel" data-value="${journeyPlaces[id].destination}">Walk to this place</button></article>`,
+        `<article><div class="directory-entry-copy"><h3>${esc(regions[id].title)}</h3><p>${esc(journeyPlaces[id].description)}</p></div><button class="secondary-button" data-action="travel" data-value="${journeyPlaces[id].destination}">Travel to this place</button></article>`,
     )
     .join('')}</div>`;
 }

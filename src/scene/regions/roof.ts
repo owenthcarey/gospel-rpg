@@ -146,11 +146,17 @@ export class RoofRegion implements RegionView {
       size: 150,
       style: 'village',
     });
-    const floor = CreateGround('house-floor', { width: 16, height: 20 }, this.scene);
+    const floor = CreateGround(
+      'house-floor',
+      { width: 16, height: 20, subdivisions: 8 },
+      this.scene,
+    );
     const material = new StandardMaterial('earthen-floor', this.scene);
-    material.diffuseColor = Color3.FromHexString('#a39478');
+    material.diffuseColor = Color3.White();
     material.specularColor = Color3.Black();
     floor.material = material;
+    // Quiet earth variation on this one flat floor, without an added paint mesh.
+    paintGround(floor, 'lane');
     floor.receiveShadows = true;
     floor.isPickable = false;
     const ropeMaterial = new StandardMaterial('lowering-cords', this.scene);
@@ -310,7 +316,7 @@ export class RoofRegion implements RegionView {
         clip = lowering ? 'Haul' : before ? 'Carry' : 'Idle';
       }
       if (name.startsWith('neighbor-')) {
-        actor.root.setEnabled(Number(name.at(-1)) < (this.low ? 4 : 8));
+        actor.root.setEnabled(!this.low || Number(name.at(-1)) % 4 < 2);
         clip = Number(name.at(-1)) < 2 ? 'Sit' : id === 'amazement' ? 'Gesture' : 'Idle';
       }
       if (!this.paused || (dt === 0 && this.time === 0) || this.reduced)
@@ -333,7 +339,7 @@ export class RoofRegion implements RegionView {
     const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
     this.last = now;
     this.cadence.rendered(now);
-    if (!this.paused) this.time += dt;
+    if (!this.paused && !this.reduced) this.time += dt;
     this.compose(this.paused ? 0 : dt);
     this.shots.tick(dt, { running: !this.paused, reduced: this.reduced });
     this.stage.setView(this.camera.target);

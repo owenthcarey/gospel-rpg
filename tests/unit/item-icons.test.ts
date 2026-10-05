@@ -18,7 +18,17 @@ describe('original item sprite delivery', () => {
       referenced.add(source!.split('/').at(-1)!);
     }
     expect([...referenced].sort()).toEqual(readdirSync(folder).sort());
-    expect(referenced.size).toBe(12);
+    expect(referenced.size).toBe(13);
+  });
+
+  it('distinguishes an empty jug from water carried for either table or resting place', () => {
+    const empty = itemArtwork('empty-jug');
+    const filled = itemArtwork('water-jug');
+    expect(empty).not.toBe(filled);
+    expect(itemArtwork('rest-water')).toBe(filled);
+    expect(readFileSync(new URL('jug.webp', folder))).not.toEqual(
+      readFileSync(new URL('water-jug.webp', folder)),
+    );
   });
 
   it('keeps transparent 64 px WebP sprites inside a compact download budget', () => {

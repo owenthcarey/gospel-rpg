@@ -6,6 +6,7 @@ import { gateways, nextGateway } from '../../content/campaign/places';
 import { regions } from '../../content/regions';
 import { isRoadRegion } from '../../game/road/types';
 import { objectiveTarget } from '../../game/quest';
+import { trackedChapter } from '../../content/campaign/chapters';
 import { escapeHtml as esc, icon } from '../icons';
 
 const labels: Record<ExplorationRegion, string[]> = {
@@ -32,7 +33,8 @@ export function journeyMap(s: GameState): string {
   const known = knownRegions(s),
     here = travelerRegion(s),
     target = objectiveTarget(s),
-    next = gateways.find((g) => g.id === target);
+    finished = trackedChapter(s).complete(s),
+    next = finished ? undefined : gateways.find((g) => g.id === target);
   const visible = Object.keys(journeyPlaces).filter(
     (id) =>
       id === 'capernaum' ||
@@ -77,7 +79,7 @@ export function journeyMap(s: GameState): string {
       return `<g class="journey-map-place ${status}" transform="translate(${p.x} ${p.y})"><title>${esc(regions[id].title)} · ${id === here ? 'You are here' : known.includes(id) ? 'Visited' : 'Not yet visited'}</title><rect class="journey-map-marker" x="-22" y="-22" width="44" height="44"/>${id === here ? '<rect class="journey-map-current" x="-27" y="-27" width="54" height="54"/>' : ''}<g class="journey-map-glyph">${placeGlyph(id)}</g><g class="journey-map-badge"><rect class="journey-map-number-back" x="13" y="-31" width="23" height="23"/><text class="journey-map-number" x="24.5" y="-14" text-anchor="middle">${index + 1}</text></g><text class="journey-map-label" text-anchor="middle" y="42">${labels[id].map((line, row) => `<tspan x="0" dy="${row ? '17' : '0'}">${esc(line)}</tspan>`).join('')}</text></g>`;
     })
     .join('');
-  return `<section class="journey-atlas-surface" aria-label="Journey map"><div class="journey-guidance"><div>${icon('compass')}<div><strong>You are at ${esc(regions[here].title)}.</strong><p>${next ? 'Next passage for your tracked story: ' + esc(next.name) + '.' : 'Your tracked destination is within this region.'}</p></div></div>${next ? `<button class="primary-button" data-action="travel" data-value="${next.id}">Approach the next passage ${icon('arrow')}</button>` : ''}</div><div class="journey-atlas"><figure class="journey-chart"><div class="journey-chart-title"><span>GALILEE</span><span>${visible.filter((id) => known.includes(id)).length} / ${visible.length} places visited</span></div><svg class="journey-map" style="--journey-map-units:${width}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="Connected places. You are at ${esc(regions[here].title)}. ${visible.map((id) => esc(regions[id].title)).join(', ')}."><desc>Solid paths join visited places. Dashed paths lead to places still to discover. Numbers match the destination list.</desc>${routes}${places}</svg><figcaption class="journey-map-legend"><span><i class="journey-key-here" aria-hidden="true"></i>You are here</span><span><i class="journey-key-visited" aria-hidden="true"></i>Visited</span><span><i class="journey-key-unvisited" aria-hidden="true"></i>Not yet visited</span><span class="journey-key-paths">Numbers match the destination list</span></figcaption></figure><div class="journey-destinations" aria-label="Connected destinations">${visible
+  return `<section class="journey-atlas-surface" aria-label="Journey map"><div class="journey-guidance"><div>${icon('compass')}<div><strong>You are at ${esc(regions[here].title)}.</strong><p>${next ? 'Next passage for your tracked story: ' + esc(next.name) + '.' : finished ? 'Your tracked story is complete. Choose any destination to explore.' : 'Your tracked destination is within this region.'}</p></div></div>${next ? `<button class="primary-button" data-action="travel" data-value="${next.id}">Approach the next passage ${icon('arrow')}</button>` : ''}</div><div class="journey-atlas"><figure class="journey-chart"><div class="journey-chart-title"><span>GALILEE</span><span>${visible.filter((id) => known.includes(id)).length} / ${visible.length} places visited</span></div><svg class="journey-map" style="--journey-map-units:${width}" viewBox="${minX} ${minY} ${width} ${height}" role="img" aria-label="Connected places. You are at ${esc(regions[here].title)}. ${visible.map((id) => esc(regions[id].title)).join(', ')}."><desc>Solid paths join visited places. Dashed paths lead to places still to discover. Numbers match the destination list.</desc>${routes}${places}</svg><figcaption class="journey-map-legend"><span><i class="journey-key-here" aria-hidden="true"></i>You are here</span><span><i class="journey-key-visited" aria-hidden="true"></i>Visited</span><span><i class="journey-key-unvisited" aria-hidden="true"></i>Not yet visited</span><span class="journey-key-paths">Numbers match the destination list</span></figcaption></figure><div class="journey-destinations" aria-label="Connected destinations">${visible
     .map((id, index) => {
       const p = journeyPlaces[id],
         doorway = nextGateway(here, id);

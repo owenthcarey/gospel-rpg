@@ -542,6 +542,11 @@
     max-width: 45%;
   }
 }
+@media (max-width: 360px) {
+  :root .map-destinations {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-height: 540px) {
   :root .village-shortcut {
     display: none;

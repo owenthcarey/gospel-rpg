@@ -37,6 +37,22 @@ describe('walkability and A*', () => {
     expect(path.length).toBeGreaterThan(0);
     expect(grid.walkable(path.at(-1)!)).toBe(true);
   });
+  it('chooses the shortest approach among equally near sides of a blocked destination', () => {
+    const grid = new WalkGrid([{ x: 0, z: 0, width: 2, depth: 2 }]);
+    const from = { x: 5, z: 0 };
+    const path = findPath(grid, from, { x: 0, z: 0 });
+    expect(path.at(-1)).toEqual({ x: 2, z: 0 });
+    expect(path).toHaveLength(4);
+    expect(findPath(grid, { x: -5, z: 0 }, { x: 0, z: 0 }).at(-1)).toEqual({ x: -2, z: 0 });
+  });
+  it('uses the nearest reachable side when the closest cell is behind an impassable wall', () => {
+    const grid = new WalkGrid([{ x: 0, z: 0, width: 1, depth: 100 }]);
+    const path = findPath(grid, { x: 4, z: 0 }, { x: -0.4, z: 0 });
+    expect(path.at(-1)).toEqual({ x: 1, z: 0 });
+    expect(path.every((point) => point.x > 0 && grid.walkable(point))).toBe(true);
+    // An explicitly walkable destination across the wall must still be rejected.
+    expect(findPath(grid, { x: 4, z: 0 }, { x: -1, z: 0 })).toEqual([]);
+  });
   it('keeps every authored interaction reachable from the arrival point', () => {
     const grid = new WalkGrid(obstacles, isLand);
     for (const target of interactables) {

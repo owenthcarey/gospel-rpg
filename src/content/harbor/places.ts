@@ -1,5 +1,6 @@
 import type { Interactable } from '../region';
-import { HARBOR_CENTER } from '../../game/harbor/arrangement';
+import { HARBOR_CENTER, plankPosition, cargoPosition } from '../../game/harbor/arrangement';
+import type { HarborState } from '../../game/harbor/types';
 export const harborPlaces: Interactable[] = [
   {
     id: 'eliab',
@@ -51,6 +52,19 @@ export const harborPlaces: Interactable[] = [
     z: HARBOR_CENTER.z - 2.4,
   },
 ];
-export function harborPlace(id: string): Interactable | undefined {
-  return harborPlaces.find((p) => p.id === id);
+/** Identity stays authored; physical targets follow the same arrangement as the models. */
+function harborPlacement(place: Interactable, h: HarborState): Interactable {
+  if (place.id === 'harbor-plank') return { ...place, ...plankPosition(h) };
+  if (place.id === 'harbor-nets' || place.id === 'harbor-jars')
+    return { ...place, ...cargoPosition(h, place.id === 'harbor-nets' ? 'nets' : 'jars') };
+  return place;
+}
+export function activeHarborPlaces(h: HarborState): Interactable[] {
+  return harborPlaces
+    .filter((p) => p.id === 'eliab' || h.stage !== 'not-started')
+    .map((p) => harborPlacement(p, h));
+}
+export function harborPlace(id: string, h?: HarborState): Interactable | undefined {
+  const place = harborPlaces.find((p) => p.id === id);
+  return place && h ? harborPlacement(place, h) : place;
 }

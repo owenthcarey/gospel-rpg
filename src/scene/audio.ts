@@ -172,8 +172,10 @@ export class GameAudio {
     } // Teleports/load corrections are silent.
     this.walked += distance;
     const afloat = this.region === 'galilee-water';
-    if (this.walked >= (afloat ? 2.4 : 1.25)) {
-      this.walked = 0;
+    const stride = afloat ? 2.4 : 1.3;
+    if (this.walked >= stride) {
+      // Preserve the remainder so the same walk has the same cadence at every frame rate.
+      this.walked %= stride;
       this.play(afloat ? 'oar' : 'step');
     }
   }

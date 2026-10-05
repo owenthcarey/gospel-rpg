@@ -1,6 +1,50 @@
 import { test, expect } from '@playwright/test';
 import { ready, exported, dismiss, settled, visit } from '../helpers/connection-browser';
 
+test('radar symbols remain legible and its local map control follows the frame on resize', async ({
+  page,
+}) => {
+  await ready(page);
+  const map = page.getByRole('button', { name: 'Walk using minimap' });
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 900, height: 900 },
+    { width: 390, height: 844 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect
+      .poll(async () => {
+        const metrics = await map.evaluate((el) => {
+          const radar = el as HTMLElement;
+          const wrap = radar.parentElement!;
+          const player = radar.querySelector<SVGGraphicsElement>('#minimap-player circle')!;
+          const matrix = player.getScreenCTM()!;
+          return {
+            frame: radar.offsetWidth,
+            configured: parseFloat((wrap as HTMLElement).style.getPropertyValue('--map-size')),
+            player: player.getBBox().width * Math.hypot(matrix.a, matrix.b),
+          };
+        });
+        return (
+          Math.abs(metrics.frame - metrics.configured) < 1 && Math.abs(metrics.player - 5) < 0.1
+        );
+      })
+      .toBe(true);
+    const people = map.locator('[data-map-place="miriam"]');
+    await expect(people).toHaveAttribute('data-map-kind', 'person');
+    await expect(people).toHaveCSS('fill', 'rgb(255, 228, 53)');
+    const landmark = map.locator('[data-map-place="nets"]');
+    await expect(landmark).toHaveAttribute('data-map-kind', 'object');
+    await expect(landmark).toHaveCSS('fill', 'rgb(222, 205, 165)');
+    const box = (await map.boundingBox())!;
+    const localMap = (await page
+      .getByRole('button', { name: 'Open local map', exact: true })
+      .boundingBox())!;
+    expect(Math.abs(localMap.x + localMap.width / 2 - (box.x + box.width / 2))).toBeLessThan(1);
+  }
+});
+
 test('mixed-surface phone gestures never turn a minimap release into a walk', async ({
   page,
 }, info) => {
@@ -81,8 +125,18 @@ test('the rotating minimap walks, clears its destination on arrival and keeps ma
       { x, z },
     );
     await page.mouse.click(point.x, point.y);
-    await expect(page.locator('.minimap-destination')).toBeVisible();
-    await expect(page.locator('.minimap-destination')).toBeHidden({ timeout: 20_000 });
+    const flag = page.locator('.minimap-destination');
+    await expect(flag).toBeVisible();
+    // The map rotates around the player, but the traveling flag stays upright.
+    await expect
+      .poll(() =>
+        flag.evaluate((el) => {
+          const matrix = (el as SVGGraphicsElement).getScreenCTM()!;
+          return Math.abs(Math.atan2(matrix.b, matrix.a));
+        }),
+      )
+      .toBeLessThan(0.001);
+    await expect(flag).toBeHidden({ timeout: 20_000 });
   };
   await clickTarget(-4, -3);
   await page.getByRole('button', { name: 'Rotate camera left', exact: true }).click();

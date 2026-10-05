@@ -26,6 +26,8 @@ import { heldReturn } from '../../game/life/objectives';
 import { chapters, storyStatus } from '../../content/campaign/chapters';
 import type { JournalFilter } from './journal';
 import { escapeHtml as esc } from '../icons';
+import { restSupplyStatus } from './item-status';
+import { itemArtwork } from '../item-art';
 const button = (label: string, action: string, value: string, disabled = false) =>
   `<button class="secondary-button" data-action="${action}" data-value="${esc(value)}" ${disabled ? 'disabled' : ''}>${esc(label)}</button>`;
 
@@ -62,7 +64,7 @@ export function channelPlan(s: GameState): string {
 function restPlan(s: GameState, site: RestSite): string {
   const r = s.galilee.shelter,
     selected = r.site === site;
-  return `<section class="rest-plan" aria-label="Resting place plan"><h3>${esc(REST_LAYOUTS[site].title)}</h3><p>Approach from the south. ${selected && r.placed.includes('screen') ? 'Screen on the ' + DIRECTIONS[r.screen] + ' side.' : 'The screen has not been placed here.'}</p><div class="rest-sockets">${REST_SUPPLIES.map((id) => `<div class="rest-socket ${selected && r.placed.includes(id) ? 'filled' : ''}"><span>${id === 'mat' ? '▧' : id === 'water' ? '◉' : '▥'}</span><strong>${id}</strong><small>${selected && r.placed.includes(id) ? 'Placed' : s.campaign.carrying === 'rest-' + id ? 'In your hands' : 'At the rack'}</small></div>`).join('')}</div>${selected && r.checked ? `<p class="work-result" role="status">${esc(checkArrangement(r).message)}</p>` : ''}</section>`;
+  return `<section class="rest-plan" aria-label="Resting place plan"><h3>${esc(REST_LAYOUTS[site].title)}</h3><p>Approach from the south. ${selected && r.placed.includes('screen') ? 'Screen on the ' + DIRECTIONS[r.screen] + ' side.' : 'The screen has not been placed here.'}</p><div class="rest-sockets">${REST_SUPPLIES.map((id) => `<div class="rest-socket ${selected && r.placed.includes(id) ? 'filled' : ''}"><span class="rest-supply-art" aria-hidden="true">${itemArtwork('rest-' + id)}</span><strong>${id}</strong><small>${esc(restSupplyStatus(s, id, site))}</small></div>`).join('')}</div>${selected && r.checked ? `<p class="work-result" role="status">${esc(checkArrangement(r).message)}</p>` : ''}</section>`;
 }
 export function galileeContext(
   id: string,
@@ -101,7 +103,7 @@ export function galileeSummary(s: GameState, filter: JournalFilter): string {
     .map((id) => {
       const goal = galileeGoal({ ...s, tracking: id })!,
         c = chapters[id];
-      return `<article><p class="eyebrow">${esc(c.label)}</p><h3>${esc(c.title)}</h3><span class="status-pill">${storyStatus(s, id).replaceAll('-', ' ')}</span><p>${esc(goal.text)}</p>${c.available(s) ? button(s.tracking === id ? 'Tracked' : 'Track this story', 'track-story', id) + button('Find the next stop', 'travel', goal.target) : ''}</article>`;
+      return `<article><p class="eyebrow">${esc(c.label)}</p><h3>${esc(c.title)}</h3><span class="status-pill">${storyStatus(s, id).replaceAll('-', ' ')}</span><p>${esc(goal.text)}</p>${c.available(s) ? button(s.tracking === id ? 'Tracked' : 'Track this story', 'track-story', id) + button(goal.done ? (id === 'spring' ? 'Visit the spring again' : 'Visit Leah again') : 'Find the next stop', 'travel', goal.target) : ''}</article>`;
     })
     .join('')}</section>`;
 }
