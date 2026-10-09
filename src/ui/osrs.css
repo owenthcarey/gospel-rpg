@@ -825,22 +825,18 @@
   text-shadow: 1px 1px 0 #000;
 }
 
-/* Pixel tab icons belong to the classic frame; other layouts keep the line icons. */
-:root .toolbar .pixel-icon {
+/* Pixel tab icons at every size. */
+:root #ui .toolbar .icon {
   display: none;
 }
-@media (min-width: 1001px) and (min-height: 560px) {
-  :root #ui .toolbar .icon {
-    display: none;
-  }
-  :root #ui .toolbar .pixel-icon {
-    display: block;
-    width: 32px;
-    height: 32px;
-  }
-  :root #ui .toolbar button:hover .pixel-icon {
-    filter: brightness(1.15);
-  }
+:root #ui .toolbar .pixel-icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+}
+:root #ui .toolbar button:hover .pixel-icon {
+  filter: brightness(1.15);
 }
 @media (min-width: 1001px) and (min-height: 560px) {
   /* Practical work docks as a side panel above the stone tabs, which stay in reach. */
