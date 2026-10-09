@@ -828,6 +828,9 @@ export class Interface {
   toast(message: string, kind: ToastKind = toastKind(message)): void {
     this.messageHistory.add(message, kind);
     this.renderChat();
+    // New memories and items flash their tab until it is opened, as tutorial tabs do.
+    if (kind === 'memory' && this.panel !== 'journal') this.flashTab('journal', true);
+    if (kind === 'item' && this.panel !== 'inventory') this.flashTab('inventory', true);
     this.unreadMessages = Math.min(40, this.unreadMessages + 1);
     this.updateMessageCount();
     clearTimeout(this.toastTimer);
@@ -1140,6 +1143,11 @@ export class Interface {
     }
   }
   /** A score heard for the first time on this device is announced in the chatbox. */
+  private flashTab(action: 'journal' | 'inventory', on: boolean): void {
+    this.root
+      .querySelector<HTMLElement>(`.toolbar [data-action="${action}"]`)
+      ?.classList.toggle('tab-flash', on);
+  }
   get emotesOpen(): boolean {
     return !this.root.querySelector<HTMLElement>('#emote-panel')?.hidden;
   }
@@ -1362,6 +1370,7 @@ export class Interface {
     status = this.journalStatus,
     trackingRefresh = false,
   ): void {
+    this.flashTab('journal', false);
     const active =
       this.panel === 'journal' && this.overlay.contains(document.activeElement)
         ? document.activeElement
@@ -1474,6 +1483,7 @@ export class Interface {
     reading.scrollIntoView({ block: mode === 'review' ? 'start' : 'nearest' });
   }
   inventory(state: GameState): void {
+    this.flashTab('inventory', false);
     const inspected = state.inventory[0];
     const carrying = state.campaign.carrying || state.episode.carrying;
     const carriedOnly = !inspected && !!carrying;

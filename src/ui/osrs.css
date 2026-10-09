@@ -1386,3 +1386,35 @@
   color: #cfe6f2;
   text-shadow: 1px 1px 0 #0b2233;
 }
+
+/* A tab with something new flashes, in two hard frames, until it is opened. */
+:root #ui .toolbar button.tab-flash {
+  animation: tab-flash 1s steps(1) infinite;
+}
+@keyframes tab-flash {
+  0%,
+  49% {
+    background: linear-gradient(#6b5a2a, #4f421c);
+    box-shadow:
+      inset 1px 1px #d7b54a,
+      inset -1px -1px #2b2210;
+  }
+  50%,
+  100% {
+    background: linear-gradient(#4a3f30, #362e23);
+  }
+}
+:root.reduce-motion #ui .toolbar button.tab-flash {
+  animation: none;
+  box-shadow:
+    inset 1px 1px #d7b54a,
+    inset -1px -1px #2b2210;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root #ui .toolbar button.tab-flash {
+    animation: none;
+    box-shadow:
+      inset 1px 1px #d7b54a,
+      inset -1px -1px #2b2210;
+  }
+}
