@@ -233,6 +233,7 @@ export class Interface {
   private storyScrollTimer?: ReturnType<typeof setTimeout>;
   private chatter = new ChatterSchedule(CHATTER);
   private heardTracks = new Set<string>();
+  private interfaceHintKey = '';
   private overheadNodes = new Map<string, HTMLElement>();
   private overhead!: HTMLElement;
 
@@ -985,6 +986,10 @@ export class Interface {
     if (!hint) return;
     const target = e.type === 'pointerover' && e.target instanceof Element ? e.target : null;
     const described = target ? interfaceHover(target) : undefined;
+    // Touch the DOM only when the description changes; most crossings are over the world.
+    const key = described ? described.verb + '\n' + (described.item ?? '') : '';
+    if (key === this.interfaceHintKey) return;
+    this.interfaceHintKey = key;
     hint.hidden = !described;
     if (!described) return;
     hint.replaceChildren(document.createTextNode(described.verb));
