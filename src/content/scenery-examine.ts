@@ -70,6 +70,7 @@ export const sceneryExaminations: Readonly<Partial<Record<AssetId, SceneryExamin
   supply_rack: { name: 'Rack', text: 'A rack for drying and storing supplies.' },
   resting_mat: { name: 'Mat', text: 'A mat for a tired traveler.' },
   reed_screen: { name: 'Screen', text: 'A woven reed screen against the wind.' },
+  passage_marker: { name: 'Signpost', text: 'It points the way to the next place on the road.' },
   boat_cushion: { name: 'Cushion', text: 'A cushion for the stern of a boat.' },
 };
 
