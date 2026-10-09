@@ -70,100 +70,113 @@ test('low graphics stays sharp on phones after resize and restores the desktop p
   await phoneControls(page);
 });
 
-test('long objectives and nearby work stay separate in short landscapes', async ({
-  page,
-}, info) => {
-  const state = arrangedShelter(chosenShelter(undefined, 'breeze'), 2);
-  state.tracking = 'shelter';
-  await ready(page, state);
-  await page.getByRole('button', { name: 'Settings and saves' }).click();
-  await page.locator('[data-setting="textSize"]').selectOption('large');
-  await page.locator('[data-setting="reducedMotion"]').check();
-  await dismiss(page);
-  await expect(page.locator('.chapter-card')).toHaveCount(0);
-  await expect(page.locator('#toast')).toBeHidden();
-  const quest = page.locator('.quest-card');
-  const objective = quest.locator('.current-objective');
-  const original = await objective.textContent();
-  const separate = async () => {
-    const rectangles = await page
-      .locator('.topbar, .quest-card, .bottom-center, .minimap-wrap')
-      .evaluateAll((nodes) =>
-        nodes.map((node) => {
-          const { x, y, width, height } = node.getBoundingClientRect();
-          return { name: node.className, x, y, width, height };
-        }),
-      );
-    const viewport = page.viewportSize()!;
-    for (const rect of rectangles) {
-      expect(rect.x).toBeGreaterThanOrEqual(0);
-      expect(rect.y).toBeGreaterThanOrEqual(0);
-      expect(rect.x + rect.width).toBeLessThanOrEqual(viewport.width);
-      expect(rect.y + rect.height).toBeLessThanOrEqual(viewport.height);
-    }
-    for (let i = 0; i < rectangles.length; i++) {
-      const first = rectangles[i]!;
-      for (const other of rectangles.slice(i + 1)) {
-        const overlap =
-          first.x < other.x + other.width &&
-          first.x + first.width > other.x &&
-          first.y < other.y + other.height &&
-          first.y + first.height > other.y;
-        expect(overlap, `${first.name} overlaps ${other.name}`).toBe(false);
+// Seven sizes with screenshots under CPU rendering approach one case's limit on hosted
+// runners, so the same sequence runs as two cases with every original check.
+for (const [part, sizes] of [
+  [
+    'narrow',
+    [
+      { width: 480, height: 320 },
+      { width: 520, height: 300 },
+      { width: 568, height: 320 },
+      { width: 667, height: 375 },
+    ],
+  ],
+  [
+    'wide and portrait',
+    [
+      { width: 690, height: 300 },
+      { width: 844, height: 390 },
+      { width: 390, height: 844 },
+    ],
+  ],
+] as const)
+  test(`long objectives and nearby work stay separate in short landscapes (${part})`, async ({
+    page,
+  }, info) => {
+    const state = arrangedShelter(chosenShelter(undefined, 'breeze'), 2);
+    state.tracking = 'shelter';
+    await ready(page, state);
+    await page.getByRole('button', { name: 'Settings and saves' }).click();
+    await page.locator('[data-setting="textSize"]').selectOption('large');
+    await page.locator('[data-setting="reducedMotion"]').check();
+    await dismiss(page);
+    await expect(page.locator('.chapter-card')).toHaveCount(0);
+    await expect(page.locator('#toast')).toBeHidden();
+    const quest = page.locator('.quest-card');
+    const objective = quest.locator('.current-objective');
+    const original = await objective.textContent();
+    const separate = async () => {
+      const rectangles = await page
+        .locator('.topbar, .quest-card, .bottom-center, .minimap-wrap')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => {
+            const { x, y, width, height } = node.getBoundingClientRect();
+            return { name: node.className, x, y, width, height };
+          }),
+        );
+      const viewport = page.viewportSize()!;
+      for (const rect of rectangles) {
+        expect(rect.x).toBeGreaterThanOrEqual(0);
+        expect(rect.y).toBeGreaterThanOrEqual(0);
+        expect(rect.x + rect.width).toBeLessThanOrEqual(viewport.width);
+        expect(rect.y + rect.height).toBeLessThanOrEqual(viewport.height);
       }
+      for (let i = 0; i < rectangles.length; i++) {
+        const first = rectangles[i]!;
+        for (const other of rectangles.slice(i + 1)) {
+          const overlap =
+            first.x < other.x + other.width &&
+            first.x + first.width > other.x &&
+            first.y < other.y + other.height &&
+            first.y + first.height > other.y;
+          expect(overlap, `${first.name} overlaps ${other.name}`).toBe(false);
+        }
+      }
+    };
+    for (const size of sizes) {
+      await page.setViewportSize(size);
+      await separate();
+      await phoneControls(page);
+      const follow = quest.getByRole('button', { name: 'Follow the path', exact: true });
+      await expect(follow).toBeInViewport();
+      const followBox = (await follow.boundingBox())!;
+      const cardBox = (await quest.boundingBox())!;
+      expect(followBox.width).toBeGreaterThanOrEqual(44);
+      expect(followBox.height).toBeGreaterThanOrEqual(44);
+      expect(followBox.y + followBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height);
+      expect(
+        (await quest.locator('.objective-toggle').boundingBox())!.height,
+      ).toBeGreaterThanOrEqual(44);
+      await page.screenshot({
+        path: info.outputPath(`long-objective-${size.width}.png`),
+        scale: 'css',
+      });
+      const collapsed = (await objective.boundingBox())!.height;
+      await quest.getByRole('button', { name: 'Show steps', exact: true }).click();
+      await expect(objective).toHaveText(original!);
+      if (size.height <= 420)
+        expect((await objective.boundingBox())!.height).toBeGreaterThan(collapsed);
+      await separate();
+      await quest.getByRole('button', { name: 'Hide steps', exact: true }).click();
+      await expect(follow).toBeInViewport();
+      const tray = page.locator('#action-tray');
+      for (const action of await tray.getByRole('button').all()) {
+        await action.scrollIntoViewIfNeeded();
+        const button = (await action.boundingBox())!;
+        const surface = (await tray.boundingBox())!;
+        expect(button.width).toBeGreaterThanOrEqual(44);
+        expect(button.height).toBeGreaterThanOrEqual(44);
+        expect(button.y).toBeGreaterThanOrEqual(surface.y);
+        expect(button.y + button.height).toBeLessThanOrEqual(surface.y + surface.height);
+        await expect(action).toBeInViewport({ ratio: 1 });
+      }
+      await tray.evaluate((element) => (element.scrollTop = 0));
     }
-  };
-  for (const size of [
-    { width: 480, height: 320 },
-    { width: 520, height: 300 },
-    { width: 568, height: 320 },
-    { width: 667, height: 375 },
-    { width: 690, height: 300 },
-    { width: 844, height: 390 },
-    { width: 390, height: 844 },
-  ]) {
-    await page.setViewportSize(size);
-    await separate();
-    await phoneControls(page);
-    const follow = quest.getByRole('button', { name: 'Follow the path', exact: true });
-    await expect(follow).toBeInViewport();
-    const followBox = (await follow.boundingBox())!;
-    const cardBox = (await quest.boundingBox())!;
-    expect(followBox.width).toBeGreaterThanOrEqual(44);
-    expect(followBox.height).toBeGreaterThanOrEqual(44);
-    expect(followBox.y + followBox.height).toBeLessThanOrEqual(cardBox.y + cardBox.height);
-    expect((await quest.locator('.objective-toggle').boundingBox())!.height).toBeGreaterThanOrEqual(
-      44,
-    );
-    await page.screenshot({
-      path: info.outputPath(`long-objective-${size.width}.png`),
-      scale: 'css',
-    });
-    const collapsed = (await objective.boundingBox())!.height;
-    await quest.getByRole('button', { name: 'Show steps', exact: true }).click();
-    await expect(objective).toHaveText(original!);
-    if (size.height <= 420)
-      expect((await objective.boundingBox())!.height).toBeGreaterThan(collapsed);
-    await separate();
-    await quest.getByRole('button', { name: 'Hide steps', exact: true }).click();
-    await expect(follow).toBeInViewport();
-    const tray = page.locator('#action-tray');
-    for (const action of await tray.getByRole('button').all()) {
-      await action.scrollIntoViewIfNeeded();
-      const button = (await action.boundingBox())!;
-      const surface = (await tray.boundingBox())!;
-      expect(button.width).toBeGreaterThanOrEqual(44);
-      expect(button.height).toBeGreaterThanOrEqual(44);
-      expect(button.y).toBeGreaterThanOrEqual(surface.y);
-      expect(button.y + button.height).toBeLessThanOrEqual(surface.y + surface.height);
-      await expect(action).toBeInViewport({ ratio: 1 });
-    }
-    await tray.evaluate((element) => (element.scrollTop = 0));
-  }
-  const saved = await exported(page);
-  expect(saved.galilee).toEqual(state.galilee);
-  expect(saved.position).toEqual(state.position);
-});
+    const saved = await exported(page);
+    expect(saved.galilee).toEqual(state.galilee);
+    expect(saved.position).toEqual(state.position);
+  });
 
 test('landscape feedback makes room for actions and returns to the overlay for menus', async ({
   page,
