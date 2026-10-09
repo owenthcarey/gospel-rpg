@@ -88,6 +88,7 @@ import './satchel-map.css';
 import './classic-reading.css';
 import { MessageHistory } from './messages';
 import { ChatterSchedule } from './chatter';
+import { pixelIcon } from './pixel-icons';
 import { CHATTER, CHATTER_RANGE } from '../content/chatter';
 import './messages.css';
 
@@ -242,7 +243,7 @@ export class Interface {
       <div id="hud" hidden>
         <header class="topbar"><div class="brand">${logoLockup('hud')}</div>
         <div class="region-title"><span class="location-diamond">${icon('pin')}</span><span>CAPERNAUM<small>Northern shore · Galilee</small></span></div>
-        <nav class="toolbar" aria-label="Game menus"><button data-action="journal" title="Travel journal (J)">${icon('journal')}<span>Journal</span><kbd>J</kbd></button><button data-action="inventory" title="Satchel (I)">${icon('bag')}<span>Satchel</span><kbd>I</kbd></button><button data-action="map" title="Local and journey maps (M)">${icon('map')}<span>Map</span><kbd>M</kbd></button><span class="toolbar-divider"></span><button class="icon-button" data-action="settings" aria-label="Settings and saves">${icon('settings')}</button></nav></header>
+        <nav class="toolbar" aria-label="Game menus"><button data-action="journal" title="Travel journal (J)">${icon('journal')}${pixelIcon('journal')}<span>Journal</span><kbd>J</kbd></button><button data-action="inventory" title="Satchel (I)">${icon('bag')}${pixelIcon('satchel')}<span>Satchel</span><kbd>I</kbd></button><button data-action="map" title="Local and journey maps (M)">${icon('map')}${pixelIcon('map')}<span>Map</span><kbd>M</kbd></button><span class="toolbar-divider"></span><button class="icon-button" data-action="settings" aria-label="Settings and saves">${icon('settings')}${pixelIcon('settings')}</button></nav></header>
         <aside id="quest-card" class="quest-card" aria-label="Current quest"></aside>
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
         <div id="world-labels" class="world-labels" aria-label="People and places"></div><div class="overhead-chat" aria-hidden="true"></div>

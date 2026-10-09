@@ -1,0 +1,137 @@
+/**
+ * Original pixel-art tab icons in the classic inventory finish. Each glyph is a
+ * 16 × 16 grid of palette letters; a one-pixel black outline and a dark shadow
+ * pixel down and to the right are added in code, as for item sprites.
+ */
+const PALETTE: Record<string, string> = {
+  d: '#4a2f17',
+  b: '#7a4b25',
+  l: '#a8723c',
+  p: '#eadbaf',
+  q: '#b99a63',
+  r: '#9c2a1c',
+  R: '#c8452c',
+  y: '#e9c447',
+  g: '#4f8a3a',
+  G: '#77ad4f',
+  w: '#3d7aa5',
+  W: '#6aa4c8',
+  s: '#a9b0b3',
+  S: '#d6dadb',
+  t: '#5d6468',
+};
+
+const GLYPHS = {
+  journal: [
+    '................',
+    '................',
+    '...rrrrrrrrrr...',
+    '...RRRRRRRRRrp..',
+    '...RyyyyyyyRrp..',
+    '...RRRRRRRRRrp..',
+    '...RRRRyRRRRrp..',
+    '...RRRyRyRRRrp..',
+    '...RRRRyRRRRrp..',
+    '...RRRRRRRRRrp..',
+    '...RyyyyyyyRrp..',
+    '...RRRRRRRRRrp..',
+    '...rrrrrrrrrrp..',
+    '....pppppppppp..',
+    '................',
+    '................',
+  ],
+  satchel: [
+    '................',
+    '......dddd......',
+    '.....d....d.....',
+    '.....d....d.....',
+    '...bbbbbbbbbb...',
+    '...bllllllllb...',
+    '...bllllllllb...',
+    '...bbbbyybbbb...',
+    '...bllbyybllb...',
+    '...bllllllllb...',
+    '...bllllllllb...',
+    '...bllllllllb...',
+    '...bddddddddb...',
+    '...bbbbbbbbbb...',
+    '................',
+    '................',
+  ],
+  map: [
+    '................',
+    '................',
+    '..ppppppqppppp..',
+    '..pGGGGpqpWWWp..',
+    '..GGgGGGqWWwWW..',
+    '..GgGGGGqWwWWW..',
+    '..GGGRGGqWWWWW..',
+    '..GGRRRGqWWwWW..',
+    '..GGGRGGqWWWWW..',
+    '..pGgGGGqWwWWp..',
+    '..ppGGGpqpWWpp..',
+    '..pppppppqpppp..',
+    '................',
+    '................',
+    '................',
+    '................',
+  ],
+  settings: [
+    '................',
+    '.......SS.......',
+    '...S...SS...s...',
+    '..SSSSSSssssss..',
+    '...SSSSssssss...',
+    '...SSSsssssss...',
+    '...SSss..ssss...',
+    '.SSSss....ssttt.',
+    '.SSsss....stttt.',
+    '...ssss..sttt...',
+    '...sssssstttt...',
+    '...sssssttttt...',
+    '..sssssttttttt..',
+    '...s...tt...t...',
+    '.......tt.......',
+    '................',
+  ],
+} as const;
+
+export type PixelIconName = keyof typeof GLYPHS;
+
+function render(rows: readonly string[]): string {
+  const size = rows.length;
+  const filled = (x: number, y: number) =>
+    y >= 0 && y < size && x >= 0 && x < size && rows[y]![x] !== '.';
+  const rects: string[] = [];
+  const cell = (x: number, y: number, fill: string) =>
+    rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${fill}"/>`);
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) {
+      if (filled(x, y)) continue;
+      const edge = filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1);
+      const outlined = (px: number, py: number) =>
+        filled(px, py) ||
+        filled(px - 1, py) ||
+        filled(px + 1, py) ||
+        filled(px, py - 1) ||
+        filled(px, py + 1);
+      if (edge) cell(x, y, '#000');
+      else if (outlined(x - 1, y - 1)) cell(x, y, '#2f211b');
+    }
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) if (filled(x, y)) cell(x, y, PALETTE[rows[y]![x]!]!);
+  return `<svg class="pixel-icon" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges" aria-hidden="true" focusable="false">${rects.join('')}</svg>`;
+}
+
+const cache = new Map<PixelIconName, string>();
+export function pixelIcon(name: PixelIconName): string {
+  let svg = cache.get(name);
+  if (!svg) cache.set(name, (svg = render(GLYPHS[name])));
+  return svg;
+}
+export const pixelIconNames = Object.keys(GLYPHS) as PixelIconName[];
+/** Grid validation for tests: every row is 16 cells of known palette letters. */
+export function pixelGlyphRows(name: PixelIconName): readonly string[] {
+  return GLYPHS[name];
+}
+export const pixelPalette = PALETTE;
