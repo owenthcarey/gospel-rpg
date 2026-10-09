@@ -75,4 +75,4 @@ Unit coverage checks score bounds, meter validation, all regions, narrative reso
 
 The scheduler follows the browser's [Web Audio scheduling guidance](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques) and [user-gesture audio guidance](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices).
 
-Settings lists all nine scores. Those heard on this device are green and can be chosen to play in place of area music until **Return to area music**; Gospel accounts always keep their own scores. The choice lasts for the session and is not saved.
+Settings and, on desktop, the **Music** tab list all nine scores. Those heard on this device are green and can be chosen to play in place of area music until **Return to area music**; Gospel accounts always keep their own scores. The choice lasts for the session and is not saved.
