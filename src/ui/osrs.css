@@ -1114,3 +1114,31 @@
     line-height: 1.25;
   }
 }
+
+/* The quest target carries the classic bobbing yellow hint arrow. */
+:root #ui .world-label.quest-target .label-symbol::before {
+  content: '';
+  width: 22px;
+  height: 26px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 13' shape-rendering='crispEdges'%3E %3Cpath fill='%23000' d='M3 0h5v6h3v2h-1v1H9v1H8v1H7v1H6v1H5v-1H4v-1H3v-1H2V9H1V8H0V6h3z'/%3E %3Cpath fill='%23ffe435' d='M4 1h3v6h3v1H9v1H8v1H7v1H4v-1H3V9H2V8H1V7h3z'/%3E %3Cpath fill='%23b8901a' d='M6 1h1v6h3v1H9v1H8v1H7v1H6z'/%3E %3Cpath fill='%23fff6a8' d='M4 1h1v5H4z'/%3E %3C/svg%3E")
+    center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  text-shadow: none;
+  animation: hint-arrow-bob 900ms ease-in-out infinite alternate;
+}
+@keyframes hint-arrow-bob {
+  from {
+    transform: translateY(-3px);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+:root.reduce-motion #ui .world-label.quest-target .label-symbol::before {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root #ui .world-label.quest-target .label-symbol::before {
+    animation: none;
+  }
+}
