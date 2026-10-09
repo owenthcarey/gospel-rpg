@@ -1267,3 +1267,12 @@
     border: 0;
   }
 }
+
+/* Stories waiting to begin nearby carry a blue quest-start marker on the maps. */
+:root #ui .minimap .map-quest-start,
+:root #ui .large-map .map-quest-start {
+  r: calc(var(--map-symbol-unit, 1px) * 3);
+  fill: #2a58d6;
+  stroke: #fff;
+  stroke-width: 1.5;
+}

@@ -88,6 +88,8 @@ import './satchel-map.css';
 import './classic-reading.css';
 import { MessageHistory } from './messages';
 import { ChatterSchedule } from './chatter';
+import { suggestStory } from '../content/exploration/suggestions';
+import { STORY_TRACKS } from '../game/campaign/types';
 import { pixelIcon } from './pixel-icons';
 import { interfaceHover } from './interface-hover';
 import { CHATTER, CHATTER_RANGE } from '../content/chatter';
@@ -521,13 +523,22 @@ export class Interface {
         state.discoveries.some((place) => place === id),
       );
     });
+    // Stories waiting to begin nearby are marked where they start, as classic quest icons are.
+    const starts = new Set(
+      STORY_TRACKS.flatMap((track) => {
+        const story = suggestStory(state, track);
+        return story?.status === 'available' && story.local ? [story.target] : [];
+      }),
+    );
     for (const marker of this.root.querySelectorAll<SVGElement>('[data-map-place]')) {
       const id = marker.dataset.mapPlace;
       marker.classList.toggle(
         'map-remembered',
         state.discoveries.some((place) => place === id),
       );
-      marker.classList.toggle('map-target', id === objectiveTarget(state) && !finished);
+      const target = id === objectiveTarget(state) && !finished;
+      marker.classList.toggle('map-target', target);
+      marker.classList.toggle('map-quest-start', !target && !!id && starts.has(id));
     }
     const announcer = this.root.querySelector('#announcer')!;
     const nextObjective = objective(state);
