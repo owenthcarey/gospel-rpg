@@ -38,6 +38,8 @@ import './ui/exploration.css';
 import './ui/presence.css';
 import './ui/osrs.css';
 import { MusicUnlocks } from './audio/unlocks';
+import { emote } from './content/emotes';
+import { heldReturn } from './game/life/objectives';
 import { FRESH_RUN, type RunState } from './game/run';
 import { cueForState } from './content/audio/cues';
 import { musicTracks } from './content/audio/music';
@@ -827,6 +829,17 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'face-north':
       world.faceNorth();
       break;
+    case 'emotes':
+      audio.play('click');
+      ui.toggleEmotes();
+      break;
+    case 'emote': {
+      const chosenEmote = emote(value);
+      if (!chosenEmote) break;
+      if (heldReturn(state) || state.episode.carrying) ui.toast('Your hands are full.', 'warning');
+      else if (!world.emote(chosenEmote.clip)) ui.toast("You can't do that right now.", 'warning');
+      break;
+    }
     case 'run-toggle': {
       audio.play('click');
       const run = world.toggleRun();

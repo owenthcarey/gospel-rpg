@@ -80,6 +80,7 @@ import { explorationAssets } from '../content/inventories';
 import { LifeActivity } from './actors/life';
 import type { ExplorationRegion } from '../game/campaign/types';
 import type { ActionMotion } from '../content/campaign/actions';
+import type { ActorClip } from '../content/assets';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput, type ExplorationInputBinding, type ScreenClick } from './input';
@@ -1852,6 +1853,15 @@ export class World {
   }
   getRoadCompanionPosition(): Point | undefined {
     return this.road?.position();
+  }
+  /** A cosmetic emote: the traveler stops, then plays the gesture once. */
+  emote(clip: ActorClip): boolean {
+    if (this.paused || this.seatedAction || this.travelerBoat) return false;
+    this.stop();
+    this.conversationView?.clear();
+    this.actorPlayer.playOnce(clip);
+    if (this.reducedMotion) this.poseTraveler(false, 0);
+    return true;
   }
   performInteraction(motion?: ActionMotion, target?: string): void {
     if (motion !== 'SitDown') this.clearSeatedAction();

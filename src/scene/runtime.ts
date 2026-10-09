@@ -278,6 +278,9 @@ export class GameRuntime {
     this.callbacks.manualMove?.();
     return this.view.walkTo(point);
   }
+  emote(clip: import('../content/assets').ActorClip): boolean {
+    return this.view instanceof World ? this.view.emote(clip) : false;
+  }
   toggleRun(): RunState | undefined {
     return this.view instanceof World ? this.view.toggleRun() : undefined;
   }

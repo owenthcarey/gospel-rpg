@@ -1286,3 +1286,65 @@
   box-shadow: 0 0 0 1px #292015;
   vertical-align: middle;
 }
+
+/* Emotes: a small stone panel of gestures that leaves the world running. */
+:root #ui .emote-panel {
+  position: absolute;
+  z-index: 6;
+  right: 8px;
+  top: 74px;
+  width: 228px;
+  padding: 6px;
+  background: var(--stone-grain), var(--osrs-stone, #3e3529);
+  border: 2px solid #1f1a13;
+  box-shadow:
+    inset 1px 1px #6b5b44,
+    3px 4px 0 #0007;
+}
+:root #ui .emote-panel[hidden] {
+  display: none;
+}
+:root #ui .emote-title {
+  margin: 0 0 6px;
+  color: #ff981f;
+  font: 700 12px/1.4 var(--font-sans);
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
+}
+:root #ui .emote-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+:root #ui .emote-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 4px 2px;
+  color: #ff981f;
+  background: #2a231b;
+  border: 1px solid #120e09;
+  border-radius: 2px;
+  box-shadow: inset 1px 1px #4b3f2e;
+  font: 12px/1.2 var(--font-sans);
+  text-shadow: 1px 1px 0 #000;
+}
+:root #ui .emote-grid button:hover,
+:root #ui .emote-grid button:focus-visible {
+  color: #ffff00;
+  background: #3a3125;
+}
+:root #ui .emote-grid .pixel-icon {
+  width: 32px;
+  height: 32px;
+}
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root #ui .emote-panel {
+    top: auto;
+    right: 0;
+    bottom: 46px;
+    width: 236px;
+  }
+}

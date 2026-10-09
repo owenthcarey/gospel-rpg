@@ -19,8 +19,15 @@ export const ANIMATION_CLIPS = [
   'Listen',
   'Respond',
 ] as const;
+/** Traveler-only gestures for the Emotes tab. */
+export const EMOTE_CLIPS = ['Wave', 'Bow', 'Cheer', 'Clap'] as const;
 export type ActorClip =
-  (typeof ANIMATION_CLIPS)[number] | 'BenchSit' | 'SitUp' | 'FrameCarry' | 'TouchFrame';
+  | (typeof ANIMATION_CLIPS)[number]
+  | (typeof EMOTE_CLIPS)[number]
+  | 'BenchSit'
+  | 'SitUp'
+  | 'FrameCarry'
+  | 'TouchFrame';
 export const ACTOR_ASSETS = [
   'traveler',
   'simon',
@@ -142,6 +149,7 @@ export const assets: readonly AssetDefinition[] = [
     clips: [
       ...ANIMATION_CLIPS,
       ...(id === 'traveler' || id === 'villager' ? ['BenchSit' as const] : []),
+      ...(id === 'traveler' ? EMOTE_CLIPS : []),
       ...(id === 'young_man'
         ? ['SitUp' as const]
         : id === 'bearer'

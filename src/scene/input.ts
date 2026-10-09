@@ -66,7 +66,9 @@ export function bindExplorationInput(input: ExplorationInput): ExplorationInputB
     // should still control the world there; arrows remain available to the control.
     if (
       control &&
-      ((!control.closest('.camera-controls,.minimap-wrap,.world-label') && !physicalHudControl) ||
+      ((!control.closest('.camera-controls,.minimap-wrap,.world-label') &&
+        !control.closest('.emote-panel') &&
+        !physicalHudControl) ||
         key.startsWith('arrow'))
     )
       return;

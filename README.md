@@ -34,7 +34,7 @@ Pouch observations follow the item into your hands and back to Ruth. New practic
 
 Bench material inspections describe the cord or brace in your hands and at the repaired seat. Channel turns and screen moves retain their actual outcome in Messages. The traveler walks around the bench before sitting, folds the robe across the lap, and retreats facing forward; neighbors at the landing and shared tables start in supported seated poses.
 
-**The Old School frame** gives desktop play the layout of a classic browser RPG. The world fills the screen; the minimap sits flush in the corner with a world map orb and a **run orb**, also beside the phone minimap (running is 1.7 × walking pace and spends energy that recovers as you walk). Game messages scroll in a parchment **chatbox**, the menus are carved **stone tabs** with original pixel icons, and the action under the pointer reads in the top-left corner (_Talk-to Simon / 3 more options_). All interface text uses **Way Pixel**, an original bitmap face built for the game; scripture keeps its calligraphic reading face. Conversations show pixel **chatheads**, satchel items carry classic black outlines, neighbors remark aloud now and then, new scores are announced in the chatbox and listed in Settings, and completing a story unrolls a congratulations scroll with story points. A bobbing yellow arrow marks the tracked destination, the minimap flags it in red and marks stories waiting to begin in blue, chatheads nod as they speak, the story list totals story points, and travel shows _Loading - please wait._ The title, loading screen, quest list colours, Choose Option menu and notices follow the same era. Phones keep their touch layouts. Saves are unchanged.
+**The Old School frame** gives desktop play the layout of a classic browser RPG. The world fills the screen; the minimap sits flush in the corner with a world map orb and a **run orb**, also beside the phone minimap (running is 1.7 × walking pace and spends energy that recovers as you walk). Game messages scroll in a parchment **chatbox**, the menus are carved **stone tabs** with original pixel icons, and the action under the pointer reads in the top-left corner (_Talk-to Simon / 3 more options_). All interface text uses **Way Pixel**, an original bitmap face built for the game; scripture keeps its calligraphic reading face. Conversations show pixel **chatheads**, satchel items carry classic black outlines, neighbors remark aloud now and then, new scores are announced in the chatbox and listed in Settings, and completing a story unrolls a congratulations scroll with story points. An **Emotes** tab lets the traveler wave, bow, cheer, clap, kneel and more. A bobbing yellow arrow marks the tracked destination, the minimap flags it in red and marks stories waiting to begin in blue, chatheads nod as they speak, the story list totals story points, and travel shows _Loading - please wait._ The title, loading screen, quest list colours, Choose Option menu and notices follow the same era. Phones keep their touch layouts. Saves are unchanged.
 
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
@@ -49,25 +49,26 @@ npm run dev
 
 Open the URL printed by Vite. Select **Begin your journey** (a first journey plays a short, skippable opening; **Settings → Watch the opening again** replays it), then speak with **Simon** or select **Follow the path**. After the opening net-and-bread errand, return to Simon to begin **Into the Deep**. Existing completed saves can continue here immediately. Speak with **Ezra** or open the journal for **An ordinary morning**, an independent village story. The episode is unhurried: lake scenes advance when you choose, and can be paused, left and resumed, or finished with a summary.
 
-| Control                                 | Action                                   |
-| --------------------------------------- | ---------------------------------------- |
-| Click/tap ground or water               | Walk or steer around obstacles           |
-| Click/tap minimap                       | Walk or steer to that point              |
-| Minimap compass / LOCAL MAP             | Face north / open local destinations     |
-| Run orb beside the minimap              | Run or walk (energy refills)             |
-| Click a name / choose a map destination | Approach and interact                    |
-| WASD / arrow keys                       | Move relative to the camera              |
-| E                                       | Interact nearby                          |
-| Right click / touch and hold            | Choose an action or Examine              |
-| Shift+F10 on a focused world control    | Open Choose Option with the keyboard     |
-| Middle/right-drag / two fingers         | Orbit                                    |
-| Scroll / pinch / zoom buttons           | Zoom                                     |
-| Q / rotate buttons                      | Rotate                                   |
-| R                                       | Reset camera                             |
-| J / I / M                               | Journal / satchel / map                  |
-| Escape                                  | Pause or close a menu                    |
-| Cancel walk / Cancel course             | Clear the approach and saved destination |
-| Resume route                            | Continue toward the saved destination    |
+| Control                                 | Action                                    |
+| --------------------------------------- | ----------------------------------------- |
+| Click/tap ground or water               | Walk or steer around obstacles            |
+| Click/tap minimap                       | Walk or steer to that point               |
+| Minimap compass / LOCAL MAP             | Face north / open local destinations      |
+| Run orb beside the minimap              | Run or walk (energy refills)              |
+| Emotes tab                              | Wave, bow, cheer, clap and other gestures |
+| Click a name / choose a map destination | Approach and interact                     |
+| WASD / arrow keys                       | Move relative to the camera               |
+| E                                       | Interact nearby                           |
+| Right click / touch and hold            | Choose an action or Examine               |
+| Shift+F10 on a focused world control    | Open Choose Option with the keyboard      |
+| Middle/right-drag / two fingers         | Orbit                                     |
+| Scroll / pinch / zoom buttons           | Zoom                                      |
+| Q / rotate buttons                      | Rotate                                    |
+| R                                       | Reset camera                              |
+| J / I / M                               | Journal / satchel / map                   |
+| Escape                                  | Pause or close a menu                     |
+| Cancel walk / Cancel course             | Clear the approach and saved destination  |
+| Resume route                            | Continue toward the saved destination     |
 
 ## Playable chapters
 
