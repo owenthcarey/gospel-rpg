@@ -226,6 +226,7 @@ export class Interface {
   private minimap: MinimapControls;
   private messageHistory = new MessageHistory();
   private unreadMessages = 0;
+  private storyScrollTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private root: HTMLElement,
@@ -960,6 +961,22 @@ export class Interface {
     const text = above && below ? 'More ↑ ↓' : above ? 'More above ↑' : 'More below ↓';
     if (this.routeScrollCue.textContent !== text) this.routeScrollCue.textContent = text;
   }
+  /** The classic completion scroll: a passing celebration that never takes focus or input. */
+  storyComplete(title: string, points: number): void {
+    this.messageHistory.add(`Congratulations, you've completed a story: ${title}!`, 'memory', true);
+    this.renderChat();
+    this.root.querySelector('.story-scroll')?.remove();
+    const scroll = document.createElement('section');
+    scroll.className = 'story-scroll';
+    scroll.setAttribute('aria-hidden', 'true');
+    scroll.innerHTML = `<div class="story-scroll-roll"></div><div class="story-scroll-sheet"><h2>Congratulations!</h2><p class="story-scroll-lead">You have completed <b>${esc(title)}</b>!</p><div class="story-scroll-body"><span class="story-scroll-art">${icon('scroll')}</span><div><p>You are awarded:</p><ul><li>A memory kept in your journal</li><li>1 Story point</li></ul></div></div><p class="story-scroll-points">Story points: ${points}</p></div><div class="story-scroll-roll"></div>`;
+    this.root.append(scroll);
+    clearTimeout(this.storyScrollTimer);
+    this.storyScrollTimer = setTimeout(() => {
+      scroll.classList.add('leaving');
+      this.storyScrollTimer = setTimeout(() => scroll.remove(), 400);
+    }, 6400);
+  }
   /** The chatbox mirrors recent feedback; Messages keeps the readable, announced history. */
   private renderChat(): void {
     const log = this.root.querySelector<HTMLElement>('.chat-log');
@@ -1108,7 +1125,7 @@ export class Interface {
   welcome(hasSave: boolean, storage: boolean, saved?: GameState): void {
     this.show(
       'welcome',
-      `<div class="welcome-shade"></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand">${logoLockup('title')}</div><p class="eyebrow">Chapter I · Galilee</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore and witness the catch and calling, then follow the lanes, the road to Nain and the lake to a sheltered cove.</p>${saved ? recap(saved, true) : ''}<p class="welcome-copy secondary">Walk the shore. Meet its people. Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">Four Gospel chapters: Luke 5:1–11, Mark 2:1–12, Luke 7:11–17 and Mark 4:35–41. Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
+      `<div class="welcome-shade"></div><div class="welcome-crest" aria-hidden="true"><span class="crest-torch"></span>${logoLockup('title')}<span class="crest-torch"></span></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand">${logoLockup('title')}</div><p class="eyebrow">Chapter I · Galilee</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore and witness the catch and calling, then follow the lanes, the road to Nain and the lake to a sheltered cove.</p>${saved ? recap(saved, true) : ''}<p class="welcome-copy secondary">Walk the shore. Meet its people. Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">Four Gospel chapters: Luke 5:1–11, Mark 2:1–12, Luke 7:11–17 and Mark 4:35–41. Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
     );
   }
   private panelShell(

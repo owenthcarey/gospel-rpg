@@ -192,11 +192,6 @@ export class InteractionFeedback {
     this.hoverView = this.captureView();
     this.input.canvas.style.cursor = 'pointer';
     this.describe(this.hint, place);
-    // Choose Option also offers walking, examining and cancelling.
-    const more = document.createElement('span');
-    more.className = 'world-option-more';
-    more.textContent = ' / 3 more options';
-    this.hint.append(more);
     this.hint.hidden = false;
     this.position(this.hint, e.clientX + 16, e.clientY + 18);
   };

@@ -5,15 +5,17 @@ interface GameMessage {
   text: string;
   kind: ToastKind;
   count: number;
+  /** Chatbox-only lines, such as celebrations, that repeat feedback already given. */
+  chatOnly?: boolean;
 }
 
 /** Session feedback stays available after its toast fades, without changing a saved journey. */
 export class MessageHistory {
   private entries: GameMessage[] = [];
-  add(text: string, kind: ToastKind): void {
+  add(text: string, kind: ToastKind, chatOnly = false): void {
     const previous = this.entries.at(-1);
     if (previous?.text === text && previous.kind === kind) previous.count++;
-    else this.entries.push({ text, kind, count: 1 });
+    else this.entries.push({ text, kind, count: 1, chatOnly });
     if (this.entries.length > 40) this.entries.shift();
   }
   /** The chatbox's newest lines, oldest first, as the classic game log reads. */
@@ -22,14 +24,15 @@ export class MessageHistory {
       .slice(-limit)
       .map(
         (entry) =>
-          `<li data-kind="${entry.kind}">${escapeHtml(entry.text)}${entry.count > 1 ? ` <span class="chat-repeat">(×${entry.count})</span>` : ''}</li>`,
+          `<li data-kind="${entry.kind}"${entry.chatOnly ? ' data-chat="celebration"' : ''}>${escapeHtml(entry.text)}${entry.count > 1 ? ` <span class="chat-repeat">(×${entry.count})</span>` : ''}</li>`,
       )
       .join('');
   }
   view(): string {
+    const entries = this.entries.filter((entry) => !entry.chatOnly);
     return `<section class="message-history" aria-label="Recent game messages"><p class="message-history-note">Messages from this play session. Newest first.</p>${
-      this.entries.length
-        ? `<ol class="message-list">${[...this.entries]
+      entries.length
+        ? `<ol class="message-list">${entries
             .reverse()
             .map(
               (entry) =>

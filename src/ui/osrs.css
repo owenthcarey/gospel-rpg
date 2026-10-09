@@ -361,3 +361,328 @@
 :root #ui .dialogue-choices button:focus-visible .choice-index {
   color: #ffff00;
 }
+
+/* Title: a crest between two burning torches over a black login box. */
+
+:root {
+  --torch-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 22' shape-rendering='crispEdges'%3E%3Crect x='3' y='0' width='1' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='1' width='3' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='2' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='3' width='5' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='4' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='5' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='6' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='7' width='5' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='8' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='9' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='3' y='3' width='2' height='1' fill='%23ffc83a'/%3E%3Crect x='2' y='4' width='3' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='5' width='3' height='1' fill='%23ffc83a'/%3E%3Crect x='2' y='6' width='4' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='7' width='3' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='8' width='2' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='6' width='2' height='1' fill='%23fff4c2'/%3E%3Crect x='3' y='7' width='2' height='1' fill='%23fff4c2'/%3E%3Crect x='1' y='10' width='6' height='1' fill='%233a2a1a'/%3E%3Crect x='1' y='11' width='6' height='1' fill='%233a2a1a'/%3E%3Crect x='2' y='12' width='4' height='1' fill='%233a2a1a'/%3E%3Crect x='1' y='11' width='6' height='1' fill='%238f6b38'/%3E%3Crect x='3' y='13' width='2' height='9' fill='%235a3a1e'/%3E%3Crect x='3' y='13' width='1' height='9' fill='%237b5531'/%3E%3C/svg%3E");
+  --torch-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 22' shape-rendering='crispEdges'%3E%3Crect x='4' y='0' width='1' height='1' fill='%23d4561a'/%3E%3Crect x='3' y='1' width='2' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='2' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='3' width='5' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='4' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='5' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='6' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='7' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='8' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='9' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='3' width='2' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='4' width='3' height='1' fill='%23ffc83a'/%3E%3Crect x='2' y='5' width='4' height='1' fill='%23ffc83a'/%3E%3Crect x='2' y='6' width='4' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='7' width='3' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='8' width='2' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='6' width='2' height='1' fill='%23fff4c2'/%3E%3Crect x='4' y='7' width='1' height='1' fill='%23fff4c2'/%3E%3Crect x='1' y='10' width='6' height='1' fill='%233a2a1a'/%3E%3Crect x='1' y='11' width='6' height='1' fill='%233a2a1a'/%3E%3Crect x='2' y='12' width='4' height='1' fill='%233a2a1a'/%3E%3Crect x='1' y='11' width='6' height='1' fill='%238f6b38'/%3E%3Crect x='3' y='13' width='2' height='9' fill='%235a3a1e'/%3E%3Crect x='3' y='13' width='1' height='9' fill='%237b5531'/%3E%3C/svg%3E");
+  --torch-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 22' shape-rendering='crispEdges'%3E%3Crect x='2' y='1' width='1' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='2' width='3' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='3' width='5' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='4' width='5' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='5' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='1' y='6' width='6' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='7' width='5' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='8' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='9' width='4' height='1' fill='%23d4561a'/%3E%3Crect x='2' y='3' width='2' height='1' fill='%23ffc83a'/%3E%3Crect x='2' y='4' width='3' height='1' fill='%23ffc83a'/%3E%3Crect x='2' y='5' width='4' height='1' fill='%23ffc83a'/%3E%3Crect x='2' y='6' width='4' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='7' width='3' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='8' width='2' height='1' fill='%23ffc83a'/%3E%3Crect x='3' y='6' width='2' height='1' fill='%23fff4c2'/%3E%3Crect x='3' y='7' width='1' height='1' fill='%23fff4c2'/%3E%3Crect x='1' y='10' width='6' height='1' fill='%233a2a1a'/%3E%3Crect x='1' y='11' width='6' height='1' fill='%233a2a1a'/%3E%3Crect x='2' y='12' width='4' height='1' fill='%233a2a1a'/%3E%3Crect x='1' y='11' width='6' height='1' fill='%238f6b38'/%3E%3Crect x='3' y='13' width='2' height='9' fill='%235a3a1e'/%3E%3Crect x='3' y='13' width='1' height='9' fill='%237b5531'/%3E%3C/svg%3E");
+}
+:root .welcome-crest {
+  display: none;
+}
+@keyframes torch-flicker {
+  0%,
+  100% {
+    background-image: var(--torch-a);
+  }
+  33% {
+    background-image: var(--torch-b);
+  }
+  66% {
+    background-image: var(--torch-c);
+  }
+}
+@media (min-width: 1001px) and (min-height: 560px) {
+  :root #ui .welcome-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+  :root #ui .welcome-shade {
+    background: radial-gradient(ellipse at 50% 55%, #0000 30%, #0000008c 100%);
+  }
+  :root #ui .welcome-crest {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex: 0 0 auto;
+  }
+  :root #ui .welcome-crest .logo-mark {
+    width: 64px;
+    height: 64px;
+    color: #f2c84b;
+    filter: drop-shadow(2px 2px 0 #000);
+  }
+  :root #ui .welcome-crest .logo-word {
+    font-size: 54px;
+    color: #f2c84b;
+    letter-spacing: 0;
+    text-shadow:
+      3px 3px 0 #000,
+      0 0 18px #ff9a1f55;
+  }
+  :root #ui .welcome-crest .logo-tag {
+    font-size: 12px;
+    color: #ff981f;
+    letter-spacing: 0.12em;
+    text-shadow: 1px 1px 0 #000;
+  }
+  :root #ui .crest-torch {
+    width: 32px;
+    height: 88px;
+    background: var(--torch-a) center / 100% 100% no-repeat;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 10px #ff8a1f88);
+    animation: torch-flicker 360ms steps(1) infinite;
+  }
+  :root #ui .crest-torch:last-child {
+    animation-delay: -170ms;
+  }
+  :root.reduce-motion #ui .crest-torch {
+    animation: none;
+  }
+
+  :root #ui .welcome-card,
+  :root #ui .welcome-overlay .welcome-card {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    flex: 0 1 auto;
+    width: 452px;
+    max-height: calc(100dvh - 150px);
+    padding: 18px 24px 16px;
+    text-align: center;
+    background: #000000e0;
+    border: 2px solid #3d3326;
+    box-shadow:
+      inset 0 0 0 1px #8c7448,
+      0 0 0 1px #000,
+      3px 4px 0 #0007;
+  }
+  :root #ui .welcome-card > .welcome-brand {
+    display: none;
+  }
+  :root #ui .welcome-card > .eyebrow {
+    color: #ff981f;
+    justify-content: center;
+  }
+  :root #ui .welcome-card h1 {
+    font-family: var(--font-sans);
+    font-size: 24px;
+    line-height: 1.3334;
+    color: #ffff00;
+    text-shadow: 0.0834em 0.0834em 0 #000;
+  }
+  :root #ui .welcome-copy {
+    color: #fff;
+    text-shadow: 1px 1px 0 #000;
+  }
+  :root #ui .welcome-copy.secondary,
+  :root #ui .welcome-meta,
+  :root #ui .welcome-note {
+    color: #c8b78f;
+    justify-content: center;
+  }
+  :root #ui .welcome-card .primary-button {
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    background: var(--stone-grain), linear-gradient(#5d4e39, #3f3426);
+    border: 2px solid #120e09;
+    box-shadow:
+      inset 1px 1px #8c7652,
+      inset -1px -1px #241c12;
+    text-shadow: 0.0834em 0.0834em 0 #000;
+  }
+  :root #ui .welcome-card .primary-button:hover {
+    color: #ffff00;
+    background: var(--stone-grain), linear-gradient(#6b5a41, #4a3d2c);
+  }
+  :root #ui .welcome-card .text-button {
+    color: #ff981f;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  :root #ui .welcome-card .text-button:hover {
+    color: #ffff00;
+  }
+  :root #ui .welcome-location {
+    left: 10px;
+    right: auto;
+    bottom: 10px;
+    background: #000000d0;
+    border: 1px solid #5c4d37;
+    color: #ffff00;
+    text-shadow: 1px 1px 0 #000;
+  }
+  :root #ui .welcome-location small {
+    color: #fff;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root #ui .crest-torch {
+    animation: none;
+  }
+}
+
+/* Loading: the classic black screen with a red progress bar. */
+:root body #loading {
+  background: #000;
+  gap: 0;
+}
+:root #loading .loading-mark {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 8px;
+  color: #f2c84b;
+}
+:root #loading .eyebrow {
+  color: #ff981f;
+  letter-spacing: 0.12em;
+  text-shadow: 1px 1px 0 #000;
+}
+:root #loading h1 {
+  margin: 4px 0 18px;
+  font: 700 36px/1 var(--font-display);
+  color: #f2c84b;
+  text-shadow: 3px 3px 0 #2a1c08;
+  letter-spacing: 0;
+}
+:root #loading-message {
+  order: 1;
+  margin-top: -23px;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+  font: 12px/1 var(--font-sans);
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  pointer-events: none;
+}
+:root #loading .loading-line {
+  order: 0;
+  width: 304px;
+  height: 34px;
+  margin-top: 0;
+  border: 1px solid #8c1111;
+  background: #000;
+}
+:root #loading .loading-line::before {
+  top: 2px;
+  left: 2px;
+  right: auto;
+  bottom: 2px;
+  height: auto;
+  width: 0;
+  background: #8c1111;
+  animation: loading-fill 2.6s steps(26, end) infinite;
+}
+:root #loading .loading-line::after {
+  display: none;
+}
+@keyframes loading-fill {
+  to {
+    width: calc(100% - 4px);
+  }
+}
+:root.reduce-motion #loading .loading-line::before {
+  animation: none;
+  width: calc(60% - 4px);
+}
+
+/* Story complete: a parchment scroll that unrolls over the world and leaves on its own. */
+:root .story-scroll {
+  position: absolute;
+  left: 50%;
+  top: 16%;
+  z-index: 60;
+  width: min(392px, calc(100vw - 24px));
+  transform: translateX(-50%);
+  pointer-events: none;
+  filter: drop-shadow(3px 4px 0 #0008);
+  animation: scroll-unroll 520ms steps(8, end) both;
+}
+:root .story-scroll.leaving {
+  animation: scroll-leave 400ms ease-in both;
+}
+:root .story-scroll-roll {
+  position: relative;
+  z-index: 1;
+  height: 18px;
+  margin: 0 -10px;
+  border: 2px solid #3a2a15;
+  border-radius: 9px;
+  background: linear-gradient(#e2cc98, #b39563 55%, #7e6237);
+}
+:root .story-scroll-sheet {
+  margin: -4px 0;
+  padding: 16px 22px 12px;
+  text-align: center;
+  color: #000;
+  background:
+    linear-gradient(90deg, #00000024, transparent 12%, transparent 88%, #00000024),
+    var(--osrs-parchment);
+  border-left: 2px solid #5b4524;
+  border-right: 2px solid #5b4524;
+  font: 12px/1.5 var(--font-sans);
+}
+:root .story-scroll h2 {
+  margin: 0 0 6px;
+  font: 700 24px/1.2 var(--font-sans);
+  color: #800000;
+}
+:root .story-scroll-lead {
+  margin: 0 0 10px;
+  font-size: 18px;
+  line-height: 1.3334;
+}
+:root .story-scroll-lead b {
+  color: #000080;
+}
+:root .story-scroll-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: left;
+}
+:root .story-scroll-art {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  color: #6b3d0a;
+}
+:root .story-scroll-art .icon {
+  width: 52px;
+  height: 52px;
+}
+:root .story-scroll ul {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  color: #000080;
+}
+:root .story-scroll-points {
+  margin: 12px 0 0;
+  padding-top: 6px;
+  border-top: 1px solid #8f7a55;
+  color: #800000;
+}
+@keyframes scroll-unroll {
+  from {
+    clip-path: inset(45% 0 45% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes scroll-leave {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -12px);
+  }
+}
+:root.reduce-motion .story-scroll,
+:root.reduce-motion .story-scroll.leaving {
+  animation: none;
+}
+:root #ui .chat-log [data-chat='celebration'] {
+  color: #800000;
+}

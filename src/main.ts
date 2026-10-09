@@ -59,7 +59,7 @@ import { ColdOpen, ChapterCard, Veil } from './ui/cinematic';
 import { accountCards, openingCards, OPENING_PROVENANCE, placeLines } from './content/opening';
 import { logoMark } from './ui/logo';
 import { regions } from './content/regions';
-import { trackedChapter } from './content/campaign/chapters';
+import { chapters, storyStatus, trackedChapter } from './content/campaign/chapters';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas')!;
 const loading = document.querySelector<HTMLElement>('#loading')!;
@@ -342,6 +342,15 @@ async function apply(event: GameEvent): Promise<void> {
   if (motion) performInteraction(motion.motion, motion.target);
   const notice = noticeFor(event, previous, state);
   if (notice) ui.toast(notice);
+  // Replays never change progress, so only a real journey can complete a story.
+  const completed = STORY_TRACKS.find(
+    (id) => storyStatus(state, id) === 'complete' && storyStatus(previous, id) !== 'complete',
+  );
+  if (completed && !state.connection.replay)
+    ui.storyComplete(
+      chapters[completed].title,
+      STORY_TRACKS.filter((id) => storyStatus(state, id) === 'complete').length,
+    );
   await enqueueSave();
 }
 function openDialogue(id: string): void {
