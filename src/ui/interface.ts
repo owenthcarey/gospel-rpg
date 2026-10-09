@@ -1493,6 +1493,7 @@ export class Interface {
           : 'Walk to that point; the flag clears when you arrive',
       ],
       ['Compass / LOCAL MAP', 'Face north / open local destinations'],
+      ['Run orb (desktop)', 'Run or walk; energy refills as you walk'],
       [
         'Click / tap a person or object',
         sailing
