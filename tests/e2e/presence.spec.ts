@@ -85,7 +85,7 @@ test('nearby conversations keep identities, motion pause and camera recovery thr
         width: (img as HTMLImageElement).naturalWidth,
       })),
     )
-    // Chatheads render at 96 px and display pixel for pixel at twice that size.
+    // Chatheads render at 96 px; desktop conversation shows them pixel for pixel.
     .toEqual({ loaded: true, width: 96 });
   const time = Number(await canvas.getAttribute('data-conversation-time'));
   await expect
