@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MessageHistory } from '../../src/ui/messages';
+import { MessageHistory, storedChatFilter } from '../../src/ui/messages';
 
 describe('message history and chatbox', () => {
   it('reads the chatbox oldest first and keeps only the newest lines', () => {
@@ -45,5 +45,20 @@ describe('message history and chatbox', () => {
     expect(history.chat(5, 'public')).not.toContain('Move closer');
     // The limit counts only the lines a filter shows.
     expect(history.chat(1, 'public')).toContain('Peace be with you!');
+  });
+
+  it('remembers a chosen chat filter and falls back to All', () => {
+    const storage = (value: string | null) => ({ getItem: () => value });
+    expect(storedChatFilter(storage('public'))).toBe('public');
+    expect(storedChatFilter(storage('game'))).toBe('game');
+    expect(storedChatFilter(storage('trade'))).toBe('all');
+    expect(storedChatFilter(storage(null))).toBe('all');
+    expect(storedChatFilter(undefined)).toBe('all');
+    const refusing = {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+    };
+    expect(storedChatFilter(refusing)).toBe('all');
   });
 });

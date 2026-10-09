@@ -15,6 +15,16 @@ export const CHAT_FILTERS: readonly { id: ChatFilter; label: string }[] = [
   { id: 'game', label: 'Game' },
   { id: 'public', label: 'Public' },
 ];
+export const CHAT_FILTER_KEY = 'the-way:chat-filter';
+/** The chat filter this browser chose last; storage may be absent or refuse access. */
+export function storedChatFilter(storage?: Pick<Storage, 'getItem'>): ChatFilter {
+  try {
+    const value = storage?.getItem(CHAT_FILTER_KEY);
+    return CHAT_FILTERS.find((filter) => filter.id === value)?.id ?? 'all';
+  } catch {
+    return 'all';
+  }
+}
 const SPOKEN = /^(Traveler): (.*)$/;
 const isSpeech = (text: string): boolean => SPOKEN.test(text);
 
