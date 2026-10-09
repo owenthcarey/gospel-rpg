@@ -53,6 +53,8 @@ test('expanded world labels remain steady beside reserved HUD edges', async ({ p
         'box-sizing': 'border-box',
         transform: 'none',
         overflow: 'hidden',
+        // Synthetic bands take their place at once; HUD easing must not open a gap.
+        transition: 'none',
       }))
         band.style.setProperty(key, value, 'important');
     }

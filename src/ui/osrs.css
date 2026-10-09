@@ -1103,3 +1103,11 @@
     filter: saturate(1.2) brightness(0.92) contrast(1.06);
   }
 }
+@media (max-height: 540px) {
+  /* Short screens set each volume value beside its slider, one touch-height row. */
+  :root #ui .audio-control {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+}
