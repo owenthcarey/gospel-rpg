@@ -375,6 +375,15 @@ async function apply(event: GameEvent): Promise<void> {
   if (motion) performInteraction(motion.motion, motion.target);
   const notice = noticeFor(event, previous, state);
   if (notice) ui.toast(notice);
+  // Drops celebrate what was actually gained, never what a notice happens to mention.
+  if (!state.connection.replay) {
+    const memories = state.journal.filter((id) => !previous.journal.includes(id)).length;
+    const items =
+      state.inventory.filter((id) => !previous.inventory.includes(id)).length +
+      Number(!!state.campaign.carrying && state.campaign.carrying !== previous.campaign.carrying) +
+      Number(state.episode.carrying && !previous.episode.carrying);
+    ui.gains(memories, items);
+  }
   if (completed) {
     ui.storyComplete(
       chapters[completed].title,

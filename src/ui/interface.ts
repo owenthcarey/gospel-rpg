@@ -911,8 +911,6 @@ export class Interface {
     // New memories and items flash their tab until it is opened, as tutorial tabs do.
     if (kind === 'memory' && this.panel !== 'journal') this.flashTab('journal', true);
     if (kind === 'item' && this.panel !== 'inventory') this.flashTab('inventory', true);
-    if (kind === 'memory') this.drop('journal', '+1 Memory');
-    if (kind === 'item') this.drop('satchel', '+1 Item');
     this.unreadMessages = Math.min(40, this.unreadMessages + 1);
     this.updateMessageCount();
     clearTimeout(this.toastTimer);
@@ -1168,6 +1166,8 @@ export class Interface {
         entries[(at + step + entries.length) % entries.length]?.focus();
       }
     });
+    // The keyboard's menu key can raise the browser's own menu on keyup over ours.
+    menu.addEventListener('contextmenu', (event) => event.preventDefault());
     // Clicking the title or padding keeps focus on an entry, so Escape and arrows still work.
     menu.addEventListener('mousedown', (event) => {
       if (!(event.target as Element).closest('button')) event.preventDefault();
@@ -1270,6 +1270,11 @@ export class Interface {
       node.style.transform = `translate(${label.x}px,${label.y - anchor.offsetHeight - 2}px) translate(-50%,-100%)`;
     }
   }
+  /** New memories and items, counted from the journey itself, rise as drops. */
+  gains(memories: number, items: number): void {
+    if (memories > 0) this.drop('journal', `+${memories} Memor${memories === 1 ? 'y' : 'ies'}`);
+    if (items > 0) this.drop('satchel', `+${items} Item${items === 1 ? '' : 's'}`);
+  }
   /**
    * Gains float up beside the orbs, as classic experience drops do. Decorative: the notice and
    * chatbox already say the same, so the drop stays out of the accessibility tree.
@@ -1352,14 +1357,19 @@ export class Interface {
   toggleLogout(open = !this.logoutOpen, restoreFocus = false): void {
     this.toggleSide('rest', open, restoreFocus);
   }
+  private musicMarkup = '';
   /** Redraw the Music panel, keeping focus on the track that was chosen. */
   renderMusic(): void {
     const body = this.root?.querySelector<HTMLElement>('.music-panel-body');
     if (!body) return;
+    const markup = musicPanel(this.currentState, this.heardTracks, this.chosenTrack);
+    // Most game events change nothing here; keep the same elements and focus.
+    if (markup === this.musicMarkup && body.childElementCount) return;
+    this.musicMarkup = markup;
     const focused = body.contains(document.activeElement)
-      ? ((document.activeElement as HTMLElement).dataset.value ?? 'area')
+      ? (document.activeElement as HTMLElement).dataset.value
       : undefined;
-    body.innerHTML = musicPanel(this.currentState, this.heardTracks, this.chosenTrack);
+    body.innerHTML = markup;
     if (focused === undefined) return;
     const again =
       body.querySelector<HTMLElement>(`[data-value="${focused}"]`) ??

@@ -24,7 +24,7 @@ export function musicList(
     .join('');
   const areaButton =
     chosen && heard.has(chosen)
-      ? `<button class="text-button music-area" data-action="music-area">Return to area music</button>`
+      ? `<button class="text-button music-area" data-action="music-area" data-value="area">Return to area music</button>`
       : '';
   return { current, list, area: areaButton };
 }
