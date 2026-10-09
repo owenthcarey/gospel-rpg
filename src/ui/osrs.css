@@ -1053,3 +1053,12 @@
 :root #ui .audio-control output {
   line-height: 1;
 }
+
+/* People in the journal carry their chathead, as in the classic contact lists. */
+:root .directory-chathead {
+  float: left;
+  width: 48px;
+  height: 56px;
+  margin: -4px 10px 0 -4px;
+  image-rendering: pixelated;
+}
