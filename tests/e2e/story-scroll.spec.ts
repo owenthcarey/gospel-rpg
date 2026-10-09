@@ -24,6 +24,17 @@ test('completing a story unrolls the congratulations scroll once and adds a chat
     await dialog.getByRole('button', { name: /^1/ }).first().click();
     await settled(page);
   }
+  // Drops leave within two seconds, so record each as it arrives rather than racing it.
+  await page.evaluate(() => {
+    const seen: string[] = [];
+    (window as unknown as { gainDrops: string[] }).gainDrops = seen;
+    new MutationObserver((records) => {
+      for (const record of records)
+        for (const node of record.addedNodes)
+          if (node instanceof HTMLElement && node.classList.contains('gain-drop'))
+            seen.push(node.textContent ?? '');
+    }).observe(document.querySelector('.gain-drops')!, { childList: true });
+  });
   await dialog.getByRole('button', { name: /Remember this morning/ }).click();
   await settled(page);
 
@@ -33,10 +44,11 @@ test('completing a story unrolls the congratulations scroll once and adds a chat
   await expect(scroll).toContainText('An ordinary morning');
   await expect(scroll).toHaveAttribute('aria-hidden', 'true');
   // Gains rise beside the orbs as classic drops, decorative and gone on their own.
-  const drops = page.locator('.gain-drop');
-  await expect(drops).toHaveText(['+1 Memory', '+1 Story point']);
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { gainDrops: string[] }).gainDrops))
+    .toEqual(['+1 Memory', '+1 Story point']);
   await expect(page.locator('.gain-drops')).toHaveAttribute('aria-hidden', 'true');
-  await expect(drops).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator('.gain-drop')).toHaveCount(0, { timeout: 5_000 });
   // A passing celebration: it never takes focus and leaves on its own.
   expect(await scroll.evaluate((node) => node.contains(document.activeElement))).toBe(false);
   await expect(scroll).toHaveCount(0, { timeout: 10_000 });
