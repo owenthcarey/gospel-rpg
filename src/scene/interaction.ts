@@ -397,13 +397,16 @@ export class InteractionFeedback {
   accepted(kind: 'ground' | 'object', click: ScreenClick) {
     if (this.disposed || this.input.paused()) return;
     if (this.timer) clearTimeout(this.timer);
+    // Restart the cross's shrinking frames when one click follows another.
+    this.flash.hidden = true;
+    void this.flash.offsetWidth;
     this.flash.hidden = false;
     this.flash.dataset.kind = kind;
     this.flash.style.left = click.x + 'px';
     this.flash.style.top = click.y + 'px';
     this.timer = setTimeout(() => {
       this.flash.hidden = true;
-    }, 260);
+    }, 400);
   }
   private close(restore: boolean) {
     const returnToWorld = !this.menu.hidden && restore;

@@ -1,7 +1,7 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
 import { ready, settled, exported, dismiss, visit } from '../helpers/connection-browser';
 
-/** Observe the actual rendered flash during the action; CPU WebGL can outlast its 260 ms lifetime. */
+/** Observe the actual rendered flash during the action; CPU WebGL can outlast its 400 ms lifetime. */
 async function markerDuring(page: Page, action: () => Promise<unknown>, kind: 'ground' | 'object') {
   const flash = page.locator('.world-click-feedback');
   await flash.evaluate((element) => {

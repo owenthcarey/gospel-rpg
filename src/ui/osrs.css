@@ -845,3 +845,10 @@
     filter: brightness(1.15);
   }
 }
+@media (min-width: 1001px) and (min-height: 560px) {
+  /* Practical work docks as a side panel above the stone tabs, which stay in reach. */
+  :root #ui .work-panel {
+    top: 8px;
+    bottom: 50px;
+  }
+}

@@ -111,3 +111,18 @@
   color: #fff;
   font-weight: 400;
 }
+/* The cross closes in four frames, as the classic walk and action markers do. */
+.world-click-feedback:not([hidden]) {
+  animation: click-cross 400ms steps(4, end) both;
+}
+@keyframes click-cross {
+  from {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+}
+.reduce-motion .world-click-feedback:not([hidden]) {
+  animation: none;
+}
