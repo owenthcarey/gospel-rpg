@@ -37,6 +37,9 @@ import './ui/road.css';
 import './ui/exploration.css';
 import './ui/presence.css';
 import './ui/osrs.css';
+import { MusicUnlocks } from './audio/unlocks';
+import { cueForState } from './content/audio/cues';
+import { musicTracks } from './content/audio/music';
 import { leavePresentationEvent } from './game/presentation';
 import { parseStoryCommand, requiresWorldView, requiresWorldEvent } from './game/commands';
 import { motionFor, noticeFor } from './content/notices';
@@ -324,6 +327,20 @@ function performInteraction(motion?: ActionMotion, target?: string): void {
   world?.performInteraction(motion, target);
   audio.motion(motion);
 }
+const musicUnlocks = new MusicUnlocks(
+  (() => {
+    try {
+      return window.localStorage;
+    } catch {
+      return undefined;
+    }
+  })(),
+);
+/** The first time this browser hears a score, the chatbox announces it. */
+function noteMusic(): void {
+  const track = cueForState(state).track;
+  if (musicUnlocks.unlock(track)) ui.musicUnlocked(musicTracks[track].title);
+}
 async function apply(event: GameEvent): Promise<void> {
   if (graphicsLost && requiresWorldEvent(event)) return;
   const previous = state;
@@ -335,6 +352,7 @@ async function apply(event: GameEvent): Promise<void> {
   world?.update(state);
   ui.update(state, event.type === 'track-story');
   audio.update(state);
+  noteMusic();
   presentArrival();
   const feedback = feedbackForEvent(event);
   if (feedback) audio.play(feedback);
@@ -424,6 +442,7 @@ async function begin(saved?: GameState): Promise<void> {
   ui.update(state);
   syncPause();
   audio.update(state);
+  noteMusic();
   audio.set(settings);
   if (isPresenting(state)) ui.focusScene();
   else canvas.focus();

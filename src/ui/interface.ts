@@ -1012,6 +1012,11 @@ export class Interface {
       node.style.transform = `translate(${label.x}px,${label.y - anchor.offsetHeight - 2}px) translate(-50%,-100%)`;
     }
   }
+  /** A score heard for the first time on this device is announced in the chatbox. */
+  musicUnlocked(title: string): void {
+    this.messageHistory.add(`You have unlocked a new music track: ${title}.`, 'memory', true);
+    this.renderChat();
+  }
   /** The classic completion scroll: a passing celebration that never takes focus or input. */
   storyComplete(title: string, points: number): void {
     this.messageHistory.add(`Congratulations, you've completed a story: ${title}!`, 'memory', true);
