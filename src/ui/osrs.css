@@ -1194,3 +1194,25 @@
     font: 12px/1 var(--font-sans);
   }
 }
+
+/* Chatheads nod in two frames while a new line is spoken, then rest. */
+:root #ui .conversation-overlay .speaker-portrait {
+  animation: chathead-talk 300ms steps(2, jump-none) 7;
+}
+@keyframes chathead-talk {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+:root.reduce-motion #ui .speaker-portrait,
+:root #ui [role='dialog']:has(.conversation-motion[aria-pressed='true']) .speaker-portrait {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root #ui .speaker-portrait {
+    animation: none;
+  }
+}
