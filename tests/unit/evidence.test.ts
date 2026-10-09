@@ -54,6 +54,7 @@ describe('permanent review evidence', () => {
     for (const path of [
       'public/assets/models/prop.glb',
       'public/assets/items/bread.webp',
+      'src/ui/fonts/way-pixel-regular.woff2',
       'assets/source/kit.blend',
       'tests/e2e/screenshots/spec/reference.png',
     ])
@@ -65,7 +66,8 @@ describe('permanent review evidence', () => {
     const f = fixture();
     f.put('docs/verification/extra.png', f.bytes);
     f.put('accidental-export.bin', f.bytes);
-    expect(f.check().filter((error) => error.startsWith('Unlisted binary:'))).toHaveLength(2);
+    f.put('src/ui/fonts/nested/face.woff2', f.bytes);
+    expect(f.check().filter((error) => error.startsWith('Unlisted binary:'))).toHaveLength(3);
   });
 
   it('detects both changed content and falsified byte counts', () => {
