@@ -1,5 +1,8 @@
 import type { AnimationGroup } from '@babylonjs/core/Animations/animationGroup';
 import { RUN_SPEED } from '../../game/run';
+
+/** Radians the upper body leans forward at full running pace. */
+const RUN_LEAN = 0.2;
 import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Space } from '@babylonjs/core/Maths/math.axis';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
@@ -48,6 +51,7 @@ export class Actor {
   private lookTarget: Vector3 | null = null;
   private lookYaw = 0;
   private head?: TransformNode | null;
+  private body?: TransformNode | null;
   private feet?: {
     mesh: AbstractMesh;
     points: { x: number; y: number; z: number; joint: number; side: 'left' | 'right' }[];
@@ -157,6 +161,7 @@ export class Actor {
     this.current.goToFrame(this.sampledFrame);
     this.blendPose(dt, still);
     this.applyLook(dt, still);
+    this.applyRunLean(name, still);
     this.locomotionClearance?.apply(this.currentName ?? 'Idle', still, this.performing);
     this.ordinarySample = !still && !this.conversationPose && ['Idle', 'Walk'].includes(name);
   }
@@ -188,6 +193,23 @@ export class Actor {
     }
     this.lookYaw = still ? 0 : this.lookYaw + (desired - this.lookYaw) * (1 - Math.exp(-dt * 5));
     if (Math.abs(this.lookYaw) >= 0.001) this.head.rotate(Vector3.Up(), this.lookYaw, Space.WORLD);
+  }
+  /**
+   * Running leans the upper body into the stride. Walking pace and slower never lean; the
+   * clip rewrites the body each sample, so the lean never accumulates.
+   */
+  private applyRunLean(name: ActorClip, still: boolean): void {
+    if (still || (name !== 'Walk' && name !== 'Carry')) return;
+    const lean = Math.max(0, Math.min(1, (this.strideRate - 1.15) / 0.45)) * RUN_LEAN;
+    if (lean < 0.001) return;
+    if (this.body === undefined) {
+      try {
+        this.body = this.model.socket('body');
+      } catch {
+        this.body = null;
+      }
+    }
+    this.body?.rotate(Vector3.Right(), lean, Space.LOCAL);
   }
   /** Simulation-time transition; exact presentation poses bypass this opt-in exploration blend. */
   private blendPose(dt: number, still: boolean): void {
