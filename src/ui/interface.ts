@@ -474,19 +474,12 @@ export class Interface {
         this.toggleCameraDisclosure();
         return;
       }
-      if (e.key === 'Escape' && this.emotesOpen && !this.panel && !this.root.inert) {
+      const side = (
+        Object.keys(Interface.SIDE_PANELS) as (keyof typeof Interface.SIDE_PANELS)[]
+      ).find((name) => this.sideOpen(name));
+      if (e.key === 'Escape' && side && !this.panel && !this.root.inert) {
         e.preventDefault();
-        this.toggleEmotes(false, true);
-        return;
-      }
-      if (e.key === 'Escape' && this.musicOpen && !this.panel && !this.root.inert) {
-        e.preventDefault();
-        this.toggleMusic(false, true);
-        return;
-      }
-      if (e.key === 'Escape' && this.logoutOpen && !this.panel && !this.root.inert) {
-        e.preventDefault();
-        this.toggleLogout(false, true);
+        this.toggleSide(side, false, true);
         return;
       }
       if (this.panel && this.panel !== 'work') {
@@ -519,11 +512,8 @@ export class Interface {
     const inScene = isPresenting(state);
     const view = presentationState(state);
     this.root.classList.toggle('scene-mode', inScene);
-    if (inScene) {
-      this.toggleEmotes(false);
-      this.toggleMusic(false);
-      this.toggleLogout(false);
-    } else if (this.musicOpen) this.renderMusic();
+    if (inScene) this.closeSidePanels();
+    else if (this.musicOpen) this.renderMusic();
     this.renderCameraDisclosure();
     this.placeNotice();
     this.sceneControls.hidden = !inScene || !this.active;
@@ -1307,54 +1297,60 @@ export class Interface {
     this.soundOn = on;
     this.root.querySelector('.welcome-sound')?.setAttribute('aria-pressed', String(on));
   }
-  get emotesOpen(): boolean {
-    return !this.root.querySelector<HTMLElement>('#emote-panel')?.hidden;
+  /**
+   * The nonmodal side panels of the stone tabs: Emotes, and on desktop Music and Rest. The
+   * world keeps running behind them, and opening one closes the others.
+   */
+  private static readonly SIDE_PANELS = {
+    emotes: { panel: '#emote-panel', tab: 'emotes' },
+    music: { panel: '#music-panel', tab: 'music' },
+    rest: { panel: '#logout-panel', tab: 'logout-panel' },
+  } as const;
+  private sideOpen(name: keyof typeof Interface.SIDE_PANELS): boolean {
+    return !this.root.querySelector<HTMLElement>(Interface.SIDE_PANELS[name].panel)?.hidden;
   }
-  /** The Emotes tab opens a small, nonmodal panel; the world keeps running behind it. */
-  toggleEmotes(open = !this.emotesOpen, restoreFocus = false): void {
-    const panel = this.root.querySelector<HTMLElement>('#emote-panel');
-    const tab = this.root.querySelector<HTMLElement>('.toolbar [data-action="emotes"]');
+  private toggleSide(
+    name: keyof typeof Interface.SIDE_PANELS,
+    open = !this.sideOpen(name),
+    restoreFocus = false,
+  ): void {
+    const { panel: selector, tab: action } = Interface.SIDE_PANELS[name];
+    const panel = this.root.querySelector<HTMLElement>(selector);
+    const tab = this.root.querySelector<HTMLElement>(`.toolbar [data-action="${action}"]`);
     if (!panel || !tab) return;
     if (open) {
-      this.toggleMusic(false);
-      this.toggleLogout(false);
+      for (const other of Object.keys(
+        Interface.SIDE_PANELS,
+      ) as (keyof typeof Interface.SIDE_PANELS)[])
+        if (other !== name) this.toggleSide(other, false);
+      if (name === 'music') this.renderMusic();
     }
     panel.hidden = !open;
     tab.setAttribute('aria-expanded', String(open));
     if (!open && restoreFocus) tab.focus({ preventScroll: true });
+  }
+  /** Menus, scenes and readings close every side panel. */
+  private closeSidePanels(): void {
+    for (const name of Object.keys(Interface.SIDE_PANELS) as (keyof typeof Interface.SIDE_PANELS)[])
+      this.toggleSide(name, false);
+  }
+  get emotesOpen(): boolean {
+    return this.sideOpen('emotes');
+  }
+  toggleEmotes(open = !this.emotesOpen, restoreFocus = false): void {
+    this.toggleSide('emotes', open, restoreFocus);
   }
   get musicOpen(): boolean {
-    return !this.root.querySelector<HTMLElement>('#music-panel')?.hidden;
+    return this.sideOpen('music');
   }
-  /** The desktop Music tab: the classic list of heard scores, nonmodal like Emotes. */
   toggleMusic(open = !this.musicOpen, restoreFocus = false): void {
-    const panel = this.root.querySelector<HTMLElement>('#music-panel');
-    const tab = this.root.querySelector<HTMLElement>('.toolbar [data-action="music"]');
-    if (!panel || !tab) return;
-    if (open) {
-      this.toggleEmotes(false);
-      this.toggleLogout(false);
-      this.renderMusic();
-    }
-    panel.hidden = !open;
-    tab.setAttribute('aria-expanded', String(open));
-    if (!open && restoreFocus) tab.focus({ preventScroll: true });
+    this.toggleSide('music', open, restoreFocus);
   }
   get logoutOpen(): boolean {
-    return !this.root.querySelector<HTMLElement>('#logout-panel')?.hidden;
+    return this.sideOpen('rest');
   }
-  /** The desktop Rest tab: the classic logout, which saves and returns to the title. */
   toggleLogout(open = !this.logoutOpen, restoreFocus = false): void {
-    const panel = this.root.querySelector<HTMLElement>('#logout-panel');
-    const tab = this.root.querySelector<HTMLElement>('.toolbar [data-action="logout-panel"]');
-    if (!panel || !tab) return;
-    if (open) {
-      this.toggleEmotes(false);
-      this.toggleMusic(false);
-    }
-    panel.hidden = !open;
-    tab.setAttribute('aria-expanded', String(open));
-    if (!open && restoreFocus) tab.focus({ preventScroll: true });
+    this.toggleSide('rest', open, restoreFocus);
   }
   /** Redraw the Music panel, keeping focus on the track that was chosen. */
   renderMusic(): void {
@@ -1481,11 +1477,7 @@ export class Interface {
     this.sceneControls.classList.add('reveal-done');
   }
   private show(panel: Panel, content: string, initialFocus = true): void {
-    if (panel !== 'work') {
-      this.toggleEmotes(false);
-      this.toggleMusic(false);
-      this.toggleLogout(false);
-    }
+    if (panel !== 'work') this.closeSidePanels();
     if (!this.panel)
       this.focusBefore =
         document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
