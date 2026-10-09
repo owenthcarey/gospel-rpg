@@ -352,7 +352,8 @@
   font: 700 18px var(--font-sans);
   paint-order: stroke;
   stroke: #c5ae82;
-  stroke-width: 3;
+  /* Wide enough to part the route lines that pass behind a label. */
+  stroke-width: 9;
   stroke-linejoin: round;
 }
 :root .journey-map-legend {
