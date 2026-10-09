@@ -908,3 +908,14 @@
     min-height: 44px;
   }
 }
+@media (min-width: 1001px) and (min-height: 560px) {
+  /* Notices pop up at the top centre, clear of the quest tracker and minimap; the chatbox
+     keeps the same line afterwards. */
+  :root #ui > .toast {
+    top: 8px !important;
+    bottom: auto !important;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(600px, calc(100vw - 600px));
+  }
+}
