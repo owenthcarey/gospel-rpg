@@ -288,11 +288,11 @@ export class Interface {
     this.toastNode.addEventListener('animationend', this.onPausedNoticeLayout);
     this.hudReservations = [
       ...this.hud.querySelectorAll<HTMLElement>(
-        '.topbar,.quest-card,.minimap-wrap,.minimap-compass,.minimap-open,.bottom-center,.traveler-card',
+        '.topbar,.quest-card,.minimap-wrap,.minimap-compass,.minimap-open,.run-orb,.bottom-center,.traveler-card',
       ),
     ].map((node) => ({
       node,
-      lower: node.matches('.bottom-center,.minimap-wrap,.minimap-compass'),
+      lower: node.matches('.bottom-center,.minimap-wrap,.minimap-compass,.run-orb'),
     }));
     this.labels = root.querySelector('#world-labels')!;
     this.overhead = root.querySelector('.overhead-chat')!;
@@ -1523,7 +1523,7 @@ export class Interface {
           : 'Walk to that point; the flag clears when you arrive',
       ],
       ['Compass / LOCAL MAP', 'Face north / open local destinations'],
-      ['Run orb (desktop)', 'Run or walk; energy refills as you walk'],
+      ['Run orb beside the map', 'Run or walk; energy refills as you walk'],
       [
         'Click / tap a person or object',
         sailing
