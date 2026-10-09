@@ -1227,3 +1227,18 @@
     text-align: center;
   }
 }
+
+/* The story list totals completed stories, as the classic quest list totals its points. */
+:root #ui .story-points {
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  color: #ff981f;
+  background: var(--stone-grain), #231b13;
+  border: 2px solid #5a4630;
+  font: 12px/1.5 var(--font-sans);
+  text-shadow: 1px 1px 0 #000;
+}
+:root #ui .story-points strong {
+  color: #ffff00;
+  font-weight: 400;
+}
