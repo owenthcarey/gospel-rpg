@@ -1626,3 +1626,69 @@
     text-align: center;
   }
 }
+
+/* Gains rise beside the orbs, as classic experience drops do; only in the desktop frame. */
+:root #ui .gain-drops {
+  display: none;
+}
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root #ui .gain-drops {
+    position: fixed;
+    top: 150px;
+    right: 196px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    pointer-events: none;
+  }
+  :root #ui .gain-drop {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: #fff;
+    font: 12px/1 var(--font-sans);
+    text-shadow: 1px 1px 0 #000;
+    white-space: nowrap;
+    animation: gain-drop 1.8s linear forwards;
+  }
+  :root #ui .gain-drop .pixel-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+@keyframes gain-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  8% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-110px);
+  }
+}
+/* Reduce motion keeps a still drop that fades away in place. */
+:root.reduce-motion #ui .gain-drop {
+  animation-name: gain-drop-still;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root #ui .gain-drop {
+    animation-name: gain-drop-still;
+  }
+}
+@keyframes gain-drop-still {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
