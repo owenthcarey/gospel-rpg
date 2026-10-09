@@ -1379,6 +1379,8 @@
 :root #ui .item-option-menu {
   position: fixed;
   z-index: 60;
+  /* The HUD layer passes the pointer through; a menu must catch every click it covers. */
+  pointer-events: auto;
 }
 
 /* Map labels read in the light blue of classic water names. */
@@ -1526,6 +1528,8 @@
 @media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   :root #ui .control-hints > .chat-filters {
     display: flex;
+    /* The filters are controls, so they stay bright when the walking hints fade. */
+    opacity: 1;
     flex: 0 0 auto;
     gap: 2px;
     align-self: flex-end;

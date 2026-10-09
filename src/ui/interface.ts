@@ -1143,6 +1143,10 @@ export class Interface {
         entries[(at + step + entries.length) % entries.length]?.focus();
       }
     });
+    // Clicking the title or padding keeps focus on an entry, so Escape and arrows still work.
+    menu.addEventListener('mousedown', (event) => {
+      if (!(event.target as Element).closest('button')) event.preventDefault();
+    });
     host.append(menu);
     const left = Math.max(8, Math.min(x, innerWidth - menu.offsetWidth - 8));
     const top = Math.max(8, Math.min(y, innerHeight - menu.offsetHeight - 8));

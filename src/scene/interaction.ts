@@ -42,9 +42,12 @@ export function examinable(mesh: {
   metadata?: { examine?: string; interactionId?: string; assetId?: string } | null;
   isVisible: boolean;
   isEnabled(): boolean;
+  hasThinInstances?: boolean;
 }): SceneryExamine | undefined {
   if (mesh.metadata?.examine === 'fishing-spot') return FISHING_SPOT_EXAMINE;
-  if (!mesh.isEnabled() || !mesh.isVisible || mesh.metadata?.interactionId) return undefined;
+  // Thin-instanced ground cover would pick as its one base copy, not the plants on screen.
+  if (!mesh.isEnabled() || !mesh.isVisible || mesh.hasThinInstances) return undefined;
+  if (mesh.metadata?.interactionId) return undefined;
   return sceneryExamine(mesh.metadata?.assetId);
 }
 

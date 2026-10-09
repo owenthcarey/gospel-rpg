@@ -51,6 +51,7 @@ const WORLD_COMMANDS = new Set([
   'zoom-out',
   'reset-camera',
   'face-north',
+  'look',
 ]);
 
 /** Physical commands need a visible world; reading and hints remain available during recovery. */

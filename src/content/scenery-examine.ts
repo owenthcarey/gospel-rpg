@@ -51,8 +51,6 @@ export const sceneryExaminations: Readonly<Partial<Record<AssetId, SceneryExamin
   mat_rolled: { name: 'Mat', text: 'A woven mat, rolled up for the day.' },
   oar: { name: 'Oar', text: 'A spare oar.' },
   basket_fish: { name: 'Basket', text: 'A basket of the night’s small catch.' },
-  shrub: { name: 'Bush', text: 'A scrubby bush.' },
-  flowers: { name: 'Flowers', text: 'Wild flowers by the path.' },
 };
 
 /** The examine line for a scenery asset, if it has one. */

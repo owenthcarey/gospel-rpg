@@ -40,6 +40,8 @@ describe('scenery examine', () => {
     expect(examinable(mesh({ assetId: 'boat' }, true, false))).toBeUndefined();
     expect(examinable(mesh({ assetId: 'grass_tuft' }))).toBeUndefined();
     expect(examinable(mesh(null))).toBeUndefined();
+    // Ground cover picks as one base copy at the origin, never the plants on screen.
+    expect(examinable({ ...mesh({ assetId: 'boat' }), hasThinInstances: true })).toBeUndefined();
     // The spot's pick target is never drawn; the bubbles above it are too small to aim at.
     expect(examinable(mesh({ examine: 'fishing-spot' }, false))).toBe(FISHING_SPOT_EXAMINE);
   });

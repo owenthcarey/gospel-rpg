@@ -38,6 +38,15 @@ test('right-clicking the compass offers Look North, East, South and West', async
     await expect(menu).toHaveCount(0);
     await expect.poll(bearing, { timeout: 10_000 }).toBe(expected);
   }
+  // The menu catches its own clicks: its title neither closes it nor walks the traveler.
+  const player = page.locator('#minimap-player');
+  const still = await player.getAttribute('transform');
+  await compass.click({ button: 'right' });
+  await page.locator('.item-option-menu .world-option-title').click();
+  await expect(page.getByRole('menu', { name: 'Choose Option' })).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(player).toHaveAttribute('transform', still!);
+  await page.keyboard.press('Escape');
   // Escape closes the menu and returns focus to the compass.
   await compass.click({ button: 'right' });
   await page.keyboard.press('Escape');
