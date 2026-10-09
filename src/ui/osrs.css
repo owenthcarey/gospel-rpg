@@ -1098,3 +1098,9 @@
     white-space: nowrap;
   }
 }
+@media (min-width: 1001px) and (min-height: 560px) {
+  /* The minimap reads like an overhead render of the ground: deeper and more saturated. */
+  :root #ui .minimap .map-svg {
+    filter: saturate(1.2) brightness(0.92) contrast(1.06);
+  }
+}
