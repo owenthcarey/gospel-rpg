@@ -3,6 +3,11 @@ import { TargetCamera } from '@babylonjs/core/Cameras/targetCamera';
 import type { Point } from '../game/types';
 import type { Interactable } from '../content/region';
 import { examineText } from '../content/examine';
+import {
+  FISHING_SPOT_EXAMINE,
+  sceneryExamine,
+  type SceneryExamine,
+} from '../content/scenery-examine';
 import type { ScreenClick } from './input';
 import { TapGesture } from '../game/gestures';
 import { HoldView } from './hold-view';
@@ -30,6 +35,17 @@ interface InteractionOptions {
   examine?: (place: Interactable) => string;
   notice: (message: string) => void;
   cancelTap: () => void;
+}
+
+/** What ordinary scenery a mesh shows, if any; interactive places keep their own Examine. */
+export function examinable(mesh: {
+  metadata?: { examine?: string; interactionId?: string; assetId?: string } | null;
+  isVisible: boolean;
+  isEnabled(): boolean;
+}): SceneryExamine | undefined {
+  if (mesh.metadata?.examine === 'fishing-spot') return FISHING_SPOT_EXAMINE;
+  if (!mesh.isEnabled() || !mesh.isVisible || mesh.metadata?.interactionId) return undefined;
+  return sceneryExamine(mesh.metadata?.assetId);
 }
 
 /** Action previews and deliberate mouse, keyboard and touch alternatives to the default tap. */
@@ -304,6 +320,16 @@ export class InteractionFeedback {
     if ((!this.hint.hidden || !this.walkHint.hidden) && this.changedView(this.hoverView))
       this.clearHover();
   };
+  /** Scenery is unpickable for speed; a right-click alone looks for something to examine. */
+  private scenery(x: number, y: number, ground?: number): SceneryExamine | undefined {
+    const rect = this.input.canvas.getBoundingClientRect();
+    const hit = this.input.scene.pick(x - rect.left, y - rect.top, (mesh) =>
+      Boolean(examinable(mesh)),
+    );
+    if (!hit?.hit || !hit.pickedMesh || (ground !== undefined && hit.distance > ground + 0.05))
+      return undefined;
+    return examinable(hit.pickedMesh);
+  }
   private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
     const label = this.label(target);
     const pick = this.pick(x, y);
@@ -313,7 +339,8 @@ export class InteractionFeedback {
       !label && pick?.pickedPoint && pick.pickedMesh?.metadata?.ground
         ? { x: pick.pickedPoint.x, z: pick.pickedPoint.z }
         : undefined;
-    if (!place && !ground) return;
+    const scenery = !label && !place ? this.scenery(x, y, ground && pick?.distance) : undefined;
+    if (!place && !ground && !scenery) return;
     this.menu.replaceChildren();
     const heading = document.createElement('div');
     heading.className = 'world-option-title';
@@ -331,19 +358,33 @@ export class InteractionFeedback {
         () => this.input.notice(this.input.examine?.(place) ?? examineText(place)),
         'Examine',
       );
+    else if (scenery)
+      this.option(
+        { name: scenery.name, kind: scenery.name === 'Villager' ? 'person' : 'object' },
+        () => this.input.notice(scenery.text),
+        'Examine',
+      );
     this.option('Cancel', () => {});
     this.menu.hidden = false;
     this.clearHover();
     this.position(this.menu, x, y);
     this.menu.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
   }
-  private describe(node: HTMLElement, place: Interactable, verb = interactionVerb(place.kind)) {
+  private describe(
+    node: HTMLElement,
+    place: Pick<Interactable, 'name' | 'kind'>,
+    verb = interactionVerb(place.kind),
+  ) {
     const name = document.createElement('span');
     name.className = 'world-option-name ' + (place.kind === 'person' ? 'is-person' : 'is-object');
     name.textContent = place.name;
     node.replaceChildren(document.createTextNode(verb + ' '), name);
   }
-  private option(label: string | Interactable, action: () => void, verb?: string) {
+  private option(
+    label: string | Pick<Interactable, 'name' | 'kind'>,
+    action: () => void,
+    verb?: string,
+  ) {
     const button = document.createElement('button');
     button.type = 'button';
     button.setAttribute('role', 'menuitem');

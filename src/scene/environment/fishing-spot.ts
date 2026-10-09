@@ -1,5 +1,6 @@
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { CreateSphere } from '@babylonjs/core/Meshes/Builders/sphereBuilder';
+import { CreateDisc } from '@babylonjs/core/Meshes/Builders/discBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Matrix, Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
@@ -28,6 +29,8 @@ export function bubbleScale(phase: number): number {
  */
 export class FishingSpot {
   readonly mesh: Mesh;
+  /** An undrawn disc over the ripples, so right-click Examine can find the small bubbles. */
+  readonly target: Mesh;
   private matrices = new Float32Array(BUBBLES * 16);
   constructor(
     scene: Scene,
@@ -42,6 +45,12 @@ export class FishingSpot {
     this.mesh.material = material;
     this.mesh.isPickable = false;
     this.mesh.thinInstanceSetBuffer('matrix', this.matrices, 16, false);
+    this.target = CreateDisc('fishing-spot-target', { radius: 0.75, tessellation: 12 }, scene);
+    this.target.rotation.x = Math.PI / 2;
+    this.target.position.set(at.x, y + 0.02, at.z);
+    this.target.isVisible = false;
+    this.target.isPickable = false;
+    this.target.metadata = { examine: 'fishing-spot' };
     this.tick(0, false);
   }
   tick(time: number, reduced: boolean): void {
@@ -67,6 +76,7 @@ export class FishingSpot {
     return { x: this.at.x, z: this.at.z, radius: 0.7, strength: 0.65 };
   }
   dispose(): void {
+    this.target.dispose();
     this.mesh.material?.dispose();
     this.mesh.dispose();
   }
