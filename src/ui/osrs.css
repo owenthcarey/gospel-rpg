@@ -1383,6 +1383,8 @@
 
 /* Map labels read in the light blue of classic water names. */
 :root #ui .lake-label {
+  /* Above the fishing spot's icon, in open water. */
+  top: 30%;
   color: #cfe6f2;
   text-shadow: 1px 1px 0 #0b2233;
 }
@@ -1571,4 +1573,16 @@
   :root #ui .dialogue-choices:not(:has(> button:nth-of-type(2))) .choice-index {
     opacity: 0;
   }
+}
+
+/* Everyday place icons are pictures, not targets: the minimap still walks beneath them. */
+:root #ui .map-icon {
+  pointer-events: none;
+}
+:root #ui .map-legend .legend-icon {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  vertical-align: middle;
+  shape-rendering: crispEdges;
 }

@@ -192,6 +192,9 @@ export function activeInteractables(state: GameState): Interactable[] {
   ];
 }
 
+/** Where fish rise off the Capernaum landing; cosmetic, marked on the minimap. */
+export const FISHING_SPOT: Point = { x: 16, z: -3 };
+
 export const props: Placement[] = [
   { asset: 'market', x: -7, z: 2 },
   { asset: 'boat', x: 10.7, z: 1.4, rotation: 0.25 },

@@ -134,6 +134,12 @@ export class MinimapControls {
       svg.append(flag);
     }
     flag.style.display = target ? '' : 'none';
+    // Place icons turn back against the map, so they stay upright like the flag.
+    for (const glyph of svg.querySelectorAll<SVGGElement>('.map-icon-glyph'))
+      glyph.setAttribute(
+        'transform',
+        `rotate(${(-this.bearing * 180) / Math.PI}) scale(${this.symbolScale})`,
+      );
     if (target) {
       const p = mapPoint(target, bounds);
       // The destination stays planted in the map while its flag remains upright

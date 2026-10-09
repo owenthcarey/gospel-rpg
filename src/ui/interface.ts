@@ -84,6 +84,13 @@ import './fonts.css';
 import './theme.css';
 import { MinimapControls, mapPoint } from './minimap';
 import { capernaumMapScenery } from './map-scenery';
+import {
+  capernaumMapIcons,
+  MAP_ICON_LABELS,
+  mapIconGlyph,
+  mapIconNames,
+  mapIconSwatch,
+} from './map-icons';
 import './satchel-map.css';
 import './classic-reading.css';
 import { CHAT_FILTERS, MessageHistory, type ChatFilter } from './messages';
@@ -1652,7 +1659,7 @@ export class Interface {
           )
           .join(
             '',
-          )}</div></div><div class="map-legend"><span><i class="legend-player" aria-hidden="true"></i> You are here</span><span><i class="legend-person" aria-hidden="true"></i> People</span><span><i class="legend-place" aria-hidden="true"></i> Places</span><span><i class="legend-quest" aria-hidden="true"></i> Story to begin</span><span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
+          )}</div></div><div class="map-legend"><span><i class="legend-player" aria-hidden="true"></i> You are here</span><span><i class="legend-person" aria-hidden="true"></i> People</span><span><i class="legend-place" aria-hidden="true"></i> Places</span><span><i class="legend-quest" aria-hidden="true"></i> Story to begin</span>${state.region === 'capernaum' ? mapIconNames.map((name) => `<span>${mapIconSwatch(name)} ${MAP_ICON_LABELS[name]}</span>`).join('') : ''}<span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
         true,
       ),
     );
@@ -2157,7 +2164,14 @@ export class Interface {
       .map((p) => `L${p}`)
       .join(
         ' ',
-      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/>${capernaumMapScenery()}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
+      )}" fill="none" stroke="#ddd0a0" stroke-width="8"/>${capernaumMapScenery()}${capernaumMapIcons()
+      .map(
+        (i) =>
+          `<g class="map-icon" data-map-icon="${i.name}" transform="translate(${(i.at.x + 24) * 4},${(24 - i.at.z) * 4})"><g class="map-icon-glyph"${large ? ' transform="scale(0.65)"' : ''}>${mapIconGlyph(i.name)}</g></g>`,
+      )
+      .join(
+        '',
+      )}${(state ? activeInteractables(state) : allInteractables).map((p) => `<circle data-map-place="${p.id}" data-map-kind="${p.kind}" class="${state?.discoveries.some((id) => id === p.id) ? 'map-remembered' : ''} ${state && p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'map-target' : ''}" cx="${(p.x + 24) * 4}" cy="${(24 - p.z) * 4}" r="${large ? 2.6 : 2}" fill="#f2dfaa" stroke="#665d43" stroke-width="1"/>`).join('')}<g id="${id}" transform="translate(${((position?.x ?? -1) + 24) * 4},${(24 - (position?.z ?? -3)) * 4})"><circle r="5" fill="#233b36" stroke="#e8d390" stroke-width="1.5"/><path d="m0-3 2 5-2-1-2 1z" fill="#fff1c4"/></g></svg>`;
   }
   dispose(): void {
     this.clearQuestNoticeSpace();

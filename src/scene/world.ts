@@ -94,6 +94,7 @@ import {
 import '@babylonjs/core/Culling/ray';
 import {
   buildings,
+  FISHING_SPOT,
   interactables,
   episodePlaces,
   activeInteractables,
@@ -931,7 +932,7 @@ export class World {
     });
     this.stage.attachWater(this.water);
     // Offshore of the landing, clear of the moored boats.
-    this.fishingSpot = new FishingSpot(this.scene, { x: 16, z: -3 }, -0.18);
+    this.fishingSpot = new FishingSpot(this.scene, FISHING_SPOT, -0.18);
     this.cleanup.push(() => this.fishingSpot?.dispose());
   }
 
