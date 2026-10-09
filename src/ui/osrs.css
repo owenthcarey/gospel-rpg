@@ -1127,12 +1127,6 @@
     color: #ff9040;
   }
 }
-@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
-  /* The minimap reads like an overhead render of the ground: deeper and more saturated. */
-  :root #ui .minimap .map-svg {
-    filter: saturate(1.2) brightness(0.92) contrast(1.06);
-  }
-}
 @media (max-height: 540px) {
   /* Short screens set each volume value beside its slider, one touch-height row. */
   :root #ui .audio-control {
@@ -1385,4 +1379,10 @@
 :root #ui .item-option-menu {
   position: fixed;
   z-index: 60;
+}
+
+/* Map labels read in the light blue of classic water names. */
+:root #ui .lake-label {
+  color: #cfe6f2;
+  text-shadow: 1px 1px 0 #0b2233;
 }

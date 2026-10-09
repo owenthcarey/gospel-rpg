@@ -28,7 +28,7 @@ function houseGlyph(house: Placement): string {
   const wallWidth = (house.asset === 'house_large' ? 4.7 : 3.7) * scale;
   const wallDepth = (house.asset === 'house_large' ? 4 : 3.2) * scale;
   const rotation = ((house.rotation ?? 0) * 180) / Math.PI;
-  return `<g class="map-house" transform="translate(${point.x},${point.y})"><rect class="map-house-footprint" x="${-width / 2}" y="${-depth / 2}" width="${width}" height="${depth}" fill="#74684f"/><g transform="rotate(${rotation})"><rect x="${-wallWidth / 2}" y="${-wallDepth / 2}" width="${wallWidth}" height="${wallDepth}" fill="#96866a" stroke="#dcc99b" stroke-width="0.8"/><path d="M${-wallWidth / 2 + 1.8},${-wallDepth / 2 + 1.8}H${wallWidth / 2 - 1.8}V${wallDepth / 2 - 1.8}H${-wallWidth / 2 + 1.8}Z" fill="#827457" stroke="#aa9978" stroke-width="0.6"/></g></g>`;
+  return `<g class="map-house" transform="translate(${point.x},${point.y})"><rect class="map-house-footprint" x="${-width / 2}" y="${-depth / 2}" width="${width}" height="${depth}" fill="#4c4234"/><g transform="rotate(${rotation})"><rect x="${-wallWidth / 2}" y="${-wallDepth / 2}" width="${wallWidth}" height="${wallDepth}" fill="#6f6250" stroke="#f5f2ea" stroke-width="0.9"/><path d="M${-wallWidth / 2 + 1.8},${-wallDepth / 2 + 1.8}H${wallWidth / 2 - 1.8}V${wallDepth / 2 - 1.8}H${-wallWidth / 2 + 1.8}Z" fill="#5f5444"/></g></g>`;
 }
 
 function treeGlyph(tree: Placement): string {
@@ -41,5 +41,5 @@ function treeGlyph(tree: Placement): string {
       : tree.asset === 'cypress'
         ? '<path d="M0-3 2-2 3 0 2 2 0 3-2 2-3 0-2-2Z"/>'
         : '<path d="M-4-5 1-6 5-3 6 1 3 5-2 6-6 2-6-2Z"/>';
-  return `<g class="map-tree" transform="translate(${point.x},${point.y})"><g transform="scale(${size})" fill="#66734b" stroke="#7f8859" stroke-width="0.6">${crown}</g><rect x="-1.8" y="-1.8" width="3.6" height="3.6" fill="#514733"/></g>`;
+  return `<g class="map-tree" transform="translate(${point.x},${point.y})"><g transform="scale(${size})" fill="#3d6629" stroke="#2c4c1d" stroke-width="0.6">${crown}</g><rect x="-1.8" y="-1.8" width="3.6" height="3.6" fill="#514733"/></g>`;
 }

@@ -2078,10 +2078,10 @@ export class Interface {
       const z = 24 - i * 2;
       return `${(shoreline(z) + 24) * 4},${i * 8}`;
     }).join(' ');
-    return `<svg class="map-svg" viewBox="0 0 192 192" aria-label="Map of Capernaum"><rect width="192" height="192" fill="#87aaa2"/><path d="M0 0H${(shoreline(24) + 24) * 4} ${shorePoints
+    return `<svg class="map-svg" viewBox="0 0 192 192" aria-label="Map of Capernaum"><rect width="192" height="192" fill="#4f7f9a"/><path d="M0 0H${(shoreline(24) + 24) * 4} ${shorePoints
       .split(' ')
       .map((p) => `L${p}`)
-      .join(' ')}H0Z" fill="#b5b080"/><path d="M${(shoreline(24) + 24) * 4} 0 ${shorePoints
+      .join(' ')}H0Z" fill="#6c8a41"/><path d="M${(shoreline(24) + 24) * 4} 0 ${shorePoints
       .split(' ')
       .map((p) => `L${p}`)
       .join(
