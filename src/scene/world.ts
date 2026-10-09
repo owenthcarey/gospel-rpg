@@ -108,6 +108,7 @@ import { distance, findPath, WalkGrid } from '../game/pathfinding';
 import { newGame, type GameState, type Point, type Settings } from '../game/types';
 import { PausedCadence } from './presentation/cadence';
 import { VILLAGE_PATHS } from '../content/terrain';
+import { FRESH_RUN, RUN_SPEED, tickRun, toggleRun, type RunState } from '../game/run';
 
 export interface WorldCallbacks {
   requestNavigate?: (id: string) => void;
@@ -116,6 +117,10 @@ export interface WorldCallbacks {
   roadCheckpoint: (step: number) => void;
   interact: (id: string) => void;
   notice: (message: string) => void;
+  /** Running or its energy changed by a whole point. */
+  run?: (state: RunState) => void;
+  /** The session's running state, carried into each newly loaded region. */
+  runState?: () => RunState;
   frame: (
     point: Point,
     labels: ScreenLabel[],
@@ -220,6 +225,7 @@ export class World {
   private routeDots: Mesh[] = [];
   private strideTime = 0;
   private walkRamp = 0;
+  private run: RunState = FRESH_RUN;
   private pendingRotation = 0;
   private dataCache = new Map<string, string>();
   private cameraReturn?: { from: CameraPose; to: CameraPose; t: number };
@@ -247,6 +253,7 @@ export class World {
     initial: GameState = newGame(),
     quality: Settings['quality'] = 'high',
   ) {
+    this.run = callbacks.runState?.() ?? FRESH_RUN;
     this.state = structuredClone(initial);
     this.layout = campaignLayout(initial.region);
     this.grid = this.layout
@@ -1289,6 +1296,27 @@ export class World {
       });
     }
   }
+  /** Toggle running; an empty store keeps the traveler walking until it refills. */
+  toggleRun(): RunState {
+    this.setRun(toggleRun(this.run ?? FRESH_RUN));
+    return this.run;
+  }
+  private setRun(next: RunState): void {
+    // Test doubles may build a world without its constructor; treat that as a fresh store.
+    const previous = this.run ?? FRESH_RUN;
+    this.run = next;
+    if (next.on !== previous.on || Math.floor(next.energy) !== Math.floor(previous.energy))
+      this.callbacks?.run?.(next);
+  }
+  /** Companion walks keep their shared pace and the lake keeps its rowing pace. */
+  private get runPace(): number {
+    return this.run?.on &&
+      this.state.region !== 'galilee-water' &&
+      this.destination !== 'amos-waypoint' &&
+      this.destination !== 'neri-meeting'
+      ? RUN_SPEED
+      : 1;
+  }
   setPaused(value: boolean): void {
     this.paused = value;
     this.interactionFeedback?.setPaused(value);
@@ -1462,6 +1490,7 @@ export class World {
         Number(this.keys.has('w') || this.keys.has('arrowup')) -
         Number(this.keys.has('s') || this.keys.has('arrowdown'));
       const beforeMove = this.position;
+      const runPace = this.runPace;
       let moving = false;
       if ((dx || dz) && !this.seatedAction) {
         if (this.path.length) this.routeDots.forEach((dot) => dot.setEnabled(false));
@@ -1474,7 +1503,7 @@ export class World {
           .scale(dz)
           .add(right.scale(dx))
           .normalize()
-          .scale(dt * 3.25);
+          .scale(dt * 3.25 * runPace);
         const next = slideStep(this.grid, this.position, { x: movement.x, z: movement.z });
         if (distance(this.position, next) > 0.00001) {
           this.face(next, dt);
@@ -1487,6 +1516,7 @@ export class World {
           this.path,
           dt *
             this.pace(dt) *
+            runPace *
             (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
               ? 0.44
               : 1),
@@ -1514,6 +1544,13 @@ export class World {
         this.position.z,
       );
       const travelSpeed = dt > 0 ? distance(beforeMove, this.position) / dt : 0;
+      this.setRun(
+        tickRun(
+          this.run ?? FRESH_RUN,
+          dt,
+          runPace > 1 && moving ? distance(beforeMove, this.position) : 0,
+        ),
+      );
       // Accepted work is cosmetic: once the traveler actually leaves, resume their
       // walk instead of carrying a stationary work pose along the route.
       if (travelSpeed > 0 && !this.seatedAction && this.actorPlayer.performing)

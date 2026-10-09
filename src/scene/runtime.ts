@@ -1,4 +1,5 @@
 import { presentationState } from '../game/connection/accounts';
+import type { RunState } from '../game/run';
 import { StormRegion } from './regions/storm';
 import { SceneInstrumentation } from '@babylonjs/core/Instrumentation/sceneInstrumentation';
 import { Engine } from '@babylonjs/core/Engines/engine';
@@ -276,6 +277,9 @@ export class GameRuntime {
     if (this.paused || !(this.view instanceof World)) return false;
     this.callbacks.manualMove?.();
     return this.view.walkTo(point);
+  }
+  toggleRun(): RunState | undefined {
+    return this.view instanceof World ? this.view.toggleRun() : undefined;
   }
   faceNorth(): void {
     if (this.view instanceof World) this.view.faceNorth();

@@ -250,7 +250,7 @@ export class Interface {
         <div id="world-labels" class="world-labels" aria-label="People and places"></div><div class="overhead-chat" aria-hidden="true"></div>
         <div class="traveler-card"><ol class="chat-log" aria-hidden="true"></ol><div class="traveler-seal">${icon('person')}</div><div class="traveler-details"><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
         <div class="bottom-center"><div class="hud-actions"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" aria-describedby="unread-message-description" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span><span id="unread-message-description" class="sr-only">No unread game messages</span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
-        <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="8" font-weight="700" font-family="Way Pixel, Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
+        <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="8" font-weight="700" font-family="Way Pixel, Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><button class="run-orb" data-action="run-toggle" aria-pressed="false" aria-label="Run, energy 100%" title="Run"><span class="run-orb-icon" aria-hidden="true"></span><span class="run-orb-energy" aria-hidden="true">100</span></button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
       </div>
       <section id="scene-controls" class="scene-controls" aria-labelledby="scene-title" hidden></section><div id="overlay"></div><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
       <div id="announcer" class="sr-only" aria-live="polite"></div>`;
@@ -975,6 +975,8 @@ export class Interface {
     placed: readonly { id: string; x: number; y: number; visible: boolean }[],
     states: ReadonlyMap<string, LabelState>,
   ): void {
+    // Test doubles may build an interface without its constructor or overhead layer.
+    if (!this.chatter || !this.overhead) return;
     const exploring =
       this.active &&
       !this.panel &&
@@ -1014,6 +1016,16 @@ export class Interface {
     }
   }
   /** A score heard for the first time on this device is announced in the chatbox. */
+  /** The run orb shows whether the traveler runs and how much energy remains. */
+  setRun(on: boolean, energy: number): void {
+    const orb = this.root.querySelector<HTMLElement>('.run-orb');
+    if (!orb) return;
+    const percent = Math.floor(energy);
+    orb.setAttribute('aria-pressed', String(on));
+    orb.setAttribute('aria-label', `Run, energy ${percent}%`);
+    orb.style.setProperty('--run-energy', String(energy / 100));
+    orb.querySelector('.run-orb-energy')!.textContent = String(percent);
+  }
   setHeardTracks(ids: Iterable<string>): void {
     this.heardTracks = new Set(ids);
   }

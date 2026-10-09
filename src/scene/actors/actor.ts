@@ -1,4 +1,5 @@
 import type { AnimationGroup } from '@babylonjs/core/Animations/animationGroup';
+import { RUN_SPEED } from '../../game/run';
 import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Space } from '@babylonjs/core/Maths/math.axis';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
@@ -544,7 +545,8 @@ export class Actor {
   setStrideSpeed(speed: number): void {
     this.releaseRetainedConversationPose();
     this.ordinarySample = false;
-    this.strideRate = Math.max(0, Math.min(1.5, speed / 3.25));
+    // Running reaches RUN_SPEED times the walk; the cycle keeps pace with the ground.
+    this.strideRate = Math.max(0, Math.min(RUN_SPEED, speed / 3.25));
   }
   /** A normal stopped Carry displays frame zero; its next step starts there too. */
   resetStoppedCarryPhase(requested: ActorClip): void {

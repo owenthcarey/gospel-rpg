@@ -38,6 +38,7 @@ import './ui/exploration.css';
 import './ui/presence.css';
 import './ui/osrs.css';
 import { MusicUnlocks } from './audio/unlocks';
+import { FRESH_RUN, type RunState } from './game/run';
 import { cueForState } from './content/audio/cues';
 import { musicTracks } from './content/audio/music';
 import { leavePresentationEvent } from './game/presentation';
@@ -78,6 +79,7 @@ const volumeSettings: readonly (keyof Settings)[] = [
   'effectsVolume',
 ];
 let world: GameRuntime | undefined;
+let lastRun: RunState = FRESH_RUN;
 let regionLoading = false;
 let scenePaused = false;
 let graphicsLost = false;
@@ -821,6 +823,14 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'face-north':
       world.faceNorth();
       break;
+    case 'run-toggle': {
+      const run = world.toggleRun();
+      if (run) {
+        lastRun = run;
+        ui.setRun(run.on, run.energy);
+      }
+      break;
+    }
     case 'choice': {
       if (!chosen) break;
       // The clicked choice is captured before asynchronous work, never looked up in a later dialogue.
@@ -1157,6 +1167,11 @@ async function boot(): Promise<void> {
     walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
     roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
+    run: (run) => {
+      lastRun = run;
+      ui.setRun(run.on, run.energy);
+    },
+    runState: () => lastRun,
     frame: (position, labels, heading, nearest, destination, walkTarget) => {
       audio.movement(
         position,
