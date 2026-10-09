@@ -5,7 +5,9 @@
    ink (HUD, work) is the :root default; parchment (reading panels) redefines them. */
 :root {
   --font-display: Georgia, 'Times New Roman', serif;
-  --font-serif: 'Alegreya', Georgia, 'Times New Roman', serif;
+  /* Interface text is pixel set; scripture and narration keep the calligraphic reading face. */
+  --font-serif: 'Way Pixel', 'Trebuchet MS', Tahoma, Arial, sans-serif;
+  --font-reading: 'Alegreya', Georgia, 'Times New Roman', serif;
   --font-sans: 'Way Pixel', 'Trebuchet MS', Tahoma, Arial, sans-serif;
 
   --ink-950: #17140f;

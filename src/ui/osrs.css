@@ -749,3 +749,33 @@
 :root #ui.scene-mode .overhead-chat {
   visibility: hidden;
 }
+
+/* Scripture and transcripts read in the calligraphic face, as books do; original narration
+   stays in the interface face so scripture remains distinct. */
+:root #ui .dialogue-text.scripture,
+:root #ui .scene-scripture,
+:root #ui .transcript-beat p:not(.caption-source),
+:root #ui .transcript-beat blockquote,
+:root #ui .home-encounter blockquote,
+:root #ui .road-evidence blockquote,
+:root #ui .summary-account p,
+:root .cold-open-text,
+:root .chapter-card-title,
+:root .veil-title,
+:root .veil-line {
+  font-family: var(--font-reading);
+}
+/* Bitmap faces have no slanted or synthesized weights; keep their pixels square. */
+:root {
+  font-synthesis: none;
+}
+@media (min-width: 1001px) and (min-height: 560px) {
+  /* Scenes keep the chatbox on the floor and their reading panel clear of the tabs. */
+  :root #ui.scene-mode .traveler-card {
+    bottom: 0;
+  }
+  :root #ui .scene-controls {
+    bottom: 50px;
+    max-height: calc(100dvh - 60px);
+  }
+}
