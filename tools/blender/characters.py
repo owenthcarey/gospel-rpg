@@ -244,8 +244,14 @@ def build(names=None, report=None):
     return built
 
 
+# Chatheads render small and display at twice their size, pixel for pixel, with the
+# classic outline, as conversation heads did in browser RPGs of the era.
+PORTRAIT_SIZE = (96, 112)
+
+
 def portraits(names=None):
-    """Render head-and-shoulders portraits from the exported GLBs, not source meshes."""
+    """Render head-and-shoulders chatheads from the exported GLBs, not source meshes."""
+    from item_icons import classic_edge
     prior = bpy.context.window.scene
     review = bpy.data.scenes.new('The Way - RFC-011 portrait review')
     bpy.context.window.scene = review
@@ -256,7 +262,7 @@ def portraits(names=None):
         bg = next(n for n in review.world.node_tree.nodes if n.type == 'BACKGROUND')
         bg.inputs['Color'].default_value = (.56, .6, .58, 1)
         bg.inputs['Strength'].default_value = .7
-        review.render.resolution_x, review.render.resolution_y = 288, 336
+        review.render.resolution_x, review.render.resolution_y = PORTRAIT_SIZE
         review.render.resolution_percentage = 100
         review.render.film_transparent = True
         review.render.image_settings.file_format = 'WEBP'
@@ -299,6 +305,7 @@ def portraits(names=None):
             review.frame_set(1)
             review.render.filepath = str(PORTRAITS / (name + '.webp'))
             bpy.ops.render.render(write_still=True, scene=review.name)
+            classic_edge(PORTRAITS / (name + '.webp'))
             rendered.append(name)
             for obj in imported:
                 obj.hide_render = True

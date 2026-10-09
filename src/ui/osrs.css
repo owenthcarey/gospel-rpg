@@ -852,3 +852,15 @@
     bottom: 50px;
   }
 }
+
+/* Chatheads: the speaker's head rests on the parchment without a frame, pixel for pixel. */
+:root #ui .conversation-overlay .dialogue-portrait,
+:root #ui .context-portrait {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+:root .speaker-portrait {
+  image-rendering: pixelated;
+  object-fit: contain;
+}
