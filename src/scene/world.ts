@@ -110,6 +110,7 @@ import { newGame, type GameState, type Point, type Settings } from '../game/type
 import { PausedCadence } from './presentation/cadence';
 import { VILLAGE_PATHS } from '../content/terrain';
 import { FRESH_RUN, RUN_SPEED, tickRun, toggleRun, type RunState } from '../game/run';
+import { FishingSpot } from './environment/fishing-spot';
 
 export interface WorldCallbacks {
   requestNavigate?: (id: string) => void;
@@ -227,6 +228,7 @@ export class World {
   private strideTime = 0;
   private walkRamp = 0;
   private run: RunState = FRESH_RUN;
+  private fishingSpot?: FishingSpot;
   private pendingRotation = 0;
   private dataCache = new Map<string, string>();
   private cameraReturn?: { from: CameraPose; to: CameraPose; t: number };
@@ -926,6 +928,9 @@ export class World {
       wobble: { amplitude: 1.5, frequency: 0.16 },
     });
     this.stage.attachWater(this.water);
+    // Offshore of the landing, clear of the moored boats.
+    this.fishingSpot = new FishingSpot(this.scene, { x: 16, z: -3 }, -0.18);
+    this.cleanup.push(() => this.fishingSpot?.dispose());
   }
 
   private makePaths(): void {
@@ -1635,7 +1640,11 @@ export class World {
       });
     }
     this.water?.tick(this.time, this.reducedMotion);
-    this.water?.setRipples(this.hullRipples());
+    this.fishingSpot?.tick(this.time, this.reducedMotion);
+    this.water?.setRipples([
+      ...this.hullRipples(),
+      ...(this.fishingSpot ? [this.fishingSpot.ripple()] : []),
+    ]);
     this.actionFeedback?.tick(
       Math.min(elapsed, 0.1),
       this.active && !this.paused,
