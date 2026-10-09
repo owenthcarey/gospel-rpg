@@ -1073,7 +1073,7 @@ export class Interface {
     const log = this.root.querySelector<HTMLElement>('.chat-log');
     if (!log) return;
     log.innerHTML =
-      '<li class="chat-welcome">Welcome to <b>The Way</b>.</li>' + this.messageHistory.chat(7);
+      '<li class="chat-welcome">Welcome to <b>The Way</b>.</li>' + this.messageHistory.chat(40);
     log.scrollTop = log.scrollHeight;
   }
   private updateMessageCount(): void {

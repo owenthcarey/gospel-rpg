@@ -169,14 +169,21 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    justify-content: flex-end;
     min-height: 0;
-    margin: 0;
-    padding: 0;
+    margin: 0 -6px 0 0;
+    padding: 0 6px 0 0;
     list-style: none;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #5c4d37 #a8946a;
     font: 12px/14px var(--font-sans);
     color: #000;
+  }
+  /* Few lines rest at the bottom of the box, as in the classic chat. */
+  :root #ui .chat-log li:first-child {
+    margin-top: auto;
   }
   :root #ui .chat-log li {
     flex: 0 0 auto;
@@ -188,23 +195,15 @@
     font-weight: 400;
     color: #000080;
   }
+  /* Game messages are plain black; only warnings and kept memories stand out. */
   :root #ui .chat-log [data-kind='story'] {
     color: #000;
   }
   :root #ui .chat-log [data-kind='memory'] {
     color: #7a0000;
   }
-  :root #ui .chat-log [data-kind='item'] {
-    color: #00006a;
-  }
-  :root #ui .chat-log [data-kind='place'] {
-    color: #004a00;
-  }
   :root #ui .chat-log [data-kind='warning'] {
     color: #b00000;
-  }
-  :root #ui .chat-log [data-kind='save'] {
-    color: #5a3b00;
   }
   :root #ui .chat-repeat {
     color: #4b3b22;
