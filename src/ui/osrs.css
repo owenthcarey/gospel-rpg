@@ -871,3 +871,40 @@
     line-height: 1.25;
   }
 }
+
+/* Choose Option in its classic colours: grey-brown body, black title bar, white entries
+   that turn yellow under the pointer. */
+:root .world-option-menu {
+  padding: 0 0 2px;
+  background: #5d5447;
+  border: 1px solid #000;
+  box-shadow: none;
+  font-size: 18px;
+}
+:root .world-option-title {
+  padding: 2px 4px 3px;
+  color: #5d5447;
+  background: #000;
+  border: 0;
+  font-weight: 700;
+  text-shadow: none;
+}
+:root .world-option-menu button {
+  min-height: 28px;
+  padding: 2px 4px;
+}
+:root .world-option-menu button:hover,
+:root .world-option-menu button:focus-visible {
+  color: #ffff00;
+  background: transparent;
+  outline: 0;
+}
+:root .world-option-menu button:focus-visible {
+  outline: 1px dotted #fff;
+  outline-offset: -2px;
+}
+@media (pointer: coarse) {
+  :root .world-option-menu button {
+    min-height: 44px;
+  }
+}
