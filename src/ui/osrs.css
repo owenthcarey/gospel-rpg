@@ -847,7 +847,7 @@
 @media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   /* Practical work docks as a side panel above the stone tabs, which stay in reach. */
   :root #ui .work-panel {
-    top: 8px;
+    top: max(8px, calc(8vh - 44px));
     bottom: 50px;
   }
 }
@@ -930,6 +930,8 @@
 
 /* Music list: green for scores heard on this device, red for those still ahead. */
 :root .music-list {
+  /* Contains its visually hidden states inside the scrolling settings body. */
+  position: relative;
   margin: 10px 0 0;
   padding: 6px 8px;
   list-style: none;
@@ -1058,10 +1060,16 @@
   line-height: 1.3334;
 }
 @media (min-width: 480px) and (max-height: 420px) {
-  /* Short landscapes keep welcome copy at the next crisp size, with pixel leading. */
+  /* Short landscapes are phone screens: compact copy stays readable at high density, and
+     the bundled face sets the wordmark so system serifs cannot change the fit. */
   :root #ui .welcome-copy {
-    font-size: 18px;
-    line-height: 1.3334;
+    font-size: 14px;
+    line-height: 1.43;
+  }
+  :root #ui .welcome-brand .logo-word {
+    font-family: var(--font-sans);
+    font-size: 24px;
+    line-height: 1;
   }
   :root #ui .welcome-card h1 {
     font-size: 18px;
@@ -1070,6 +1078,7 @@
     margin-bottom: 0;
     padding-bottom: 2px;
   }
+
   :root #ui .welcome-card > .eyebrow {
     margin-bottom: 2px;
   }
