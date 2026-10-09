@@ -187,9 +187,7 @@
   }
   :root #ui .chat-log li {
     flex: 0 0 auto;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
   }
   :root #ui .chat-log b {
     font-weight: 400;
