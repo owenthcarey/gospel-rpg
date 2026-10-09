@@ -34,6 +34,8 @@ Pouch observations follow the item into your hands and back to Ruth. New practic
 
 Bench material inspections describe the cord or brace in your hands and at the repaired seat. Channel turns and screen moves retain their actual outcome in Messages. The traveler walks around the bench before sitting, folds the robe across the lap, and retreats facing forward; neighbors at the landing and shared tables start in supported seated poses.
 
+**The Old School frame** gives desktop play the layout of a classic browser RPG. The world fills the screen; the minimap sits flush in the corner with a world map orb and a **run orb** (running is 1.7 × walking pace and spends energy that recovers as you walk). Game messages scroll in a parchment **chatbox**, the menus are carved **stone tabs** with original pixel icons, and the action under the pointer reads in the top-left corner (_Talk-to Simon / 3 more options_). All interface text uses **Way Pixel**, an original bitmap face built for the game; scripture keeps its calligraphic reading face. Conversations show pixel **chatheads**, satchel items carry classic black outlines, neighbors remark aloud now and then, new scores are announced in the chatbox and listed in Settings, and completing a story unrolls a congratulations scroll with story points. The title, loading screen, quest list colours, Choose Option menu and notices follow the same era. Phones keep their touch layouts. Saves are unchanged.
+
 Built with **TypeScript · Babylon.js · Vite · Blender · IndexedDB**. Entirely client-side, with no account, backend, analytics, or runtime-generated dialogue.
 
 ## Play locally
@@ -52,6 +54,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | Click/tap ground or water               | Walk or steer around obstacles           |
 | Click/tap minimap                       | Walk or steer to that point              |
 | Minimap compass / LOCAL MAP             | Face north / open local destinations     |
+| Run orb beside the minimap              | Run or walk (energy refills)             |
 | Click a name / choose a map destination | Approach and interact                    |
 | WASD / arrow keys                       | Move relative to the camera              |
 | E                                       | Interact nearby                          |
