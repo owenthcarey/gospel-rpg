@@ -6,6 +6,7 @@ import { newGame, DEFAULT_SETTINGS } from '../../src/game/types';
 import { parseSettings } from '../../src/persistence/schema';
 import { arrange, midi, type Composition } from '../../src/content/audio/score';
 import { feedbackForEvent } from '../../src/content/audio/feedback';
+import { soundEffects } from '../../src/content/audio/effects';
 
 describe('original soundtrack', () => {
   it('ships complete, distinct, playable arrangements with no notes beyond the loop', () => {
@@ -88,6 +89,20 @@ describe('music direction', () => {
     expect(feedbackForEvent({ type: 'storm-next', checkpoint: 'calm' })).toBe('page');
     expect(feedbackForEvent({ type: 'reflect', id: 'trust' })).toBe('complete');
     expect(feedbackForEvent({ type: 'track-story', story: 'main' })).toBeUndefined();
+  });
+
+  it('keeps the story fanfare a short jingle, longer and brighter than a memory chime', () => {
+    const end = (notes: readonly { beat: number; duration: number }[]) =>
+      Math.max(...notes.map((note) => note.beat + note.duration));
+    const fanfare = soundEffects.fanfare;
+    expect(end(fanfare)).toBeGreaterThan(end(soundEffects.complete));
+    // Short enough that the score returns quickly once the scroll unrolls.
+    expect(end(fanfare)).toBeLessThanOrEqual(2.3);
+    expect(fanfare[0]!.beat).toBe(0);
+    for (const note of fanfare) {
+      expect(note.velocity).toBeLessThanOrEqual(0.4);
+      expect(note.pitch).toBeGreaterThanOrEqual(36);
+    }
   });
 });
 

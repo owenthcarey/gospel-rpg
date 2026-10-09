@@ -360,17 +360,19 @@ async function apply(event: GameEvent): Promise<void> {
   audio.update(state);
   noteMusic();
   presentArrival();
-  const feedback = feedbackForEvent(event);
+  // Replays never change progress, so only a real journey can complete a story.
+  const completed = state.connection.replay
+    ? undefined
+    : STORY_TRACKS.find(
+        (id) => storyStatus(state, id) === 'complete' && storyStatus(previous, id) !== 'complete',
+      );
+  const feedback = completed ? 'fanfare' : feedbackForEvent(event);
   if (feedback) audio.play(feedback);
   const motion = motionFor(event, previous, state);
   if (motion) performInteraction(motion.motion, motion.target);
   const notice = noticeFor(event, previous, state);
   if (notice) ui.toast(notice);
-  // Replays never change progress, so only a real journey can complete a story.
-  const completed = STORY_TRACKS.find(
-    (id) => storyStatus(state, id) === 'complete' && storyStatus(previous, id) !== 'complete',
-  );
-  if (completed && !state.connection.replay) {
+  if (completed) {
     ui.storyComplete(
       chapters[completed].title,
       STORY_TRACKS.filter((id) => storyStatus(state, id) === 'complete').length,

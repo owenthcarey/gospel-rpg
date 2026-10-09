@@ -126,6 +126,7 @@ export class GameAudio {
   get manualTrack(): TrackId | undefined {
     return this.manual;
   }
+  private jingleUntil = 0;
   /** Menus/dialogue gently lower the score, without restarting the composition. */
   duck(reading: boolean): void {
     if (reading === this.reading) return;
@@ -142,11 +143,12 @@ export class GameAudio {
       now,
       0.06,
     );
-    this.music?.gain.setTargetAtTime(
-      volume(this.settings.musicVolume) * (this.reading ? 0.62 : 1),
-      now,
-      0.25,
-    );
+    const music = volume(this.settings.musicVolume) * (this.reading ? 0.62 : 1);
+    // A jingle sets the score almost aside while it plays, then lets it return.
+    if (now < this.jingleUntil) {
+      this.music?.gain.setTargetAtTime(music * 0.15, now, 0.08);
+      this.music?.gain.setTargetAtTime(music, this.jingleUntil, 0.5);
+    } else this.music?.gain.setTargetAtTime(music, now, 0.25);
     this.ambience?.gain.setTargetAtTime(volume(this.settings.ambienceVolume), now, 0.15);
     this.effects?.gain.setTargetAtTime(volume(this.settings.effectsVolume), now, 0.08);
   }
@@ -168,6 +170,10 @@ export class GameAudio {
     this.lastEffect.set(effect, now);
     for (const note of soundEffects[effect])
       this.synth?.note(note, now + note.beat, 1, this.effects);
+    if (effect === 'fanfare') {
+      this.jingleUntil = now + 2.3;
+      this.mix();
+    }
   }
   motion(motion?: ActionMotion): void {
     if (motion)
