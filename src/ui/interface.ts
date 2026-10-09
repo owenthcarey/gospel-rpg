@@ -247,6 +247,7 @@ export class Interface {
   private chatter = new ChatterSchedule(CHATTER);
   private heardTracks = new Set<string>();
   private interfaceHintKey = '';
+  private speechUntil = 0;
   /** Lives on the body, like the world-action hint, so it reads above open panels. */
   private interfaceHint = Object.assign(document.createElement('div'), {
     className: 'interface-hint',
@@ -267,8 +268,8 @@ export class Interface {
         <nav class="toolbar" aria-label="Game menus"><button data-action="journal" title="Travel journal (J)">${icon('journal')}${pixelIcon('journal')}<span>Journal</span><kbd>J</kbd></button><button data-action="inventory" title="Satchel (I)">${icon('bag')}${pixelIcon('satchel')}<span>Satchel</span><kbd>I</kbd></button><button data-action="map" title="Local and journey maps (M)">${icon('map')}${pixelIcon('map')}<span>Map</span><kbd>M</kbd></button><button data-action="emotes" title="Emotes" aria-expanded="false" aria-controls="emote-panel">${icon('person')}${pixelIcon('emotes')}<span>Emotes</span></button><span class="toolbar-divider"></span><button class="icon-button" data-action="settings" aria-label="Settings and saves">${icon('settings')}${pixelIcon('settings')}</button></nav></header>
         <aside id="quest-card" class="quest-card" aria-label="Current quest"></aside>
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
-        <div id="world-labels" class="world-labels" aria-label="People and places"></div><div class="overhead-chat" aria-hidden="true"></div><section id="emote-panel" class="emote-panel" aria-label="Emotes" hidden><h2 class="emote-title">Emotes</h2><div class="emote-grid">${EMOTES.map((e) => `<button data-action="emote" data-value="${e.id}">${pixelIcon(e.id as PixelIconName)}<span>${esc(e.label)}</span></button>`).join('')}</div></section>
-        <div class="traveler-card"><ol class="chat-log" aria-hidden="true"></ol><div class="traveler-seal">${icon('person')}</div><div class="traveler-details"><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
+        <div id="world-labels" class="world-labels" aria-label="People and places"></div><div class="overhead-chat" aria-hidden="true"><span class="overhead-line traveler-speech" hidden></span></div><section id="emote-panel" class="emote-panel" aria-label="Emotes" hidden><h2 class="emote-title">Emotes</h2><div class="emote-grid">${EMOTES.map((e) => `<button data-action="emote" data-value="${e.id}">${pixelIcon(e.id as PixelIconName)}<span>${esc(e.label)}</span></button>`).join('')}</div></section>
+        <div class="traveler-card"><ol class="chat-log" aria-hidden="true"></ol><div class="traveler-seal">${icon('person')}</div><div class="traveler-details"><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small><label class="chat-say"><span class="chat-say-name">Traveler:</span><input class="chat-input" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-label="Say something aloud" placeholder="Press Enter to chat"></label></div></div>
         <div class="bottom-center"><div class="hud-actions"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" aria-describedby="unread-message-description" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span><span id="unread-message-description" class="sr-only">No unread game messages</span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
         <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="8" font-weight="700" font-family="Way Pixel, Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><button class="run-orb" data-action="run-toggle" aria-pressed="false" aria-label="Run, energy 100%" title="Run"><span class="run-orb-icon" aria-hidden="true"></span><span class="run-orb-energy" aria-hidden="true">100</span></button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
       </div>
@@ -315,6 +316,19 @@ export class Interface {
     this.labels = root.querySelector('#world-labels')!;
     this.overhead = root.querySelector('.overhead-chat')!;
     this.interfaceHint.setAttribute('aria-hidden', 'true');
+    const chat = root.querySelector<HTMLInputElement>('.chat-input')!;
+    chat.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.say(chat.value);
+        chat.value = '';
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        chat.blur();
+        document.querySelector<HTMLElement>('#game-canvas')?.focus({ preventScroll: true });
+      }
+    });
     document.body.append(this.interfaceHint);
     this.quest = root.querySelector('#quest-card')!;
     this.renderChat();
@@ -659,7 +673,9 @@ export class Interface {
     nearest: string | null,
     destination?: string,
     walkTarget?: Point,
+    head?: { x: number; y: number },
   ): void {
+    this.placeSpeech(head);
     this.activeWalkTarget = this.worldPaused || this.graphicsPaused ? undefined : walkTarget;
     this.renderTravelStatus(destination);
     if (this.lastPosition)
@@ -1097,6 +1113,31 @@ export class Interface {
       hint.append(name);
     }
   };
+  /** Enter from the world moves typing into the chatbox where it is shown. */
+  focusChat(): boolean {
+    const chat = this.root.querySelector<HTMLInputElement>('.chat-input');
+    if (!chat || !chat.offsetParent || this.hud.hidden) return false;
+    chat.focus({ preventScroll: true });
+    return true;
+  }
+  /** The traveler says a line aloud: it joins the chatbox and floats overhead for a while. */
+  say(text: string): void {
+    const line = text.replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!line) return;
+    this.messageHistory.add('Traveler: ' + line, 'story', true);
+    this.renderChat();
+    const speech = this.root.querySelector<HTMLElement>('.traveler-speech');
+    if (!speech) return;
+    speech.textContent = line;
+    this.speechUntil = performance.now() + 4500;
+  }
+  private placeSpeech(head?: { x: number; y: number }): void {
+    const speech = this.root.querySelector<HTMLElement>('.traveler-speech');
+    if (!speech) return;
+    const show = !!head && performance.now() < this.speechUntil && !this.panel;
+    speech.hidden = !show;
+    if (show) speech.style.transform = `translate(${head!.x}px,${head!.y}px) translate(-50%,-100%)`;
+  }
   /** Neighbors nearby remark now and then above their names while the traveler explores. */
   private speakOverhead(
     placed: readonly { id: string; x: number; y: number; visible: boolean }[],
@@ -1660,6 +1701,7 @@ export class Interface {
       ['Run orb beside the map', 'Run or walk; energy refills as you walk'],
       ['Emotes tab', 'Wave, bow, cheer, clap and other gestures'],
       ['1–9 / Space in conversation', 'Choose an answer / continue a single answer'],
+      ['Enter (desktop)', 'Say something aloud in the chatbox; Escape returns to the world'],
       [
         'Click / tap a person or object',
         sailing

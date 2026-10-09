@@ -9,6 +9,14 @@ interface GameMessage {
   chatOnly?: boolean;
 }
 
+/** Spoken lines show the speaker's name in black before their words, as in the classic chat. */
+function speech(text: string): string {
+  const match = /^(Traveler): (.*)$/.exec(text);
+  return match
+    ? `<span class="chat-name">${match[1]}:</span> <span class="chat-said">${escapeHtml(match[2]!)}</span>`
+    : escapeHtml(text);
+}
+
 /** Session feedback stays available after its toast fades, without changing a saved journey. */
 export class MessageHistory {
   private entries: GameMessage[] = [];
@@ -24,7 +32,7 @@ export class MessageHistory {
       .slice(-limit)
       .map(
         (entry) =>
-          `<li data-kind="${entry.kind}"${entry.chatOnly ? ' data-chat="celebration"' : ''}>${escapeHtml(entry.text)}${entry.count > 1 ? ` <span class="chat-repeat">(×${entry.count})</span>` : ''}</li>`,
+          `<li data-kind="${entry.kind}"${entry.chatOnly ? ' data-chat="celebration"' : ''}>${speech(entry.text)}${entry.count > 1 ? ` <span class="chat-repeat">(×${entry.count})</span>` : ''}</li>`,
       )
       .join('');
   }

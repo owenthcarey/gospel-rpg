@@ -130,6 +130,8 @@ export interface WorldCallbacks {
     nearest: string | null,
     destination?: string,
     walkTarget?: Point,
+    /** The traveler's head on screen, for overhead speech. */
+    head?: { x: number; y: number },
   ) => void;
 }
 /** The shared lifecycle of optional exploration controllers. Ticks keep their own inputs. */
@@ -1744,6 +1746,12 @@ export class World {
               p.id === this.destination),
         };
       });
+      const head = Vector3.Project(
+        new Vector3(this.player.position.x, this.player.position.y + 2.18, this.player.position.z),
+        Matrix.Identity(),
+        this.scene.getTransformMatrix(),
+        this.camera.viewport.toGlobal(width, height),
+      );
       this.callbacks.frame(
         this.position,
         labels,
@@ -1751,6 +1759,9 @@ export class World {
         this.nearest()?.id ?? null,
         this.destination,
         this.path.at(-1),
+        head.z > 0 && head.z < 1
+          ? { x: (head.x / width) * rect.width, y: (head.y / height) * rect.height }
+          : undefined,
       );
     }
   }

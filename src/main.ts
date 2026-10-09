@@ -1158,6 +1158,16 @@ const keydown = (event: KeyboardEvent) => {
     return;
   }
   if (!started || ui.panel === 'welcome' || ui.panel === 'dialogue') return;
+  if (
+    key === 'enter' &&
+    !ui.panel &&
+    (event.target === canvas || event.target === document.body) &&
+    !isPresenting(state) &&
+    ui.focusChat()
+  ) {
+    event.preventDefault();
+    return;
+  }
   const shortcuts: Record<string, string> = {
     j: 'journal',
     i: 'inventory',
@@ -1218,7 +1228,7 @@ async function boot(): Promise<void> {
       ui.setRun(run.on, run.energy);
     },
     runState: () => lastRun,
-    frame: (position, labels, heading, nearest, destination, walkTarget) => {
+    frame: (position, labels, heading, nearest, destination, walkTarget, head) => {
       audio.movement(
         position,
         started &&
@@ -1229,7 +1239,7 @@ async function boot(): Promise<void> {
           !isPresenting(state),
       );
       state.position = { ...position };
-      ui.frame(position, labels, heading, nearest, destination, walkTarget);
+      ui.frame(position, labels, heading, nearest, destination, walkTarget, head);
     },
   });
   world.engine.onContextLostObservable.add(() => {

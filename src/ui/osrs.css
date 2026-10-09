@@ -1458,3 +1458,61 @@
     border-color: #c8a85e;
   }
 }
+
+/* Saying something: the chatbox's last line is the traveler's input, as in the classic chat. */
+:root .chat-say {
+  display: none;
+}
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root #ui .traveler-card .traveler-details {
+    align-items: center;
+    gap: 8px;
+  }
+  :root #ui .traveler-card #save-indicator {
+    order: 2;
+    margin-left: auto;
+    flex: 0 1 auto;
+    color: #5a4a2e;
+  }
+  :root #ui .traveler-card #save-indicator::before {
+    content: none;
+  }
+  :root #ui .chat-say {
+    order: 1;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  :root #ui .chat-say-name {
+    color: #000;
+  }
+  :root #ui .chat-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 16px;
+    padding: 0;
+    color: #0000ff;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    box-shadow: none;
+    font: 12px/16px var(--font-sans);
+  }
+  :root #ui .chat-input::placeholder {
+    color: #6b5a3a;
+  }
+  :root #ui .chat-input:focus::placeholder {
+    color: transparent;
+  }
+  :root #ui .chat-input:focus {
+    caret-color: #0000ff;
+  }
+}
+:root #ui .chat-log .chat-name {
+  color: #000;
+}
+:root #ui .chat-log .chat-said {
+  color: #0000ff;
+}
