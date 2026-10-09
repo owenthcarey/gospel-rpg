@@ -262,6 +262,8 @@ function pause(): void {
   inspectionWork = undefined;
   ui.setWorldPaused(true);
   world?.setPaused(true);
+  // The HUD otherwise waits for the slow paused cadence to show where the traveler stopped.
+  world?.flushFrame();
   if (started && !regionLoading) void enqueueSave();
 }
 function syncPause(): void {
@@ -276,6 +278,7 @@ function syncPause(): void {
     (isPresenting(state) && scenePaused);
   ui.setWorldPaused(paused);
   world?.setPaused(paused);
+  if (paused) world?.flushFrame();
 }
 function snapshot(): GameState {
   const current = structuredClone({
@@ -854,6 +857,27 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       audio.play('click');
       ui.toggleMusic();
       break;
+    case 'logout-panel':
+      audio.play('click');
+      ui.toggleLogout();
+      break;
+    case 'logout': {
+      // Resting returns to the title, so it only leaves once the journey is safely stored.
+      if (!saves.persistent) {
+        ui.toast(
+          'This browser cannot keep your journey. Export it from Settings before you rest.',
+          'warning',
+        );
+        break;
+      }
+      try {
+        await enqueueSave('auto', true);
+      } catch {
+        break;
+      }
+      location.reload();
+      break;
+    }
     case 'toggle-sound':
       await updateSetting('sound', !settings.sound);
       ui.setSoundOn(settings.sound);

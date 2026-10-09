@@ -19,6 +19,7 @@ export function interfaceHover(target: Element): { verb: string; item?: string }
     inventory: 'Satchel',
     emotes: 'Emotes',
     music: 'Music',
+    'logout-panel': 'Rest',
     map: control.matches('.minimap-open') ? 'World Map' : 'Map',
     settings: 'Settings',
     'face-north': 'Look North',

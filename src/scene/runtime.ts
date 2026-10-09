@@ -287,6 +287,9 @@ export class GameRuntime {
   toggleRun(): RunState | undefined {
     return this.view instanceof World ? this.view.toggleRun() : undefined;
   }
+  flushFrame(): void {
+    if (this.view instanceof World) this.view.flushFrame();
+  }
   faceNorth(): void {
     if (this.view instanceof World) this.view.faceNorth();
   }

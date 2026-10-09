@@ -1736,3 +1736,37 @@
   margin: 6px auto 0;
   color: #ff981f;
 }
+
+/* The Rest tab is the classic logout door, in the desktop frame only. */
+:root #ui .toolbar .logout-tab {
+  display: none;
+}
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root #ui .toolbar .logout-tab {
+    display: flex;
+    align-items: center;
+  }
+}
+:root #ui .logout-panel .logout-note {
+  margin: 4px 6px 10px;
+  color: #ff981f;
+  font: 12px/1.5 var(--font-sans);
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
+}
+:root #ui .logout-panel .logout-button {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  color: #ff981f;
+  background: linear-gradient(#4a3f30, #362e23);
+  border: 1px solid #191510;
+  border-radius: 2px;
+  box-shadow: inset 1px 1px #7a6849;
+  font: 12px/1 var(--font-sans);
+  text-shadow: 1px 1px 0 #000;
+}
+:root #ui .logout-panel .logout-button:hover,
+:root #ui .logout-panel .logout-button:focus-visible {
+  color: #ffff00;
+}

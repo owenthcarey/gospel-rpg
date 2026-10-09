@@ -1725,71 +1725,75 @@ export class World {
     this.setData('actorFrame', playback.frame.toFixed(2));
     this.setData('actorHeading', String(this.playerModel?.rotation.y ?? Number.NaN));
     this.setData('actionMotion', this.seatedAction ? 'SitDown' : playback.action);
-    if (performance.now() - this.lastFrame > 45) {
-      this.lastFrame = performance.now();
-      const width = this.engine.getRenderWidth(),
-        height = this.engine.getRenderHeight();
-      const rect = this.canvas.getBoundingClientRect();
-      const labels = this.destinations.map((p) => {
-        const hull =
-          p.id === 'board-' + this.state.region && this.mooredBoat?.isEnabled()
-            ? this.mooredBoat.getAbsolutePosition()
-            : undefined;
-        // Keep the standing name clearance above Neri's actual seated head attachment.
-        const seatedHead =
-          p.id === 'neri' &&
-          this.state.road.company.stage === 'complete' &&
-          this.road?.conversationActor.root.isEnabled()
-            ? this.road.conversationActor.model.socket('head').getAbsolutePosition()
-            : undefined;
-        const anchor = seatedHead ?? hull;
-        const v = Vector3.Project(
-          new Vector3(
-            anchor?.x ?? p.x,
-            (anchor?.y ?? groundHeight(this.state.region, p)) +
-              (seatedHead ? 0.78 : p.kind === 'person' ? 2.18 : 1.9),
-            anchor?.z ?? p.z,
-          ),
-          Matrix.Identity(),
-          this.scene.getTransformMatrix(),
-          this.camera.viewport.toGlobal(width, height),
-        );
-        return {
-          id: p.id,
-          x: this.layout
-            ? Math.max(95, Math.min(rect.width - 95, (v.x / width) * rect.width))
-            : (v.x / width) * rect.width,
-          y: (v.y / height) * rect.height,
-          visible:
-            v.z > 0 &&
-            v.z < 1 &&
-            v.x > 0 &&
-            v.x < width &&
-            v.y > 0 &&
-            v.y < height &&
-            (this.guidance === 'full' ||
-              distance(p, this.position) < 5 ||
-              p.id === this.destination),
-        };
-      });
-      const head = Vector3.Project(
-        new Vector3(this.player.position.x, this.player.position.y + 2.18, this.player.position.z),
+    if (performance.now() - this.lastFrame > 45) this.publishFrame();
+  }
+  /** Publish the HUD now, so a pause shows the minimap where the traveler actually stopped. */
+  flushFrame(): void {
+    if (this.active && this.player) this.publishFrame();
+  }
+  /** Hand the HUD this frame's position, labels and heading; every 45 ms while rendering. */
+  private publishFrame(): void {
+    this.lastFrame = performance.now();
+    const width = this.engine.getRenderWidth(),
+      height = this.engine.getRenderHeight();
+    const rect = this.canvas.getBoundingClientRect();
+    const labels = this.destinations.map((p) => {
+      const hull =
+        p.id === 'board-' + this.state.region && this.mooredBoat?.isEnabled()
+          ? this.mooredBoat.getAbsolutePosition()
+          : undefined;
+      // Keep the standing name clearance above Neri's actual seated head attachment.
+      const seatedHead =
+        p.id === 'neri' &&
+        this.state.road.company.stage === 'complete' &&
+        this.road?.conversationActor.root.isEnabled()
+          ? this.road.conversationActor.model.socket('head').getAbsolutePosition()
+          : undefined;
+      const anchor = seatedHead ?? hull;
+      const v = Vector3.Project(
+        new Vector3(
+          anchor?.x ?? p.x,
+          (anchor?.y ?? groundHeight(this.state.region, p)) +
+            (seatedHead ? 0.78 : p.kind === 'person' ? 2.18 : 1.9),
+          anchor?.z ?? p.z,
+        ),
         Matrix.Identity(),
         this.scene.getTransformMatrix(),
         this.camera.viewport.toGlobal(width, height),
       );
-      this.callbacks.frame(
-        this.position,
-        labels,
-        this.camera.alpha,
-        this.nearest()?.id ?? null,
-        this.destination,
-        this.path.at(-1),
-        head.z > 0 && head.z < 1
-          ? { x: (head.x / width) * rect.width, y: (head.y / height) * rect.height }
-          : undefined,
-      );
-    }
+      return {
+        id: p.id,
+        x: this.layout
+          ? Math.max(95, Math.min(rect.width - 95, (v.x / width) * rect.width))
+          : (v.x / width) * rect.width,
+        y: (v.y / height) * rect.height,
+        visible:
+          v.z > 0 &&
+          v.z < 1 &&
+          v.x > 0 &&
+          v.x < width &&
+          v.y > 0 &&
+          v.y < height &&
+          (this.guidance === 'full' || distance(p, this.position) < 5 || p.id === this.destination),
+      };
+    });
+    const head = Vector3.Project(
+      new Vector3(this.player.position.x, this.player.position.y + 2.18, this.player.position.z),
+      Matrix.Identity(),
+      this.scene.getTransformMatrix(),
+      this.camera.viewport.toGlobal(width, height),
+    );
+    this.callbacks.frame(
+      this.position,
+      labels,
+      this.camera.alpha,
+      this.nearest()?.id ?? null,
+      this.destination,
+      this.path.at(-1),
+      head.z > 0 && head.z < 1
+        ? { x: (head.x / width) * rect.width, y: (head.y / height) * rect.height }
+        : undefined,
+    );
   }
   activate(): void {
     this.active = true;
