@@ -1060,12 +1060,14 @@
   image-rendering: pixelated;
 }
 
-/* Interface controls describe themselves in the same corner as world actions. */
+/* Interface controls and open ground describe themselves in the same corner as world
+   actions; outside the classic desktop frame they stay out of view. */
 :root .interface-hint {
   display: none;
 }
 @media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
-  :root #ui .interface-hint:not([hidden]) {
+  :root #ui .interface-hint:not([hidden]),
+  :root .world-walk-hint:not([hidden]) {
     position: fixed;
     left: 5px;
     top: 4px;
@@ -1079,20 +1081,6 @@
   }
   :root #ui .interface-hint-item {
     color: #ff9040;
-  }
-}
-@media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
-  :root .world-walk-hint:not([hidden]) {
-    position: fixed;
-    left: 5px;
-    top: 4px;
-    z-index: 45;
-    display: block;
-    pointer-events: none;
-    color: #fff;
-    font: 700 18px/1.1 var(--font-sans);
-    text-shadow: 0.0834em 0.0834em 0 #000;
-    white-space: nowrap;
   }
 }
 @media (min-width: 1001px) and (min-height: 560px) {
