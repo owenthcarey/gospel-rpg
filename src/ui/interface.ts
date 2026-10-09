@@ -122,6 +122,16 @@ export interface UIActions {
   readingLayout?: (rect?: WorkRect) => void;
 }
 
+/** Stories waiting to begin in this region, by the person or place where each starts. */
+function storyStarts(state: GameState): Set<string> {
+  return new Set(
+    STORY_TRACKS.flatMap((track) => {
+      const story = suggestStory(state, track);
+      return story?.status === 'available' && story.local ? [story.target] : [];
+    }),
+  );
+}
+
 export class Interface {
   panel: Panel = null;
   private overlay: HTMLElement;
@@ -523,13 +533,14 @@ export class Interface {
         state.discoveries.some((place) => place === id),
       );
     });
-    // Stories waiting to begin nearby are marked where they start, as classic quest icons are.
-    const starts = new Set(
-      STORY_TRACKS.flatMap((track) => {
-        const story = suggestStory(state, track);
-        return story?.status === 'available' && story.local ? [story.target] : [];
-      }),
-    );
+    this.markMaps(state, finished);
+    const announcer = this.root.querySelector('#announcer')!;
+    const nextObjective = objective(state);
+    if (announcer.textContent !== nextObjective) announcer.textContent = nextObjective;
+  }
+  /** Map markers share discovery, target and quest-start classes on the radar and local map. */
+  private markMaps(state: GameState, finished = trackedChapter(state).complete(state)): void {
+    const starts = storyStarts(state);
     for (const marker of this.root.querySelectorAll<SVGElement>('[data-map-place]')) {
       const id = marker.dataset.mapPlace;
       marker.classList.toggle(
@@ -540,9 +551,6 @@ export class Interface {
       marker.classList.toggle('map-target', target);
       marker.classList.toggle('map-quest-start', !target && !!id && starts.has(id));
     }
-    const announcer = this.root.querySelector('#announcer')!;
-    const nextObjective = objective(state);
-    if (announcer.textContent !== nextObjective) announcer.textContent = nextObjective;
   }
   private renderCameraDisclosure(): void {
     const compact =
@@ -1463,6 +1471,7 @@ export class Interface {
       );
       return;
     }
+    const starts = storyStarts(state);
     showMap(
       this.panelShell(
         regions[state.region].title,
@@ -1472,14 +1481,15 @@ export class Interface {
         )
           .map(
             (p) =>
-              `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${state.discoveries.some((id) => id === p.id) ? 'Remembered in your journal' : p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'Next stop' : p.role}</small></span>${icon('arrow')}</button>`,
+              `<button data-action="travel" data-value="${p.id}">${icon(p.kind === 'person' ? 'person' : 'pin')}<span>${p.name}<small>${state.discoveries.some((id) => id === p.id) ? 'Remembered in your journal' : p.id === objectiveTarget(state) && !trackedChapter(state).complete(state) ? 'Next stop' : starts.has(p.id) ? 'A story to begin' : p.role}</small></span>${icon('arrow')}</button>`,
           )
           .join(
             '',
-          )}</div></div><div class="map-legend"><span><i class="legend-player" aria-hidden="true"></i> You are here</span><span><i class="legend-person" aria-hidden="true"></i> People</span><span><i class="legend-place" aria-hidden="true"></i> Places</span><span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
+          )}</div></div><div class="map-legend"><span><i class="legend-player" aria-hidden="true"></i> You are here</span><span><i class="legend-person" aria-hidden="true"></i> People</span><span><i class="legend-place" aria-hidden="true"></i> Places</span><span><i class="legend-quest" aria-hidden="true"></i> Story to begin</span><span>${state.region === 'capernaum' ? state.discoveries.length + ' / 3 places remembered' : 'Paths remain open for your return'}</span></div>`,
         true,
       ),
     );
+    this.markMaps(state);
   }
   settings(settings: Settings, slots: SlotSummary[], persistent: boolean, started: boolean): void {
     const wasSettings = this.panel === 'settings';
