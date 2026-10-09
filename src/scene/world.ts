@@ -113,6 +113,15 @@ import { VILLAGE_PATHS } from '../content/terrain';
 import { FRESH_RUN, RUN_SPEED, tickRun, toggleRun, type RunState } from '../game/run';
 import { FishingSpot } from './environment/fishing-spot';
 
+export type CompassPoint = 'north' | 'east' | 'south' | 'west';
+/** Camera orbit angles that look toward each compass point (north is +z, east is +x). */
+export const COMPASS_ALPHA: Readonly<Record<CompassPoint, number>> = {
+  north: -Math.PI / 2,
+  east: Math.PI,
+  south: Math.PI / 2,
+  west: 0,
+};
+
 export interface WorldCallbacks {
   requestNavigate?: (id: string) => void;
   manualMove?: () => void;
@@ -1412,12 +1421,17 @@ export class World {
     this.pendingRotation = 0;
   }
   faceNorth(): void {
+    this.look('north');
+  }
+  /** Turn the camera to look toward a compass point, as the classic compass menu does. */
+  look(direction: CompassPoint): void {
     if (this.workView?.active) return;
     this.finishCameraTransition();
     this.camera.inertialAlphaOffset = 0;
+    const alpha = COMPASS_ALPHA[direction];
     const turn = Math.atan2(
-      Math.sin(-Math.PI / 2 - this.camera.alpha),
-      Math.cos(-Math.PI / 2 - this.camera.alpha),
+      Math.sin(alpha - this.camera.alpha),
+      Math.cos(alpha - this.camera.alpha),
     );
     if (this.reducedMotion) {
       this.pendingRotation = 0;

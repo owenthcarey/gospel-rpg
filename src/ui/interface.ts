@@ -345,6 +345,20 @@ export class Interface {
         if (log) log.scrollTop = log.scrollHeight;
         this.renderChat();
       });
+    const compass = root.querySelector<HTMLElement>('.minimap-compass');
+    compass?.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      this.optionMenu(
+        compass,
+        event.clientX,
+        event.clientY,
+        (['North', 'East', 'South', 'West'] as const).map((direction) => ({
+          verb: 'Look ' + direction,
+          action: () => this.actions.action('look', direction.toLowerCase()),
+        })),
+        root,
+      );
+    });
     document.body.append(this.interfaceHint);
     this.quest = root.querySelector('#quest-card')!;
     this.renderChat();
@@ -1050,7 +1064,19 @@ export class Interface {
   }
   /** A small Choose Option menu for a satchel item; it closes on choice, Escape or elsewhere. */
   private itemMenu(button: HTMLElement, x: number, y: number, onExamine: () => void): void {
-    this.overlay.querySelector('.item-option-menu')?.remove();
+    this.optionMenu(button, x, y, [
+      { verb: 'Examine', item: button.getAttribute('title') ?? '', action: onExamine },
+    ]);
+  }
+  /** The classic Choose Option menu for interface controls, ending with Cancel. */
+  private optionMenu(
+    button: HTMLElement,
+    x: number,
+    y: number,
+    options: readonly { verb: string; item?: string; action: () => void }[],
+    host: HTMLElement = this.overlay,
+  ): void {
+    document.querySelector('.item-option-menu')?.remove();
     const menu = document.createElement('div');
     menu.className = 'world-option-menu item-option-menu';
     menu.setAttribute('role', 'menu');
@@ -1059,7 +1085,6 @@ export class Interface {
     title.className = 'world-option-title';
     title.textContent = 'Choose Option';
     menu.append(title);
-    const name = button.getAttribute('title') ?? '';
     const close = (restore: boolean) => {
       menu.remove();
       document.removeEventListener('pointerdown', outside, true);
@@ -1085,7 +1110,7 @@ export class Interface {
       });
       menu.append(entry);
     };
-    option('Examine', name, onExamine);
+    for (const entry of options) option(entry.verb, entry.item ?? '', entry.action);
     option('Cancel', '', () => {});
     menu.addEventListener('keydown', (event) => {
       const entries = [...menu.querySelectorAll<HTMLButtonElement>('button')];
@@ -1101,7 +1126,7 @@ export class Interface {
         entries[(at + step + entries.length) % entries.length]?.focus();
       }
     });
-    this.overlay.append(menu);
+    host.append(menu);
     const left = Math.max(8, Math.min(x, innerWidth - menu.offsetWidth - 8));
     const top = Math.max(8, Math.min(y, innerHeight - menu.offsetHeight - 8));
     menu.style.left = left + 'px';
@@ -1718,6 +1743,7 @@ export class Interface {
           : 'Walk to that point; the flag clears when you arrive',
       ],
       ['Compass / map orb or LOCAL MAP', 'Face north / open local destinations'],
+      ['Right-click the compass', 'Look north, east, south or west'],
       ['Run orb beside the map', 'Run or walk; energy refills as you walk'],
       ['Emotes tab', 'Wave, bow, cheer, clap and other gestures'],
       ['1–9 / Space in conversation', 'Choose an answer / continue a single answer'],

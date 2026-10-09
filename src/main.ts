@@ -834,6 +834,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'face-north':
       world.faceNorth();
       break;
+    case 'look':
+      if (value === 'north' || value === 'east' || value === 'south' || value === 'west')
+        world.look(value);
+      break;
     case 'music-play':
     case 'music-area': {
       const id = name === 'music-play' ? value : undefined;

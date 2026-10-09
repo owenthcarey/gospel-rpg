@@ -290,6 +290,9 @@ export class GameRuntime {
   faceNorth(): void {
     if (this.view instanceof World) this.view.faceNorth();
   }
+  look(direction: import('./world').CompassPoint): void {
+    if (this.view instanceof World) this.view.look(direction);
+  }
   nearest(): ReturnType<World['nearest']> {
     return isExplorationView(this.view) ? this.view.nearest() : undefined;
   }
