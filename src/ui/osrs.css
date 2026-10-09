@@ -1020,3 +1020,31 @@
     outline: 1px dotted #fff;
   }
 }
+/* The title heading is pixel set at every size. */
+:root #ui .welcome-card h1 {
+  font-family: var(--font-sans);
+  line-height: 1.3334;
+}
+@media (min-width: 480px) and (max-height: 420px) {
+  /* Short landscapes keep welcome copy at the next crisp size, with pixel leading. */
+  :root #ui .welcome-copy {
+    font-size: 18px;
+    line-height: 1.3334;
+  }
+  :root #ui .welcome-card h1 {
+    font-size: 18px;
+  }
+  :root #ui .welcome-brand {
+    margin-bottom: 0;
+    padding-bottom: 2px;
+  }
+  :root #ui .welcome-card > .eyebrow {
+    margin-bottom: 2px;
+  }
+  :root #ui .welcome-copy {
+    margin-top: 4px;
+  }
+  :root #ui .welcome-card .primary-button {
+    margin-top: 6px;
+  }
+}
