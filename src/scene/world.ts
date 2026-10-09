@@ -1874,6 +1874,10 @@ export class World {
     return this.road?.position();
   }
   /** A cosmetic emote: the traveler stops, then plays the gesture once. */
+  /** A burst of sparks over the traveler when a story completes. */
+  fireworks(): void {
+    this.stage.atmosphere.fireworks(this.player.position.add(new Vector3(0, 1.9, 0)));
+  }
   emote(clip: ActorClip): boolean {
     if (this.paused || this.seatedAction || this.travelerBoat) return false;
     this.stop();

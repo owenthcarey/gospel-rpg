@@ -370,11 +370,13 @@ async function apply(event: GameEvent): Promise<void> {
   const completed = STORY_TRACKS.find(
     (id) => storyStatus(state, id) === 'complete' && storyStatus(previous, id) !== 'complete',
   );
-  if (completed && !state.connection.replay)
+  if (completed && !state.connection.replay) {
     ui.storyComplete(
       chapters[completed].title,
       STORY_TRACKS.filter((id) => storyStatus(state, id) === 'complete').length,
     );
+    world?.fireworks();
+  }
   await enqueueSave();
 }
 function openDialogue(id: string): void {

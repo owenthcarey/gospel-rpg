@@ -281,6 +281,9 @@ export class GameRuntime {
   emote(clip: import('../content/assets').ActorClip): boolean {
     return this.view instanceof World ? this.view.emote(clip) : false;
   }
+  fireworks(): void {
+    if (this.view instanceof World) this.view.fireworks();
+  }
   toggleRun(): RunState | undefined {
     return this.view instanceof World ? this.view.toggleRun() : undefined;
   }
