@@ -1093,3 +1093,10 @@
     gap: 6px;
   }
 }
+
+/* Completed journal steps are struck through, as in classic quest journals. */
+:root #ui .episode-objectives .done span,
+:root #ui .company-route .done strong {
+  text-decoration: line-through;
+  text-decoration-thickness: 0.0834em;
+}
