@@ -1110,7 +1110,7 @@
   display: none;
 }
 @media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) and (hover: hover) {
-  :root #ui .interface-hint:not([hidden]),
+  :root .interface-hint:not([hidden]),
   :root .world-walk-hint:not([hidden]) {
     position: fixed;
     left: 5px;
@@ -1123,7 +1123,7 @@
     text-shadow: 0.0834em 0.0834em 0 #000;
     white-space: nowrap;
   }
-  :root #ui .interface-hint-item {
+  :root .interface-hint-item {
     color: #ff9040;
   }
 }
