@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Old School frame and pixel interface · 2026-10-09
+
+The desktop presentation pass (classic frame, Way Pixel, run orb, chatbox, chatheads and classic touches) was reviewed in local production and development builds at 1280×800, 1440×900, 1024×768, 900×900, 844×300, 568×320 and the 390×844 phone layout, including title, loading, conversation, journal, satchel, settings, scenes, the road and the lake. Item sprites and portraits were refinished through Blender MCP with `classic_edge`; the open Blender file was restored to its prior three objects afterwards.
+
+A full local desktop Chromium run of the earliest build found **14 failures**: intentional layout differences (classic orb position, docked hints beside the route ribbon, label bands that assumed a top bar) and genuine regressions (work panel over the stone tabs, quest card collapsing under a top-centre notice, short-screen reading geometry with the larger pixel copy). Each was fixed in product code or, where the layout intentionally changed, the test's geometric premise was updated while keeping its intent. Every affected spec then passed on fresh builds. `graphics-recovery › full inspection…` depends on whether a paused-cadence frame lands between two actions; it fails **2 of 12** runs on `main` on this machine as well and is unchanged here. Unit tests that pass in isolation can exceed the 5-second limit when the machine also runs a browser and Blender. The mobile-chromium project was not run locally.
+
 ## Compact saved-route controls retain their original checks · 2026-10-04
 
 The hosted run at **3fd33e1** passes build, compatibility, continuous play and **211 of 212** browser groups, including all four earlier boat failures. Only group 142 fails: the mobile saved-route case reaches its original **180-second** limit on both attempts, and verify correctly rejects it. Both original traces complete the first **480×320** iteration and its genuine native scroll, then expire during control acquisition in the second **520×300** iteration. All 216 final outcomes, full failed-job log, original report and both native-scroll packets remain retained. These incomplete cases do not establish later viewport results or an exclusive timeout cause.
