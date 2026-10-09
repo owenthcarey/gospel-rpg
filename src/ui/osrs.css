@@ -1100,3 +1100,11 @@
   text-decoration: line-through;
   text-decoration-thickness: 0.0834em;
 }
+
+/* Large reading steps conversation speech up to the next crisp size where there is room. */
+@media (min-width: 1001px) and (min-height: 560px) {
+  :root[data-text-size='large'] #ui .conversation-overlay .dialogue-text:not(.scripture) {
+    font-size: 24px;
+    line-height: 1.25;
+  }
+}
