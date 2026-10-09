@@ -1013,6 +1013,67 @@ export class Interface {
     const text = above && below ? 'More ↑ ↓' : above ? 'More above ↑' : 'More below ↓';
     if (this.routeScrollCue.textContent !== text) this.routeScrollCue.textContent = text;
   }
+  /** A small Choose Option menu for a satchel item; it closes on choice, Escape or elsewhere. */
+  private itemMenu(button: HTMLElement, x: number, y: number, onExamine: () => void): void {
+    this.overlay.querySelector('.item-option-menu')?.remove();
+    const menu = document.createElement('div');
+    menu.className = 'world-option-menu item-option-menu';
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-label', 'Choose Option');
+    const title = document.createElement('div');
+    title.className = 'world-option-title';
+    title.textContent = 'Choose Option';
+    menu.append(title);
+    const name = button.getAttribute('title') ?? '';
+    const close = (restore: boolean) => {
+      menu.remove();
+      document.removeEventListener('pointerdown', outside, true);
+      if (restore && button.isConnected) button.focus({ preventScroll: true });
+    };
+    const outside = (event: PointerEvent) => {
+      if (!menu.contains(event.target as Node)) close(false);
+    };
+    const option = (verb: string, item: string, action: () => void) => {
+      const entry = document.createElement('button');
+      entry.type = 'button';
+      entry.setAttribute('role', 'menuitem');
+      entry.append(document.createTextNode(verb));
+      if (item) {
+        const label = document.createElement('span');
+        label.className = 'world-option-name is-item';
+        label.textContent = ' ' + item;
+        entry.append(label);
+      }
+      entry.addEventListener('click', () => {
+        close(true);
+        action();
+      });
+      menu.append(entry);
+    };
+    option('Examine', name, onExamine);
+    option('Cancel', '', () => {});
+    menu.addEventListener('keydown', (event) => {
+      const entries = [...menu.querySelectorAll<HTMLButtonElement>('button')];
+      const at = entries.indexOf(document.activeElement as HTMLButtonElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        close(true);
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        event.stopPropagation();
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        entries[(at + step + entries.length) % entries.length]?.focus();
+      }
+    });
+    this.overlay.append(menu);
+    const left = Math.max(8, Math.min(x, innerWidth - menu.offsetWidth - 8));
+    const top = Math.max(8, Math.min(y, innerHeight - menu.offsetHeight - 8));
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+    document.addEventListener('pointerdown', outside, true);
+    menu.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
+  }
   /** Classic interface controls describe themselves in the corner, as world actions do. */
   private onInterfaceHover = (e: PointerEvent): void => {
     const hint = this.interfaceHint;
@@ -1443,6 +1504,11 @@ export class Interface {
     };
     for (const [index, button] of buttons.entries()) {
       button.addEventListener('click', () => examine(button));
+      // Right-click offers the item's options, as the classic inventory does.
+      button.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+        this.itemMenu(button, event.clientX, event.clientY, () => examine(button));
+      });
       button.addEventListener('keydown', (event) => {
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
         event.preventDefault();

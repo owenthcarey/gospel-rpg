@@ -1378,3 +1378,11 @@
     min-height: 44px;
   }
 }
+/* Satchel item names read orange, as items do in the classic menus. */
+:root .world-option-name.is-item {
+  color: #ff9040;
+}
+:root #ui .item-option-menu {
+  position: fixed;
+  z-index: 60;
+}
