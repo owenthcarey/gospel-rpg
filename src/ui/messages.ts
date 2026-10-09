@@ -16,6 +16,16 @@ export class MessageHistory {
     else this.entries.push({ text, kind, count: 1 });
     if (this.entries.length > 40) this.entries.shift();
   }
+  /** The chatbox's newest lines, oldest first, as the classic game log reads. */
+  chat(limit: number): string {
+    return this.entries
+      .slice(-limit)
+      .map(
+        (entry) =>
+          `<li data-kind="${entry.kind}">${escapeHtml(entry.text)}${entry.count > 1 ? ` <span class="chat-repeat">(×${entry.count})</span>` : ''}</li>`,
+      )
+      .join('');
+  }
   view(): string {
     return `<section class="message-history" aria-label="Recent game messages"><p class="message-history-note">Messages from this play session. Newest first.</p>${
       this.entries.length

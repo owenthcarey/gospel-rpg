@@ -80,7 +80,7 @@
 }
 .cold-open-eyebrow {
   font:
-    600 13px/1.4 var(--font-display),
+    600 12px/1.4 var(--font-display),
     serif;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -88,7 +88,7 @@
 }
 .cold-open-text {
   font:
-    400 clamp(23px, 2.6vw, 34px) / 1.45 var(--font-serif),
+    400 clamp(24px, 2.6vw, 36px) / 1.45 var(--font-serif),
     serif;
   color: var(--gold-100);
   text-wrap: balance;
@@ -152,7 +152,7 @@
   border: 1px solid rgba(224, 194, 131, 0.4);
   background: rgba(15, 24, 19, 0.6);
   color: var(--gold-100);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
 }
 .cold-open-actions button:hover {
@@ -227,7 +227,7 @@
 }
 .chapter-card-title {
   font:
-    500 clamp(34px, 4.4vw, 56px) / 1.05 var(--font-serif),
+    500 clamp(36px, 4.4vw, 48px) / 1.05 var(--font-serif),
     serif;
   color: var(--gold-100);
   text-shadow: 0 2px 26px rgba(5, 9, 7, 0.85);
@@ -307,7 +307,7 @@
 }
 .veil-eyebrow {
   font:
-    600 11px/1.3 var(--font-display),
+    600 12px/1.3 var(--font-display),
     serif;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -315,7 +315,7 @@
 }
 .veil-title {
   font:
-    500 clamp(32px, 4vw, 48px) / 1.05 var(--font-serif),
+    500 clamp(30px, 4vw, 48px) / 1.05 var(--font-serif),
     serif;
   color: var(--gold-100);
 }
@@ -378,7 +378,7 @@
     height: 6vh;
   }
   .cold-open-text {
-    font-size: 21px;
+    font-size: 24px;
   }
   .cold-open-footer {
     min-height: 0;
@@ -419,11 +419,11 @@
 .veil-eyebrow {
   font-family: var(--font-sans);
   letter-spacing: 0.06em;
-  font-size: 11px;
+  font-size: 12px;
 }
 .cold-open-text {
   font-family: var(--font-sans);
-  font-size: clamp(18px, 2vw, 25px);
+  font-size: clamp(18px, 2vw, 24px);
   line-height: 1.55;
   text-shadow: 1px 2px #100c07;
 }
@@ -465,7 +465,7 @@
 }
 .chapter-card-title {
   font-family: var(--font-sans);
-  font-size: clamp(23px, 2.3vw, 30px);
+  font-size: clamp(24px, 2.3vw, 30px);
   font-weight: 700;
   line-height: 1.2;
   text-shadow: 1px 2px #100c07;
@@ -474,7 +474,7 @@
 .veil-line,
 .cold-open-provenance {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12px;
   font-style: normal;
 }
 @media (max-width: 699px) {
@@ -486,7 +486,7 @@
     display: none;
   }
   .chapter-card-title {
-    font-size: 21px;
+    font-size: 24px;
   }
 }
 .veil {
@@ -495,7 +495,7 @@
 }
 .veil-title {
   font-family: var(--font-sans);
-  font-size: clamp(25px, 3vw, 34px);
+  font-size: clamp(24px, 3vw, 36px);
   font-weight: 700;
   text-shadow: 1px 2px #100c07;
 }

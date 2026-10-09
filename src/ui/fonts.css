@@ -1,4 +1,4 @@
-/* Unmodified SIL OFL 1.1 reading faces; see CREDITS.md. The interface uses system fonts. */
+/* Unmodified SIL OFL 1.1 reading faces and the original Way Pixel interface face; see CREDITS.md. */
 @font-face {
   font-family: 'Alegreya';
   font-style: normal;
@@ -26,4 +26,20 @@
   font-display: swap;
   font-weight: 700;
   src: url('@fontsource/alegreya/files/alegreya-latin-700-normal.woff2') format('woff2');
+}
+/* Way Pixel: the game's original bitmap interface face (tools/fonts/build_pixel_font.py).
+   Its 12-pixel em draws crisply at 12, 18, 24, 30 and 36 px. */
+@font-face {
+  font-family: 'Way Pixel';
+  font-style: normal;
+  font-display: block;
+  font-weight: 400;
+  src: url('./fonts/way-pixel-regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Way Pixel';
+  font-style: normal;
+  font-display: block;
+  font-weight: 700;
+  src: url('./fonts/way-pixel-bold.woff2') format('woff2');
 }

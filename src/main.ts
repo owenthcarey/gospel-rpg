@@ -36,6 +36,7 @@ import './ui/life.css';
 import './ui/road.css';
 import './ui/exploration.css';
 import './ui/presence.css';
+import './ui/osrs.css';
 import { leavePresentationEvent } from './game/presentation';
 import { parseStoryCommand, requiresWorldView, requiresWorldEvent } from './game/commands';
 import { motionFor, noticeFor } from './content/notices';

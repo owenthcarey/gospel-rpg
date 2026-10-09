@@ -9,7 +9,7 @@
   border-bottom-color: #171410;
   box-shadow: 0 0 0 1px #15120e;
   font:
-    15px/1.4 var(--font-sans, Arial),
+    18px/1.4 var(--font-sans, Arial),
     sans-serif;
   text-shadow: 1px 1px #000;
 }
@@ -65,10 +65,10 @@
   }
 }
 .world-option-name.is-person {
-  color: #80ffff;
+  color: #ffff00;
 }
 .world-option-name.is-object {
-  color: #ffdb66;
+  color: #00ffff;
 }
 .world-click-feedback {
   --click-color: #f5dc35;
@@ -104,4 +104,8 @@
 .world-option-menu[hidden],
 .world-click-feedback[hidden] {
   display: none;
+}
+.world-option-more {
+  color: #fff;
+  font-weight: 400;
 }

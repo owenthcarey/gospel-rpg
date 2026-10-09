@@ -1,0 +1,363 @@
+/* Classic game frame on desktop: the world fills the screen, the minimap sits flush in the
+   top-right corner, game messages scroll in a parchment chatbox at the bottom left and the
+   menus are a row of carved stone tabs at the bottom right. The action under the pointer
+   reads in the top-left corner. Phones and short screens keep their touch layouts. */
+
+:root {
+  --osrs-parchment: #c6b48a;
+  --osrs-parchment-edge: #8f7a55;
+  --osrs-stone: #3e3529;
+  --osrs-stone-light: #5a4d3b;
+  --osrs-stone-dark: #1f1a13;
+  --osrs-tab-selected: #6e2117;
+  --osrs-chat-width: 519px;
+  --osrs-chat-height: 132px;
+  --osrs-tab-row: 30px;
+}
+
+/* The chatbox's message lines exist at every size but only display in the classic frame. */
+:root .chat-log {
+  display: none;
+}
+
+@media (min-width: 1001px) and (min-height: 560px) {
+  /* No application bar: the menus move to the stone tabs and the place name to the world. */
+  :root #ui .topbar,
+  :root #ui .working .topbar,
+  :root #ui .scene-mode .topbar {
+    display: contents;
+  }
+  :root #ui .topbar > .brand,
+  :root #ui .topbar > .region-title {
+    display: none;
+  }
+
+  /* Stone tabs. */
+  :root #ui .toolbar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    display: flex;
+    gap: 0;
+    padding: 3px 3px 2px;
+    border: 0;
+    border-top: 2px solid var(--osrs-stone-dark);
+    border-left: 2px solid var(--osrs-stone-dark);
+    background: var(--stone-grain), var(--osrs-stone);
+    box-shadow:
+      inset 1px 1px #6b5b44,
+      -2px -2px 0 #0d0a0766;
+  }
+  :root #ui .toolbar button,
+  :root #ui .toolbar .icon-button {
+    position: relative;
+    width: 44px;
+    height: 38px;
+    min-height: 0;
+    padding: 0;
+    margin: 0 1px;
+    justify-content: center;
+    background: linear-gradient(#4a3f30, #362e23);
+    border: 1px solid #191510;
+    border-radius: 3px 3px 1px 1px;
+    box-shadow:
+      inset 1px 1px #7a6849,
+      inset -1px -1px #261f16;
+  }
+  :root #ui .toolbar button > span,
+  :root #ui .toolbar button > kbd {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  :root #ui .toolbar .icon {
+    width: 24px;
+    height: 24px;
+    color: #e4cf95;
+    filter: drop-shadow(1px 1px 0 #000);
+  }
+  :root #ui .toolbar button:hover {
+    background: linear-gradient(#5b4d39, #43392b);
+  }
+  :root #ui .toolbar button:hover .icon {
+    color: #fff3c4;
+  }
+  :root #ui .toolbar button[aria-expanded='true'] {
+    background: radial-gradient(circle at 50% 45%, #8d2c1d, var(--osrs-tab-selected) 70%);
+    box-shadow:
+      inset 1px 1px #b45a43,
+      inset -1px -1px #3a0f09;
+  }
+
+  /* Minimap flush in the corner, with the world map as an orb at its lower left. */
+  :root #ui .minimap-wrap {
+    top: 4px;
+    right: 4px;
+  }
+  :root #ui .minimap-open {
+    position: absolute;
+    left: -10px;
+    top: 118px;
+    width: 34px;
+    height: 34px;
+    min-height: 0;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+    color: transparent;
+    background:
+      radial-gradient(circle at 38% 34%, #9ec7c0 0 18%, transparent 19%),
+      radial-gradient(circle at 50% 50%, #3d7f86 0 52%, #2c5a53 53% 58%, transparent 59%),
+      radial-gradient(circle, #5b4d3a 0 64%, #241d14 65% 70%, #6a5a42 71% 100%);
+    border: 1px solid #120e09;
+    box-shadow:
+      inset 0 0 0 2px #2d251b,
+      1px 2px 0 #0a0805aa;
+  }
+  :root #ui .minimap-open::after {
+    content: '';
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    background:
+      linear-gradient(transparent 45%, #d9c27f 45% 55%, transparent 55%),
+      linear-gradient(90deg, transparent 45%, #d9c27f 45% 55%, transparent 55%);
+    opacity: 0.55;
+  }
+  :root #ui .minimap-open:hover {
+    filter: brightness(1.18);
+  }
+  :root #ui .time-of-day {
+    top: 4px;
+    right: 172px;
+    font-size: 12px;
+    color: #ffff00;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  /* The quest tracker sits under the mouseover line. */
+  :root #ui .quest-card,
+  :root #ui .quest-card:not(.objective-expanded) {
+    left: 4px;
+    top: 30px;
+  }
+
+  /* Parchment chatbox. */
+  :root #ui .traveler-card {
+    left: 0;
+    bottom: var(--osrs-tab-row);
+    width: var(--osrs-chat-width);
+    height: var(--osrs-chat-height);
+    padding: 5px 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    opacity: 1;
+    color: #000;
+    text-shadow: none;
+    background:
+      linear-gradient(#ffffff14, transparent 30%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath fill='%23000' opacity='.05' d='M0 0h1v1H0zM4 2h1v1H4zM2 5h1v1H2zM6 6h1v1H6z'/%3E%3Cpath fill='%23fff' opacity='.06' d='M1 3h1v1H1zM5 0h1v1H5zM7 4h1v1H7z'/%3E%3C/svg%3E"),
+      var(--osrs-parchment);
+    border: 3px solid var(--osrs-stone);
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+    box-shadow:
+      inset 1px 1px #e8d9b0,
+      inset -1px 0 var(--osrs-parchment-edge),
+      0 0 0 1px var(--osrs-stone-dark);
+  }
+  :root #ui .traveler-card > .traveler-seal,
+  :root #ui .traveler-card .eyebrow,
+  :root #ui .traveler-card .traveler-line {
+    display: none;
+  }
+  :root #ui .chat-log {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: hidden;
+    font: 12px/14px var(--font-sans);
+    color: #000;
+  }
+  :root #ui .chat-log li {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :root #ui .chat-log b {
+    font-weight: 400;
+    color: #000080;
+  }
+  :root #ui .chat-log [data-kind='story'] {
+    color: #000;
+  }
+  :root #ui .chat-log [data-kind='memory'] {
+    color: #7a0000;
+  }
+  :root #ui .chat-log [data-kind='item'] {
+    color: #00006a;
+  }
+  :root #ui .chat-log [data-kind='place'] {
+    color: #004a00;
+  }
+  :root #ui .chat-log [data-kind='warning'] {
+    color: #b00000;
+  }
+  :root #ui .chat-log [data-kind='save'] {
+    color: #5a3b00;
+  }
+  :root #ui .chat-repeat {
+    color: #4b3b22;
+  }
+  :root #ui .traveler-card .traveler-details {
+    display: flex;
+    flex: 0 0 auto;
+    min-width: 0;
+    margin: 2px -8px 0;
+    padding: 2px 8px 3px;
+    border-top: 1px solid var(--osrs-parchment-edge);
+    font: 12px/14px var(--font-sans);
+    color: #000;
+  }
+  :root #ui .traveler-card #save-indicator {
+    font: inherit;
+    color: #0000ff;
+    opacity: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  :root #ui .traveler-card #save-indicator::before {
+    content: 'Traveler: ';
+    color: #000;
+  }
+
+  /* Hints, Messages and Controls become the chatbox's tab row. */
+  :root #ui .bottom-center {
+    left: calc(var(--osrs-chat-width) + 12px);
+    right: 212px;
+    bottom: 10px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    align-items: center;
+  }
+  :root #ui .control-hints {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: var(--osrs-chat-width);
+    height: var(--osrs-tab-row);
+    max-width: none;
+    padding: 0 3px 0 8px;
+    gap: 8px;
+    justify-content: flex-start;
+    border: 0;
+    border-top: 2px solid var(--osrs-stone-dark);
+    border-right: 2px solid var(--osrs-stone-dark);
+    border-radius: 0;
+    background: var(--stone-grain), var(--osrs-stone);
+    box-shadow: inset 1px 1px #6b5b44;
+    color: #ff981f;
+    font-size: 12px;
+    text-shadow: 1px 1px 0 #000;
+    transform: none;
+    opacity: 1;
+  }
+  :root #ui .control-hints > span:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #ffff00;
+  }
+  :root #ui .control-hints > span:nth-child(2),
+  :root #ui .control-hints > span:nth-child(3) {
+    display: none;
+  }
+  :root #ui .control-hints button {
+    min-height: 24px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 2px 2px 0 0;
+    color: #ff981f;
+    background: linear-gradient(#4b4031, #3a3226);
+    border: 1px solid #191510;
+    box-shadow: inset 1px 1px #7a6849;
+  }
+  :root #ui .control-hints button:hover {
+    color: #fff;
+  }
+}
+
+/* The action under the pointer reads in the corner, as a white verb and a coloured name. */
+@media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
+  :root .world-action-hint {
+    left: 5px !important;
+    top: 4px !important;
+    padding: 0;
+    max-width: calc(100vw - 200px);
+    border: 0;
+    background: none;
+    box-shadow: none;
+    color: #fff;
+    font: 700 18px/1.1 var(--font-sans);
+    text-shadow: 0.0834em 0.0834em 0 #000;
+    white-space: nowrap;
+  }
+}
+
+/* Pixel text needs less leading than the old reading faces: sixteen font pixels per line. */
+:root #ui .dialogue-text:not(.scripture) {
+  line-height: 1.3334;
+}
+
+/* Conversation follows the classic chat dialogue: a maroon speaker, black speech and plain
+   option lines that turn white under the pointer. */
+:root #ui .dialogue-main h2 {
+  color: #800000;
+  text-shadow: none;
+}
+:root #ui .dialogue-main header p {
+  color: #4b3b22;
+}
+:root #ui .dialogue-text:not(.scripture) {
+  color: #000;
+}
+:root #ui .dialogue-choices {
+  border-color: #9b8158;
+  background: #bba57a;
+}
+:root #ui .dialogue-choices button {
+  color: #000;
+  font-weight: 400;
+  text-decoration: none;
+}
+:root #ui .dialogue-choices button:hover,
+:root #ui .dialogue-choices button:focus-visible {
+  color: #fff;
+  background: #a48d63;
+  text-decoration: none;
+  text-shadow: 0.0834em 0.0834em 0 #000;
+}
+:root #ui .dialogue-choices .choice-index {
+  color: #800000;
+}
+:root #ui .dialogue-choices button:hover .choice-index,
+:root #ui .dialogue-choices button:focus-visible .choice-index {
+  color: #ffff00;
+}

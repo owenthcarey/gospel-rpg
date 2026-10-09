@@ -21,7 +21,7 @@
   box-shadow:
     inset 1px 1px #9b8053,
     inset -1px -1px #291d10;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.35;
   text-shadow: 1px 1px #1b130b;
 }
@@ -50,7 +50,7 @@
   margin: 12px 0 17px;
 }
 :root .journey-tools > .secondary-button {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 :root .journey-overview .overview-intro {
@@ -61,12 +61,12 @@
   margin: 5px 0;
 }
 :root .journey-overview .overview-intro p:not(.eyebrow) {
-  font-size: 14px;
+  font-size: 12px;
   margin: 0;
 }
 :root .journey-overview > section > h3 {
   margin: 17px 0 9px;
-  font-size: 16px;
+  font-size: 18px;
 }
 :root .journey-overview .opportunity-list {
   gap: 8px;
@@ -108,14 +108,14 @@
 :root .opportunity .quest-row-heading h3 {
   margin: 4px 0 0;
   color: var(--text-ink);
-  font: 700 15px/1.35 var(--font-sans);
+  font: 700 18px/1.35 var(--font-sans);
 }
 :root .current-opportunity .quest-row-heading h3 {
   font-size: 18px;
 }
 :root .opportunity .quest-row-heading .eyebrow {
   margin: 0;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.35;
   color: var(--text-ink);
 }
@@ -136,7 +136,7 @@
 :root .opportunity .quest-row-description p {
   margin: 0;
   color: var(--text-ink);
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.45;
 }
 :root .opportunity .quest-row-description .opportunity-place {
@@ -162,7 +162,7 @@
   min-height: 42px;
   padding: 8px 11px;
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
 }
 :root .journey-overview .elsewhere-stories {
   margin-top: 15px;
@@ -193,13 +193,13 @@
   display: block;
   margin: 0 0 5px;
   color: #f0d79a;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.4;
 }
 :root .story-register h3 {
   margin: 0;
   color: #cbbfa4;
-  font: 700 15px/1.35 var(--font-sans);
+  font: 700 18px/1.35 var(--font-sans);
 }
 :root .story-register .status-pill {
   display: inline-flex;
@@ -238,7 +238,7 @@
   min-height: 42px;
   padding: 8px 11px;
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
 }
 :root .dialogue-choices {
   gap: 0;
@@ -258,7 +258,7 @@
   border-bottom: 1px solid #a58a5e;
   border-radius: 0;
   box-shadow: none;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   text-shadow: none;
 }
@@ -288,7 +288,7 @@
   background: transparent;
   border: 0;
   box-shadow: none;
-  font-size: 14px;
+  font-size: 12px;
 }
 :root .dialogue-choices button .icon {
   color: inherit;
@@ -302,27 +302,27 @@
 :root[data-text-size='large'] .opportunity .quest-row-description p,
 :root[data-text-size='large'] .journey-overview .overview-intro p:not(.eyebrow),
 :root[data-text-size='large'] .story-register h3 {
-  font-size: 17px;
+  font-size: 18px;
 }
 :root[data-text-size='large'] .current-opportunity .quest-row-heading h3 {
-  font-size: 20px;
+  font-size: 18px;
 }
 :root[data-text-size='large'] .quest-state,
 :root[data-text-size='large'] .opportunity .quest-row-description .opportunity-place,
 :root[data-text-size='large'] .story-register .status-pill {
-  font-size: 14px;
+  font-size: 12px;
 }
 :root[data-text-size='large'] .opportunity .story-actions .secondary-button,
 :root[data-text-size='large'] .story-register .story-actions .secondary-button,
 :root[data-text-size='large'] .dialogue-choices button,
 :root[data-text-size='large'] .conversation-overlay .dialogue-choices button {
-  font-size: 16px;
+  font-size: 18px;
 }
 @media (max-width: 699px) {
   :root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button {
     min-height: 44px;
     padding: 8px;
-    font-size: 14px;
+    font-size: 12px;
     white-space: normal;
   }
   :root .journey-overview .opportunity {
@@ -334,7 +334,7 @@
     gap: 8px;
   }
   :root .opportunity .quest-row-heading h3 {
-    font-size: 16px;
+    font-size: 18px;
   }
   :root .opportunity .story-actions {
     width: 100%;
@@ -350,7 +350,7 @@
     padding: 11px;
   }
   :root .story-register h3 {
-    font-size: 16px;
+    font-size: 18px;
   }
   :root .story-register .story-actions {
     grid-column: 1 / -1;
@@ -363,7 +363,7 @@
   :root .dialogue-choices button,
   :root .conversation-overlay .dialogue-choices button {
     min-height: 44px;
-    font-size: 15px;
+    font-size: 18px;
     padding: 8px;
   }
 }

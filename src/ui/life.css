@@ -58,7 +58,7 @@
   border: 0;
   background: none;
   padding: 0;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.45;
 }
 :root .journal-directory > article > button {
@@ -66,16 +66,16 @@
   min-height: 44px;
   padding: 8px 11px;
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
   white-space: normal;
   scroll-margin-block: 8px;
 }
 :root[data-text-size='large'] .directory-entry-copy h3 {
-  font-size: 20px;
+  font-size: 18px;
 }
 :root[data-text-size='large'] .directory-entry-copy > .content-note,
 :root[data-text-size='large'] .journal-directory > article > button {
-  font-size: 16px;
+  font-size: 18px;
 }
 @media (max-width: 519px) {
   :root .journal-categories {
@@ -97,7 +97,7 @@
     min-height: 44px;
     padding: 8px;
     margin: 0;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1.35;
     white-space: normal;
   }
@@ -179,7 +179,7 @@
   flex-shrink: 0;
 }
 :root[data-text-size='large'] .nearby-more-actions button {
-  font-size: 14px;
+  font-size: 12px;
 }
 @media (pointer: coarse), (max-height: 540px), (max-width: 700px) {
   :root .nearby-more-actions button {
@@ -230,7 +230,7 @@
     margin-top: 0;
   }
   .nearby-choices button {
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 @media (max-height: 540px) {

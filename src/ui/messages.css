@@ -20,7 +20,7 @@
   gap: 10px;
   padding: 10px 12px;
   color: #e9ddc2;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
   text-shadow: 1px 1px #17120b;
   overflow-wrap: anywhere;
@@ -50,21 +50,21 @@
   margin-left: auto;
   flex: 0 0 auto;
   color: #e5c970;
-  font-size: 11px;
+  font-size: 12px;
 }
 .message-count {
   padding: 0 3px;
   color: #ffdf73;
-  font-size: 10px;
+  font-size: 12px;
 }
 :root[data-text-size='large'] .message-list li {
-  font-size: 16px;
+  font-size: 18px;
 }
 :root[data-text-size='large'] .message-history-note {
-  font-size: 14px;
+  font-size: 12px;
 }
 :root[data-text-size='large'] .message-repeat {
-  font-size: 13px;
+  font-size: 12px;
 }
 :root .toolbar button[aria-expanded='true'] {
   color: #ffe07a;
@@ -80,7 +80,7 @@
   flex: 0 0 auto;
   width: auto;
   padding-inline: 6px;
-  font: 700 11px/1 var(--font-sans);
+  font: 700 12px/1 var(--font-sans);
   color: #e1c37b;
 }
 :root .control-hints.hints-faded {

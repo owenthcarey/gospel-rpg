@@ -240,7 +240,7 @@ export class Interface {
         <aside id="quest-card" class="quest-card" aria-label="Current quest"></aside>
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
         <div id="world-labels" class="world-labels" aria-label="People and places"></div>
-        <div class="traveler-card"><div class="traveler-seal">${icon('person')}</div><div><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
+        <div class="traveler-card"><ol class="chat-log" aria-hidden="true"></ol><div class="traveler-seal">${icon('person')}</div><div class="traveler-details"><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small></div></div>
         <div class="bottom-center"><div class="hud-actions"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" aria-describedby="unread-message-description" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span><span id="unread-message-description" class="sr-only">No unread game messages</span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
         <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="7" font-family="Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
       </div>
@@ -286,6 +286,7 @@ export class Interface {
     }));
     this.labels = root.querySelector('#world-labels')!;
     this.quest = root.querySelector('#quest-card')!;
+    this.renderChat();
     for (const button of this.hud.querySelectorAll<HTMLElement>(
       '[data-action="journal"],[data-action="inventory"],[data-action="map"],[data-action="settings"],[data-action="help"],[data-action="messages"]',
     )) {
@@ -779,6 +780,7 @@ export class Interface {
    */
   toast(message: string, kind: ToastKind = toastKind(message)): void {
     this.messageHistory.add(message, kind);
+    this.renderChat();
     this.unreadMessages = Math.min(40, this.unreadMessages + 1);
     this.updateMessageCount();
     clearTimeout(this.toastTimer);
@@ -957,6 +959,14 @@ export class Interface {
     const below = guidance.scrollTop + guidance.clientHeight < guidance.scrollHeight - 1;
     const text = above && below ? 'More ↑ ↓' : above ? 'More above ↑' : 'More below ↓';
     if (this.routeScrollCue.textContent !== text) this.routeScrollCue.textContent = text;
+  }
+  /** The chatbox mirrors recent feedback; Messages keeps the readable, announced history. */
+  private renderChat(): void {
+    const log = this.root.querySelector<HTMLElement>('.chat-log');
+    if (!log) return;
+    log.innerHTML =
+      '<li class="chat-welcome">Welcome to <b>The Way</b>.</li>' + this.messageHistory.chat(7);
+    log.scrollTop = log.scrollHeight;
   }
   private updateMessageCount(): void {
     const count = this.root.querySelector<HTMLElement>('.message-count')!;
