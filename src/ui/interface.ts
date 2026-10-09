@@ -1784,7 +1784,7 @@ export class Interface {
           ? 'Steer to that point; the flag clears when you arrive'
           : 'Walk to that point; the flag clears when you arrive',
       ],
-      ['Compass / map orb or LOCAL MAP', 'Face north / open local destinations'],
+      ['Compass / map orb or LOCAL MAP', 'Look north / open local destinations'],
       ['Right-click the compass', 'Look north, east, south or west'],
       ['Run orb beside the map', 'Run or walk; energy refills as you walk'],
       ['Emotes tab', 'Wave, bow, cheer, clap and other gestures'],
@@ -1796,7 +1796,7 @@ export class Interface {
           ? 'Steer over and interact; names and map destinations work too'
           : 'Walk over and interact; names and map destinations work too',
       ],
-      ['Right-click / hold a world target', 'Choose an action'],
+      ['Right-click / hold a world target', 'Choose an action or Examine it'],
       [
         'World name: Shift+F10 / Menu key',
         'Open Choose Option; ↑ / ↓ selects, Enter confirms, Escape cancels',

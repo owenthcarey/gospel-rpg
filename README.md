@@ -53,7 +53,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | --------------------------------------- | ----------------------------------------- |
 | Click/tap ground or water               | Walk or steer around obstacles            |
 | Click/tap minimap                       | Walk or steer to that point               |
-| Minimap compass / LOCAL MAP             | Face north / open local destinations      |
+| Minimap compass / LOCAL MAP             | Look north / open local destinations      |
 | Right-click the compass                 | Look north, east, south or west           |
 | Run orb beside the minimap              | Run or walk (energy refills)              |
 | Emotes tab                              | Wave, bow, cheer, clap and other gestures |
