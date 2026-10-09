@@ -1,5 +1,5 @@
 import { harborContext, harborSummary } from './views/harbor';
-import { audioSettings, volumePercent } from './views/audio';
+import { audioSettings, musicPanel, volumePercent } from './views/audio';
 import { journeyOverview, workSurface } from './views/exploration';
 import { workTarget, type ScreenPreview } from '../content/exploration/work';
 import { requiresWorldView, requiresWorldEvent } from '../game/commands';
@@ -288,10 +288,10 @@ export class Interface {
       <div id="hud" hidden>
         <header class="topbar"><div class="brand">${logoLockup('hud')}</div>
         <div class="region-title"><span class="location-diamond">${icon('pin')}</span><span>CAPERNAUM<small>Northern shore · Galilee</small></span></div>
-        <nav class="toolbar" aria-label="Game menus"><button data-action="journal" title="Travel journal (J)">${icon('journal')}${pixelIcon('journal')}<span>Journal</span><kbd>J</kbd></button><button data-action="inventory" title="Satchel (I)">${icon('bag')}${pixelIcon('satchel')}<span>Satchel</span><kbd>I</kbd></button><button data-action="map" title="Local and journey maps (M)">${icon('map')}${pixelIcon('map')}<span>Map</span><kbd>M</kbd></button><button data-action="emotes" title="Emotes" aria-expanded="false" aria-controls="emote-panel">${icon('person')}${pixelIcon('emotes')}<span>Emotes</span></button><span class="toolbar-divider"></span><button class="icon-button" data-action="settings" aria-label="Settings and saves">${icon('settings')}${pixelIcon('settings')}</button></nav></header>
+        <nav class="toolbar" aria-label="Game menus"><button data-action="journal" title="Travel journal (J)">${icon('journal')}${pixelIcon('journal')}<span>Journal</span><kbd>J</kbd></button><button data-action="inventory" title="Satchel (I)">${icon('bag')}${pixelIcon('satchel')}<span>Satchel</span><kbd>I</kbd></button><button data-action="map" title="Local and journey maps (M)">${icon('map')}${pixelIcon('map')}<span>Map</span><kbd>M</kbd></button><button data-action="emotes" title="Emotes" aria-expanded="false" aria-controls="emote-panel">${icon('person')}${pixelIcon('emotes')}<span>Emotes</span></button><button class="music-tab" data-action="music" title="Music" aria-expanded="false" aria-controls="music-panel">${pixelIcon('music')}<span>Music</span></button><span class="toolbar-divider"></span><button class="icon-button" data-action="settings" aria-label="Settings and saves">${icon('settings')}${pixelIcon('settings')}</button></nav></header>
         <aside id="quest-card" class="quest-card" aria-label="Current quest"></aside>
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
-        <div id="world-labels" class="world-labels" aria-label="People and places"></div><div class="gain-drops" aria-hidden="true"></div><div class="overhead-chat" aria-hidden="true"><span class="overhead-line traveler-speech" hidden></span></div><section id="emote-panel" class="emote-panel" aria-label="Emotes" hidden><h2 class="emote-title">Emotes</h2><div class="emote-grid">${EMOTES.map((e) => `<button data-action="emote" data-value="${e.id}">${pixelIcon(e.id as PixelIconName)}<span>${esc(e.label)}</span></button>`).join('')}</div></section>
+        <div id="world-labels" class="world-labels" aria-label="People and places"></div><div class="gain-drops" aria-hidden="true"></div><div class="overhead-chat" aria-hidden="true"><span class="overhead-line traveler-speech" hidden></span></div><section id="music-panel" class="emote-panel music-panel" aria-label="Music" hidden><h2 class="emote-title">Music</h2><div class="music-panel-body"></div></section><section id="emote-panel" class="emote-panel" aria-label="Emotes" hidden><h2 class="emote-title">Emotes</h2><div class="emote-grid">${EMOTES.map((e) => `<button data-action="emote" data-value="${e.id}">${pixelIcon(e.id as PixelIconName)}<span>${esc(e.label)}</span></button>`).join('')}</div></section>
         <div class="traveler-card"><ol class="chat-log" aria-hidden="true"></ol><div class="traveler-seal">${icon('person')}</div><div class="traveler-details"><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small><label class="chat-say"><span class="chat-say-name">Traveler:</span><input class="chat-input" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-label="Say something aloud" placeholder="Press Enter to chat"></label></div></div>
         <div class="bottom-center"><div class="hud-actions"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><span class="chat-filters" role="group" aria-label="Chat lines">${CHAT_FILTERS.map((f) => `<button type="button" class="chat-filter" data-chat-filter="${f.id}" aria-pressed="${f.id === this.chatFilter}">${f.label}</button>`).join('')}</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" aria-describedby="unread-message-description" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span><span id="unread-message-description" class="sr-only">No unread game messages</span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
         <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="8" font-weight="700" font-family="Way Pixel, Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><button class="run-orb" data-action="run-toggle" aria-pressed="false" aria-label="Run, energy 100%" title="Run"><span class="run-orb-icon" aria-hidden="true"></span><span class="run-orb-energy" aria-hidden="true">100</span></button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
@@ -479,6 +479,11 @@ export class Interface {
         this.toggleEmotes(false, true);
         return;
       }
+      if (e.key === 'Escape' && this.musicOpen && !this.panel && !this.root.inert) {
+        e.preventDefault();
+        this.toggleMusic(false, true);
+        return;
+      }
       if (this.panel && this.panel !== 'work') {
         trapFocus(e, this.overlay);
         if (e.key === 'Tab') this.revealReadingFocus();
@@ -509,7 +514,10 @@ export class Interface {
     const inScene = isPresenting(state);
     const view = presentationState(state);
     this.root.classList.toggle('scene-mode', inScene);
-    if (inScene) this.toggleEmotes(false);
+    if (inScene) {
+      this.toggleEmotes(false);
+      this.toggleMusic(false);
+    } else if (this.musicOpen) this.renderMusic();
     this.renderCameraDisclosure();
     this.placeNotice();
     this.sceneControls.hidden = !inScene || !this.active;
@@ -1301,9 +1309,40 @@ export class Interface {
     const panel = this.root.querySelector<HTMLElement>('#emote-panel');
     const tab = this.root.querySelector<HTMLElement>('.toolbar [data-action="emotes"]');
     if (!panel || !tab) return;
+    if (open) this.toggleMusic(false);
     panel.hidden = !open;
     tab.setAttribute('aria-expanded', String(open));
     if (!open && restoreFocus) tab.focus({ preventScroll: true });
+  }
+  get musicOpen(): boolean {
+    return !this.root.querySelector<HTMLElement>('#music-panel')?.hidden;
+  }
+  /** The desktop Music tab: the classic list of heard scores, nonmodal like Emotes. */
+  toggleMusic(open = !this.musicOpen, restoreFocus = false): void {
+    const panel = this.root.querySelector<HTMLElement>('#music-panel');
+    const tab = this.root.querySelector<HTMLElement>('.toolbar [data-action="music"]');
+    if (!panel || !tab) return;
+    if (open) {
+      this.toggleEmotes(false);
+      this.renderMusic();
+    }
+    panel.hidden = !open;
+    tab.setAttribute('aria-expanded', String(open));
+    if (!open && restoreFocus) tab.focus({ preventScroll: true });
+  }
+  /** Redraw the Music panel, keeping focus on the track that was chosen. */
+  renderMusic(): void {
+    const body = this.root?.querySelector<HTMLElement>('.music-panel-body');
+    if (!body) return;
+    const focused = body.contains(document.activeElement)
+      ? ((document.activeElement as HTMLElement).dataset.value ?? 'area')
+      : undefined;
+    body.innerHTML = musicPanel(this.currentState, this.heardTracks, this.chosenTrack);
+    if (focused === undefined) return;
+    const again =
+      body.querySelector<HTMLElement>(`[data-value="${focused}"]`) ??
+      body.querySelector<HTMLElement>('[aria-pressed="true"]');
+    again?.focus({ preventScroll: true });
   }
   /** The run orb shows whether the traveler runs and how much energy remains. */
   setRun(on: boolean, energy: number): void {
@@ -1322,6 +1361,7 @@ export class Interface {
   soundOn = true;
   setHeardTracks(ids: Iterable<string>): void {
     this.heardTracks = new Set(ids);
+    if (this.musicOpen) this.renderMusic();
   }
   musicUnlocked(title: string): void {
     this.messageHistory.add(`You have unlocked a new music track: ${title}.`, 'memory', true);
@@ -1415,7 +1455,10 @@ export class Interface {
     this.sceneControls.classList.add('reveal-done');
   }
   private show(panel: Panel, content: string, initialFocus = true): void {
-    if (panel !== 'work') this.toggleEmotes(false);
+    if (panel !== 'work') {
+      this.toggleEmotes(false);
+      this.toggleMusic(false);
+    }
     if (!this.panel)
       this.focusBefore =
         document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
@@ -1807,6 +1850,7 @@ export class Interface {
       ['Right-click the compass', 'Look north, east, south or west'],
       ['Run orb beside the map', 'Run or walk; energy refills as you walk'],
       ['Emotes tab', 'Wave, bow, cheer, clap and other gestures'],
+      ['Music tab (desktop)', 'Replay any score you have heard'],
       ['1–9 / Space in conversation', 'Choose an answer / continue a single answer'],
       ['Enter (desktop)', 'Say something aloud in the chatbox; Escape returns to the world'],
       [

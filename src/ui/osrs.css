@@ -1703,3 +1703,37 @@
     display: none;
   }
 }
+
+/* The Music tab belongs to the desktop frame; phones keep the list inside Settings. */
+:root #ui .toolbar .music-tab {
+  display: none;
+}
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root #ui .toolbar .music-tab {
+    display: flex;
+    align-items: center;
+  }
+}
+:root #ui .music-panel .music-now {
+  margin: 0 0 4px;
+  color: #ff981f;
+  font: 12px/1.4 var(--font-sans);
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
+}
+:root #ui .music-panel .music-now b {
+  color: #ffff00;
+  font-weight: 400;
+}
+:root #ui .music-panel .music-list {
+  max-height: 228px;
+  margin: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #5c4d37 #1d1812;
+}
+:root #ui .music-panel .music-area {
+  display: block;
+  margin: 6px auto 0;
+  color: #ff981f;
+}

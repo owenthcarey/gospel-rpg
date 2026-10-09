@@ -845,9 +845,15 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       audio.setManualTrack(id as TrackId | undefined);
       ui.chosenTrack = id;
       audio.play('click');
-      await showSettings();
+      // The Music tab updates in place; the list inside Settings redraws that panel.
+      if (ui.musicOpen) ui.renderMusic();
+      else await showSettings();
       break;
     }
+    case 'music':
+      audio.play('click');
+      ui.toggleMusic();
+      break;
     case 'toggle-sound':
       await updateSetting('sound', !settings.sound);
       ui.setSoundOn(settings.sound);

@@ -5,16 +5,14 @@ import { escapeHtml } from '../icons';
 
 export const volumePercent = (value: number): string => Math.round(value * 100) + '%';
 
-export function audioSettings(
-  settings: Settings,
-  state?: GameState,
-  heard: ReadonlySet<string> = new Set(),
+/** The classic music list: heard scores in green and playable, those still ahead in red. */
+export function musicList(
+  state: GameState | undefined,
+  heard: ReadonlySet<string>,
   chosen?: string,
-): string {
+): { current: string; list: string; area: string } {
   const area = (state ? cueForState(state) : regionAudio.capernaum).track;
   const current = chosen && heard.has(chosen) ? chosen : area;
-  const track = musicTracks[current as keyof typeof musicTracks];
-  // The classic music list: heard scores in green and playable, those still ahead in red.
   const list = Object.entries(musicTracks)
     .map(([id, t]) => {
       const state = `${heard.has(id) ? 'heard' : 'not yet heard'}${id === current ? ', playing' : ''}`;
@@ -24,9 +22,32 @@ export function audioSettings(
       return `<li class="${heard.has(id) ? 'heard' : 'unheard'}${id === current ? ' current' : ''}">${item}</li>`;
     })
     .join('');
-  const areaButton = chosen
-    ? `<button class="text-button music-area" data-action="music-area">Return to area music</button>`
-    : '';
+  const areaButton =
+    chosen && heard.has(chosen)
+      ? `<button class="text-button music-area" data-action="music-area">Return to area music</button>`
+      : '';
+  return { current, list, area: areaButton };
+}
+
+/** The desktop Music tab: what is playing and the list, without the volume settings. */
+export function musicPanel(
+  state: GameState | undefined,
+  heard: ReadonlySet<string>,
+  chosen?: string,
+): string {
+  const { current, list, area } = musicList(state, heard, chosen);
+  const track = musicTracks[current as keyof typeof musicTracks];
+  return `<p class="music-now">Playing: <b>${escapeHtml(track.title)}</b></p><ul class="music-list" aria-label="Music heard on this device">${list}</ul>${area}`;
+}
+
+export function audioSettings(
+  settings: Settings,
+  state?: GameState,
+  heard: ReadonlySet<string> = new Set(),
+  chosen?: string,
+): string {
+  const { current, list, area: areaButton } = musicList(state, heard, chosen);
+  const track = musicTracks[current as keyof typeof musicTracks];
   const sliders = [
     ['volume', 'Master volume', 'All game audio'],
     ['musicVolume', 'Music volume', 'Original regional scores'],
