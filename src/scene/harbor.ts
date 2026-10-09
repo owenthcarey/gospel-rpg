@@ -47,12 +47,9 @@ export function dressVillage(scene: Scene, library: AssetLibrary, region: string
     batches.set(p.asset, group);
   }
   for (const [id, models] of batches) library.batch(id, models);
-  if (villagePatches[region]?.length)
-    wornAreas(
-      scene,
-      villagePatches[region]!,
-      region === 'gathering-house' || region === 'bakehouse',
-    );
+  // Rooms are laid with flagstones, so worn earth belongs only outdoors.
+  const inside = region === 'gathering-house' || region === 'bakehouse';
+  if (!inside && villagePatches[region]?.length) wornAreas(scene, villagePatches[region]!, false);
   return awnings;
 }
 

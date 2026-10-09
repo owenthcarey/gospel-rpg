@@ -6,7 +6,7 @@ import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
 import {
   wornPaths,
-  groundMosaic,
+  flagstoneFloor,
   shorelineBank,
   paintGround,
   backdropTerrain,
@@ -380,13 +380,12 @@ export class World {
         doorstep.isPickable = false;
       }
       if (inside)
-        groundMosaic(
+        flagstoneFloor(
           this.scene,
           'regional-earth',
           { min: -5.8, max: 5.8 },
           this.layout.terrain,
           (p) => groundHeight(initial.region, p),
-          true,
         );
       if (initial.region === 'galilee-water') floor.setEnabled(false);
       else if (!inside)
