@@ -72,7 +72,7 @@ export class InteractionFeedback {
     this.flash.className = 'world-click-feedback';
     this.flash.hidden = true;
     this.flash.setAttribute('aria-hidden', 'true');
-    document.body.append(this.hint, this.walkHint, this.menu, this.flash);
+    document.body.append(this.hint, this.menu, this.flash, this.walkHint);
     document.addEventListener('pointerdown', this.down, true);
     document.addEventListener('pointermove', this.move, true);
     document.addEventListener('pointerup', this.up, true);
