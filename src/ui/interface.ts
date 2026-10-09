@@ -1522,7 +1522,7 @@ export class Interface {
           ? 'Steer to that point; the flag clears when you arrive'
           : 'Walk to that point; the flag clears when you arrive',
       ],
-      ['Compass / LOCAL MAP', 'Face north / open local destinations'],
+      ['Compass / map orb or LOCAL MAP', 'Face north / open local destinations'],
       ['Run orb beside the map', 'Run or walk; energy refills as you walk'],
       [
         'Click / tap a person or object',
