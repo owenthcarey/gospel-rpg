@@ -47,6 +47,16 @@ test('right-clicking the compass offers Look North, East, South and West', async
   await page.waitForTimeout(500);
   await expect(player).toHaveAttribute('transform', still!);
   await page.keyboard.press('Escape');
+  // The keyboard's menu key opens the same menu beside the compass, not in the corner.
+  await compass.focus();
+  await page.keyboard.press('Shift+F10');
+  const keyed = page.getByRole('menu', { name: 'Choose Option' });
+  await expect(keyed).toBeVisible();
+  const at = (await compass.boundingBox())!;
+  const box = (await keyed.boundingBox())!;
+  expect(Math.abs(box.x - (at.x + at.width / 2))).toBeLessThan(at.width + box.width);
+  expect(Math.abs(box.y - (at.y + at.height / 2))).toBeLessThan(at.height + box.height);
+  await page.keyboard.press('Escape');
   // Escape closes the menu and returns focus to the compass.
   await compass.click({ button: 'right' });
   await page.keyboard.press('Escape');

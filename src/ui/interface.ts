@@ -366,37 +366,29 @@ export class Interface {
         if (log) log.scrollTop = log.scrollHeight;
         this.renderChat();
       });
-    // The minimap orbs answer a right-click with their one action, as the classic orbs do.
-    for (const [selector, verb, action] of [
-      ['.run-orb', 'Toggle Run', 'run-toggle'],
-      ['.minimap-open', 'World Map', 'map'],
+    // The minimap orbs and compass answer a right-click, or the keyboard's menu key, with their
+    // Choose Option menu, as the classic orbs do.
+    const look = (['North', 'East', 'South', 'West'] as const).map((direction) => ({
+      verb: 'Look ' + direction,
+      action: () => this.actions.action('look', direction.toLowerCase()),
+    }));
+    for (const [selector, options] of [
+      ['.run-orb', [{ verb: 'Toggle Run', action: () => this.actions.action('run-toggle') }]],
+      ['.minimap-open', [{ verb: 'World Map', action: () => this.actions.action('map') }]],
+      ['.minimap-compass', look],
     ] as const) {
-      const orb = root.querySelector<HTMLElement>(selector);
-      orb?.addEventListener('contextmenu', (event) => {
+      const control = root.querySelector<HTMLElement>(selector);
+      if (!control) continue;
+      control.addEventListener('contextmenu', (event) => {
         event.preventDefault();
-        this.optionMenu(
-          orb,
-          event.clientX,
-          event.clientY,
-          [{ verb, action: () => this.actions.action(action) }],
-          root,
-        );
+        this.optionMenu(control, event.clientX, event.clientY, options, root);
+      });
+      control.addEventListener('keydown', (event) => {
+        if (event.key !== 'ContextMenu' && !(event.shiftKey && event.key === 'F10')) return;
+        event.preventDefault();
+        this.optionMenu(control, 0, 0, options, root);
       });
     }
-    const compass = root.querySelector<HTMLElement>('.minimap-compass');
-    compass?.addEventListener('contextmenu', (event) => {
-      event.preventDefault();
-      this.optionMenu(
-        compass,
-        event.clientX,
-        event.clientY,
-        (['North', 'East', 'South', 'West'] as const).map((direction) => ({
-          verb: 'Look ' + direction,
-          action: () => this.actions.action('look', direction.toLowerCase()),
-        })),
-        root,
-      );
-    });
     document.body.append(this.interfaceHint);
     this.quest = root.querySelector('#quest-card')!;
     this.renderChat();
@@ -1116,6 +1108,12 @@ export class Interface {
     options: readonly { verb: string; item?: string; action: () => void }[],
     host: HTMLElement = this.overlay,
   ): void {
+    // A menu opened from the keyboard has no pointer position; open it at the control instead.
+    if (x === 0 && y === 0) {
+      const rect = button.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    }
     document.querySelector('.item-option-menu')?.remove();
     const menu = document.createElement('div');
     menu.className = 'world-option-menu item-option-menu';
