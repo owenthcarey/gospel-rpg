@@ -909,8 +909,14 @@ export class Interface {
       !this.root.classList.contains('scene-mode') &&
       this.toastNode.parentElement === this.root &&
       !this.toastNode.hidden;
+    // Only a notice below the card's top can crowd it; the classic frame's notices sit above.
     const space =
-      floating && quest && notice && quest.left < notice.right && quest.right > notice.left
+      floating &&
+      quest &&
+      notice &&
+      notice.top > quest.top &&
+      quest.left < notice.right &&
+      quest.right > notice.left
         ? Math.max(0, Math.floor(notice.top - quest.top - 12)) + 'px'
         : '';
     const changed = this.root.style.getPropertyValue('--quest-notice-max-height') !== space;
