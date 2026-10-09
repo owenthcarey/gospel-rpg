@@ -779,3 +779,51 @@
     max-height: calc(100dvh - 60px);
   }
 }
+
+/* The satchel reads like the classic inventory: items rest directly on dark stone and an
+   empty space is simply empty. Single items show no count. */
+:root #ui .satchel-slots {
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--stone-grain), #3e3529;
+  border: 2px solid #1f1a13;
+  box-shadow:
+    inset 1px 1px #6b5b44,
+    inset -1px -1px #120e09;
+}
+:root #ui .satchel-slot-button,
+:root #ui .satchel-empty-mark {
+  height: 72px;
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+}
+:root #ui .satchel-slot-button:hover {
+  background: #ffffff12;
+}
+:root #ui .satchel-slot-button[aria-pressed='true'] {
+  background: transparent;
+  border-color: #fff;
+  box-shadow: none;
+}
+:root #ui .satchel-sprite {
+  filter: drop-shadow(1px 1px 0 #000);
+}
+:root #ui .satchel-quantity {
+  display: none;
+}
+:root #ui .satchel-empty-mark .icon {
+  display: none;
+}
+:root #ui .satchel-slot-empty > :not(.satchel-empty-mark) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+:root #ui .satchel-slot h3 {
+  color: #ff981f;
+  text-shadow: 1px 1px 0 #000;
+}
