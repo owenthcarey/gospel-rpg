@@ -1175,3 +1175,22 @@
     animation: none;
   }
 }
+
+/* Travel shows the classic loading notice in the corner of the classic frame. */
+:root .veil-loading {
+  display: none;
+}
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root .veil.is-covered .veil-loading {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    display: block;
+    margin: 0;
+    padding: 6px 10px;
+    color: #fff;
+    background: #000;
+    border: 1px solid #fff;
+    font: 12px/1 var(--font-sans);
+  }
+}
