@@ -864,3 +864,10 @@
   image-rendering: pixelated;
   object-fit: contain;
 }
+@media (max-width: 1000px) {
+  /* Pixel lines need less leading; a wrapped hint stays compact on narrow screens. */
+  :root #ui .control-hints > span:first-child {
+    flex: 1 1 auto;
+    line-height: 1.25;
+  }
+}
