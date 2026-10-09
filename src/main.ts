@@ -739,6 +739,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       pause();
       menuRequest++;
       conversation = null;
+      audio.play('click');
       if (name === 'journal') {
         if (value === 'memories' || value === 'stories')
           ui.journal(snapshot(), value, 'all', 'all');
@@ -752,7 +753,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     case 'settings':
       if (ui.panel === 'settings' && value === 'toggle') await close(true);
-      else await showSettings();
+      else {
+        audio.play('click');
+        await showSettings();
+      }
       break;
     case 'replay-opening':
       await close();
@@ -824,6 +828,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       world.faceNorth();
       break;
     case 'run-toggle': {
+      audio.play('click');
       const run = world.toggleRun();
       if (run) {
         lastRun = run;

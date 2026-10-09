@@ -36,4 +36,6 @@ export const soundEffects: Record<SoundEffect, readonly ScoreNote[]> = {
     tone(81, 0.7, 0.9, 'harp'),
   ],
   travel: [tone(62, 0, 0.22, 'lute', 0.22), tone(69, 0.13, 0.32, 'harp', 0.25)],
+  // A short, soft wooden tick for interface tabs and menus.
+  click: [tone(76, 0, 0.03, 'shaker', 0.12), tone(52, 0, 0.04, 'drum', 0.08)],
 };
