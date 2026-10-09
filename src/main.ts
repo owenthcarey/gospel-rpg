@@ -336,10 +336,12 @@ const musicUnlocks = new MusicUnlocks(
     }
   })(),
 );
+ui.setHeardTracks(musicUnlocks.list());
 /** The first time this browser hears a score, the chatbox announces it. */
 function noteMusic(): void {
   const track = cueForState(state).track;
   if (musicUnlocks.unlock(track)) ui.musicUnlocked(musicTracks[track].title);
+  ui.setHeardTracks(musicUnlocks.list());
 }
 async function apply(event: GameEvent): Promise<void> {
   if (graphicsLost && requiresWorldEvent(event)) return;

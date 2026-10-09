@@ -16,6 +16,9 @@ export class MusicUnlocks {
       // Unreadable or blocked storage starts a fresh session list.
     }
   }
+  list(): string[] {
+    return [...this.heard];
+  }
   /** True the first time a track is heard. */
   unlock(id: string): boolean {
     if (this.heard.has(id)) return false;

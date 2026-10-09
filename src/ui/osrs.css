@@ -928,3 +928,24 @@
 :root #ui .panel:not(.conversation-context) > .panel-header .eyebrow {
   color: #d1c3a2;
 }
+
+/* Music list: green for scores heard on this device, red for those still ahead. */
+:root .music-list {
+  margin: 10px 0 0;
+  padding: 6px 8px;
+  list-style: none;
+  background: #2a231b;
+  border: 1px solid #120e09;
+  font: 12px/1.5 var(--font-sans);
+  text-shadow: 1px 1px 0 #000;
+}
+:root .music-list .heard {
+  color: #00ff00;
+}
+:root .music-list .unheard {
+  color: #ff3a2a;
+}
+:root .music-list .current::before {
+  content: '♪ ';
+  color: #ffff00;
+}
