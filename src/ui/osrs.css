@@ -919,3 +919,12 @@
     max-width: min(600px, calc(100vw - 600px));
   }
 }
+
+/* Interface windows title in the classic orange. */
+:root #ui .panel:not(.conversation-context) > .panel-header h2 {
+  color: #ff981f;
+  text-shadow: 0.0834em 0.0834em 0 #000;
+}
+:root #ui .panel:not(.conversation-context) > .panel-header .eyebrow {
+  color: #d1c3a2;
+}
