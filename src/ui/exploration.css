@@ -382,7 +382,7 @@ html[data-text-size='large'] .work-header h2 {
     padding: 12px 16px 8px;
   }
   .quest-card:not(.objective-expanded) h1 {
-    font-size: 24px;
+    font-size: 21px;
     margin: 8px 0;
   }
   .quest-card .objective-toggle {
@@ -405,7 +405,7 @@ html[data-text-size='large'] .work-header h2 {
     padding: 10px 14px 8px;
   }
   .work-header h2 {
-    font-size: 24px;
+    font-size: 21px;
   }
   .work-body {
     padding: 0 14px 10px;
@@ -442,7 +442,7 @@ html[data-text-size='large'] .work-header h2 {
     padding: 8px 12px;
   }
   .work-header h2 {
-    font-size: 24px;
+    font-size: 21px;
   }
   .work-body {
     padding: 0 12px 8px;

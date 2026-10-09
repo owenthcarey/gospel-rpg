@@ -41,7 +41,10 @@ test('radar symbols remain legible and its local map control follows the frame o
     const localMap = (await page
       .getByRole('button', { name: 'Open local map', exact: true })
       .boundingBox())!;
-    if (viewport.width >= 1001 && viewport.height >= 560) {
+    const classicFrame = await page.evaluate(
+      () => matchMedia('(min-width: 1001px) and (min-height: 560px) and (pointer: fine)').matches,
+    );
+    if (classicFrame) {
       // The classic frame's world map orb rests on the minimap's lower-left rim.
       const x = localMap.x + localMap.width / 2,
         y = localMap.y + localMap.height / 2;

@@ -322,7 +322,7 @@
   :root :is(.journal-categories, .story-status-tabs, .map-tabs) > .secondary-button {
     min-height: 44px;
     padding: 8px;
-    font-size: 12px;
+    font-size: 14px;
     white-space: normal;
   }
   :root .journey-overview .opportunity {
@@ -334,7 +334,7 @@
     gap: 8px;
   }
   :root .opportunity .quest-row-heading h3 {
-    font-size: 18px;
+    font-size: 16px;
   }
   :root .opportunity .story-actions {
     width: 100%;
@@ -350,7 +350,7 @@
     padding: 11px;
   }
   :root .story-register h3 {
-    font-size: 18px;
+    font-size: 16px;
   }
   :root .story-register .story-actions {
     grid-column: 1 / -1;
@@ -363,7 +363,7 @@
   :root .dialogue-choices button,
   :root .conversation-overlay .dialogue-choices button {
     min-height: 44px;
-    font-size: 18px;
+    font-size: 15px;
     padding: 8px;
   }
 }

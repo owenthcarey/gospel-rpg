@@ -20,7 +20,7 @@
   display: none;
 }
 
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   /* No application bar: the menus move to the stone tabs and the place name to the world. */
   :root #ui .topbar,
   :root #ui .working .topbar,
@@ -289,7 +289,7 @@
 }
 
 /* The action under the pointer reads in the corner, as a white verb and a coloured name. */
-@media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) and (hover: hover) {
   :root .world-action-hint {
     left: 5px !important;
     top: 4px !important;
@@ -368,7 +368,7 @@
     background-image: var(--torch-c);
   }
 }
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   :root #ui .welcome-overlay {
     display: flex;
     flex-direction: column;
@@ -766,7 +766,7 @@
 :root {
   font-synthesis: none;
 }
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   /* Scenes keep the chatbox on the floor and their reading panel clear of the tabs. */
   :root #ui.scene-mode .traveler-card {
     bottom: 0;
@@ -838,7 +838,7 @@
 :root #ui .toolbar button:hover .pixel-icon {
   filter: brightness(1.15);
 }
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   /* Practical work docks as a side panel above the stone tabs, which stay in reach. */
   :root #ui .work-panel {
     top: 8px;
@@ -901,7 +901,7 @@
     min-height: 44px;
   }
 }
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   /* Notices pop up at the top centre, clear of the quest tracker and minimap; the chatbox
      keeps the same line afterwards. */
   :root #ui > .toast {
@@ -947,7 +947,7 @@
 :root .run-orb {
   display: none;
 }
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   :root #ui .run-orb {
     --run-energy: 1;
     position: absolute;
@@ -1061,7 +1061,7 @@
 :root .interface-hint {
   display: none;
 }
-@media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) and (hover: hover) {
   :root #ui .interface-hint:not([hidden]),
   :root .world-walk-hint:not([hidden]) {
     position: fixed;
@@ -1079,7 +1079,7 @@
     color: #ff9040;
   }
 }
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   /* The minimap reads like an overhead render of the ground: deeper and more saturated. */
   :root #ui .minimap .map-svg {
     filter: saturate(1.2) brightness(0.92) contrast(1.06);
@@ -1102,7 +1102,7 @@
 }
 
 /* Large reading steps conversation speech up to the next crisp size where there is room. */
-@media (min-width: 1001px) and (min-height: 560px) {
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
   :root[data-text-size='large'] #ui .conversation-overlay .dialogue-text:not(.scripture) {
     font-size: 24px;
     line-height: 1.25;

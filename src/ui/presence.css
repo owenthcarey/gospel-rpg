@@ -174,7 +174,7 @@
     padding: 12px 15px 8px;
   }
   :root .quest-card:not(.objective-expanded) h1 {
-    font-size: 18px;
+    font-size: 20px;
     margin: 7px 0;
   }
   :root .quest-card:not(.objective-expanded) .current-objective {
@@ -201,7 +201,7 @@
     padding-left: 67px;
   }
   :root .conversation-overlay .dialogue-main h2 {
-    font-size: 24px;
+    font-size: 25px;
   }
   .conversation-overlay .dialogue-main header .conversation-motion {
     flex-basis: auto;
@@ -242,7 +242,7 @@
     height: 64px;
   }
   :root .conversation-overlay .dialogue-text {
-    font-size: 12px;
+    font-size: 14px;
     margin: 10px 0;
   }
   :root .conversation-context {

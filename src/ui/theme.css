@@ -1315,7 +1315,7 @@
     height: 28px;
   }
   :root .logo-hud .logo-word {
-    font-size: 18px;
+    font-size: 19px;
   }
   :root .toolbar {
     padding: 2px;
@@ -1334,7 +1334,7 @@
     padding: 10px 12px 6px;
   }
   :root .quest-card:not(.objective-expanded) h1 {
-    font-size: 18px;
+    font-size: 16px;
     margin: 7px 0;
   }
   :root #ui:not(.scene-mode):not(.working) .quest-card:not(.objective-expanded) {
@@ -1381,7 +1381,7 @@
     white-space: normal;
   }
   :root .current-objective {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.5;
   }
   :root .quest-card.objective-expanded {
@@ -1413,7 +1413,7 @@
   :root .control-hints {
     padding: 4px 5px 4px 8px;
     gap: 6px;
-    font-size: 12px;
+    font-size: 10px;
     max-width: 100%;
     white-space: normal;
   }
@@ -1444,7 +1444,7 @@
   }
   :root .route-scroll-cue {
     grid-column: 1 / -1;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1;
     color: #ffe07a;
   }
@@ -1470,14 +1470,14 @@
   }
   :root .panel-header h2,
   :root .conversation-context .panel-header h2 {
-    font-size: 18px;
+    font-size: 20px;
   }
   :root .panel-body,
   :root .conversation-context .panel-body {
     padding: 14px 16px;
   }
   :root .panel-body p.eyebrow {
-    font-size: 12px;
+    font-size: 10px;
   }
   :root .setting-row:has([data-setting='guidance']) {
     flex-direction: column;
@@ -1496,10 +1496,10 @@
     height: 65px;
   }
   :root .conversation-overlay .dialogue-main h2 {
-    font-size: 18px;
+    font-size: 19px;
   }
   :root .conversation-overlay .dialogue-text {
-    font-size: 18px;
+    font-size: 15px;
   }
   :root .conversation-context {
     top: auto;
@@ -1529,7 +1529,7 @@
     padding: 13px 15px 10px;
   }
   :root .scene-heading h1 {
-    font-size: 18px;
+    font-size: 20px;
   }
   :root .scene-reading {
     padding: 5px 15px 8px;
@@ -1555,7 +1555,7 @@
     margin-bottom: 18px;
   }
   :root .welcome-note {
-    font-size: 12px;
+    font-size: 10px;
   }
   :root .welcome-location {
     display: none;
@@ -1596,7 +1596,7 @@
     padding-bottom: 12px;
   }
   :root .welcome-card h1 {
-    font-size: 24px;
+    font-size: 21px;
   }
 }
 @media (min-width: 700px) and (max-height: 540px) {
@@ -1631,7 +1631,7 @@
     height: 32px;
   }
   :root .welcome-brand .logo-word {
-    font-size: 24px;
+    font-size: 27px;
   }
   :root .welcome-card > .eyebrow {
     margin-bottom: 6px;
@@ -1923,7 +1923,7 @@
     background: #30291f;
     border: 1px solid #17120b;
     color: #d9c694;
-    font-size: 12px;
+    font-size: 10px;
     line-height: 12px;
     text-align: right;
     padding: 0 4px;
@@ -1944,7 +1944,7 @@
     gap: 3px;
     padding: 2px;
     align-self: stretch;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.25;
   }
   :root .travel-status span {
@@ -1958,7 +1958,7 @@
     width: 100%;
     min-width: 44px;
     padding: 4px 2px;
-    font-size: 12px;
+    font-size: 11px;
   }
   :root .control-hints > span {
     display: none;

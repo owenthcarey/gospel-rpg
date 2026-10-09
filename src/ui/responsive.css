@@ -1,7 +1,7 @@
 /* Loaded as a layer-free stylesheet; responsive overrides use :root specificity. */
 @media (max-width: 1200px) {
   :root .logo-word {
-    font-size: 24px;
+    font-size: 23px;
   }
   :root .toolbar button {
     padding: 8px 10px;
@@ -11,7 +11,7 @@
   }
   :root .region-title {
     left: 47%;
-    font-size: 12px;
+    font-size: 11px;
   }
   :root .quest-card {
     width: 232px;
@@ -19,7 +19,7 @@
     padding: 16px 17px;
   }
   :root .quest-card h1 {
-    font-size: 24px;
+    font-size: 25px;
   }
   :root .control-hints {
     gap: 12px;
@@ -29,7 +29,7 @@
     display: none;
   }
   :root .traveler-card p {
-    font-size: 12px;
+    font-size: 14px;
   }
   :root .minimap-wrap {
     width: 144px;
@@ -48,7 +48,7 @@
 }
 @media (max-height: 750px) {
   :root .welcome-card h1 {
-    font-size: 48px;
+    font-size: 44px;
     max-width: 380px;
   }
   :root .welcome-brand {
@@ -56,7 +56,7 @@
   }
   :root .welcome-copy {
     margin-top: 14px;
-    font-size: 18px;
+    font-size: 16px;
   }
   :root .welcome-card .primary-button {
     margin-top: 20px;
@@ -79,7 +79,7 @@
     padding: 22px 25px;
   }
   :root .dialogue-text {
-    font-size: 18px;
+    font-size: 17px;
     line-height: 1.55;
     margin: 12px 0;
   }
@@ -106,7 +106,7 @@
     padding: 14px 15px;
   }
   :root .quest-card h1 {
-    font-size: 24px;
+    font-size: 23px;
   }
   :root .quest-intro {
     display: none;
@@ -121,11 +121,11 @@
     bottom: 23px;
   }
   :root .traveler-card p {
-    font-size: 12px;
+    font-size: 13px;
   }
   :root .traveler-card small {
     max-width: 150px;
-    font-size: 12px;
+    font-size: 10.5px;
   }
   :root .traveler-seal {
     display: none;
@@ -142,7 +142,7 @@
     height: 120px;
   }
   :root .minimap-name {
-    font-size: 12px;
+    font-size: 7.5px;
     letter-spacing: 0.1em;
   }
   :root .camera-controls button {
@@ -166,7 +166,7 @@
     max-width: 380px;
   }
   :root .welcome-card h1 {
-    font-size: 48px;
+    font-size: 46px;
     max-width: 380px;
   }
   :root .welcome-location {
@@ -174,7 +174,7 @@
     bottom: 8%;
   }
   :root .welcome-location small {
-    font-size: 18px;
+    font-size: 16px;
   }
   :root .time-of-day {
     top: 90px;
@@ -183,7 +183,7 @@
 }
 @media (max-width: 640px) {
   :root .village-shortcut {
-    font-size: 12px;
+    font-size: 13px;
     gap: 7px;
     margin-top: 10px;
     padding-top: 10px;
@@ -196,7 +196,7 @@
     display: none;
   }
   :root .exploration-intro {
-    font-size: 12px;
+    font-size: 13px;
   }
   :root .village-summary {
     padding: 15px;
@@ -205,11 +205,11 @@
     gap: 10px;
   }
   :root .village-summary-heading .eyebrow {
-    font-size: 12px;
+    font-size: 9px;
     letter-spacing: 0.12em;
   }
   :root .village-summary-heading h3 {
-    font-size: 24px;
+    font-size: 21px;
   }
   :root .discovery-cards {
     grid-template-columns: 1fr;
@@ -230,7 +230,7 @@
     height: 34px;
   }
   :root .logo-hud .logo-word {
-    font-size: 18px;
+    font-size: 19px;
   }
   :root .logo-hud .logo-tag {
     display: none;
@@ -260,17 +260,17 @@
     padding: 13px;
   }
   :root .quest-card h1 {
-    font-size: 24px;
+    font-size: 21px;
     line-height: 1.1;
     margin-top: 8px;
   }
   :root .quest-eyebrow {
-    font-size: 12px;
+    font-size: 9.5px;
     gap: 6px;
     letter-spacing: 0.12em;
   }
   :root .quest-count {
-    font-size: 12px;
+    font-size: 10px;
   }
   :root .quest-steps {
     gap: 10px;
@@ -285,7 +285,7 @@
     height: 11px;
   }
   :root .quest-track {
-    font-size: 12px;
+    font-size: 13px;
     gap: 6px;
   }
   :root .quest-track .icon {
@@ -297,7 +297,7 @@
   :root .time-of-day {
     right: 16px;
     top: 90px;
-    font-size: 12px;
+    font-size: 13px;
     gap: 5px;
   }
   :root .time-of-day .icon {
@@ -335,7 +335,7 @@
   }
   :root .nearby-action {
     padding: 9px 12px;
-    font-size: 12px;
+    font-size: 13px;
     gap: 6px;
     max-width: 100%;
     text-align: left;
@@ -345,17 +345,17 @@
   }
   :root .nearby-action kbd {
     height: 18px;
-    font-size: 12px;
+    font-size: 9.5px;
   }
   :root .label-name {
     font-size: 12px;
     padding: 4px 9px;
   }
   :root .world-label.place .label-name {
-    font-size: 12px;
+    font-size: 11.5px;
   }
   :root .toast {
-    font-size: 12px;
+    font-size: 14px;
     /* Clear the minimap and its two-row camera cluster in the lower right. */
     bottom: 236px;
     width: max-content;
@@ -387,17 +387,17 @@
     height: 52px;
   }
   :root .welcome-brand .logo-word {
-    font-size: 30px;
+    font-size: 28px;
   }
   :root .welcome-card h1 {
-    font-size: 48px;
+    font-size: 42px;
     max-width: 350px;
   }
   :root .welcome-brand {
     margin-bottom: 26px;
   }
   :root .welcome-copy {
-    font-size: 18px;
+    font-size: 16px;
     max-width: 330px;
   }
   :root .welcome-location {
@@ -426,10 +426,10 @@
     right: 20px;
   }
   :root .panel-header h2 {
-    font-size: 24px;
+    font-size: 27px;
   }
   :root .panel-header .eyebrow {
-    font-size: 12px;
+    font-size: 9px;
     letter-spacing: 0.14em;
   }
   :root .panel-body {
@@ -445,7 +445,7 @@
     margin-left: auto;
   }
   :root .panel-lead {
-    font-size: 18px;
+    font-size: 16px;
   }
   :root .settings-grid,
   :root .map-layout {
@@ -477,7 +477,7 @@
     font-size: 12px;
   }
   :root .map-destinations span {
-    font-size: 18px;
+    font-size: 15px;
   }
   :root .map-legend {
     gap: 12px;
@@ -492,10 +492,10 @@
     padding: 13px;
   }
   :root .journal-summary h3 {
-    font-size: 18px;
+    font-size: 19px;
   }
   :root .journal-summary p {
-    font-size: 12px;
+    font-size: 14px;
   }
   :root .chapter-icon {
     width: 36px;
@@ -508,7 +508,7 @@
     gap: 12px;
   }
   :root .journal-entry p {
-    font-size: 18px;
+    font-size: 15px;
   }
   :root .dialogue-box {
     bottom: 12px;
@@ -521,22 +521,22 @@
     display: none;
   }
   :root .dialogue-main h2 {
-    font-size: 24px;
+    font-size: 26px;
   }
   :root .dialogue-text {
-    font-size: 18px;
+    font-size: 17px;
     line-height: 1.55;
   }
   :root .dialogue-choices button {
     padding: 12px 10px;
-    font-size: 18px;
+    font-size: 15px;
   }
   :root .dialogue-text.scripture {
-    font-size: 24px;
+    font-size: 22px;
   }
   :root .controls-list > div {
     gap: 16px;
-    font-size: 12px;
+    font-size: 13px;
   }
   :root .controls-list dt {
     max-width: 45%;
@@ -568,7 +568,7 @@
     font-size: 24px;
   }
   :root .welcome-card h1 {
-    font-size: 36px;
+    font-size: 34px;
     max-width: 420px;
   }
   :root .welcome-copy.secondary,
@@ -577,7 +577,7 @@
   }
   :root .welcome-copy {
     margin-top: 10px;
-    font-size: 18px;
+    font-size: 15px;
   }
   :root .welcome-card .primary-button {
     margin-top: 16px;
@@ -589,7 +589,7 @@
     top: 80px;
   }
   :root .quest-card h1 {
-    font-size: 18px;
+    font-size: 20px;
   }
   :root .quest-steps {
     gap: 7px;

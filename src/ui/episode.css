@@ -499,7 +499,7 @@
     max-height: 52dvh;
   }
   .scene-heading h1 {
-    font-size: 24px;
+    font-size: 26px;
   }
   .scene-heading {
     padding: 17px 20px 12px;
@@ -525,22 +525,22 @@
     max-height: 210px;
   }
   :root .quest-card h1 {
-    font-size: 24px;
+    font-size: 22px;
     line-height: 1.1;
     margin-top: 6px;
   }
   :root .quest-card .quest-eyebrow {
-    font-size: 12px;
+    font-size: 10px;
     letter-spacing: 0.05em;
   }
   :root .quest-card .quest-count {
-    font-size: 12px;
+    font-size: 10px;
   }
   :root .quest-details {
     display: none;
   }
   :root .current-objective {
-    font-size: 12px;
+    font-size: 14px;
     margin-top: 7px;
     line-height: 1.4;
   }
@@ -548,7 +548,7 @@
     padding: 7px 0 0;
     margin: 4px 0 0;
     min-height: 40px;
-    font-size: 12px;
+    font-size: 13px;
   }
   :root .compact-journal {
     display: block;
@@ -589,7 +589,7 @@
   }
   :root .nearby-action {
     min-height: 44px;
-    font-size: 12px;
+    font-size: 13px;
     padding: 10px 14px;
     max-width: 225px;
   }
@@ -609,22 +609,22 @@
     overflow-y: auto;
   }
   :root .dialogue-text {
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.6;
   }
   :root .dialogue-main h2 {
-    font-size: 24px;
+    font-size: 27px;
   }
   :root .dialogue-main header p {
     font-size: 12px;
   }
   :root .dialogue-choices button {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.45;
     min-height: 48px;
   }
   :root .dialogue-source {
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.5;
   }
   :root .panel-body {
@@ -634,10 +634,10 @@
     padding: 20px;
   }
   :root .panel-header h2 {
-    font-size: 24px;
+    font-size: 27px;
   }
   :root .panel-body p {
-    font-size: 18px;
+    font-size: 15px;
   }
   .episode-summary {
     padding: 18px;
@@ -647,7 +647,7 @@
     gap: 10px;
   }
   .episode-summary-heading h3 {
-    font-size: 24px;
+    font-size: 25px;
   }
   .episode-summary-heading .status-pill {
     margin-left: 0;
@@ -656,10 +656,10 @@
     grid-template-columns: 1fr;
   }
   .episode-objectives li {
-    font-size: 18px;
+    font-size: 15px;
   }
   .episode-summary .eyebrow {
-    font-size: 12px;
+    font-size: 10px;
     line-height: 1.5;
   }
   .story-actions {
@@ -680,16 +680,16 @@
     gap: 10px;
   }
   .scene-heading h1 {
-    font-size: 24px;
+    font-size: 23px;
     line-height: 1.2;
   }
   .scene-heading .eyebrow {
-    font-size: 12px;
+    font-size: 10px;
     line-height: 1.5;
     letter-spacing: 0.03em;
   }
   .scene-pause {
-    font-size: 12px;
+    font-size: 11px;
     padding: 6px 9px;
     max-width: 86px;
     flex-shrink: 0;
@@ -701,7 +701,7 @@
     padding: 0 16px 8px;
   }
   .scene-caption > p:last-child {
-    font-size: 18px;
+    font-size: 15px;
     line-height: 1.6;
   }
   .scripture-caption > p:last-child {
@@ -711,7 +711,7 @@
     padding: 10px 16px;
   }
   .scene-continue {
-    font-size: 12px;
+    font-size: 13px;
     padding: 10px 12px;
     min-height: 46px;
   }
@@ -730,7 +730,7 @@
     padding: 17px;
   }
   .transcript-beat h3 {
-    font-size: 24px;
+    font-size: 25px;
   }
 }
 @media (max-height: 540px) {
@@ -749,7 +749,7 @@
     bottom: 10px;
   }
   .scene-heading h1 {
-    font-size: 24px;
+    font-size: 21px;
   }
   .scene-heading {
     padding: 10px 15px;

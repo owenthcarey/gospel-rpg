@@ -378,7 +378,7 @@
     height: 6vh;
   }
   .cold-open-text {
-    font-size: 24px;
+    font-size: 21px;
   }
   .cold-open-footer {
     min-height: 0;
@@ -486,7 +486,7 @@
     display: none;
   }
   .chapter-card-title {
-    font-size: 24px;
+    font-size: 21px;
   }
 }
 .veil {
