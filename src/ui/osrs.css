@@ -726,3 +726,26 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Overhead remarks: yellow pixel speech above a neighbor's name. */
+:root .overhead-chat {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+:root .overhead-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  color: #ffff00;
+  font: 700 12px/1 var(--font-sans);
+  text-shadow:
+    1px 1px 0 #000,
+    0 0 1px #000;
+}
+:root #ui[data-graphics-paused='true'] .overhead-chat,
+:root #ui.scene-mode .overhead-chat {
+  visibility: hidden;
+}
