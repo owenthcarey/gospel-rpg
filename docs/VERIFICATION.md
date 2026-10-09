@@ -2,6 +2,14 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Software rendering cost behind the Capernaum High case · 2026-10-09
+
+The desktop Capernaum High moored-boat case hit its original **180-second** limit on three consecutive hosted runs after passing in **1.8 minutes** at **8aabd0b** (an earlier run took **2.6 minutes**). Its retained `*-camera.json` evidence showed every frame's main-thread task rising from about **310 ms** to **570 ms**, while unrelated groups and the run's total browser time were unchanged. Local Chromium hides this cost: it uses the GPU unless `PLAYWRIGHT_SWIFTSHADER=1` is set, and even SwiftShader there has many more cores than a hosted runner, so whole-case time and main-thread metrics did not move.
+
+An in-page measurement under `--use-angle=swiftshader` (`scene.render()` followed by a one-pixel `readPixels`, with a temporary uncommitted runtime hook) found two hidden costs at the landing. The far-plane sky was shaded under the land (**about 11 ms**), and Capernaum's lake plane ran some 50 m under the village (**about 5 ms**). The new fishing spot, by comparison, measured **about 2 ms**. The dome now steps aside for its exact haze colour when the whole view lies below the horizon, and the lake starts just inside the shore on its original grid. A High frame fell from **82 ms to 66 ms**. In-page comparison of the culled and drawn sky at the default camera found **0 differing pixels**, and both static-image baselines still match. The next hosted run passed the case in **2.5 minutes**. Shadow casters were also measured (**about 12 ms**) but all lie inside the fitted shadow box, so culling them saved nothing and was not kept.
+
+`dialogue-notice` then failed with Playwright's _Resulting promise was garbage collected_ on three runs, passing each retry. DevTools holds an awaited page promise weakly, so the helper now keeps each pending notice wait referenced from the page until it settles. The case passes 12 of 12 locally across both projects.
+
 ## Old School frame and pixel interface · 2026-10-09
 
 The desktop presentation pass (classic frame, Way Pixel, run orb, chatbox, chatheads and classic touches) was reviewed in local production and development builds at 1280×800, 1440×900, 1024×768, 900×900, 844×300, 568×320 and the 390×844 phone layout, including title, loading, conversation, journal, satchel, settings, scenes, the road and the lake. Item sprites and portraits were refinished through Blender MCP with `classic_edge`; the open Blender file was restored to its prior three objects afterwards.
