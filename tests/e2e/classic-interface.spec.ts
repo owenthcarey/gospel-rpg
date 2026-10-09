@@ -1,7 +1,7 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
 import { ready, settled, exported, dismiss, visit } from '../helpers/connection-browser';
 
-/** Observe the actual rendered flash during the action; CPU WebGL can outlast its 260 ms lifetime. */
+/** Observe the actual rendered flash during the action; CPU WebGL can outlast its 400 ms lifetime. */
 async function markerDuring(page: Page, action: () => Promise<unknown>, kind: 'ground' | 'object') {
   const flash = page.locator('.world-click-feedback');
   await flash.evaluate((element) => {
@@ -110,7 +110,15 @@ async function bareGround(page: Page, margin = 0) {
     if (!(await menu.isVisible())) continue;
     const options = await menu.getByRole('menuitem').allTextContents();
     await menu.getByRole('menuitem', { name: 'Cancel' }).click();
-    if (options.length === 2 && options[0] === 'Walk here') return point;
+    // Unpickable scenery in front may add Examine; a tap there still walks to the ground.
+    const extra = options.slice(1, -1);
+    if (
+      options[0] === 'Walk here' &&
+      options.at(-1) === 'Cancel' &&
+      extra.length <= 1 &&
+      extra.every((option) => option.startsWith('Examine '))
+    )
+      return point;
   }
   throw new Error('A visible bare-ground pick is required');
 }

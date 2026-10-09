@@ -142,6 +142,8 @@ export class WaterPresentation {
       shore?: number;
       land?: readonly LandBox[];
       wobble?: { amplitude: number; frequency: number };
+      /** Grid cells across the width when they differ from the depth's 64. */
+      cellsX?: number;
       /** Irregular coast margin in meters (see coastMargin). */
       coast?: number;
       interactive?: boolean;
@@ -150,7 +152,12 @@ export class WaterPresentation {
   ) {
     this.mesh = CreateGround(
       options.name,
-      { width: options.width, height: options.depth, subdivisions: 64 },
+      {
+        width: options.width,
+        height: options.depth,
+        subdivisionsX: options.cellsX ?? 64,
+        subdivisionsY: 64,
+      },
       scene,
     );
     this.mesh.position.set(options.x ?? 0, options.y ?? -0.18, options.z ?? 0);

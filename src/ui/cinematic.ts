@@ -322,7 +322,7 @@ export class Veil {
       el.className = 'veil';
       el.setAttribute('role', 'status');
       el.setAttribute('aria-live', 'polite');
-      el.innerHTML = `<div class="veil-composition"><span class="veil-mark">${logoMark('veil-logo')}<svg class="veil-ring" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="23" fill="none" stroke="currentColor" stroke-width=".8" stroke-linecap="round" pathLength="100" stroke-dasharray="18 82"/></svg></span><p class="veil-eyebrow">The journey continues</p><h2 class="veil-title"></h2>${ornamentRule('veil-rule')}<p class="veil-line"></p></div>`;
+      el.innerHTML = `<div class="veil-composition"><span class="veil-mark">${logoMark('veil-logo')}<svg class="veil-ring" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="23" fill="none" stroke="currentColor" stroke-width=".8" stroke-linecap="round" pathLength="100" stroke-dasharray="18 82"/></svg></span><p class="veil-eyebrow">The journey continues</p><h2 class="veil-title"></h2>${ornamentRule('veil-rule')}<p class="veil-line"></p></div><p class="veil-loading" aria-hidden="true">Loading - please wait.</p>`;
       this.element = el;
       this.host.append(el);
     }

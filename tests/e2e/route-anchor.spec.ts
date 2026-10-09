@@ -281,7 +281,14 @@ for (const compact of [false, true]) {
         expect(frame.point.y).toBeCloseTo(originalTarget.y, 2);
         expect(frame.button.width).toBeGreaterThanOrEqual(44);
         expect(frame.button.height).toBeGreaterThanOrEqual(isMobile || compact ? 44 : 32);
-        expect(frame.route.y + frame.route.height).toBeLessThanOrEqual(frame.hints.y - 5);
+        // The ribbon stays clear of the hints: above them when they share columns, as in the
+        // touch layouts, or beside them where the classic frame docks hints under the chatbox.
+        const sharedColumns =
+          frame.route.x < frame.hints.x + frame.hints.width &&
+          frame.route.x + frame.route.width > frame.hints.x;
+        if (sharedColumns)
+          expect(frame.route.y + frame.route.height).toBeLessThanOrEqual(frame.hints.y - 5);
+        else expect(frame.route.x).toBeGreaterThanOrEqual(frame.hints.x + frame.hints.width + 5);
       }
     } finally {
       try {

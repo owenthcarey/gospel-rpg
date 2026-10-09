@@ -6,7 +6,7 @@ import { harborPlaces } from '../content/harbor/places';
 import { WaterPresentation } from './presentation/water';
 import {
   wornPaths,
-  groundMosaic,
+  flagstoneFloor,
   shorelineBank,
   paintGround,
   backdropTerrain,
@@ -80,6 +80,7 @@ import { explorationAssets } from '../content/inventories';
 import { LifeActivity } from './actors/life';
 import type { ExplorationRegion } from '../game/campaign/types';
 import type { ActionMotion } from '../content/campaign/actions';
+import type { ActorClip } from '../content/assets';
 import { VillageActivity } from './actors/village';
 import { isActorAsset, type AssetId } from '../content/assets';
 import { bindExplorationInput, type ExplorationInputBinding, type ScreenClick } from './input';
@@ -93,6 +94,7 @@ import {
 import '@babylonjs/core/Culling/ray';
 import {
   buildings,
+  FISHING_SPOT,
   interactables,
   episodePlaces,
   activeInteractables,
@@ -108,6 +110,17 @@ import { distance, findPath, WalkGrid } from '../game/pathfinding';
 import { newGame, type GameState, type Point, type Settings } from '../game/types';
 import { PausedCadence } from './presentation/cadence';
 import { VILLAGE_PATHS } from '../content/terrain';
+import { FRESH_RUN, RUN_SPEED, tickRun, toggleRun, type RunState } from '../game/run';
+import { FishingSpot } from './environment/fishing-spot';
+
+export type CompassPoint = 'north' | 'east' | 'south' | 'west';
+/** Camera orbit angles that look toward each compass point (north is +z, east is +x). */
+export const COMPASS_ALPHA: Readonly<Record<CompassPoint, number>> = {
+  north: -Math.PI / 2,
+  east: Math.PI,
+  south: Math.PI / 2,
+  west: 0,
+};
 
 export interface WorldCallbacks {
   requestNavigate?: (id: string) => void;
@@ -116,6 +129,10 @@ export interface WorldCallbacks {
   roadCheckpoint: (step: number) => void;
   interact: (id: string) => void;
   notice: (message: string) => void;
+  /** Running or its energy changed by a whole point. */
+  run?: (state: RunState) => void;
+  /** The session's running state, carried into each newly loaded region. */
+  runState?: () => RunState;
   frame: (
     point: Point,
     labels: ScreenLabel[],
@@ -123,6 +140,8 @@ export interface WorldCallbacks {
     nearest: string | null,
     destination?: string,
     walkTarget?: Point,
+    /** The traveler's head on screen, for overhead speech. */
+    head?: { x: number; y: number },
   ) => void;
 }
 /** The shared lifecycle of optional exploration controllers. Ticks keep their own inputs. */
@@ -220,6 +239,8 @@ export class World {
   private routeDots: Mesh[] = [];
   private strideTime = 0;
   private walkRamp = 0;
+  private run: RunState = FRESH_RUN;
+  private fishingSpot?: FishingSpot;
   private pendingRotation = 0;
   private dataCache = new Map<string, string>();
   private cameraReturn?: { from: CameraPose; to: CameraPose; t: number };
@@ -247,6 +268,7 @@ export class World {
     initial: GameState = newGame(),
     quality: Settings['quality'] = 'high',
   ) {
+    this.run = callbacks.runState?.() ?? FRESH_RUN;
     this.state = structuredClone(initial);
     this.layout = campaignLayout(initial.region);
     this.grid = this.layout
@@ -372,13 +394,12 @@ export class World {
         doorstep.isPickable = false;
       }
       if (inside)
-        groundMosaic(
+        flagstoneFloor(
           this.scene,
           'regional-earth',
           { min: -5.8, max: 5.8 },
           this.layout.terrain,
           (p) => groundHeight(initial.region, p),
-          true,
         );
       if (initial.region === 'galilee-water') floor.setEnabled(false);
       else if (!inside)
@@ -485,11 +506,16 @@ export class World {
       }
     }
     const shoreRocks = [];
+    // Hulls drawn up on the shore keep their outline: no reeds or rocks through a boat.
+    const hulls = props.filter((p) => p.asset === 'boat');
     for (let i = 0; i < (this.layout ? 0 : 30); i++) {
       const z = -24 + i * 1.7;
-      const x = shoreline(z);
+      const x = shoreline(z) - 0.1 + Math.sin(i * 3) * 0.45;
+      if (hulls.some((hull) => Math.hypot(hull.x - x, hull.z - z) < 1.7)) continue;
+      // Nor on the jetty's planks (makeDocks: x 7.7–13.1, z 2.8 ± 0.9).
+      if (x > 7.4 && x < 13.4 && Math.abs(z - 2.8) < 1.2) continue;
       const model = this.library.instantiate(i % 3 === 0 ? 'reeds' : 'rock', 'shore-detail-' + i);
-      model.root.position.set(x - 0.1 + Math.sin(i * 3) * 0.45, 0, z);
+      model.root.position.set(x, 0, z);
       model.root.scaling.setAll(0.45 + (i % 4) * 0.16);
       if (i % 3 !== 0) shoreRocks.push(model);
     }
@@ -909,16 +935,25 @@ export class World {
 
   private makeWater(): void {
     shorelineBank(this.scene, 'capernaum-shore-bank', shoreline, -36, 42);
+    // The lake starts just inside the shore rather than far under the village, where land
+    // hides it but software renderers still shade it. Its grid keeps the same 180/64 m cells.
+    const cell = 180 / 64,
+      cells = 47,
+      east = 135;
     this.water = new WaterPresentation(this.scene, {
       name: 'galilee',
-      width: 180,
+      width: cell * cells,
       depth: 180,
-      x: 45,
+      x: east - (cell * cells) / 2,
       z: 5,
+      cellsX: cells,
       land: [{ x: 9.3 - 500, z: 0, halfX: 500, halfZ: 1000 }],
       wobble: { amplitude: 1.5, frequency: 0.16 },
     });
     this.stage.attachWater(this.water);
+    // Offshore of the landing, clear of the moored boats.
+    this.fishingSpot = new FishingSpot(this.scene, FISHING_SPOT, -0.18);
+    this.cleanup.push(() => this.fishingSpot?.dispose());
   }
 
   private makePaths(): void {
@@ -1289,6 +1324,27 @@ export class World {
       });
     }
   }
+  /** Toggle running; an empty store keeps the traveler walking until it refills. */
+  toggleRun(): RunState {
+    this.setRun(toggleRun(this.run ?? FRESH_RUN));
+    return this.run;
+  }
+  private setRun(next: RunState): void {
+    // Test doubles may build a world without its constructor; treat that as a fresh store.
+    const previous = this.run ?? FRESH_RUN;
+    this.run = next;
+    if (next.on !== previous.on || Math.floor(next.energy) !== Math.floor(previous.energy))
+      this.callbacks?.run?.(next);
+  }
+  /** Companion walks keep their shared pace and the lake keeps its rowing pace. */
+  private get runPace(): number {
+    return this.run?.on &&
+      this.state.region !== 'galilee-water' &&
+      this.destination !== 'amos-waypoint' &&
+      this.destination !== 'neri-meeting'
+      ? RUN_SPEED
+      : 1;
+  }
   setPaused(value: boolean): void {
     this.paused = value;
     this.interactionFeedback?.setPaused(value);
@@ -1370,12 +1426,17 @@ export class World {
     this.pendingRotation = 0;
   }
   faceNorth(): void {
+    this.look('north');
+  }
+  /** Turn the camera to look toward a compass point, as the classic compass menu does. */
+  look(direction: CompassPoint): void {
     if (this.workView?.active) return;
     this.finishCameraTransition();
     this.camera.inertialAlphaOffset = 0;
+    const alpha = COMPASS_ALPHA[direction];
     const turn = Math.atan2(
-      Math.sin(-Math.PI / 2 - this.camera.alpha),
-      Math.cos(-Math.PI / 2 - this.camera.alpha),
+      Math.sin(alpha - this.camera.alpha),
+      Math.cos(alpha - this.camera.alpha),
     );
     if (this.reducedMotion) {
       this.pendingRotation = 0;
@@ -1462,6 +1523,7 @@ export class World {
         Number(this.keys.has('w') || this.keys.has('arrowup')) -
         Number(this.keys.has('s') || this.keys.has('arrowdown'));
       const beforeMove = this.position;
+      const runPace = this.runPace;
       let moving = false;
       if ((dx || dz) && !this.seatedAction) {
         if (this.path.length) this.routeDots.forEach((dot) => dot.setEnabled(false));
@@ -1474,7 +1536,7 @@ export class World {
           .scale(dz)
           .add(right.scale(dx))
           .normalize()
-          .scale(dt * 3.25);
+          .scale(dt * 3.25 * runPace);
         const next = slideStep(this.grid, this.position, { x: movement.x, z: movement.z });
         if (distance(this.position, next) > 0.00001) {
           this.face(next, dt);
@@ -1487,6 +1549,7 @@ export class World {
           this.path,
           dt *
             this.pace(dt) *
+            runPace *
             (this.destination === 'amos-waypoint' || this.destination === 'neri-meeting'
               ? 0.44
               : 1),
@@ -1514,6 +1577,13 @@ export class World {
         this.position.z,
       );
       const travelSpeed = dt > 0 ? distance(beforeMove, this.position) / dt : 0;
+      this.setRun(
+        tickRun(
+          this.run ?? FRESH_RUN,
+          dt,
+          runPace > 1 && moving ? distance(beforeMove, this.position) : 0,
+        ),
+      );
       // Accepted work is cosmetic: once the traveler actually leaves, resume their
       // walk instead of carrying a stationary work pose along the route.
       if (travelSpeed > 0 && !this.seatedAction && this.actorPlayer.performing)
@@ -1598,7 +1668,11 @@ export class World {
       });
     }
     this.water?.tick(this.time, this.reducedMotion);
-    this.water?.setRipples(this.hullRipples());
+    this.fishingSpot?.tick(this.time, this.reducedMotion);
+    this.water?.setRipples([
+      ...this.hullRipples(),
+      ...(this.fishingSpot ? [this.fishingSpot.ripple()] : []),
+    ]);
     this.actionFeedback?.tick(
       Math.min(elapsed, 0.1),
       this.active && !this.paused,
@@ -1651,62 +1725,75 @@ export class World {
     this.setData('actorFrame', playback.frame.toFixed(2));
     this.setData('actorHeading', String(this.playerModel?.rotation.y ?? Number.NaN));
     this.setData('actionMotion', this.seatedAction ? 'SitDown' : playback.action);
-    if (performance.now() - this.lastFrame > 45) {
-      this.lastFrame = performance.now();
-      const width = this.engine.getRenderWidth(),
-        height = this.engine.getRenderHeight();
-      const rect = this.canvas.getBoundingClientRect();
-      const labels = this.destinations.map((p) => {
-        const hull =
-          p.id === 'board-' + this.state.region && this.mooredBoat?.isEnabled()
-            ? this.mooredBoat.getAbsolutePosition()
-            : undefined;
-        // Keep the standing name clearance above Neri's actual seated head attachment.
-        const seatedHead =
-          p.id === 'neri' &&
-          this.state.road.company.stage === 'complete' &&
-          this.road?.conversationActor.root.isEnabled()
-            ? this.road.conversationActor.model.socket('head').getAbsolutePosition()
-            : undefined;
-        const anchor = seatedHead ?? hull;
-        const v = Vector3.Project(
-          new Vector3(
-            anchor?.x ?? p.x,
-            (anchor?.y ?? groundHeight(this.state.region, p)) +
-              (seatedHead ? 0.78 : p.kind === 'person' ? 2.18 : 1.9),
-            anchor?.z ?? p.z,
-          ),
-          Matrix.Identity(),
-          this.scene.getTransformMatrix(),
-          this.camera.viewport.toGlobal(width, height),
-        );
-        return {
-          id: p.id,
-          x: this.layout
-            ? Math.max(95, Math.min(rect.width - 95, (v.x / width) * rect.width))
-            : (v.x / width) * rect.width,
-          y: (v.y / height) * rect.height,
-          visible:
-            v.z > 0 &&
-            v.z < 1 &&
-            v.x > 0 &&
-            v.x < width &&
-            v.y > 0 &&
-            v.y < height &&
-            (this.guidance === 'full' ||
-              distance(p, this.position) < 5 ||
-              p.id === this.destination),
-        };
-      });
-      this.callbacks.frame(
-        this.position,
-        labels,
-        this.camera.alpha,
-        this.nearest()?.id ?? null,
-        this.destination,
-        this.path.at(-1),
+    if (performance.now() - this.lastFrame > 45) this.publishFrame();
+  }
+  /** Publish the HUD now, so a pause shows the minimap where the traveler actually stopped. */
+  flushFrame(): void {
+    if (this.active && this.player) this.publishFrame();
+  }
+  /** Hand the HUD this frame's position, labels and heading; every 45 ms while rendering. */
+  private publishFrame(): void {
+    this.lastFrame = performance.now();
+    const width = this.engine.getRenderWidth(),
+      height = this.engine.getRenderHeight();
+    const rect = this.canvas.getBoundingClientRect();
+    const labels = this.destinations.map((p) => {
+      const hull =
+        p.id === 'board-' + this.state.region && this.mooredBoat?.isEnabled()
+          ? this.mooredBoat.getAbsolutePosition()
+          : undefined;
+      // Keep the standing name clearance above Neri's actual seated head attachment.
+      const seatedHead =
+        p.id === 'neri' &&
+        this.state.road.company.stage === 'complete' &&
+        this.road?.conversationActor.root.isEnabled()
+          ? this.road.conversationActor.model.socket('head').getAbsolutePosition()
+          : undefined;
+      const anchor = seatedHead ?? hull;
+      const v = Vector3.Project(
+        new Vector3(
+          anchor?.x ?? p.x,
+          (anchor?.y ?? groundHeight(this.state.region, p)) +
+            (seatedHead ? 0.78 : p.kind === 'person' ? 2.18 : 1.9),
+          anchor?.z ?? p.z,
+        ),
+        Matrix.Identity(),
+        this.scene.getTransformMatrix(),
+        this.camera.viewport.toGlobal(width, height),
       );
-    }
+      return {
+        id: p.id,
+        x: this.layout
+          ? Math.max(95, Math.min(rect.width - 95, (v.x / width) * rect.width))
+          : (v.x / width) * rect.width,
+        y: (v.y / height) * rect.height,
+        visible:
+          v.z > 0 &&
+          v.z < 1 &&
+          v.x > 0 &&
+          v.x < width &&
+          v.y > 0 &&
+          v.y < height &&
+          (this.guidance === 'full' || distance(p, this.position) < 5 || p.id === this.destination),
+      };
+    });
+    const head = Vector3.Project(
+      new Vector3(this.player.position.x, this.player.position.y + 2.18, this.player.position.z),
+      Matrix.Identity(),
+      this.scene.getTransformMatrix(),
+      this.camera.viewport.toGlobal(width, height),
+    );
+    this.callbacks.frame(
+      this.position,
+      labels,
+      this.camera.alpha,
+      this.nearest()?.id ?? null,
+      this.destination,
+      this.path.at(-1),
+      head.z > 0 && head.z < 1
+        ? { x: (head.x / width) * rect.width, y: (head.y / height) * rect.height }
+        : undefined,
+    );
   }
   activate(): void {
     this.active = true;
@@ -1815,6 +1902,19 @@ export class World {
   }
   getRoadCompanionPosition(): Point | undefined {
     return this.road?.position();
+  }
+  /** A burst of sparks over the traveler when a story completes. */
+  fireworks(): void {
+    this.stage.atmosphere.fireworks(this.player.position.add(new Vector3(0, 1.9, 0)));
+  }
+  /** A cosmetic emote: the traveler stops, then plays the gesture once. */
+  emote(clip: ActorClip): boolean {
+    if (this.paused || this.seatedAction || this.travelerBoat) return false;
+    this.stop();
+    this.conversationView?.clear();
+    this.actorPlayer.playOnce(clip);
+    if (this.reducedMotion) this.poseTraveler(false, 0);
+    return true;
   }
   performInteraction(motion?: ActionMotion, target?: string): void {
     if (motion !== 'SitDown') this.clearSeatedAction();

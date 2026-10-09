@@ -38,6 +38,8 @@ test('expanded world labels remain steady beside reserved HUD edges', async ({ p
     for (const { selector, top, height } of bands) {
       const band = document.querySelector<HTMLElement>(selector)!;
       for (const [key, value] of Object.entries({
+        // The classic desktop frame renders no bar box of its own; give the band one.
+        display: 'block',
         position: 'fixed',
         left: '0',
         top: `${top}px`,
@@ -51,6 +53,8 @@ test('expanded world labels remain steady beside reserved HUD edges', async ({ p
         'box-sizing': 'border-box',
         transform: 'none',
         overflow: 'hidden',
+        // Synthetic bands take their place at once; HUD easing must not open a gap.
+        transition: 'none',
       }))
         band.style.setProperty(key, value, 'important');
     }

@@ -4,7 +4,7 @@
   padding: 18px 20px 12px;
 }
 .quest-card:not(.objective-expanded) h1 {
-  font-size: 23px;
+  font-size: 24px;
   line-height: 1.15;
   margin: 12px 0 10px;
 }
@@ -67,7 +67,7 @@
 .opportunity h3 {
   margin: 8px 0;
   font:
-    23px var(--font-serif),
+    24px var(--font-serif),
     serif;
 }
 .current-opportunity {
@@ -79,7 +79,7 @@
   display: flex;
   gap: 6px;
   align-items: flex-start;
-  font-size: 14px;
+  font-size: 12px;
   color: #3f4d3d;
 }
 .opportunity-place svg {
@@ -112,7 +112,7 @@
 }
 .overview-footnote {
   color: var(--fg-2);
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.6;
   margin: 18px 0 12px;
 }
@@ -162,13 +162,13 @@
 }
 .work-header h2 {
   font:
-    500 27px/1.12 var(--font-serif),
+    500 24px/1.12 var(--font-serif),
     serif;
   color: var(--gold-100);
   margin: 5px 0 0;
 }
 .work-panel .eyebrow {
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.4;
   color: var(--gold-300);
   margin: 0;
@@ -190,7 +190,7 @@
   min-height: 0;
 }
 .work-panel p {
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.55;
 }
 .work-state {
@@ -213,7 +213,7 @@
   border: 1px solid #fff3d4;
   min-height: 44px;
   padding: 10px 14px;
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.35;
   white-space: normal;
   box-shadow:
@@ -239,7 +239,7 @@
 .work-panel .action-blocker {
   margin: 4px 0 6px;
   color: var(--text-cream-2);
-  font-size: 13px;
+  font-size: 12px;
 }
 .work-panel .work-result {
   margin: 12px 0 0;
@@ -250,7 +250,7 @@
   border-left: 3px solid var(--gold-300);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   font-family: var(--font-serif);
-  font-size: 16px;
+  font-size: 18px;
 }
 .work-panel .work-result:empty {
   display: none;
@@ -265,7 +265,7 @@
   display: list-item;
   padding: 12px 2px 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.4;
   color: var(--gold-100);
 }
@@ -302,7 +302,7 @@
 .work-footer span {
   display: block;
   width: 100%;
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.4;
   color: var(--text-cream-3);
 }
@@ -325,7 +325,7 @@
   display: block;
   color: var(--gold-200);
   text-transform: capitalize;
-  font-size: 13px;
+  font-size: 12px;
 }
 .screen-directions {
   display: grid;
@@ -369,10 +369,10 @@
 html[data-text-size='large'] .work-panel p:not(.eyebrow),
 html[data-text-size='large'] .work-panel summary,
 html[data-text-size='large'] .work-panel .secondary-button {
-  font-size: 17px;
+  font-size: 18px;
 }
 html[data-text-size='large'] .work-header h2 {
-  font-size: 28px;
+  font-size: 30px;
 }
 @media (max-width: 699px) {
   .quest-card:not(.objective-expanded) {

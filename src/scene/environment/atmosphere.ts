@@ -265,14 +265,17 @@ class FlockView {
 }
 
 /**
- * Cosmetic life: ambient particles, smoke, footstep dust and birds. Pooled and capped per
- * quality; paused with the scene; hidden under reduced motion. Never saved or pickable.
+ * Cosmetic life: ambient particles, smoke, footstep dust, story fireworks and birds. Pooled
+ * and capped per quality; paused with the scene; hidden under reduced motion. Never saved or
+ * pickable.
  */
 export class Atmosphere {
   private sprite!: RawTexture;
   private ambient = new Map<AmbientParticles, ParticleSystem>();
   private smoke: ParticleSystem[] = [];
   private dust!: ParticleSystem;
+  private sparks!: ParticleSystem;
+  private pendingFireworks: Vector3 | null = null;
   private built = false;
   private pendingSmoke: { at: Vector3; scale: number }[] = [];
   private profile: EnvironmentProfile;
@@ -316,6 +319,26 @@ export class Atmosphere {
     this.dust.emitter = new Vector3();
     this.dust.blendMode = ParticleSystem.BLENDMODE_STANDARD;
     this.dust.start();
+    // Celebration sparks burst up and fall in gold and red, as classic fireworks do.
+    this.sparks = new ParticleSystem('celebration-sparks', 120, scene);
+    this.sparks.particleTexture = this.sprite;
+    this.sparks.color1 = new Color4(1, 0.86, 0.25, 1);
+    this.sparks.color2 = new Color4(0.9, 0.18, 0.12, 1);
+    this.sparks.colorDead = new Color4(1, 0.9, 0.5, 0);
+    this.sparks.minSize = 0.12;
+    this.sparks.maxSize = 0.26;
+    this.sparks.minLifeTime = 1.2;
+    this.sparks.maxLifeTime = 2;
+    this.sparks.direction1 = new Vector3(-1.4, 2.6, -1.4);
+    this.sparks.direction2 = new Vector3(1.4, 3.8, 1.4);
+    this.sparks.gravity = new Vector3(0, -5, 0);
+    this.sparks.minEmitPower = 1.2;
+    this.sparks.maxEmitPower = 2.2;
+    this.sparks.emitRate = 0;
+    this.sparks.manualEmitCount = 0;
+    this.sparks.emitter = new Vector3();
+    this.sparks.blendMode = ParticleSystem.BLENDMODE_STANDARD;
+    this.sparks.start();
     this.setProfile(this.profile);
     for (const { at, scale } of this.pendingSmoke) this.addSmoke(at, scale);
     this.pendingSmoke = [];
@@ -392,6 +415,17 @@ export class Atmosphere {
     if (!this.reduced) s.start();
     this.smoke.push(s);
   }
+  /** A short firework burst at a point, for a completed story; never under Reduce motion. */
+  fireworks(at: Vector3): void {
+    if (this.reduced) return;
+    // A story usually completes in a conversation; the burst waits for the world to resume.
+    if (!this.running || !this.built) {
+      this.pendingFireworks = at.clone();
+      return;
+    }
+    (this.sparks.emitter as Vector3).copyFrom(at);
+    this.sparks.manualEmitCount = this.low ? 40 : 90;
+  }
   /** A small puff at a footfall; purely cosmetic. */
   footstep(at: Vector3): void {
     if (this.reduced || !this.running || !this.built) return;
@@ -413,8 +447,13 @@ export class Atmosphere {
       this.build();
     }
     const speed = running && !this.reduced ? 0.01 : 0;
-    for (const system of [...this.ambient.values(), ...this.smoke, this.dust])
+    for (const system of [...this.ambient.values(), ...this.smoke, this.dust, this.sparks])
       system.updateSpeed = speed;
+    if (running && this.pendingFireworks) {
+      const at = this.pendingFireworks;
+      this.pendingFireworks = null;
+      this.fireworks(at);
+    }
     if (running && !this.reduced) this.time += dt;
   }
   applySettings(low: boolean, reduced: boolean): void {
@@ -437,14 +476,19 @@ export class Atmosphere {
         s.reset();
       } else if (resuming || !s.isStarted()) s.start();
     }
-    if (reduced) this.dust.reset();
+    if (reduced) {
+      this.dust.reset();
+      this.sparks.reset();
+      this.pendingFireworks = null;
+    }
     this.flock?.mesh.setEnabled(!reduced);
   }
   dispose(): void {
     if (!this.built) return;
     this.scene.onBeforeRenderObservable.remove(this.renderObserver);
     this.renderObserver = null;
-    for (const s of [...this.ambient.values(), ...this.smoke, this.dust]) s.dispose(false);
+    for (const s of [...this.ambient.values(), ...this.smoke, this.dust, this.sparks])
+      s.dispose(false);
     this.flock?.dispose();
     this.sprite.dispose();
   }

@@ -5,7 +5,7 @@
   flex-wrap: wrap;
   gap: 7px;
   color: var(--text-ink);
-  font-size: 13px;
+  font-size: 12px;
   margin-bottom: 14px;
 }
 :root .satchel-capacity > .icon {
@@ -79,7 +79,7 @@
   top: 3px;
   left: 5px;
   color: #ffff8b;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   font-weight: 700;
   text-shadow: 1px 1px #171109;
@@ -87,7 +87,7 @@
 :root .satchel-slot h3 {
   margin: 7px 0 0;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.4;
   color: var(--text-ink);
@@ -145,19 +145,19 @@
 :root .satchel-inspection .eyebrow {
   display: block;
   margin-bottom: 5px;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.03em;
   color: var(--text-ink);
 }
 :root .satchel-inspection strong {
   display: block;
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.35;
 }
 :root .satchel-inspection p {
   margin: 7px 0 0;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.5;
 }
 :root .satchel-return {
@@ -169,7 +169,7 @@
 :root .satchel-return p {
   flex: 1;
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
 }
 :root .satchel-return .secondary-button {
   flex-shrink: 0;
@@ -202,15 +202,15 @@
 }
 :root .satchel-carried h3 {
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 18px;
   margin: 5px 0 0;
 }
 :root .satchel-carried .eyebrow {
   color: var(--text-ink);
-  font-size: 10px;
+  font-size: 12px;
 }
 :root .satchel-carried p {
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.5;
   margin: 7px 0 12px;
 }
@@ -252,12 +252,12 @@
 }
 :root .journey-guidance strong {
   display: block;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.4;
 }
 :root .journey-guidance p {
   margin: 5px 0 0;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
 }
 :root .journey-guidance > button {
@@ -290,11 +290,11 @@
   border-bottom: 2px solid #332615;
   color: #f1d890;
   background: var(--stone-grain), #4d3b25;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 :root .journey-chart-title > span:first-child {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
 }
@@ -345,14 +345,15 @@
 }
 :root .journey-map-number {
   fill: #ffe599;
-  font: 700 17px var(--font-sans);
+  font: 700 18px var(--font-sans);
 }
 :root .journey-map-label {
   fill: #382516;
-  font: 700 15px var(--font-sans);
+  font: 700 18px var(--font-sans);
   paint-order: stroke;
   stroke: #c5ae82;
-  stroke-width: 3;
+  /* Wide enough to part the route lines that pass behind a label. */
+  stroke-width: 9;
   stroke-linejoin: round;
 }
 :root .journey-map-legend {
@@ -421,14 +422,14 @@
   border: 1px solid #dec783;
   color: #ffe599;
   background: #44301c;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
 }
 :root .journey-destination h3 {
   margin: 0;
   color: var(--text-ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.35;
 }
 :root .journey-destination-status {
@@ -437,7 +438,7 @@
 }
 :root .journey-destination p {
   margin: 9px 0;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
 }
 :root .journey-destination p.journey-next-passage {
@@ -462,7 +463,7 @@
 :root[data-text-size='large'] .journey-map-legend,
 :root[data-text-size='large'] .journey-destination-status,
 :root[data-text-size='large'] .journey-destination p.journey-next-passage {
-  font-size: 14px;
+  font-size: 12px;
 }
 :root[data-text-size='large'] .satchel-inspection p,
 :root[data-text-size='large'] .satchel-carried p,
@@ -470,7 +471,7 @@
 :root[data-text-size='large'] .journey-guidance p,
 :root[data-text-size='large'] .journey-destination h3,
 :root[data-text-size='large'] .journey-destination p {
-  font-size: 17px;
+  font-size: 18px;
 }
 @media (max-width: 699px) {
   :root .satchel-help {

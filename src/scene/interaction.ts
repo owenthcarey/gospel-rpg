@@ -3,6 +3,11 @@ import { TargetCamera } from '@babylonjs/core/Cameras/targetCamera';
 import type { Point } from '../game/types';
 import type { Interactable } from '../content/region';
 import { examineText } from '../content/examine';
+import {
+  FISHING_SPOT_EXAMINE,
+  sceneryExamine,
+  type SceneryExamine,
+} from '../content/scenery-examine';
 import type { ScreenClick } from './input';
 import { TapGesture } from '../game/gestures';
 import { HoldView } from './hold-view';
@@ -32,9 +37,25 @@ interface InteractionOptions {
   cancelTap: () => void;
 }
 
+/** What ordinary scenery a mesh shows, if any; interactive places keep their own Examine. */
+export function examinable(mesh: {
+  metadata?: { examine?: string; interactionId?: string; assetId?: string } | null;
+  isVisible: boolean;
+  isEnabled(): boolean;
+  hasThinInstances?: boolean;
+}): SceneryExamine | undefined {
+  if (mesh.metadata?.examine === 'fishing-spot') return FISHING_SPOT_EXAMINE;
+  // Thin-instanced ground cover would pick as its one base copy, not the plants on screen.
+  if (!mesh.isEnabled() || !mesh.isVisible || mesh.hasThinInstances) return undefined;
+  if (mesh.metadata?.interactionId) return undefined;
+  return sceneryExamine(mesh.metadata?.assetId);
+}
+
 /** Action previews and deliberate mouse, keyboard and touch alternatives to the default tap. */
 export class InteractionFeedback {
   private hint = document.createElement('div');
+  /** Open ground under the pointer reads "Walk here" in the classic corner. */
+  private walkHint = document.createElement('div');
   private menu = document.createElement('div');
   private flash = document.createElement('div');
   private origin?: { x: number; y: number; moved: boolean };
@@ -64,10 +85,13 @@ export class InteractionFeedback {
     this.menu.hidden = true;
     this.menu.setAttribute('role', 'menu');
     this.menu.setAttribute('aria-label', 'Choose Option');
+    this.walkHint.className = 'world-walk-hint';
+    this.walkHint.hidden = true;
+    this.walkHint.setAttribute('aria-hidden', 'true');
     this.flash.className = 'world-click-feedback';
     this.flash.hidden = true;
     this.flash.setAttribute('aria-hidden', 'true');
-    document.body.append(this.hint, this.menu, this.flash);
+    document.body.append(this.hint, this.menu, this.flash, this.walkHint);
     document.addEventListener('pointerdown', this.down, true);
     document.addEventListener('pointermove', this.move, true);
     document.addEventListener('pointerup', this.up, true);
@@ -181,11 +205,16 @@ export class InteractionFeedback {
     }
     if (performance.now() - this.lastPick < 80) return;
     this.lastPick = performance.now();
-    const id =
-      label?.dataset.value ?? this.pick(e.clientX, e.clientY)?.pickedMesh?.metadata?.interactionId;
+    const picked = label ? undefined : this.pick(e.clientX, e.clientY)?.pickedMesh?.metadata;
+    const id = label?.dataset.value ?? picked?.interactionId;
     const place = typeof id === 'string' ? this.input.place(id) : undefined;
     if (!place) {
       this.clearHover();
+      if (picked?.ground) {
+        this.hoverView = this.captureView();
+        this.walkHint.textContent = this.input.movementLabel ?? 'Walk here';
+        this.walkHint.hidden = false;
+      }
       return;
     }
     // A new native pointer pick owns the baseline; camera notifications never refresh it.
@@ -291,8 +320,19 @@ export class InteractionFeedback {
   }
   private viewChanged = () => {
     if (this.hold && this.changedView(this.hold.view)) this.rejectTouches();
-    if (!this.hint.hidden && this.changedView(this.hoverView)) this.clearHover();
+    if ((!this.hint.hidden || !this.walkHint.hidden) && this.changedView(this.hoverView))
+      this.clearHover();
   };
+  /** Scenery is unpickable for speed; a right-click alone looks for something to examine. */
+  private scenery(x: number, y: number, ground?: number): SceneryExamine | undefined {
+    const rect = this.input.canvas.getBoundingClientRect();
+    const hit = this.input.scene.pick(x - rect.left, y - rect.top, (mesh) =>
+      Boolean(examinable(mesh)),
+    );
+    if (!hit?.hit || !hit.pickedMesh || (ground !== undefined && hit.distance > ground + 0.05))
+      return undefined;
+    return examinable(hit.pickedMesh);
+  }
   private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
     const label = this.label(target);
     const pick = this.pick(x, y);
@@ -302,7 +342,8 @@ export class InteractionFeedback {
       !label && pick?.pickedPoint && pick.pickedMesh?.metadata?.ground
         ? { x: pick.pickedPoint.x, z: pick.pickedPoint.z }
         : undefined;
-    if (!place && !ground) return;
+    const scenery = !label && !place ? this.scenery(x, y, ground && pick?.distance) : undefined;
+    if (!place && !ground && !scenery) return;
     this.menu.replaceChildren();
     const heading = document.createElement('div');
     heading.className = 'world-option-title';
@@ -320,19 +361,33 @@ export class InteractionFeedback {
         () => this.input.notice(this.input.examine?.(place) ?? examineText(place)),
         'Examine',
       );
+    else if (scenery)
+      this.option(
+        { name: scenery.name, kind: scenery.name === 'Villager' ? 'person' : 'object' },
+        () => this.input.notice(scenery.text),
+        'Examine',
+      );
     this.option('Cancel', () => {});
     this.menu.hidden = false;
     this.clearHover();
     this.position(this.menu, x, y);
     this.menu.querySelector<HTMLButtonElement>('button')?.focus({ preventScroll: true });
   }
-  private describe(node: HTMLElement, place: Interactable, verb = interactionVerb(place.kind)) {
+  private describe(
+    node: HTMLElement,
+    place: Pick<Interactable, 'name' | 'kind'>,
+    verb = interactionVerb(place.kind),
+  ) {
     const name = document.createElement('span');
     name.className = 'world-option-name ' + (place.kind === 'person' ? 'is-person' : 'is-object');
     name.textContent = place.name;
     node.replaceChildren(document.createTextNode(verb + ' '), name);
   }
-  private option(label: string | Interactable, action: () => void, verb?: string) {
+  private option(
+    label: string | Pick<Interactable, 'name' | 'kind'>,
+    action: () => void,
+    verb?: string,
+  ) {
     const button = document.createElement('button');
     button.type = 'button';
     button.setAttribute('role', 'menuitem');
@@ -397,13 +452,16 @@ export class InteractionFeedback {
   accepted(kind: 'ground' | 'object', click: ScreenClick) {
     if (this.disposed || this.input.paused()) return;
     if (this.timer) clearTimeout(this.timer);
+    // Restart the cross's shrinking frames when one click follows another.
+    this.flash.hidden = true;
+    void this.flash.offsetWidth;
     this.flash.hidden = false;
     this.flash.dataset.kind = kind;
     this.flash.style.left = click.x + 'px';
     this.flash.style.top = click.y + 'px';
     this.timer = setTimeout(() => {
       this.flash.hidden = true;
-    }, 260);
+    }, 400);
   }
   private close(restore: boolean) {
     const returnToWorld = !this.menu.hidden && restore;
@@ -450,6 +508,7 @@ export class InteractionFeedback {
   private clearHover = () => {
     this.hoverView = undefined;
     this.hint.hidden = true;
+    this.walkHint.hidden = true;
     this.input.canvas.style.cursor = '';
   };
   /** Menus and hints must disappear as soon as the world pauses or changes region. */
@@ -474,6 +533,7 @@ export class InteractionFeedback {
     window.removeEventListener('blur', this.loseFocus);
     window.removeEventListener('resize', this.resize);
     this.hint.remove();
+    this.walkHint.remove();
     this.menu.remove();
     this.flash.remove();
     this.input.scene.doNotHandleCursors = this.previousCursorHandling;

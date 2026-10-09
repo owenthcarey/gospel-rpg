@@ -309,39 +309,52 @@ async function observeDialogueNotice(page: Page) {
       frame = requestAnimationFrame(next);
     };
     frame = requestAnimationFrame(next);
+    // DevTools holds an awaited page promise only weakly; keep each pending wait reachable
+    // from the page, or a busy garbage collector can reject it before the notice settles.
+    const pending = ((
+      window as unknown as { __noticeWaits?: Set<Promise<unknown>> }
+    ).__noticeWaits ??= new Set());
+    const keep = <T>(promise: Promise<T>) => {
+      pending.add(promise);
+      const release = () => pending.delete(promise);
+      promise.then(release, release);
+      return promise;
+    };
     const wait = <T>(check: () => T | undefined, description: string) =>
-      new Promise<T>((resolve, reject) => {
-        const done = () => {
-          const value = check();
-          if (value !== undefined) {
-            clearTimeout(timeout);
-            waiters.delete(done);
-            resolve(value);
-          } else if (stopped || expiredAt !== undefined) {
-            clearTimeout(timeout);
+      keep(
+        new Promise<T>((resolve, reject) => {
+          const done = () => {
+            const value = check();
+            if (value !== undefined) {
+              clearTimeout(timeout);
+              waiters.delete(done);
+              resolve(value);
+            } else if (stopped || expiredAt !== undefined) {
+              clearTimeout(timeout);
+              waiters.delete(done);
+              reject(
+                new Error(
+                  description +
+                    ': real notice expired before the requested observation; ' +
+                    JSON.stringify({ visibleAt, expiredAt, inputs, viewport: viewport() }),
+                ),
+              );
+            }
+          };
+          const timeout = setTimeout(() => {
             waiters.delete(done);
             reject(
               new Error(
                 description +
-                  ': real notice expired before the requested observation; ' +
+                  ': bounded read-only observation timed out; ' +
                   JSON.stringify({ visibleAt, expiredAt, inputs, viewport: viewport() }),
               ),
             );
-          }
-        };
-        const timeout = setTimeout(() => {
-          waiters.delete(done);
-          reject(
-            new Error(
-              description +
-                ': bounded read-only observation timed out; ' +
-                JSON.stringify({ visibleAt, expiredAt, inputs, viewport: viewport() }),
-            ),
-          );
-        }, 10000);
-        waiters.add(done);
-        done();
-      });
+          }, 10000);
+          waiters.add(done);
+          done();
+        }),
+      );
     const snapshot = () => ({
       visibleAt,
       expiredAt,

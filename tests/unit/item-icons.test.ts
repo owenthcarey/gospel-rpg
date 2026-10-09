@@ -38,11 +38,22 @@ describe('original item sprite delivery', () => {
       expect(bytes.toString('ascii', 0, 4), file).toBe('RIFF');
       expect(bytes.readUInt32LE(4), file).toBe(bytes.length - 8);
       expect(bytes.toString('ascii', 8, 12), file).toBe('WEBP');
-      // Blender's RGBA WebP output declares alpha and canvas size in VP8X.
-      expect(bytes.toString('ascii', 12, 16), file).toBe('VP8X');
-      expect(bytes[20]! & 0x10, file).toBe(0x10);
-      expect(bytes.readUIntLE(24, 3) + 1, file).toBe(64);
-      expect(bytes.readUIntLE(27, 3) + 1, file).toBe(64);
+      const chunk = bytes.toString('ascii', 12, 16);
+      if (chunk === 'VP8L') {
+        // Lossless sprites keep exact one-pixel outlines; the VP8L header packs
+        // 14-bit width and height and an alpha-in-use bit after its signature.
+        expect(bytes[20], file).toBe(0x2f);
+        const header = bytes.readUInt32LE(21);
+        expect((header & 0x3fff) + 1, file).toBe(64);
+        expect(((header >>> 14) & 0x3fff) + 1, file).toBe(64);
+        expect((header >>> 28) & 1, file).toBe(1);
+      } else {
+        // Blender's lossy RGBA WebP output declares alpha and canvas size in VP8X.
+        expect(chunk, file).toBe('VP8X');
+        expect(bytes[20]! & 0x10, file).toBe(0x10);
+        expect(bytes.readUIntLE(24, 3) + 1, file).toBe(64);
+        expect(bytes.readUIntLE(27, 3) + 1, file).toBe(64);
+      }
       expect(bytes.length, file).toBeGreaterThan(512);
       expect(bytes.length, file).toBeLessThan(6 * 1024);
       totalBytes += bytes.length;

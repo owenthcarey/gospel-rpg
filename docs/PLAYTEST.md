@@ -63,6 +63,16 @@ Check the compact action tray with mouse, keyboard and touch; the original shore
 
 These are in `tests/fixtures/saves/`. The original v1–v5 fixtures remain valid. `node tools/generate_life_fixtures.mjs` regenerates the v6 examples using real reducers and validation.
 
+## The Old School frame
+
+On a desktop with a mouse, play a few minutes as you would a classic browser RPG:
+
+1. Right-click people, places, houses, trees, boats and the bubbling fishing spot. Each Examine line should read as an original observation in the chatbox and never move the traveler.
+2. Right-click the compass for _Look North / East / South / West_, and the run and world map orbs for their own actions. Click a menu's title: it should neither close nor walk.
+3. Press Enter, say something, then switch the chatbox between All, Game and Public. Reload: the filter you chose should remain.
+4. Complete a story (`tests/e2e/story-scroll.spec.ts` shows a quick setup one conversation from the end of Ezra's). Expect the scroll, a short fanfare with the music dipping, fireworks over the traveler and drops rising beside the orbs. With Reduce motion, the fireworks are absent and the drops fade in place.
+5. Open the local map: the fishing spot, well and bakery carry round icons that stay upright as the minimap turns.
+
 ## Review observations to record
 
 - Which objective or doorway was unclear, with the current region and tracked story.

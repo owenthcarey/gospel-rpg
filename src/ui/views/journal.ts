@@ -10,6 +10,8 @@ import { placeRegion } from '../../content/campaign/places';
 import { regions } from '../../content/regions';
 import { knownRegions, journeyPlaces } from '../../content/journey';
 import { escapeHtml as esc } from '../icons';
+import { isActorAsset } from '../../content/assets';
+import { portraitUrl } from '../../content/presence';
 
 export const JOURNAL_CATEGORIES = ['overview', 'stories', 'people', 'places', 'memories'] as const;
 export type JournalCategory = (typeof JOURNAL_CATEGORIES)[number];
@@ -74,7 +76,11 @@ export function journalPeople(s: GameState): string {
             : p.id === 'amos' && s.campaign.walk.stage === 'complete'
               ? 'Your walk is remembered. Amos remains in the courtyard.'
               : p.role;
-      return `<article><div class="directory-entry-copy"><h3>${esc(p.name)}</h3><p>${esc(detail)}</p><p class="content-note">${['simon', 'jesus', 'james', 'john'].includes(p.id) ? 'Gospel figure · Traveler conversations are dramatized.' : 'Original fictional neighbor.'}</p>${departed ? '<p>The fishermen have followed Jesus. Their account remains in the transcripts.</p>' : ''}</div>${departed ? '' : `<button class="secondary-button" data-action="travel" data-value="${p.id}">Find ${esc(p.name)}</button>`}</article>`;
+      const head =
+        p.asset && isActorAsset(p.asset)
+          ? `<img class="directory-chathead" src="${esc(portraitUrl(p.asset))}" width="48" height="56" alt="" loading="lazy" decoding="async"/>`
+          : '';
+      return `<article><div class="directory-entry-copy">${head}<h3>${esc(p.name)}</h3><p>${esc(detail)}</p><p class="content-note">${['simon', 'jesus', 'james', 'john'].includes(p.id) ? 'Gospel figure · Traveler conversations are dramatized.' : 'Original fictional neighbor.'}</p>${departed ? '<p>The fishermen have followed Jesus. Their account remains in the transcripts.</p>' : ''}</div>${departed ? '' : `<button class="secondary-button" data-action="travel" data-value="${p.id}">Find ${esc(p.name)}</button>`}</article>`;
     })
     .join('')}</div>`;
 }

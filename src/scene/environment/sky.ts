@@ -1,8 +1,9 @@
 import { ShaderMaterial } from '@babylonjs/core/Materials/shaderMaterial';
 import { CreateSphere } from '@babylonjs/core/Meshes/Builders/sphereBuilder';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import type { Camera } from '@babylonjs/core/Cameras/camera';
 import { Constants } from '@babylonjs/core/Engines/constants';
 import type { Scene } from '@babylonjs/core/scene';
 import type { EnvironmentProfile } from '../../content/environment';
@@ -73,10 +74,30 @@ void main(void) {
   gl_FragColor = vec4(linearOutput > 0.5 ? pow(max(color, 0.0), vec3(2.2)) : min(color, 1.0), 1.0);
 }`;
 
+/** Below this, the dome's fragment output is exactly its fog colour, without sun or cloud. */
+const HAZE_BELOW = -0.03;
+
+/**
+ * The highest view direction's height (its y). Without roll the top edge holds the highest
+ * ray: its corners when the camera looks down, its middle when it looks up.
+ */
+export function highestViewHeight(camera: Camera): number {
+  const inverse = camera.getTransformationMatrix().clone().invert();
+  const eye = camera.globalPosition;
+  let highest = -1;
+  for (const x of [-1, 0, 1]) {
+    const far = Vector3.TransformCoordinates(new Vector3(x, 1, 0.5), inverse);
+    highest = Math.max(highest, far.subtract(eye).normalize().y);
+  }
+  return highest;
+}
+
 /** A camera-following gradient sky. One draw; never pickable; ignores scene fog itself. */
 export class SkyDome {
   readonly mesh: Mesh;
   readonly material: ShaderMaterial;
+  /** The colour the dome paints below the horizon haze, in the scene's output space. */
+  readonly haze = new Color4(0, 0, 0, 1);
   constructor(scene: Scene, radius: number) {
     this.mesh = CreateSphere(
       'sky-dome',
@@ -118,13 +139,27 @@ export class SkyDome {
     m.setColor3('zenith', Color3.FromHexString(profile.sky.zenith));
     m.setColor3('horizon', Color3.FromHexString(profile.sky.horizon));
     m.setColor3('glow', Color3.FromHexString(profile.sky.glow));
-    m.setColor3('fogColor', Color3.FromHexString(profile.fog.color));
+    const fog = Color3.FromHexString(profile.fog.color);
+    m.setColor3('fogColor', fog);
+    // Mirror the shader's own output conversion, so the clear colour is the same pixel.
+    const haze = linearOutput
+      ? new Color3(fog.r ** 2.2, fog.g ** 2.2, fog.b ** 2.2)
+      : new Color3(Math.min(fog.r, 1), Math.min(fog.g, 1), Math.min(fog.b, 1));
+    this.haze.set(haze.r, haze.g, haze.b, 1);
     m.setColor3('sunColor', Color3.FromHexString(profile.sun.color));
     // The dome samples the direction toward the sun, opposite the light's travel.
     m.setVector3('sunDirection', sunDirection.scale(-1).normalize());
     m.setFloat('disc', profile.sun.disc);
     m.setFloat('clouds', profile.clouds);
     m.setFloat('linearOutput', linearOutput ? 1 : 0);
+  }
+  /**
+   * Software rasterizers shade the far-plane dome even where the land covers it. When the whole
+   * view lies below the haze it could paint only fog, so the clear colour stands in for it.
+   */
+  cull(camera: Camera): void {
+    const visible = highestViewHeight(camera) > HAZE_BELOW - 0.02;
+    if (this.mesh.isVisible !== visible) this.mesh.isVisible = visible;
   }
   /** Low compiles two cloud octaves instead of four. */
   quality(low: boolean): void {

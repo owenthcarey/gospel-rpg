@@ -7,7 +7,7 @@
   padding: 16px 18px 10px;
 }
 :root .quest-card:not(.objective-expanded) h1 {
-  font-size: 23px;
+  font-size: 24px;
 }
 .quest-card .compact-journal,
 .quest-card .objective-toggle {
@@ -71,7 +71,7 @@
 }
 :root .conversation-motion {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   text-decoration: none;
   color: var(--btn-fg);
@@ -87,10 +87,10 @@
   color: var(--gold-100);
 }
 :root .conversation-overlay .dialogue-main h2 {
-  font-size: 28px;
+  font-size: 30px;
 }
 :root .conversation-overlay .dialogue-main header p {
-  font-size: 15px;
+  font-size: 18px;
   color: var(--fg-2);
 }
 :root .conversation-overlay .dialogue-text {
@@ -100,7 +100,7 @@
   margin: 14px 0;
 }
 :root .conversation-overlay .dialogue-choices button {
-  font-size: 15px;
+  font-size: 18px;
   padding: 10px 13px;
   min-height: 44px;
   border-radius: 6px;
@@ -111,7 +111,7 @@
   transform: translateX(2px);
 }
 .conversation-overlay .dialogue-source {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--fg-2);
 }
 :root .conversation-context {
@@ -147,7 +147,7 @@
   min-width: 120px;
 }
 .conversation-context .panel-header h2 {
-  font-size: 25px;
+  font-size: 24px;
 }
 :root .conversation-context .conversation-motion {
   color: var(--btn-fg);
@@ -163,10 +163,10 @@
   display: none;
 }
 :root[data-text-size='large'] .conversation-overlay .dialogue-text {
-  font-size: 21px;
+  font-size: 24px;
 }
 :root[data-text-size='large'] .conversation-overlay .dialogue-choices button {
-  font-size: 17px;
+  font-size: 18px;
 }
 @media (max-width: 699px) {
   :root .quest-card:not(.objective-expanded) {

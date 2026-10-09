@@ -5,8 +5,49 @@ import { escapeHtml } from '../icons';
 
 export const volumePercent = (value: number): string => Math.round(value * 100) + '%';
 
-export function audioSettings(settings: Settings, state?: GameState): string {
-  const track = musicTracks[(state ? cueForState(state) : regionAudio.capernaum).track];
+/** The classic music list: heard scores in green and playable, those still ahead in red. */
+export function musicList(
+  state: GameState | undefined,
+  heard: ReadonlySet<string>,
+  chosen?: string,
+): { current: string; list: string; area: string } {
+  const area = (state ? cueForState(state) : regionAudio.capernaum).track;
+  const current = chosen && heard.has(chosen) ? chosen : area;
+  const list = Object.entries(musicTracks)
+    .map(([id, t]) => {
+      const state = `${heard.has(id) ? 'heard' : 'not yet heard'}${id === current ? ', playing' : ''}`;
+      const item = heard.has(id)
+        ? `<button class="music-track" data-action="music-play" data-value="${id}" aria-pressed="${id === current}">${escapeHtml(t.title)}<span class="sr-only"> · ${state}</span></button>`
+        : `${escapeHtml(t.title)}<span class="sr-only"> · ${state}</span>`;
+      return `<li class="${heard.has(id) ? 'heard' : 'unheard'}${id === current ? ' current' : ''}">${item}</li>`;
+    })
+    .join('');
+  const areaButton =
+    chosen && heard.has(chosen)
+      ? `<button class="text-button music-area" data-action="music-area" data-value="area">Return to area music</button>`
+      : '';
+  return { current, list, area: areaButton };
+}
+
+/** The desktop Music tab: what is playing and the list, without the volume settings. */
+export function musicPanel(
+  state: GameState | undefined,
+  heard: ReadonlySet<string>,
+  chosen?: string,
+): string {
+  const { current, list, area } = musicList(state, heard, chosen);
+  const track = musicTracks[current as keyof typeof musicTracks];
+  return `<p class="music-now">Playing: <b>${escapeHtml(track.title)}</b></p><ul class="music-list" aria-label="Music heard on this device">${list}</ul>${area}`;
+}
+
+export function audioSettings(
+  settings: Settings,
+  state?: GameState,
+  heard: ReadonlySet<string> = new Set(),
+  chosen?: string,
+): string {
+  const { current, list, area: areaButton } = musicList(state, heard, chosen);
+  const track = musicTracks[current as keyof typeof musicTracks];
   const sliders = [
     ['volume', 'Master volume', 'All game audio'],
     ['musicVolume', 'Music volume', 'Original regional scores'],
@@ -21,6 +62,6 @@ export function audioSettings(settings: Settings, state?: GameState): string {
         return `<label class="setting-row"><span>${title}<small>${detail}</small></span><span class="audio-control"><output for="audio-${key}" aria-hidden="true">${level}</output><input id="audio-${key}" type="range" min="0" max="1" step="0.05" value="${settings[key]}" data-setting="${key}" aria-label="${title}" aria-valuetext="${level}"></span></label>`;
       })
       .join('')}
-    <div class="soundtrack-note"><span class="eyebrow">MUSIC FOR THIS PLACE</span><strong>${escapeHtml(track.title)}</strong><p>${escapeHtml(track.description)}</p><small>Nine original compositions follow your journey. Music softens while you read. Set any channel to zero to silence it.</small></div>
+    <div class="soundtrack-note"><span class="eyebrow">${chosen && heard.has(chosen) ? 'NOW PLAYING · CHOSEN' : 'MUSIC FOR THIS PLACE'}</span><strong>${escapeHtml(track.title)}</strong><p>${escapeHtml(track.description)}</p><small>Nine original compositions follow your journey. Music softens while you read. Set any channel to zero to silence it.</small><ul class="music-list" aria-label="Music heard on this device">${list}</ul>${areaButton}</div>
     </div>`;
 }

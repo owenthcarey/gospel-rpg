@@ -1,4 +1,5 @@
 import { presentationState } from '../game/connection/accounts';
+import type { RunState } from '../game/run';
 import { StormRegion } from './regions/storm';
 import { SceneInstrumentation } from '@babylonjs/core/Instrumentation/sceneInstrumentation';
 import { Engine } from '@babylonjs/core/Engines/engine';
@@ -277,8 +278,23 @@ export class GameRuntime {
     this.callbacks.manualMove?.();
     return this.view.walkTo(point);
   }
+  emote(clip: import('../content/assets').ActorClip): boolean {
+    return this.view instanceof World ? this.view.emote(clip) : false;
+  }
+  fireworks(): void {
+    if (this.view instanceof World) this.view.fireworks();
+  }
+  toggleRun(): RunState | undefined {
+    return this.view instanceof World ? this.view.toggleRun() : undefined;
+  }
+  flushFrame(): void {
+    if (this.view instanceof World) this.view.flushFrame();
+  }
   faceNorth(): void {
     if (this.view instanceof World) this.view.faceNorth();
+  }
+  look(direction: import('./world').CompassPoint): void {
+    if (this.view instanceof World) this.view.look(direction);
   }
   nearest(): ReturnType<World['nearest']> {
     return isExplorationView(this.view) ? this.view.nearest() : undefined;

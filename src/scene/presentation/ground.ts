@@ -347,6 +347,78 @@ export function groundMosaic(
   return mesh;
 }
 
+/**
+ * An interior floor of laid flagstones in running-bond rows: each stone a slightly
+ * different warm grey, separated by dark grout, merged into one submission.
+ */
+export function flagstoneFloor(
+  scene: Scene,
+  name: string,
+  bounds: { min: number; max: number },
+  land: (p: Point) => boolean,
+  height: (p: Point) => number,
+): Mesh {
+  const positions: number[] = [],
+    indices: number[] = [],
+    colors: number[] = [];
+  const palette = ['#b3a68a', '#aa9d80', '#bcae90', '#a59779', '#b8ab8e'].map((c) =>
+    Color3.FromHexString(c),
+  );
+  const grout = 0.045,
+    depth = 0.62;
+  const quad = (x0: number, z0: number, x1: number, z1: number, color: Color3, lift: number) => {
+    const base = positions.length / 3;
+    for (const [x, z] of [
+      [x0, z0],
+      [x1, z0],
+      [x1, z1],
+      [x0, z1],
+    ] as const) {
+      positions.push(x, height({ x, z }) + lift, z);
+      colors.push(color.r, color.g, color.b, 1);
+    }
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  };
+  // A grout bed under the stones keeps every gap the same dark line.
+  const span = bounds.max - bounds.min;
+  quad(bounds.min, bounds.min, bounds.max, bounds.max, Color3.FromHexString('#6f6553'), 0.003);
+  let row = 0;
+  for (let z = bounds.min; z < bounds.max - 0.05; z += depth, row++) {
+    const z1 = Math.min(bounds.max, z + depth);
+    let x = bounds.min - (row % 2) * 0.45;
+    while (x < bounds.max - 0.05) {
+      const width = 0.75 + noise(x * 3.1, z * 2.7) * 0.5;
+      const x0 = Math.max(bounds.min, x),
+        x1 = Math.min(bounds.max, x + width);
+      const center = { x: (x0 + x1) / 2, z: (z + z1) / 2 };
+      if (x1 - x0 > grout * 2 && land(center)) {
+        const shade = palette[Math.floor(noise(x0 * 5.3, z * 4.1) * palette.length)]!;
+        // A few stones sit a touch darker with wear near the room's busy middle.
+        const worn = Math.abs(center.x) + Math.abs(center.z) < span * 0.22 ? 0.95 : 1;
+        quad(x0 + grout, z + grout, x1 - grout, z1 - grout, shade.scale(worn), 0.006);
+      }
+      x += width;
+    }
+  }
+  const mesh = new Mesh(name, scene),
+    data = new VertexData(),
+    normals: number[] = [];
+  data.positions = positions;
+  data.indices = indices;
+  data.colors = colors;
+  VertexData.ComputeNormals(positions, indices, normals);
+  data.normals = normals;
+  data.applyToMesh(mesh);
+  const material = new StandardMaterial(name + '-palette', scene);
+  material.diffuseColor = Color3.White();
+  material.specularColor = Color3.Black();
+  material.backFaceCulling = false;
+  mesh.material = material;
+  mesh.receiveShadows = true;
+  mesh.isPickable = false;
+  return mesh;
+}
+
 function smoothNoise(x: number, z: number): number {
   const ix = Math.floor(x),
     iz = Math.floor(z);

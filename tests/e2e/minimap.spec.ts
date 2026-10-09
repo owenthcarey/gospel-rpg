@@ -41,7 +41,18 @@ test('radar symbols remain legible and its local map control follows the frame o
     const localMap = (await page
       .getByRole('button', { name: 'Open local map', exact: true })
       .boundingBox())!;
-    expect(Math.abs(localMap.x + localMap.width / 2 - (box.x + box.width / 2))).toBeLessThan(1);
+    const classicFrame = await page.evaluate(
+      () => matchMedia('(min-width: 1001px) and (min-height: 560px) and (pointer: fine)').matches,
+    );
+    if (classicFrame) {
+      // The classic frame's world map orb rests on the minimap's lower-left rim.
+      const x = localMap.x + localMap.width / 2,
+        y = localMap.y + localMap.height / 2;
+      expect(x).toBeLessThan(box.x + box.width * 0.25);
+      expect(y).toBeGreaterThan(box.y + box.height / 2);
+      expect(y).toBeLessThan(box.y + box.height);
+    } else
+      expect(Math.abs(localMap.x + localMap.width / 2 - (box.x + box.width / 2))).toBeLessThan(1);
   }
 });
 

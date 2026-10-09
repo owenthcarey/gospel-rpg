@@ -15,7 +15,11 @@ CLIPS = {
     "PickUp": 36, "PutDown": 36, "Repair": 60, "SitDown": 72,
     "SitUp": 60, "FrameCarry": 60, "TouchFrame": 60,
     "Greet": 42, "Listen": 96, "Respond": 72,
+    # Traveler-only emotes, performed from the Emotes tab.
+    "Wave": 48, "Bow": 54, "Cheer": 60, "Clap": 48,
+    "Think": 72, "Shrug": 48, "Beckon": 48, "Yes": 36, "No": 36,
 }
+EMOTE_CLIPS = ("Wave", "Bow", "Cheer", "Clap", "Think", "Shrug", "Beckon", "Yes", "No")
 
 def export_character(name, parts, scene, output, grid_index, export_file=True, source_report=None):
     bench_actor = name in ("traveler", "villager")
@@ -212,6 +216,86 @@ def export_character(name, parts, scene, output, grid_index, export_file=True, s
             p["arm_right"].rotation_euler.z = -.18 * reach
             p["forearm_right"].rotation_euler.x = -.75 * reach
             p["forearm_right"].rotation_euler.y = .3 * reach
+        if clip == "Wave":
+            # The right arm rises to the side and the forearm waves overhead, twice.
+            raise_ = math.sin(math.pi * phase) ** .6
+            p["arm_right"].rotation_euler.z = -2.45 * raise_
+            p["arm_right"].rotation_euler.x = -.15 * raise_
+            p["forearm_right"].rotation_euler.z = (-.35 + .55 * math.sin(phase * math.tau * 3)) * raise_
+            p["body"].rotation_euler.z = .05 * raise_
+            p["head"].rotation_euler.z = -.05 * raise_
+        if clip == "Bow":
+            # A deep, unhurried bow from the waist, hands low, then upright.
+            bow = math.sin(math.pi * phase) ** 2
+            p["body"].rotation_euler.x = -.62 * bow
+            p["head"].rotation_euler.x = -.18 * bow
+            p["root"].location.y = -.03 * bow
+            for side in ("left", "right"):
+                p["arm_" + side].rotation_euler.x = .18 * bow
+                p["forearm_" + side].rotation_euler.x = -.2 * bow
+        if clip == "Cheer":
+            # Both arms thrown up with three small hops.
+            up = math.sin(math.pi * min(1, phase * 1.25)) ** .5
+            hop = abs(math.sin(phase * math.tau * 1.5)) * up
+            p["root"].location.y = .06 * hop
+            p["arm_left"].rotation_euler.z = 2.6 * up
+            p["arm_right"].rotation_euler.z = -2.6 * up
+            for side, sign in [("left", 1), ("right", -1)]:
+                p["forearm_" + side].rotation_euler.z = sign * .25 * up * (1 - hop)
+            p["head"].rotation_euler.x = .12 * up
+            for side in ("left", "right"):
+                p["leg_" + side].rotation_euler.x = .25 * hop
+        if clip == "Clap":
+            # Hands meet in front of the chest four times.
+            reach = math.sin(math.pi * phase) ** .5
+            beat = .5 + .5 * math.cos(phase * math.tau * 4)
+            for side, sign in [("left", 1), ("right", -1)]:
+                p["arm_" + side].rotation_euler.x = -1.05 * reach
+                p["arm_" + side].rotation_euler.z = sign * (-.42 + .32 * beat) * reach
+                p["forearm_" + side].rotation_euler.x = -.55 * reach
+            p["head"].rotation_euler.x = .04 * reach
+        if clip == "Think":
+            # A hand to the chin and a thoughtful tilt, the other arm across the waist.
+            hold = math.sin(math.pi * min(1, phase * 1.15)) ** .4
+            rub = math.sin(phase * math.tau * 2) * hold
+            # Forward first, then a turn about the vertical brings the hand to the chin.
+            p["arm_right"].rotation_euler.x = -1.25 * hold
+            p["arm_right"].rotation_euler.y = .7 * hold
+            p["forearm_right"].rotation_euler.x = -2.0 * hold
+            p["forearm_right"].rotation_euler.z = .04 * rub
+            p["arm_left"].rotation_euler.x = -.32 * hold
+            p["arm_left"].rotation_euler.z = -.18 * hold
+            p["forearm_left"].rotation_euler.x = -1.35 * hold
+            p["head"].rotation_euler.x = -.1 * hold
+            p["head"].rotation_euler.z = .1 * hold
+        if clip == "Shrug":
+            # Open palms turned outward at the hips, with a tilt of the head.
+            up = math.sin(math.pi * phase) ** .7
+            p["root"].location.y = .015 * up
+            for side, sign in [("left", 1), ("right", -1)]:
+                p["arm_" + side].rotation_euler.z = sign * .32 * up
+                p["arm_" + side].rotation_euler.x = -.2 * up
+                p["forearm_" + side].rotation_euler.x = -1.0 * up
+                p["forearm_" + side].rotation_euler.z = sign * .55 * up
+            p["head"].rotation_euler.z = .14 * up
+            p["head"].rotation_euler.x = .04 * up
+        if clip == "Beckon":
+            # The right hand reaches forward and draws someone near, twice.
+            reach = math.sin(math.pi * phase) ** .5
+            curl = (.5 - .5 * math.cos(phase * math.tau * 2)) * reach
+            p["arm_right"].rotation_euler.x = -1.35 * reach
+            p["forearm_right"].rotation_euler.x = (-.15 - 1.05 * curl) * reach
+            p["body"].rotation_euler.x = .04 * curl
+            p["head"].rotation_euler.x = .05 * reach
+        if clip == "Yes":
+            # Three nods.
+            nod = max(0, math.sin(phase * math.tau * 3)) * math.sin(math.pi * phase) ** .5
+            p["head"].rotation_euler.x = -.3 * nod
+            p["body"].rotation_euler.x = -.02 * nod
+        if clip == "No":
+            # Three shakes of the head.
+            shake = math.sin(phase * math.tau * 3) * math.sin(math.pi * phase) ** .5
+            p["head"].rotation_euler.y = .45 * shake
         if clip == "Listen":
             # Attentive: a slight lean, two gentle nods and hands clasped low.
             nod = max(0, math.sin(phase * math.tau * 2)) ** 2
@@ -348,6 +432,7 @@ def export_character(name, parts, scene, output, grid_index, export_file=True, s
     scene.render.fps = 30
     for clip, duration in CLIPS.items():
         specialist = {"SitUp": "young_man", "FrameCarry": "bearer", "TouchFrame": "jesus"}
+        specialist.update({clip: "traveler" for clip in EMOTE_CLIPS})
         if clip in specialist and name != specialist[clip]:
             continue
         if clip == "BenchSit" and not bench_actor:

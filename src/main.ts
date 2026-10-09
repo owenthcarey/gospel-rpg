@@ -36,6 +36,13 @@ import './ui/life.css';
 import './ui/road.css';
 import './ui/exploration.css';
 import './ui/presence.css';
+import './ui/osrs.css';
+import { MusicUnlocks } from './audio/unlocks';
+import { emote } from './content/emotes';
+import { heldReturn } from './game/life/objectives';
+import { FRESH_RUN, type RunState } from './game/run';
+import { cueForState } from './content/audio/cues';
+import { musicTracks, type TrackId } from './content/audio/music';
 import { leavePresentationEvent } from './game/presentation';
 import { parseStoryCommand, requiresWorldView, requiresWorldEvent } from './game/commands';
 import { motionFor, noticeFor } from './content/notices';
@@ -58,7 +65,7 @@ import { ColdOpen, ChapterCard, Veil } from './ui/cinematic';
 import { accountCards, openingCards, OPENING_PROVENANCE, placeLines } from './content/opening';
 import { logoMark } from './ui/logo';
 import { regions } from './content/regions';
-import { trackedChapter } from './content/campaign/chapters';
+import { chapters, storyStatus, trackedChapter } from './content/campaign/chapters';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas')!;
 const loading = document.querySelector<HTMLElement>('#loading')!;
@@ -74,6 +81,7 @@ const volumeSettings: readonly (keyof Settings)[] = [
   'effectsVolume',
 ];
 let world: GameRuntime | undefined;
+let lastRun: RunState = FRESH_RUN;
 let regionLoading = false;
 let scenePaused = false;
 let graphicsLost = false;
@@ -254,6 +262,8 @@ function pause(): void {
   inspectionWork = undefined;
   ui.setWorldPaused(true);
   world?.setPaused(true);
+  // The HUD otherwise waits for the slow paused cadence to show where the traveler stopped.
+  world?.flushFrame();
   if (started && !regionLoading) void enqueueSave();
 }
 function syncPause(): void {
@@ -268,6 +278,7 @@ function syncPause(): void {
     (isPresenting(state) && scenePaused);
   ui.setWorldPaused(paused);
   world?.setPaused(paused);
+  if (paused) world?.flushFrame();
 }
 function snapshot(): GameState {
   const current = structuredClone({
@@ -323,6 +334,22 @@ function performInteraction(motion?: ActionMotion, target?: string): void {
   world?.performInteraction(motion, target);
   audio.motion(motion);
 }
+const musicUnlocks = new MusicUnlocks(
+  (() => {
+    try {
+      return window.localStorage;
+    } catch {
+      return undefined;
+    }
+  })(),
+);
+ui.setHeardTracks(musicUnlocks.list());
+/** The first time this browser hears a score, the chatbox announces it. */
+function noteMusic(): void {
+  const track = cueForState(state).track;
+  if (musicUnlocks.unlock(track)) ui.musicUnlocked(musicTracks[track].title);
+  ui.setHeardTracks(musicUnlocks.list());
+}
 async function apply(event: GameEvent): Promise<void> {
   if (graphicsLost && requiresWorldEvent(event)) return;
   const previous = state;
@@ -334,13 +361,36 @@ async function apply(event: GameEvent): Promise<void> {
   world?.update(state);
   ui.update(state, event.type === 'track-story');
   audio.update(state);
+  noteMusic();
   presentArrival();
-  const feedback = feedbackForEvent(event);
+  // Replays never change progress, so only a real journey can complete a story.
+  const completed = state.connection.replay
+    ? undefined
+    : STORY_TRACKS.find(
+        (id) => storyStatus(state, id) === 'complete' && storyStatus(previous, id) !== 'complete',
+      );
+  const feedback = completed ? 'fanfare' : feedbackForEvent(event);
   if (feedback) audio.play(feedback);
   const motion = motionFor(event, previous, state);
   if (motion) performInteraction(motion.motion, motion.target);
   const notice = noticeFor(event, previous, state);
   if (notice) ui.toast(notice);
+  // Drops celebrate what was actually gained, never what a notice happens to mention.
+  if (!state.connection.replay) {
+    const memories = state.journal.filter((id) => !previous.journal.includes(id)).length;
+    const items =
+      state.inventory.filter((id) => !previous.inventory.includes(id)).length +
+      Number(!!state.campaign.carrying && state.campaign.carrying !== previous.campaign.carrying) +
+      Number(state.episode.carrying && !previous.episode.carrying);
+    ui.gains(memories, items);
+  }
+  if (completed) {
+    ui.storyComplete(
+      chapters[completed].title,
+      STORY_TRACKS.filter((id) => storyStatus(state, id) === 'complete').length,
+    );
+    world?.fireworks();
+  }
   await enqueueSave();
 }
 function openDialogue(id: string): void {
@@ -385,6 +435,7 @@ async function close(restoreOpener = false): Promise<void> {
   contextId = null;
   if (!started) {
     const saved = await saves.load('auto').catch(() => null);
+    ui.soundOn = settings.sound;
     ui.welcome(Boolean(saved), saves.persistent, saved?.state);
     return;
   }
@@ -414,6 +465,7 @@ async function begin(saved?: GameState): Promise<void> {
   ui.update(state);
   syncPause();
   audio.update(state);
+  noteMusic();
   audio.set(settings);
   if (isPresenting(state)) ui.focusScene();
   else canvas.focus();
@@ -706,6 +758,7 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       pause();
       menuRequest++;
       conversation = null;
+      audio.play('click');
       if (name === 'journal') {
         if (value === 'memories' || value === 'stories')
           ui.journal(snapshot(), value, 'all', 'all');
@@ -719,7 +772,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       break;
     case 'settings':
       if (ui.panel === 'settings' && value === 'toggle') await close(true);
-      else await showSettings();
+      else {
+        audio.play('click');
+        await showSettings();
+      }
       break;
     case 'replay-opening':
       await close();
@@ -790,6 +846,71 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'face-north':
       world.faceNorth();
       break;
+    case 'look':
+      if (value === 'north' || value === 'east' || value === 'south' || value === 'west')
+        world.look(value);
+      break;
+    case 'music-play':
+    case 'music-area': {
+      const id = name === 'music-play' ? value : undefined;
+      if (id && !(id in musicTracks && musicUnlocks.list().includes(id))) break;
+      audio.setManualTrack(id as TrackId | undefined);
+      ui.chosenTrack = id;
+      audio.play('click');
+      // The Music tab updates in place; the list inside Settings redraws that panel.
+      if (ui.musicOpen) ui.renderMusic();
+      else await showSettings();
+      break;
+    }
+    case 'music':
+      audio.play('click');
+      ui.toggleMusic();
+      break;
+    case 'logout-panel':
+      audio.play('click');
+      ui.toggleLogout();
+      break;
+    case 'logout': {
+      // Resting returns to the title, so it only leaves once the journey is safely stored.
+      if (!saves.persistent) {
+        ui.toast(
+          'This browser cannot keep your journey. Export it from Settings before you rest.',
+          'warning',
+        );
+        break;
+      }
+      try {
+        await enqueueSave('auto', true);
+      } catch {
+        break;
+      }
+      location.reload();
+      break;
+    }
+    case 'toggle-sound':
+      await updateSetting('sound', !settings.sound);
+      ui.setSoundOn(settings.sound);
+      break;
+    case 'emotes':
+      audio.play('click');
+      ui.toggleEmotes();
+      break;
+    case 'emote': {
+      const chosenEmote = emote(value);
+      if (!chosenEmote) break;
+      if (heldReturn(state) || state.episode.carrying) ui.toast('Your hands are full.', 'warning');
+      else if (!world.emote(chosenEmote.clip)) ui.toast("You can't do that right now.", 'warning');
+      break;
+    }
+    case 'run-toggle': {
+      audio.play('click');
+      const run = world.toggleRun();
+      if (run) {
+        lastRun = run;
+        ui.setRun(run.on, run.energy);
+      }
+      break;
+    }
     case 'choice': {
       if (!chosen) break;
       // The clicked choice is captured before asynchronous work, never looked up in a later dialogue.
@@ -1064,13 +1185,36 @@ const keydown = (event: KeyboardEvent) => {
     event.target instanceof HTMLTextAreaElement
   )
     return;
-  if (ui.panel === 'dialogue' && ['1', '2', '3'].includes(key)) {
+  if (ui.panel === 'dialogue' && /^[1-9]$/.test(key) && conversation?.choices[Number(key) - 1]) {
     event.preventDefault();
-    const choice = conversation?.choices[Number(key) - 1];
+    const choice = conversation.choices[Number(key) - 1];
     runAction(() => handleAction('choice', String(Number(key) - 1), choice));
     return;
   }
+  // Space continues a single-answer conversation, as in the classic dialogue; a focused
+  // button keeps its own native Space activation.
+  if (
+    ui.panel === 'dialogue' &&
+    key === ' ' &&
+    conversation?.choices.length === 1 &&
+    !(event.target instanceof HTMLButtonElement)
+  ) {
+    event.preventDefault();
+    const choice = conversation.choices[0];
+    runAction(() => handleAction('choice', '0', choice));
+    return;
+  }
   if (!started || ui.panel === 'welcome' || ui.panel === 'dialogue') return;
+  if (
+    key === 'enter' &&
+    !ui.panel &&
+    (event.target === canvas || event.target === document.body) &&
+    !isPresenting(state) &&
+    ui.focusChat()
+  ) {
+    event.preventDefault();
+    return;
+  }
   const shortcuts: Record<string, string> = {
     j: 'journal',
     i: 'inventory',
@@ -1126,7 +1270,12 @@ async function boot(): Promise<void> {
     walkCheckpoint: () => runAction(() => apply({ type: 'walk-step' })),
     roadCheckpoint: (step) => runAction(() => apply({ type: 'road-step', step })),
     notice: (message) => ui.toast(message),
-    frame: (position, labels, heading, nearest, destination, walkTarget) => {
+    run: (run) => {
+      lastRun = run;
+      ui.setRun(run.on, run.energy);
+    },
+    runState: () => lastRun,
+    frame: (position, labels, heading, nearest, destination, walkTarget, head) => {
       audio.movement(
         position,
         started &&
@@ -1137,7 +1286,7 @@ async function boot(): Promise<void> {
           !isPresenting(state),
       );
       state.position = { ...position };
-      ui.frame(position, labels, heading, nearest, destination, walkTarget);
+      ui.frame(position, labels, heading, nearest, destination, walkTarget, head);
     },
   });
   world.engine.onContextLostObservable.add(() => {
@@ -1163,6 +1312,7 @@ async function boot(): Promise<void> {
     return null;
   });
   ui.update(state);
+  ui.soundOn = settings.sound;
   ui.welcome(Boolean(autosave), saves.persistent, autosave?.state);
   loading.hidden = true;
   let ticks = 0;

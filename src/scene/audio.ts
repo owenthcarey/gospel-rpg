@@ -1,7 +1,8 @@
 import type { GameState, Point, Settings } from '../game/types';
 import { DEFAULT_SETTINGS } from '../game/types';
 import type { ActionMotion } from '../content/campaign/actions';
-import { musicTracks } from '../content/audio/music';
+import { musicTracks, type TrackId } from '../content/audio/music';
+import { isPresenting } from '../game/connection/accounts';
 import { cueForState, regionAudio, type AudioCue } from '../content/audio/cues';
 import { soundEffects } from '../content/audio/effects';
 import type { SoundEffect } from '../audio/types';
@@ -22,6 +23,10 @@ export class GameAudio {
   private synth?: Synth;
   private settings = { ...DEFAULT_SETTINGS };
   private cue: AudioCue = regionAudio.capernaum;
+  /** A heard score chosen from the music list; area music resumes when cleared. */
+  private manual?: TrackId;
+  private presenting = false;
+  private playing: TrackId = regionAudio.capernaum.track;
   private timer?: ReturnType<typeof setInterval>;
   private paused = false;
   private disposed = false;
@@ -80,7 +85,8 @@ export class GameAudio {
     this.player = new MusicPlayer(context, musicInput);
     this.soundscape = new AmbiencePlayer(context, this.ambience);
     this.synth = new Synth(context);
-    this.player.select(musicTracks[this.cue.track]);
+    this.playing = this.chosenTrack();
+    this.player.select(musicTracks[this.playing]);
     this.soundscape.select(this.cue.ambience);
     this.mix();
   }
@@ -97,10 +103,30 @@ export class GameAudio {
       this.walked = 0;
     }
     this.region = state.region;
-    if (this.cue.track !== next.track) this.player?.select(musicTracks[next.track]);
+    this.presenting = isPresenting(state);
     if (this.cue.ambience !== next.ambience) this.soundscape?.select(next.ambience);
     this.cue = next;
+    this.selectMusic();
   }
+  /** Gospel accounts keep their own scores; elsewhere a chosen score replaces area music. */
+  private chosenTrack(): TrackId {
+    return this.manual && !this.presenting ? this.manual : this.cue.track;
+  }
+  private selectMusic(): void {
+    const track = this.chosenTrack();
+    if (track === this.playing) return;
+    this.playing = track;
+    this.player?.select(musicTracks[track]);
+  }
+  /** Play a heard score in place of area music, or return to area music with undefined. */
+  setManualTrack(track?: TrackId): void {
+    this.manual = track;
+    this.selectMusic();
+  }
+  get manualTrack(): TrackId | undefined {
+    return this.manual;
+  }
+  private jingleUntil = 0;
   /** Menus/dialogue gently lower the score, without restarting the composition. */
   duck(reading: boolean): void {
     if (reading === this.reading) return;
@@ -117,11 +143,12 @@ export class GameAudio {
       now,
       0.06,
     );
-    this.music?.gain.setTargetAtTime(
-      volume(this.settings.musicVolume) * (this.reading ? 0.62 : 1),
-      now,
-      0.25,
-    );
+    const music = volume(this.settings.musicVolume) * (this.reading ? 0.62 : 1);
+    // A jingle sets the score almost aside while it plays, then lets it return.
+    if (now < this.jingleUntil) {
+      this.music?.gain.setTargetAtTime(music * 0.15, now, 0.08);
+      this.music?.gain.setTargetAtTime(music, this.jingleUntil, 0.5);
+    } else this.music?.gain.setTargetAtTime(music, now, 0.25);
     this.ambience?.gain.setTargetAtTime(volume(this.settings.ambienceVolume), now, 0.15);
     this.effects?.gain.setTargetAtTime(volume(this.settings.effectsVolume), now, 0.08);
   }
@@ -143,6 +170,10 @@ export class GameAudio {
     this.lastEffect.set(effect, now);
     for (const note of soundEffects[effect])
       this.synth?.note(note, now + note.beat, 1, this.effects);
+    if (effect === 'fanfare') {
+      this.jingleUntil = now + 2.3;
+      this.mix();
+    }
   }
   motion(motion?: ActionMotion): void {
     if (motion)
@@ -210,7 +241,7 @@ export class GameAudio {
     const player = this.player?.diagnostics();
     return {
       state: this.context?.state ?? 'locked',
-      track: this.cue.track,
+      track: this.playing,
       players: player?.players ?? 0,
       voices: (player?.voices ?? 0) + (this.synth?.voices.size ?? 0),
     };

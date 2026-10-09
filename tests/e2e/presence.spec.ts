@@ -85,7 +85,8 @@ test('nearby conversations keep identities, motion pause and camera recovery thr
         width: (img as HTMLImageElement).naturalWidth,
       })),
     )
-    .toEqual({ loaded: true, width: 288 });
+    // Chatheads render at 96 px; desktop conversation shows them pixel for pixel.
+    .toEqual({ loaded: true, width: 96 });
   const time = Number(await canvas.getAttribute('data-conversation-time'));
   await expect
     .poll(async () => Number(await canvas.getAttribute('data-conversation-time')))

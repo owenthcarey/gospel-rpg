@@ -3,6 +3,8 @@
 Run with Blender MCP or `python3 tools/build_assets.py --items`. The isolated
 workshop preserves the open scene, uses transparent backgrounds and includes a
 small dark silhouette rim so brown tools stay readable on the satchel's slots.
+Each sprite then receives the classic inventory finish: hard alpha, a one-pixel
+black outline and a dark drop shadow (`classic_edge`).
 No gameplay models, story identifiers, sockets, or clips are modified.
 """
 import contextlib
@@ -79,6 +81,45 @@ def filled_jug_surface(meshes):
     if not faces:
         raise RuntimeError('The imported jug needs a flat mouth for its filled icon')
     return material
+
+
+def classic_edge(path):
+    """Give a rendered sprite the classic inventory finish, in place.
+
+    Alpha becomes hard-edged, every transparent pixel touching the item turns
+    into a one-pixel black outline, and a dark shadow pixel falls one step down
+    and right of the outlined shape where nothing else is drawn.
+    """
+    import numpy as np
+
+    image = bpy.data.images.load(str(path), check_existing=False)
+    try:
+        width, height = image.size
+        pixels = np.array(image.pixels[:], dtype=np.float32).reshape(height, width, 4)
+        solid = pixels[..., 3] >= .5
+        # Un-premultiply soft edges before making them opaque.
+        alpha = np.where(solid, np.maximum(pixels[..., 3], 1e-4), 1)[..., None]
+        pixels[..., :3] = np.where(solid[..., None], np.clip(pixels[..., :3] / alpha, 0, 1), 0)
+        pixels[..., 3] = solid
+        grown = solid.copy()
+        grown[1:, :] |= solid[:-1, :]
+        grown[:-1, :] |= solid[1:, :]
+        grown[:, 1:] |= solid[:, :-1]
+        grown[:, :-1] |= solid[:, 1:]
+        edge = grown & ~solid
+        pixels[edge] = (0, 0, 0, 1)
+        # Blender rows run bottom to top: "down" is the previous row.
+        shadow = np.zeros_like(grown)
+        shadow[:-1, 1:] = grown[1:, :-1]
+        shadow &= ~grown
+        pixels[shadow] = (.19, .13, .11, 1)
+        image.pixels[:] = pixels.ravel()
+        image.filepath_raw = str(path)
+        image.file_format = 'WEBP'
+        # Quality 100 writes lossless WebP, keeping single-pixel edges exact.
+        image.save(quality=100)
+    finally:
+        bpy.data.images.remove(image)
 
 
 def run(names=None):
@@ -187,6 +228,7 @@ def run(names=None):
                 rims.append(rim)
             scene.render.filepath = str(OUT / (name + '.webp'))
             bpy.ops.render.render(write_still=True, scene=scene.name)
+            classic_edge(OUT / (name + '.webp'))
             rendered.append({'id': name, 'model': model, 'bytes': (OUT / (name + '.webp')).stat().st_size,
                              'sourceSha256': hashlib.sha256(source.read_bytes()).hexdigest()})
             # Keep the full recipe workshop while only the current item renders.

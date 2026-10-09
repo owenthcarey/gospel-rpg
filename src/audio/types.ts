@@ -28,5 +28,7 @@ export type SoundEffect =
   | 'page'
   | 'discovery'
   | 'complete'
-  | 'travel';
+  | 'fanfare'
+  | 'travel'
+  | 'click';
 export type Soundscape = 'shore' | 'village' | 'room' | 'hearth' | 'country' | 'lake' | 'storm';

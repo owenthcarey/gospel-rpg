@@ -363,4 +363,32 @@ describe('ambient bird silhouettes', () => {
       expect(restarted).toBe(0);
     });
   });
+
+  it('holds story fireworks through a paused conversation and skips them under Reduce motion', async () => {
+    await withParticles('galilean-road', false, ({ scene, atmosphere, draw }) => {
+      const sparks = scene.particleSystems.find((s) => s.name === 'celebration-sparks')!;
+      const live = () => sparks.getActiveCount();
+      draw(1, false);
+      atmosphere.fireworks(new Vector3(0, 1.9, 0));
+      draw(6, false);
+      expect(live(), 'no burst while the world is paused').toBe(0);
+      draw(2);
+      expect(live()).toBeGreaterThan(40);
+      draw(220);
+      expect(live(), 'the burst leaves on its own').toBe(0);
+
+      atmosphere.applySettings(true, false);
+      atmosphere.fireworks(new Vector3(0, 1.9, 0));
+      draw(2);
+      expect(live()).toBeGreaterThan(0);
+      expect(live()).toBeLessThanOrEqual(40);
+      draw(220);
+
+      atmosphere.applySettings(false, true);
+      atmosphere.fireworks(new Vector3(0, 1.9, 0));
+      draw(4);
+      expect(live()).toBe(0);
+      atmosphere.applySettings(false, false);
+    });
+  });
 });

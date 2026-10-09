@@ -129,10 +129,17 @@ export class MinimapControls {
       flag = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       flag.classList.add('minimap-destination');
       flag.innerHTML =
-        '<circle r="3" fill="#ffe746" stroke="#272015" stroke-width="1.2"/><path d="M0 0V-12H8L6-9L8-6H0" fill="#ffe746" stroke="#272015" stroke-width="1.4"/>';
+        // The classic red destination flag on a pale pole.
+        '<circle r="2.4" fill="#f2e6c4" stroke="#1d1209" stroke-width="1"/><path d="M0 0V-12" stroke="#1d1209" stroke-width="2.6"/><path d="M0 0V-12" stroke="#f2e6c4" stroke-width="1"/><path d="M0.5-12H9L7-9L9-6H0.5Z" fill="#d42a1a" stroke="#1d1209" stroke-width="1.2" stroke-linejoin="round"/>';
       svg.append(flag);
     }
     flag.style.display = target ? '' : 'none';
+    // Place icons turn back against the map, so they stay upright like the flag.
+    for (const glyph of svg.querySelectorAll<SVGGElement>('.map-icon-glyph'))
+      glyph.setAttribute(
+        'transform',
+        `rotate(${(-this.bearing * 180) / Math.PI}) scale(${this.symbolScale})`,
+      );
     if (target) {
       const p = mapPoint(target, bounds);
       // The destination stays planted in the map while its flag remains upright

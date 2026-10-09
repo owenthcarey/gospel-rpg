@@ -9,7 +9,7 @@
   border-bottom-color: #171410;
   box-shadow: 0 0 0 1px #15120e;
   font:
-    15px/1.4 var(--font-sans, Arial),
+    18px/1.4 var(--font-sans, Arial),
     sans-serif;
   text-shadow: 1px 1px #000;
 }
@@ -65,10 +65,10 @@
   }
 }
 .world-option-name.is-person {
-  color: #80ffff;
+  color: #ffff00;
 }
 .world-option-name.is-object {
-  color: #ffdb66;
+  color: #00ffff;
 }
 .world-click-feedback {
   --click-color: #f5dc35;
@@ -103,5 +103,25 @@
 .world-action-hint[hidden],
 .world-option-menu[hidden],
 .world-click-feedback[hidden] {
+  display: none;
+}
+
+/* The cross closes in four frames, as the classic walk and action markers do. */
+.world-click-feedback:not([hidden]) {
+  animation: click-cross 400ms steps(4, end) both;
+}
+@keyframes click-cross {
+  from {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+}
+.reduce-motion .world-click-feedback:not([hidden]) {
+  animation: none;
+}
+/* Ground under the pointer: shown only in the classic desktop corner. */
+.world-walk-hint {
   display: none;
 }
