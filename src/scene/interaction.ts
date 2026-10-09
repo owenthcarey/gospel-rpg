@@ -35,6 +35,8 @@ interface InteractionOptions {
 /** Action previews and deliberate mouse, keyboard and touch alternatives to the default tap. */
 export class InteractionFeedback {
   private hint = document.createElement('div');
+  /** Open ground under the pointer reads "Walk here" in the classic corner. */
+  private walkHint = document.createElement('div');
   private menu = document.createElement('div');
   private flash = document.createElement('div');
   private origin?: { x: number; y: number; moved: boolean };
@@ -64,10 +66,13 @@ export class InteractionFeedback {
     this.menu.hidden = true;
     this.menu.setAttribute('role', 'menu');
     this.menu.setAttribute('aria-label', 'Choose Option');
+    this.walkHint.className = 'world-walk-hint';
+    this.walkHint.hidden = true;
+    this.walkHint.setAttribute('aria-hidden', 'true');
     this.flash.className = 'world-click-feedback';
     this.flash.hidden = true;
     this.flash.setAttribute('aria-hidden', 'true');
-    document.body.append(this.hint, this.menu, this.flash);
+    document.body.append(this.hint, this.walkHint, this.menu, this.flash);
     document.addEventListener('pointerdown', this.down, true);
     document.addEventListener('pointermove', this.move, true);
     document.addEventListener('pointerup', this.up, true);
@@ -181,11 +186,16 @@ export class InteractionFeedback {
     }
     if (performance.now() - this.lastPick < 80) return;
     this.lastPick = performance.now();
-    const id =
-      label?.dataset.value ?? this.pick(e.clientX, e.clientY)?.pickedMesh?.metadata?.interactionId;
+    const picked = label ? undefined : this.pick(e.clientX, e.clientY)?.pickedMesh?.metadata;
+    const id = label?.dataset.value ?? picked?.interactionId;
     const place = typeof id === 'string' ? this.input.place(id) : undefined;
     if (!place) {
       this.clearHover();
+      if (picked?.ground) {
+        this.hoverView = this.captureView();
+        this.walkHint.textContent = this.input.movementLabel ?? 'Walk here';
+        this.walkHint.hidden = false;
+      }
       return;
     }
     // A new native pointer pick owns the baseline; camera notifications never refresh it.
@@ -291,7 +301,8 @@ export class InteractionFeedback {
   }
   private viewChanged = () => {
     if (this.hold && this.changedView(this.hold.view)) this.rejectTouches();
-    if (!this.hint.hidden && this.changedView(this.hoverView)) this.clearHover();
+    if ((!this.hint.hidden || !this.walkHint.hidden) && this.changedView(this.hoverView))
+      this.clearHover();
   };
   private open(x: number, y: number, target: EventTarget | null, click?: ScreenClick) {
     const label = this.label(target);
@@ -453,6 +464,7 @@ export class InteractionFeedback {
   private clearHover = () => {
     this.hoverView = undefined;
     this.hint.hidden = true;
+    this.walkHint.hidden = true;
     this.input.canvas.style.cursor = '';
   };
   /** Menus and hints must disappear as soon as the world pauses or changes region. */
@@ -477,6 +489,7 @@ export class InteractionFeedback {
     window.removeEventListener('blur', this.loseFocus);
     window.removeEventListener('resize', this.resize);
     this.hint.remove();
+    this.walkHint.remove();
     this.menu.remove();
     this.flash.remove();
     this.input.scene.doNotHandleCursors = this.previousCursorHandling;

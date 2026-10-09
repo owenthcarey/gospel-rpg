@@ -1084,3 +1084,17 @@
     color: #ff9040;
   }
 }
+@media (min-width: 1001px) and (min-height: 560px) and (hover: hover) {
+  :root .world-walk-hint:not([hidden]) {
+    position: fixed;
+    left: 5px;
+    top: 4px;
+    z-index: 45;
+    display: block;
+    pointer-events: none;
+    color: #fff;
+    font: 700 18px/1.1 var(--font-sans);
+    text-shadow: 0.0834em 0.0834em 0 #000;
+    white-space: nowrap;
+  }
+}

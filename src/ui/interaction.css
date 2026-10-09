@@ -126,3 +126,7 @@
 .reduce-motion .world-click-feedback:not([hidden]) {
   animation: none;
 }
+/* Ground under the pointer: shown only in the classic desktop corner. */
+.world-walk-hint {
+  display: none;
+}
