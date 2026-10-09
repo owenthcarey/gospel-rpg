@@ -345,6 +345,23 @@ export class Interface {
         if (log) log.scrollTop = log.scrollHeight;
         this.renderChat();
       });
+    // The minimap orbs answer a right-click with their one action, as the classic orbs do.
+    for (const [selector, verb, action] of [
+      ['.run-orb', 'Toggle Run', 'run-toggle'],
+      ['.minimap-open', 'Local Map', 'map'],
+    ] as const) {
+      const orb = root.querySelector<HTMLElement>(selector);
+      orb?.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+        this.optionMenu(
+          orb,
+          event.clientX,
+          event.clientY,
+          [{ verb, action: () => this.actions.action(action) }],
+          root,
+        );
+      });
+    }
     const compass = root.querySelector<HTMLElement>('.minimap-compass');
     compass?.addEventListener('contextmenu', (event) => {
       event.preventDefault();
