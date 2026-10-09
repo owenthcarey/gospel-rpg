@@ -42,7 +42,7 @@ import { emote } from './content/emotes';
 import { heldReturn } from './game/life/objectives';
 import { FRESH_RUN, type RunState } from './game/run';
 import { cueForState } from './content/audio/cues';
-import { musicTracks } from './content/audio/music';
+import { musicTracks, type TrackId } from './content/audio/music';
 import { leavePresentationEvent } from './game/presentation';
 import { parseStoryCommand, requiresWorldView, requiresWorldEvent } from './game/commands';
 import { motionFor, noticeFor } from './content/notices';
@@ -829,6 +829,16 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
     case 'face-north':
       world.faceNorth();
       break;
+    case 'music-play':
+    case 'music-area': {
+      const id = name === 'music-play' ? value : undefined;
+      if (id && !(id in musicTracks && musicUnlocks.list().includes(id))) break;
+      audio.setManualTrack(id as TrackId | undefined);
+      ui.chosenTrack = id;
+      audio.play('click');
+      await showSettings();
+      break;
+    }
     case 'emotes':
       audio.play('click');
       ui.toggleEmotes();

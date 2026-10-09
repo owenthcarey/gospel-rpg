@@ -74,3 +74,5 @@ The rendering tool starts a temporary local Vite server and headless Chromium, i
 Unit coverage checks score bounds, meter validation, all regions, narrative resolution, replay isolation, preference migration, exact scheduler timing, missed-frame recovery, and retirement after rapid changes. Browser tests measure actual Web Audio output, channel silence, gesture unlocking, saved mute, background suspension, footstep effects, scene transitions, and graceful handling of unavailable audio on desktop and phone layouts. Phone tests use browser emulation; physical-device listening and final artistic mix review remain useful before release.
 
 The scheduler follows the browser's [Web Audio scheduling guidance](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Advanced_techniques) and [user-gesture audio guidance](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices).
+
+Settings lists all nine scores. Those heard on this device are green and can be chosen to play in place of area music until **Return to area music**; Gospel accounts always keep their own scores. The choice lasts for the session and is not saved.

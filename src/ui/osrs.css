@@ -1348,3 +1348,33 @@
     width: 236px;
   }
 }
+:root #ui .music-list .music-track {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  font: inherit;
+  text-shadow: inherit;
+  cursor: pointer;
+}
+:root #ui .music-list .music-track:hover,
+:root #ui .music-list .music-track:focus-visible {
+  color: #fff;
+}
+:root #ui .music-list .music-track:focus-visible {
+  outline: 1px dotted #fff;
+}
+:root #ui .music-area {
+  margin-top: 6px;
+}
+@media (pointer: coarse) {
+  :root #ui .music-list .music-track {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
