@@ -419,6 +419,7 @@ async function close(restoreOpener = false): Promise<void> {
   contextId = null;
   if (!started) {
     const saved = await saves.load('auto').catch(() => null);
+    ui.soundOn = settings.sound;
     ui.welcome(Boolean(saved), saves.persistent, saved?.state);
     return;
   }
@@ -839,6 +840,10 @@ async function handleAction(name: string, value?: string, chosen?: Choice): Prom
       await showSettings();
       break;
     }
+    case 'toggle-sound':
+      await updateSetting('sound', !settings.sound);
+      ui.setSoundOn(settings.sound);
+      break;
     case 'emotes':
       audio.play('click');
       ui.toggleEmotes();
@@ -1250,6 +1255,7 @@ async function boot(): Promise<void> {
     return null;
   });
   ui.update(state);
+  ui.soundOn = settings.sound;
   ui.welcome(Boolean(autosave), saves.persistent, autosave?.state);
   loading.hidden = true;
   let ticks = 0;

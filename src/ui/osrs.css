@@ -1418,3 +1418,43 @@
       inset -1px -1px #2b2210;
   }
 }
+
+/* The title's music toggle sits in the bottom-right corner, struck through when off.
+   Touch layouts keep Settings, where the card needs the screen's full width. */
+:root #ui .welcome-sound {
+  display: none;
+}
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root #ui .welcome-sound {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    background: #000000c0;
+    border: 1px solid #5c4d37;
+    border-radius: 2px;
+  }
+  :root #ui .welcome-sound .pixel-icon {
+    width: 32px;
+    height: 32px;
+  }
+  :root #ui .welcome-sound[aria-pressed='false']::after {
+    content: '';
+    position: absolute;
+    inset: 10px;
+    background: linear-gradient(
+      45deg,
+      transparent calc(50% - 2px),
+      #d42a1a calc(50% - 2px) calc(50% + 2px),
+      transparent calc(50% + 2px)
+    );
+  }
+  :root #ui .welcome-sound:hover {
+    border-color: #c8a85e;
+  }
+}

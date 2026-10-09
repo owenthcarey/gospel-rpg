@@ -1148,6 +1148,10 @@ export class Interface {
       .querySelector<HTMLElement>(`.toolbar [data-action="${action}"]`)
       ?.classList.toggle('tab-flash', on);
   }
+  setSoundOn(on: boolean): void {
+    this.soundOn = on;
+    this.root.querySelector('.welcome-sound')?.setAttribute('aria-pressed', String(on));
+  }
   get emotesOpen(): boolean {
     return !this.root.querySelector<HTMLElement>('#emote-panel')?.hidden;
   }
@@ -1171,6 +1175,8 @@ export class Interface {
     orb.querySelector('.run-orb-energy')!.textContent = String(percent);
   }
   chosenTrack?: string;
+  /** Whether game audio is on, for the title's sound toggle. */
+  soundOn = true;
   setHeardTracks(ids: Iterable<string>): void {
     this.heardTracks = new Set(ids);
   }
@@ -1346,7 +1352,7 @@ export class Interface {
   welcome(hasSave: boolean, storage: boolean, saved?: GameState): void {
     this.show(
       'welcome',
-      `<div class="welcome-shade"></div><div class="welcome-crest" aria-hidden="true"><span class="crest-torch"></span>${logoLockup('title')}<span class="crest-torch"></span></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand">${logoLockup('title')}</div><p class="eyebrow">Chapter I · Galilee</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore and witness the catch and calling, then follow the lanes, the road to Nain and the lake to a sheltered cove.</p>${saved ? recap(saved, true) : ''}<p class="welcome-copy secondary">Walk the shore. Meet its people. Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">Four Gospel chapters: Luke 5:1–11, Mark 2:1–12, Luke 7:11–17 and Mark 4:35–41. Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div>`,
+      `<div class="welcome-shade"></div><div class="welcome-crest" aria-hidden="true"><span class="crest-torch"></span>${logoLockup('title')}<span class="crest-torch"></span></div><section class="welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcome-title"><div class="welcome-brand">${logoLockup('title')}</div><p class="eyebrow">Chapter I · Galilee</p><h1 id="welcome-title">Every journey begins with a small kindness.</h1><p class="welcome-copy">Morning comes to Capernaum. Help on the shore and witness the catch and calling, then follow the lanes, the road to Nain and the lake to a sheltered cove.</p>${saved ? recap(saved, true) : ''}<p class="welcome-copy secondary">Walk the shore. Meet its people. Find your place along the way.</p><button class="primary-button" data-action="${hasSave ? 'continue' : 'begin'}">${hasSave ? 'Continue your journey' : 'Begin your journey'} ${icon('arrow')}</button>${hasSave ? '<button class="text-button" data-action="new-journey">Start a new journey</button>' : ''}<div class="welcome-meta">${icon('leaf')} A quiet adventure · Explore at your own pace</div>${!storage ? '<p class="storage-warning">Browser storage is unavailable. You can export your journey from Settings during this session.</p>' : ''}<p class="welcome-note">Four Gospel chapters: Luke 5:1–11, Mark 2:1–12, Luke 7:11–17 and Mark 4:35–41. Original conversations and scripture are clearly identified.</p><button class="welcome-saves text-button" data-action="settings">${icon('save')} Saves &amp; settings</button></section><div class="welcome-location">${icon('pin')}<span>CAPERNAUM<small>The shores of Galilee</small></span></div><button class="welcome-sound" data-action="toggle-sound" aria-pressed="${this.soundOn}" aria-label="Game audio" title="Game audio">${pixelIcon('music')}</button>`,
     );
   }
   private panelShell(
