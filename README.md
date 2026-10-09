@@ -56,6 +56,7 @@ Open the URL printed by Vite. Select **Begin your journey** (a first journey pla
 | Minimap compass / LOCAL MAP             | Face north / open local destinations      |
 | Run orb beside the minimap              | Run or walk (energy refills)              |
 | Emotes tab                              | Wave, bow, cheer, clap and other gestures |
+| 1–9 / Space in conversation             | Choose an answer / continue               |
 | Click a name / choose a map destination | Approach and interact                     |
 | WASD / arrow keys                       | Move relative to the camera               |
 | E                                       | Interact nearby                           |

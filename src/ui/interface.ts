@@ -1577,6 +1577,7 @@ export class Interface {
       ['Compass / map orb or LOCAL MAP', 'Face north / open local destinations'],
       ['Run orb beside the map', 'Run or walk; energy refills as you walk'],
       ['Emotes tab', 'Wave, bow, cheer, clap and other gestures'],
+      ['1–9 / Space in conversation', 'Choose an answer / continue a single answer'],
       [
         'Click / tap a person or object',
         sailing

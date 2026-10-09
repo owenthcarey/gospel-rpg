@@ -1133,10 +1133,23 @@ const keydown = (event: KeyboardEvent) => {
     event.target instanceof HTMLTextAreaElement
   )
     return;
-  if (ui.panel === 'dialogue' && ['1', '2', '3'].includes(key)) {
+  if (ui.panel === 'dialogue' && /^[1-9]$/.test(key) && conversation?.choices[Number(key) - 1]) {
     event.preventDefault();
-    const choice = conversation?.choices[Number(key) - 1];
+    const choice = conversation.choices[Number(key) - 1];
     runAction(() => handleAction('choice', String(Number(key) - 1), choice));
+    return;
+  }
+  // Space continues a single-answer conversation, as in the classic dialogue; a focused
+  // button keeps its own native Space activation.
+  if (
+    ui.panel === 'dialogue' &&
+    key === ' ' &&
+    conversation?.choices.length === 1 &&
+    !(event.target instanceof HTMLButtonElement)
+  ) {
+    event.preventDefault();
+    const choice = conversation.choices[0];
+    runAction(() => handleAction('choice', '0', choice));
     return;
   }
   if (!started || ui.panel === 'welcome' || ui.panel === 'dialogue') return;
