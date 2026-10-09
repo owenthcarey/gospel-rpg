@@ -9,9 +9,18 @@ interface GameMessage {
   chatOnly?: boolean;
 }
 
+export type ChatFilter = 'all' | 'game' | 'public';
+export const CHAT_FILTERS: readonly { id: ChatFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'game', label: 'Game' },
+  { id: 'public', label: 'Public' },
+];
+const SPOKEN = /^(Traveler): (.*)$/;
+const isSpeech = (text: string): boolean => SPOKEN.test(text);
+
 /** Spoken lines show the speaker's name in black before their words, as in the classic chat. */
 function speech(text: string): string {
-  const match = /^(Traveler): (.*)$/.exec(text);
+  const match = SPOKEN.exec(text);
   return match
     ? `<span class="chat-name">${match[1]}:</span> <span class="chat-said">${escapeHtml(match[2]!)}</span>`
     : escapeHtml(text);
@@ -26,9 +35,13 @@ export class MessageHistory {
     else this.entries.push({ text, kind, count: 1, chatOnly });
     if (this.entries.length > 40) this.entries.shift();
   }
-  /** The chatbox's newest lines, oldest first, as the classic game log reads. */
-  chat(limit: number): string {
+  /**
+   * The chatbox's newest lines, oldest first, as the classic game log reads. The Game and
+   * Public filters split the game's own feedback from what people say aloud.
+   */
+  chat(limit: number, filter: ChatFilter = 'all'): string {
     return this.entries
+      .filter((entry) => filter === 'all' || (filter === 'public') === isSpeech(entry.text))
       .slice(-limit)
       .map(
         (entry) =>

@@ -26,6 +26,21 @@ test('typing in the chatbox speaks overhead without moving or interacting', asyn
   await expect(page.locator('.traveler-speech')).toBeVisible();
   await expect(page.locator('.traveler-speech')).toHaveText('wasd e Peace to you');
   await expect(page.locator('.chat-log .chat-said').last()).toHaveText('wasd e Peace to you');
+  // Public shows only what was said aloud; Game shows only the game's own lines.
+  const lines = page.getByRole('group', { name: 'Chat lines' });
+  const log = page.locator('.chat-log');
+  await lines.getByRole('button', { name: 'Public' }).click();
+  await expect(lines.getByRole('button', { name: 'Public' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(log.locator('li')).toHaveCount(1);
+  await lines.getByRole('button', { name: 'Game' }).click();
+  await expect(log).toContainText('Welcome to The Way');
+  await expect(log).not.toContainText('Peace to you');
+  await lines.getByRole('button', { name: 'All' }).click();
+  await expect(log).toContainText('Peace to you');
+  await chat.focus();
   await page.keyboard.press('Escape');
   await expect(page.locator('#game-canvas')).toBeFocused();
   // Speech is only a moment: it fades on its own and never changes the journey.

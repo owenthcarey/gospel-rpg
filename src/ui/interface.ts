@@ -86,7 +86,7 @@ import { MinimapControls, mapPoint } from './minimap';
 import { capernaumMapScenery } from './map-scenery';
 import './satchel-map.css';
 import './classic-reading.css';
-import { MessageHistory } from './messages';
+import { CHAT_FILTERS, MessageHistory, type ChatFilter } from './messages';
 import { ChatterSchedule } from './chatter';
 import { suggestStory } from '../content/exploration/suggestions';
 import { STORY_TRACKS } from '../game/campaign/types';
@@ -270,7 +270,7 @@ export class Interface {
         <div class="time-of-day">${icon('sun')}<span>A quiet morning</span></div>
         <div id="world-labels" class="world-labels" aria-label="People and places"></div><div class="overhead-chat" aria-hidden="true"><span class="overhead-line traveler-speech" hidden></span></div><section id="emote-panel" class="emote-panel" aria-label="Emotes" hidden><h2 class="emote-title">Emotes</h2><div class="emote-grid">${EMOTES.map((e) => `<button data-action="emote" data-value="${e.id}">${pixelIcon(e.id as PixelIconName)}<span>${esc(e.label)}</span></button>`).join('')}</div></section>
         <div class="traveler-card"><ol class="chat-log" aria-hidden="true"></ol><div class="traveler-seal">${icon('person')}</div><div class="traveler-details"><span class="eyebrow">THE TRAVELER</span><p class="traveler-line">A willing pair of hands</p><small id="save-indicator">Your journey is saved locally</small><label class="chat-say"><span class="chat-say-name">Traveler:</span><input class="chat-input" type="text" maxlength="80" autocomplete="off" spellcheck="false" aria-label="Say something aloud" placeholder="Press Enter to chat"></label></div></div>
-        <div class="bottom-center"><div class="hud-actions"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" aria-describedby="unread-message-description" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span><span id="unread-message-description" class="sr-only">No unread game messages</span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
+        <div class="bottom-center"><div class="hud-actions"><section id="action-tray" class="action-tray" aria-label="Nearby practical actions" hidden></section><button id="nearby-action" class="nearby-action" data-action="nearest" hidden></button></div><div class="action-scroll-cue" aria-hidden="true" hidden></div><div id="travel-status" class="travel-status" role="status" hidden><span class="travel-guidance" role="region" aria-label="Route guidance" tabindex="-1"></span><small class="route-scroll-cue" aria-hidden="true" hidden></small><button data-action="route-resume" hidden>Resume route</button><button data-action="cancel-navigation">Cancel walk</button></div><div class="control-hints"><span>${icon('mouse')} Click to walk</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span><span>Right-drag to look</span><span class="chat-filters" role="group" aria-label="Chat lines">${CHAT_FILTERS.map((f) => `<button type="button" class="chat-filter" data-chat-filter="${f.id}" aria-pressed="${f.id === 'all'}">${f.label}</button>`).join('')}</span><button class="messages-button" data-action="messages" aria-label="Recent game messages" aria-describedby="unread-message-description" title="Recent game messages">${icon('scroll')}<span class="message-button-text">Messages</span><span class="message-count" aria-hidden="true" hidden></span><span id="unread-message-description" class="sr-only">No unread game messages</span></button><button data-action="help" aria-label="Show all controls" title="Controls">${icon('help')}</button></div></div>
         <div class="minimap-wrap"><button class="minimap" aria-label="Walk using minimap; press Enter to open local map" title="Click to walk. Enter opens the local map.">${this.mapSvg(false)}</button><button class="minimap-compass" data-action="face-north" aria-label="Face north" title="Face north"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4L21 19L16 16L11 19Z" fill="#c75337" stroke="#efc578" stroke-width="1"/><path d="M16 28L11 19L16 16L21 19Z" fill="#d3bd83"/><text x="16" y="9" text-anchor="middle" fill="#fff3cd" font-size="8" font-weight="700" font-family="Way Pixel, Arial">N</text></svg></button><button class="minimap-open" data-action="map" aria-label="Open local map" title="Local map (M)">LOCAL MAP</button><button class="run-orb" data-action="run-toggle" aria-pressed="false" aria-label="Run, energy 100%" title="Run"><span class="run-orb-icon" aria-hidden="true"></span><span class="run-orb-energy" aria-hidden="true">100</span></button><div class="camera-controls" role="group" aria-label="Camera"><button class="camera-disclosure" data-action="camera-toggle" data-world-action aria-label="Show camera controls" aria-expanded="false" aria-controls="camera-command-buttons" hidden>Camera</button><div id="camera-command-buttons" class="camera-command-buttons"><button data-action="rotate-left" aria-label="Rotate camera left" title="Rotate left (Q)">${icon('rotate-left')}</button><button data-action="reset-camera" aria-label="Reset camera" title="Reset camera (R)">${icon('compass')}</button><button data-action="rotate-right" aria-label="Rotate camera right" title="Rotate right">${icon('rotate-right')}</button><span></span><button data-action="zoom-in" aria-label="Zoom in" title="Zoom in">${icon('plus')}</button><button data-action="zoom-out" aria-label="Zoom out" title="Zoom out">${icon('minus')}</button></div></div></div>
       </div>
       <section id="scene-controls" class="scene-controls" aria-labelledby="scene-title" hidden></section><div id="overlay"></div><div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
@@ -329,6 +329,15 @@ export class Interface {
         document.querySelector<HTMLElement>('#game-canvas')?.focus({ preventScroll: true });
       }
     });
+    for (const button of root.querySelectorAll<HTMLButtonElement>('.chat-filter'))
+      button.addEventListener('click', () => {
+        this.chatFilter = button.dataset.chatFilter as ChatFilter;
+        for (const other of root.querySelectorAll('.chat-filter'))
+          other.setAttribute('aria-pressed', String(other === button));
+        const log = root.querySelector<HTMLElement>('.chat-log');
+        if (log) log.scrollTop = log.scrollHeight;
+        this.renderChat();
+      });
     document.body.append(this.interfaceHint);
     this.quest = root.querySelector('#quest-card')!;
     this.renderChat();
@@ -1216,6 +1225,8 @@ export class Interface {
     orb.querySelector('.run-orb-energy')!.textContent = String(percent);
   }
   chosenTrack?: string;
+  /** Which lines the chatbox shows; the Messages history always keeps every notice. */
+  private chatFilter: ChatFilter = 'all';
   /** Whether game audio is on, for the title's sound toggle. */
   soundOn = true;
   setHeardTracks(ids: Iterable<string>): void {
@@ -1248,8 +1259,10 @@ export class Interface {
     // Follow new lines only while the reader is at the bottom, as a game chat does.
     const following = log.scrollTop + log.clientHeight >= log.scrollHeight - 4;
     const offset = log.scrollTop;
+    const filter = this.chatFilter ?? 'all';
     log.innerHTML =
-      '<li class="chat-welcome">Welcome to <b>The Way</b>.</li>' + this.messageHistory.chat(40);
+      (filter === 'public' ? '' : '<li class="chat-welcome">Welcome to <b>The Way</b>.</li>') +
+      this.messageHistory.chat(40, filter);
     log.scrollTop = following ? log.scrollHeight : offset;
   }
   private updateMessageCount(): void {

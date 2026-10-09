@@ -31,4 +31,19 @@ describe('message history and chatbox', () => {
     history.add('<b>bold</b>', 'story');
     expect(history.chat(1)).toContain('&lt;b&gt;');
   });
+
+  it('splits game feedback from spoken lines for the Game and Public filters', () => {
+    const history = new MessageHistory();
+    history.add('The nets are ready.', 'story');
+    history.add('Traveler: Peace be with you!', 'story', true);
+    history.add('Move closer', 'warning');
+    expect(history.chat(5)).toContain('Peace be with you!');
+    expect(history.chat(5)).toContain('Move closer');
+    expect(history.chat(5, 'game')).not.toContain('Peace be with you!');
+    expect(history.chat(5, 'game')).toContain('The nets are ready.');
+    expect(history.chat(5, 'public')).toContain('Peace be with you!');
+    expect(history.chat(5, 'public')).not.toContain('Move closer');
+    // The limit counts only the lines a filter shows.
+    expect(history.chat(1, 'public')).toContain('Peace be with you!');
+  });
 });
