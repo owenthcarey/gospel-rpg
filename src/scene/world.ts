@@ -506,11 +506,16 @@ export class World {
       }
     }
     const shoreRocks = [];
+    // Hulls drawn up on the shore keep their outline: no reeds or rocks through a boat.
+    const hulls = props.filter((p) => p.asset === 'boat');
     for (let i = 0; i < (this.layout ? 0 : 30); i++) {
       const z = -24 + i * 1.7;
-      const x = shoreline(z);
+      const x = shoreline(z) - 0.1 + Math.sin(i * 3) * 0.45;
+      if (hulls.some((hull) => Math.hypot(hull.x - x, hull.z - z) < 1.7)) continue;
+      // Nor on the jetty's planks (makeDocks: x 7.7–13.1, z 2.8 ± 0.9).
+      if (x > 7.4 && x < 13.4 && Math.abs(z - 2.8) < 1.2) continue;
       const model = this.library.instantiate(i % 3 === 0 ? 'reeds' : 'rock', 'shore-detail-' + i);
-      model.root.position.set(x - 0.1 + Math.sin(i * 3) * 0.45, 0, z);
+      model.root.position.set(x, 0, z);
       model.root.scaling.setAll(0.45 + (i % 4) * 0.16);
       if (i % 3 !== 0) shoreRocks.push(model);
     }
