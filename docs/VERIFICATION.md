@@ -2,6 +2,12 @@
 
 [Evidence retention and the selected galleries](verification/README.md) describe which images remain in the checkout. Historical test results retain their original scope; routine captures are generated artifacts.
 
+## Minimap after a pause, and the full local desktop run · 2026-10-09
+
+A complete local desktop Chromium run passed **219** cases, skipped **7** and failed **3**. Two of the failures, in `lane-navigation` and `capernaum-navigation`, read the minimap after opening the journal and found it **about 0.1 m** further on 350 ms later. The cause was real, but it only showed locally: the HUD republishes every 45 ms, and a paused world renders only on its slow cadence, so the minimap kept the position from the last tick and then jumped to where the traveler had stopped. `git bisect` placed the first local failure at the larger traveler export of the Emotes commit, which slows frames enough to expose the gap. Pausing now publishes the HUD at once (`World.flushFrame`, called from the app's pause paths rather than `setPaused`, so world test doubles are unaffected). Both cases then pass on an idle machine, along with `navigation-pause`.
+
+The third failure, `bakehouse-props › tool-shelf`, also fails one run in three on `main` on this machine: an expanded world label can sit over the model under the pointer. Hosted runs pass it. Comparisons beside a running suite must use a separate build and port, because Playwright otherwise reuses the suite's preview server.
+
 ## Software rendering cost behind the Capernaum High case · 2026-10-09
 
 The desktop Capernaum High moored-boat case hit its original **180-second** limit on three consecutive hosted runs after passing in **1.8 minutes** at **8aabd0b** (an earlier run took **2.6 minutes**). Its retained `*-camera.json` evidence showed every frame's main-thread task rising from about **310 ms** to **570 ms**, while unrelated groups and the run's total browser time were unchanged. Local Chromium hides this cost: it uses the GPU unless `PLAYWRIGHT_SWIFTSHADER=1` is set, and even SwiftShader there has many more cores than a hosted runner, so whole-case time and main-thread metrics did not move.
