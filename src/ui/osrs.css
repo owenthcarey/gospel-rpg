@@ -1590,3 +1590,39 @@
   vertical-align: middle;
   shape-rendering: crispEdges;
 }
+
+/* The speaker's name and words sit centred beside the chathead, as in the classic dialogue.
+   Scripture keeps its reading alignment. */
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  /* Centred over the whole speech, not just the space left of the buttons. Large text keeps
+     the flowing header, where a long subtitle could otherwise reach the buttons. */
+  :root:not([data-text-size='large']) #ui .conversation-overlay .dialogue-main header {
+    position: relative;
+    min-height: 44px;
+  }
+  :root:not([data-text-size='large'])
+    #ui
+    .conversation-overlay
+    .dialogue-main
+    header
+    > div:first-child {
+    position: absolute;
+    inset: 0 0 auto;
+    pointer-events: none;
+  }
+  :root:not([data-text-size='large'])
+    #ui
+    .conversation-overlay
+    .dialogue-main
+    header
+    > button:first-of-type {
+    margin-left: auto;
+  }
+  :root #ui .conversation-overlay .dialogue-main header > div:first-child {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+  :root #ui .conversation-overlay .dialogue-text:not(.scripture) {
+    text-align: center;
+  }
+}
