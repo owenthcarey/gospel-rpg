@@ -1560,4 +1560,15 @@
     top: 50%;
     transform: translateY(-50%);
   }
+  /* A single answer reads as the classic blue line that continues the conversation; its
+     number stays in the accessible name. */
+  :root
+    #ui
+    .dialogue-choices:not(:has(> button:nth-of-type(2)))
+    button:not(:hover, :focus-visible) {
+    color: #0000c0;
+  }
+  :root #ui .dialogue-choices:not(:has(> button:nth-of-type(2))) .choice-index {
+    opacity: 0;
+  }
 }
