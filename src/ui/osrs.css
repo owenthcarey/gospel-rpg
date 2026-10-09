@@ -1251,3 +1251,10 @@
   color: #ffff00;
   font-weight: 400;
 }
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  /* Satchel items show pixel for pixel, keeping their one-pixel outline exact. */
+  :root #ui .satchel-slot-button .satchel-sprite {
+    width: 64px;
+    height: 64px;
+  }
+}
