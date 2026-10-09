@@ -59,4 +59,22 @@ describe('interface hover text', () => {
     });
     expect(interfaceHover(element({ classes: ['panel'] }))).toBeUndefined();
   });
+
+  it('names emotes and music tracks by their own words', () => {
+    const entry = (classes: string[], text: string, first = text) =>
+      ({
+        closest: (selector: string) =>
+          classes.some((name) => selector.includes('.' + name))
+            ? entry(classes, text, first)
+            : null,
+        textContent: text,
+        childNodes: [{ textContent: first }],
+      }) as unknown as Element;
+    expect(interfaceHover(entry(['emote-grid'], ' Wave '))).toEqual({ verb: 'Wave' });
+    expect(
+      interfaceHover(
+        entry(['music-track'], 'Lanterns in the Lanes · heard', 'Lanterns in the Lanes'),
+      ),
+    ).toEqual({ verb: 'Lanterns in the Lanes' });
+  });
 });
