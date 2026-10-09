@@ -12,7 +12,7 @@ export function interfaceHover(target: Element): { verb: string; item?: string }
     inventory: 'Satchel',
     map: control.matches('.minimap-open') ? 'World Map' : 'Map',
     settings: 'Settings',
-    'face-north': 'Face North',
+    'face-north': 'Look North',
     'run-toggle': 'Toggle Run',
   };
   const verb = (action && names[action]) ?? control.getAttribute('aria-label');

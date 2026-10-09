@@ -348,7 +348,7 @@ export class Interface {
     // The minimap orbs answer a right-click with their one action, as the classic orbs do.
     for (const [selector, verb, action] of [
       ['.run-orb', 'Toggle Run', 'run-toggle'],
-      ['.minimap-open', 'Local Map', 'map'],
+      ['.minimap-open', 'World Map', 'map'],
     ] as const) {
       const orb = root.querySelector<HTMLElement>(selector);
       orb?.addEventListener('contextmenu', (event) => {

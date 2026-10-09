@@ -32,7 +32,7 @@ describe('interface hover text', () => {
       verb: 'Toggle Run',
     });
     expect(interfaceHover(element({ classes: ['minimap-compass'], action: 'face-north' }))).toEqual(
-      { verb: 'Face North' },
+      { verb: 'Look North' },
     );
     expect(interfaceHover(element({ classes: ['minimap-open'], action: 'map' }))).toEqual({
       verb: 'World Map',

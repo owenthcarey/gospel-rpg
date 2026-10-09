@@ -63,7 +63,7 @@ test('the run orb and map orb answer a right-click with their own action', async
   await menu.getByRole('menuitem', { name: 'Toggle Run' }).click();
   await expect(run).not.toHaveAttribute('aria-pressed', pressed!);
   await page.locator('.minimap-open').click({ button: 'right' });
-  await expect(menu.getByRole('menuitem')).toHaveText(['Local Map', 'Cancel']);
-  await menu.getByRole('menuitem', { name: 'Local Map' }).click();
+  await expect(menu.getByRole('menuitem')).toHaveText(['World Map', 'Cancel']);
+  await menu.getByRole('menuitem', { name: 'World Map' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
 });
