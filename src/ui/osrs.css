@@ -952,7 +952,6 @@
 }
 
 /* The run orb: energy beside a round orb whose boot turns yellow while running. */
-/* The run orb: energy beside a round orb whose boot turns yellow while running. */
 :root #ui .run-orb {
   --run-energy: 1;
   position: absolute;
