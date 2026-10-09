@@ -105,12 +105,7 @@
 .world-click-feedback[hidden] {
   display: none;
 }
-/* Choose Option also offers walking, examining and cancelling. */
-.world-action-hint::after {
-  content: ' / 3 more options';
-  color: #fff;
-  font-weight: 400;
-}
+
 /* The cross closes in four frames, as the classic walk and action markers do. */
 .world-click-feedback:not([hidden]) {
   animation: click-cross 400ms steps(4, end) both;

@@ -303,6 +303,12 @@
     text-shadow: 0.0834em 0.0834em 0 #000;
     white-space: nowrap;
   }
+  /* Choose Option also offers walking, examining and cancelling. */
+  :root .world-action-hint::after {
+    content: ' / 3 more options';
+    color: #fff;
+    font-weight: 400;
+  }
 }
 
 /* Pixel text needs less leading than the old reading faces: sixteen font pixels per line. */
