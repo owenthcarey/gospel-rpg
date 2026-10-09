@@ -20,7 +20,17 @@ export const ANIMATION_CLIPS = [
   'Respond',
 ] as const;
 /** Traveler-only gestures for the Emotes tab. */
-export const EMOTE_CLIPS = ['Wave', 'Bow', 'Cheer', 'Clap'] as const;
+export const EMOTE_CLIPS = [
+  'Wave',
+  'Bow',
+  'Cheer',
+  'Clap',
+  'Think',
+  'Shrug',
+  'Beckon',
+  'Yes',
+  'No',
+] as const;
 export type ActorClip =
   | (typeof ANIMATION_CLIPS)[number]
   | (typeof EMOTE_CLIPS)[number]

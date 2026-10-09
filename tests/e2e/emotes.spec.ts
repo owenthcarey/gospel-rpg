@@ -14,7 +14,7 @@ test('the Emotes tab plays a gesture without changing the journey and keeps keyb
   await tab.click();
   await expect(panel).toBeVisible();
   await expect(tab).toHaveAttribute('aria-expanded', 'true');
-  await expect(panel.getByRole('button')).toHaveCount(9);
+  await expect(panel.getByRole('button')).toHaveCount(14);
   for (const button of await panel.getByRole('button').all()) {
     const box = (await button.boundingBox())!;
     expect(box.width).toBeGreaterThanOrEqual(44);
