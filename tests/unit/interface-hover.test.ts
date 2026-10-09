@@ -37,6 +37,9 @@ describe('interface hover text', () => {
     expect(interfaceHover(element({ classes: ['minimap-open'], action: 'map' }))).toEqual({
       verb: 'World Map',
     });
+    expect(interfaceHover(element({ classes: ['toolbar'], action: 'emotes' }))).toEqual({
+      verb: 'Emotes',
+    });
     const icon = element({
       classes: ['pixel-icon'],
       parent: { classes: ['button'], action: 'inventory' },
