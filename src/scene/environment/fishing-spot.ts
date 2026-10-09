@@ -53,10 +53,13 @@ export class FishingSpot {
     this.target.metadata = { examine: 'fishing-spot' };
     this.tick(0, false);
   }
+  // Reused every frame so the bubbles never add garbage.
+  private scale = new Vector3();
+  private rotation = Quaternion.Identity();
+  private position = new Vector3();
+  private matrix = Matrix.Identity();
   tick(time: number, reduced: boolean): void {
-    const scale = new Vector3(),
-      rotation = Quaternion.Identity(),
-      position = new Vector3();
+    const { scale, rotation, position } = this;
     for (let i = 0; i < BUBBLES; i++) {
       const { dx, dz, offset } = bubbleLayout(i);
       // Reduced motion holds a calm, readable cluster rather than an empty spot.
@@ -65,7 +68,7 @@ export class FishingSpot {
       scale.setAll(Math.max(0.0001, size * (0.55 + offset * 0.6)));
       scale.y *= 0.6;
       position.set(this.at.x + dx, this.y + 0.02 + size * 0.03, this.at.z + dz);
-      Matrix.ComposeToRef(scale, rotation, position, Matrix.Identity()).copyToArray(
+      Matrix.ComposeToRef(scale, rotation, position, this.matrix).copyToArray(
         this.matrices,
         i * 16,
       );
