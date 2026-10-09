@@ -921,12 +921,18 @@ export class World {
 
   private makeWater(): void {
     shorelineBank(this.scene, 'capernaum-shore-bank', shoreline, -36, 42);
+    // The lake starts just inside the shore rather than far under the village, where land
+    // hides it but software renderers still shade it. Its grid keeps the same 180/64 m cells.
+    const cell = 180 / 64,
+      cells = 47,
+      east = 135;
     this.water = new WaterPresentation(this.scene, {
       name: 'galilee',
-      width: 180,
+      width: cell * cells,
       depth: 180,
-      x: 45,
+      x: east - (cell * cells) / 2,
       z: 5,
+      cellsX: cells,
       land: [{ x: 9.3 - 500, z: 0, halfX: 500, halfZ: 1000 }],
       wobble: { amplitude: 1.5, frequency: 0.16 },
     });

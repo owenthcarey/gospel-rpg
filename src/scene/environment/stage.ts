@@ -7,6 +7,7 @@ import { Constants } from '@babylonjs/core/Engines/constants';
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Scene } from '@babylonjs/core/scene';
+import type { Observer } from '@babylonjs/core/Misc/observable';
 import { RenderingGroup } from '@babylonjs/core/Rendering/renderingGroup';
 import type { Camera } from '@babylonjs/core/Cameras/camera';
 import type { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
@@ -58,6 +59,7 @@ export class StageEnvironment {
   readonly contact: ContactShadows;
   readonly atmosphere: Atmosphere;
   private sky?: SkyDome;
+  private skyCull: Observer<Camera> | null = null;
   private horizon?: Mesh;
   private processing?: ImageProcessingPostProcess;
   private readonly shadowSize: number;
@@ -108,6 +110,7 @@ export class StageEnvironment {
           Number(a.getMesh() === sky.mesh) - Number(b.getMesh() === sky.mesh) ||
           RenderingGroup.PainterSortCompare(a, b),
       );
+      this.skyCull = scene.onBeforeCameraRenderObservable.add((camera) => sky.cull(camera));
     }
     if (options.horizon && profile.horizon)
       this.horizon = horizonRings(scene, { ...options.horizon, colors: profile.horizon });
@@ -164,6 +167,8 @@ export class StageEnvironment {
     // Custom surfaces follow the materials' actual output path, including the non-HDR fallback.
     const linearOutput = scene.imageProcessingConfiguration.applyByPostProcess;
     this.sky?.apply(p, direction, linearOutput);
+    // Where the dome steps aside for a downward view, the clear shows its exact haze.
+    if (this.sky) scene.clearColor = this.sky.haze.clone();
     for (const water of this.waters) water.applyEnvironment(p, linearOutput);
     this.atmosphere?.setProfile(p);
     this.placeSun();
@@ -280,6 +285,7 @@ export class StageEnvironment {
   }
   dispose(): void {
     this.disposeProcessing();
+    this.scene.onBeforeCameraRenderObservable.remove(this.skyCull);
     this.sky?.dispose();
     this.horizon?.material?.dispose();
     this.horizon?.dispose();
