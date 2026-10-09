@@ -1048,3 +1048,8 @@
     margin-top: 6px;
   }
 }
+
+/* Volume values sit tight above their sliders; pixel figures need no extra leading. */
+:root #ui .audio-control output {
+  line-height: 1;
+}
