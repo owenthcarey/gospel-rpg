@@ -1539,3 +1539,25 @@
     box-shadow: inset 1px 1px #9a8560;
   }
 }
+
+/* Classic answers are centred lines with no row rules or arrows; the number stays at the left
+   edge so keys 1 to 9 remain discoverable. */
+@media (min-width: 1001px) and (min-height: 560px) and (pointer: fine) {
+  :root #ui .dialogue-choices button {
+    position: relative;
+    justify-content: center;
+    min-height: 32px;
+    padding-inline: 40px;
+    text-align: center;
+    border-bottom: 0;
+  }
+  :root #ui .dialogue-choices button > .icon {
+    display: none;
+  }
+  :root #ui .dialogue-choices .choice-index {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
